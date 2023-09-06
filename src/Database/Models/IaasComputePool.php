@@ -6,15 +6,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use NextDeveloper\Commons\Database\Traits\Filterable;
-use NextDeveloper\IAAS\Database\Observers\IaasDatacenterObserver;
+use NextDeveloper\IAAS\Database\Observers\IaasComputePoolObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 
 /**
-* Class IaasDatacenter.
+* Class IaasComputePool.
 *
 * @package NextDeveloper\IAAS\Database\Models
 */
-class IaasDatacenter extends Model
+class IaasComputePool extends Model
 {
 use Filterable, UuidId;
 	use SoftDeletes;
@@ -22,7 +22,7 @@ use Filterable, UuidId;
 
 	public $timestamps = true;
 
-protected $table = 'iaas_datacenters';
+protected $table = 'iaas_compute_pools';
 
 
 /**
@@ -49,24 +49,22 @@ protected $appends = [
 * @var array
 */
 protected $casts = [
-'id'                 => 'integer',
-		'uuid'               => 'string',
-		'name'               => 'string',
-		'slug'               => 'string',
-		'is_public'          => 'boolean',
-		'is_active'          => 'boolean',
-		'maintenance_mode'   => 'boolean',
-		'geo_latitude'       => 'string',
-		'geo_longitude'      => 'string',
-		'total_capacity'     => 'integer',
-		'guaranteed_uptime'  => 'double',
-		'is_carrier_neutral' => 'boolean',
-		'city'               => 'string',
-		'iam_account_id'     => 'integer',
-		'common_country_id'  => 'integer',
-		'created_at'         => 'datetime',
-		'updated_at'         => 'datetime',
-		'deleted_at'         => 'datetime',
+'id'                      => 'integer',
+		'uuid'                    => 'string',
+		'name'                    => 'string',
+		'resource_validator'      => 'string',
+		'virtualization_version'  => 'string',
+		'provisioning_alg'        => 'string',
+		'management_package_name' => 'string',
+		'is_active'               => 'boolean',
+		'is_alive'                => 'boolean',
+		'is_public'               => 'boolean',
+		'iaas_datacenter_id'      => 'integer',
+		'iam_account_id'          => 'integer',
+		'iam_user_id'             => 'integer',
+		'created_at'              => 'datetime',
+		'updated_at'              => 'datetime',
+		'deleted_at'              => 'datetime',
 ];
 
 /**
@@ -99,7 +97,7 @@ public static function boot()
 parent::boot();
 
 //  We create and add Observer even if we wont use it.
-parent::observe(IaasDatacenterObserver::class);
+parent::observe(IaasComputePoolObserver::class);
 
 self::registerScopes();
 }
@@ -107,7 +105,7 @@ self::registerScopes();
 public static function registerScopes()
 {
 $globalScopes = config('iaas.scopes.global');
-$modelScopes = config('iaas.scopes.iaas_datacenters');
+$modelScopes = config('iaas.scopes.iaas_compute_pools');
 
 if(!$modelScopes) $modelScopes = [];
 if (!$globalScopes) $globalScopes = [];
@@ -124,10 +122,15 @@ static::addGlobalScope(app($scope));
 }
 }
 
-public function iaasComputePools()
+public function iaasComputeMembers()
     {
-        return $this->hasMany(IaasComputePool::class);
+        return $this->hasMany(IaasComputeMember::class);
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n
+    public function iaasDatacenter()
+    {
+        return $this->belongsTo(IaasDatacenter::class);
+    }
+    
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }
