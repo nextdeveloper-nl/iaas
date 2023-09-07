@@ -1,6 +1,14 @@
 <?php
 
 Route::prefix('iaas')->group(function() {
+Route::prefix('cloud-nodes')->group(function () {
+        Route::get('/', 'IaasCloudNode\IaasCloudNodeController@index');
+        Route::get('/{iaas_cloud_nodes}', 'IaasCloudNode\IaasCloudNodeController@show');
+        Route::post('/', 'IaasCloudNode\IaasCloudNodeController@store');
+        Route::patch('/{iaas_cloud_nodes}', 'IaasCloudNode\IaasCloudNodeController@update');
+        Route::delete('/{iaas_cloud_nodes}', 'IaasCloudNode\IaasCloudNodeController@destroy');
+    });
+
 Route::prefix('compute-members')->group(function () {
         Route::get('/', 'IaasComputeMember\IaasComputeMemberController@index');
         Route::get('/{iaas_compute_members}', 'IaasComputeMember\IaasComputeMemberController@show');
@@ -25,5 +33,21 @@ Route::prefix('datacenters')->group(function () {
         Route::delete('/{iaas_datacenters}', 'IaasDatacenter\IaasDatacenterController@destroy');
     });
 
-// EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n
+Route::prefix('network-pools')->group(function () {
+        Route::get('/', 'IaasNetworkPool\IaasNetworkPoolController@index');
+        Route::get('/{iaas_network_pools}', 'IaasNetworkPool\IaasNetworkPoolController@show');
+        Route::post('/', 'IaasNetworkPool\IaasNetworkPoolController@store');
+        Route::patch('/{iaas_network_pools}', 'IaasNetworkPool\IaasNetworkPoolController@update');
+        Route::delete('/{iaas_network_pools}', 'IaasNetworkPool\IaasNetworkPoolController@destroy');
+    });
+
+Route::prefix('storage-pools')->group(function () {
+        Route::get('/', 'IaasStoragePool\IaasStoragePoolController@index');
+        Route::get('/{iaas_storage_pools}', 'IaasStoragePool\IaasStoragePoolController@show');
+        Route::post('/', 'IaasStoragePool\IaasStoragePoolController@store');
+        Route::patch('/{iaas_storage_pools}', 'IaasStoragePool\IaasStoragePoolController@update');
+        Route::delete('/{iaas_storage_pools}', 'IaasStoragePool\IaasStoragePoolController@destroy');
+    });
+
+// EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n
 });

@@ -97,6 +97,15 @@ class IaasComputePoolQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function iaasCloudNodeId($value)
+    {
+        $iaasCloudNode = IaasCloudNode::where('uuid', $value)->first();
+
+        if($iaasCloudNode) {
+            return $this->builder->where('iaas_cloud_node_id', '=', $iaasCloudNode->id);
+        }
+    }
+
     public function iamAccountId($value)
     {
         $iamAccount = IamAccount::where('uuid', $value)->first();
@@ -115,5 +124,5 @@ class IaasComputePoolQueryFilter extends AbstractQueryFilter
         }
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n
 }

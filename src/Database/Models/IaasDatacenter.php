@@ -124,10 +124,20 @@ static::addGlobalScope(app($scope));
 }
 }
 
-public function iaasComputePools()
+public function iaasCloudNodes()
+    {
+        return $this->hasMany(IaasCloudNode::class);
+    }
+
+    public function iaasComputePools()
     {
         return $this->hasMany(IaasComputePool::class);
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n
+    public function iaasNetworkPools()
+    {
+        return $this->hasMany(IaasNetworkPool::class);
+    }
+
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n
 }

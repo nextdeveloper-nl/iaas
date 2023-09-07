@@ -19,6 +19,7 @@ class AbstractIaasComputePoolTransformer extends AbstractTransformer {
      */
     public function transform(IaasComputePool $model) {
                         $iaasDatacenterId = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::where('id', $model->iaas_datacenter_id)->first();
+                    $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::where('id', $model->iaas_cloud_node_id)->first();
                     $iamAccountId = \NextDeveloper\IAM\Database\Models\IamAccount::where('id', $model->iam_account_id)->first();
                     $iamUserId = \NextDeveloper\IAM\Database\Models\IamUser::where('id', $model->iam_user_id)->first();
             
@@ -37,6 +38,7 @@ class AbstractIaasComputePoolTransformer extends AbstractTransformer {
 'is_alive'  =>  $model->is_alive,
 'is_public'  =>  $model->is_public,
 'iaas_datacenter_id'  =>  $iaasDatacenterId ? $iaasDatacenterId->uuid : null,
+'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
 'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
 'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
 'created_at'  =>  $model->created_at,
@@ -45,5 +47,6 @@ class AbstractIaasComputePoolTransformer extends AbstractTransformer {
     ]);
     }
     
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n
+
 }

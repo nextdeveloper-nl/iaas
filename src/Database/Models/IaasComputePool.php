@@ -60,6 +60,7 @@ protected $casts = [
 		'is_alive'                => 'boolean',
 		'is_public'               => 'boolean',
 		'iaas_datacenter_id'      => 'integer',
+		'iaas_cloud_node_id'      => 'integer',
 		'iam_account_id'          => 'integer',
 		'iam_user_id'             => 'integer',
 		'created_at'              => 'datetime',
@@ -127,10 +128,15 @@ public function iaasComputeMembers()
         return $this->hasMany(IaasComputeMember::class);
     }
 
+    public function iaasCloudNode()
+    {
+        return $this->belongsTo(IaasCloudNode::class);
+    }
+    
     public function iaasDatacenter()
     {
         return $this->belongsTo(IaasDatacenter::class);
     }
     
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n
 }
