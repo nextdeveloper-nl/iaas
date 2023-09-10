@@ -2,52 +2,68 @@
 
 Route::prefix('iaas')->group(function() {
 Route::prefix('cloud-nodes')->group(function () {
-        Route::get('/', 'IaasCloudNode\IaasCloudNodeController@index');
-        Route::get('/{iaas_cloud_nodes}', 'IaasCloudNode\IaasCloudNodeController@show');
-        Route::post('/', 'IaasCloudNode\IaasCloudNodeController@store');
-        Route::patch('/{iaas_cloud_nodes}', 'IaasCloudNode\IaasCloudNodeController@update');
-        Route::delete('/{iaas_cloud_nodes}', 'IaasCloudNode\IaasCloudNodeController@destroy');
+        Route::get('/', 'CloudNodes\CloudNodesController@index');
+        Route::get('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@show');
+        Route::post('/', 'CloudNodes\CloudNodesController@store');
+        Route::patch('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@update');
+        Route::delete('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@destroy');
     });
 
 Route::prefix('compute-members')->group(function () {
-        Route::get('/', 'IaasComputeMember\IaasComputeMemberController@index');
-        Route::get('/{iaas_compute_members}', 'IaasComputeMember\IaasComputeMemberController@show');
-        Route::post('/', 'IaasComputeMember\IaasComputeMemberController@store');
-        Route::patch('/{iaas_compute_members}', 'IaasComputeMember\IaasComputeMemberController@update');
-        Route::delete('/{iaas_compute_members}', 'IaasComputeMember\IaasComputeMemberController@destroy');
+        Route::get('/', 'ComputeMembers\ComputeMembersController@index');
+        Route::get('/{iaas_compute_members}', 'ComputeMembers\ComputeMembersController@show');
+        Route::post('/', 'ComputeMembers\ComputeMembersController@store');
+        Route::patch('/{iaas_compute_members}', 'ComputeMembers\ComputeMembersController@update');
+        Route::delete('/{iaas_compute_members}', 'ComputeMembers\ComputeMembersController@destroy');
     });
 
 Route::prefix('compute-pools')->group(function () {
-        Route::get('/', 'IaasComputePool\IaasComputePoolController@index');
-        Route::get('/{iaas_compute_pools}', 'IaasComputePool\IaasComputePoolController@show');
-        Route::post('/', 'IaasComputePool\IaasComputePoolController@store');
-        Route::patch('/{iaas_compute_pools}', 'IaasComputePool\IaasComputePoolController@update');
-        Route::delete('/{iaas_compute_pools}', 'IaasComputePool\IaasComputePoolController@destroy');
+        Route::get('/', 'ComputePools\ComputePoolsController@index');
+        Route::get('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@show');
+        Route::post('/', 'ComputePools\ComputePoolsController@store');
+        Route::patch('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@update');
+        Route::delete('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@destroy');
     });
 
 Route::prefix('datacenters')->group(function () {
-        Route::get('/', 'IaasDatacenter\IaasDatacenterController@index');
-        Route::get('/{iaas_datacenters}', 'IaasDatacenter\IaasDatacenterController@show');
-        Route::post('/', 'IaasDatacenter\IaasDatacenterController@store');
-        Route::patch('/{iaas_datacenters}', 'IaasDatacenter\IaasDatacenterController@update');
-        Route::delete('/{iaas_datacenters}', 'IaasDatacenter\IaasDatacenterController@destroy');
+        Route::get('/', 'Datacenters\DatacentersController@index');
+        Route::get('/{iaas_datacenters}', 'Datacenters\DatacentersController@show');
+        Route::post('/', 'Datacenters\DatacentersController@store');
+        Route::patch('/{iaas_datacenters}', 'Datacenters\DatacentersController@update');
+        Route::delete('/{iaas_datacenters}', 'Datacenters\DatacentersController@destroy');
     });
 
 Route::prefix('network-pools')->group(function () {
-        Route::get('/', 'IaasNetworkPool\IaasNetworkPoolController@index');
-        Route::get('/{iaas_network_pools}', 'IaasNetworkPool\IaasNetworkPoolController@show');
-        Route::post('/', 'IaasNetworkPool\IaasNetworkPoolController@store');
-        Route::patch('/{iaas_network_pools}', 'IaasNetworkPool\IaasNetworkPoolController@update');
-        Route::delete('/{iaas_network_pools}', 'IaasNetworkPool\IaasNetworkPoolController@destroy');
+        Route::get('/', 'NetworkPools\NetworkPoolsController@index');
+        Route::get('/{iaas_network_pools}', 'NetworkPools\NetworkPoolsController@show');
+        Route::post('/', 'NetworkPools\NetworkPoolsController@store');
+        Route::patch('/{iaas_network_pools}', 'NetworkPools\NetworkPoolsController@update');
+        Route::delete('/{iaas_network_pools}', 'NetworkPools\NetworkPoolsController@destroy');
     });
 
 Route::prefix('storage-pools')->group(function () {
-        Route::get('/', 'IaasStoragePool\IaasStoragePoolController@index');
-        Route::get('/{iaas_storage_pools}', 'IaasStoragePool\IaasStoragePoolController@show');
-        Route::post('/', 'IaasStoragePool\IaasStoragePoolController@store');
-        Route::patch('/{iaas_storage_pools}', 'IaasStoragePool\IaasStoragePoolController@update');
-        Route::delete('/{iaas_storage_pools}', 'IaasStoragePool\IaasStoragePoolController@destroy');
+        Route::get('/', 'StoragePools\StoragePoolsController@index');
+        Route::get('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@show');
+        Route::post('/', 'StoragePools\StoragePoolsController@store');
+        Route::patch('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@update');
+        Route::delete('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@destroy');
     });
 
-// EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n
+Route::prefix('storage-volumes')->group(function () {
+        Route::get('/', 'StorageVolumes\StorageVolumesController@index');
+        Route::get('/{iaas_storage_volumes}', 'StorageVolumes\StorageVolumesController@show');
+        Route::post('/', 'StorageVolumes\StorageVolumesController@store');
+        Route::patch('/{iaas_storage_volumes}', 'StorageVolumes\StorageVolumesController@update');
+        Route::delete('/{iaas_storage_volumes}', 'StorageVolumes\StorageVolumesController@destroy');
+    });
+
+Route::prefix('virtual-machines')->group(function () {
+        Route::get('/', 'VirtualMachines\VirtualMachinesController@index');
+        Route::get('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@show');
+        Route::post('/', 'VirtualMachines\VirtualMachinesController@store');
+        Route::patch('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@update');
+        Route::delete('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@destroy');
+    });
+
+// EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 });
