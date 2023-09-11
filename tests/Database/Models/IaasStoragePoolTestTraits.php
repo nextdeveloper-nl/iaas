@@ -16,18 +16,20 @@ trait IaasStoragePoolTestTraits
     public $http;
 
     /**
-    *   Creating the Guzzle object
-    */
+     *   Creating the Guzzle object
+     */
     public function setupGuzzle()
     {
-        $this->http = new Client([
+        $this->http = new Client(
+            [
             'base_uri'  =>  '127.0.0.1:8000'
-        ]);
+            ]
+        );
     }
 
     /**
-    *   Destroying the Guzzle object
-    */
+     *   Destroying the Guzzle object
+     */
     public function destroyGuzzle()
     {
         $this->http = null;
@@ -42,16 +44,19 @@ trait IaasStoragePoolTestTraits
             ['http_errors' => false]
         );
 
-        $this->assertContains($response->getStatusCode(), [
+        $this->assertContains(
+            $response->getStatusCode(), [
             Response::HTTP_OK,
             Response::HTTP_NOT_FOUND
-        ]);
+            ]
+        );
     }
 
     public function test_http_iaasstoragepool_post()
     {
         $this->setupGuzzle();
-        $response = $this->http->request('POST', '/iaas/iaasstoragepool', [
+        $response = $this->http->request(
+            'POST', '/iaas/iaasstoragepool', [
             'form_params'   =>  [
                 'name'  =>  'a',
                 'gb_per_hour_price'  =>  '1',
@@ -64,10 +69,10 @@ trait IaasStoragePoolTestTraits
     }
 
     /**
-    * Get test
-    *
-    * @return bool
-    */
+     * Get test
+     *
+     * @return bool
+     */
     public function test_iaasstoragepool_model_get()
     {
         $result = AbstractIaasStoragePoolService::get();
@@ -84,9 +89,11 @@ trait IaasStoragePoolTestTraits
 
     public function test_iaasstoragepool_get_paginated()
     {
-        $result = AbstractIaasStoragePoolService::get(null, [
+        $result = AbstractIaasStoragePoolService::get(
+            null, [
             'paginated' =>  'true'
-        ]);
+            ]
+        );
 
         $this->assertIsObject($result, LengthAwarePaginator::class);
     }
@@ -94,7 +101,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_retrieved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRetrievedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRetrievedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -104,7 +111,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_created_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolCreatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolCreatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -114,7 +121,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_creating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolCreatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolCreatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -124,7 +131,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_saving_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolSavingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolSavingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -134,7 +141,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_saved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolSavedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolSavedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -144,7 +151,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_updating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolUpdatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolUpdatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -154,7 +161,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_updated_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolUpdatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolUpdatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -164,7 +171,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_deleting_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolDeletingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolDeletingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -174,7 +181,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_deleted_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolDeletedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolDeletedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -184,7 +191,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_restoring_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoringEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoringEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -194,7 +201,7 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_restored_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoredEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoredEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -207,7 +214,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRetrievedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRetrievedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -219,7 +226,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolCreatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolCreatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -231,7 +238,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolCreatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolCreatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -243,7 +250,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolSavingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolSavingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -255,7 +262,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolSavedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolSavedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -267,7 +274,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolUpdatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolUpdatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -279,7 +286,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolUpdatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolUpdatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -291,7 +298,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolDeletingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolDeletingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -303,7 +310,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolDeletedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolDeletedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -315,7 +322,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoringEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoringEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -327,7 +334,7 @@ trait IaasStoragePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoredEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoredEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -338,9 +345,11 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_name_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'name'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -355,9 +364,11 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_gb_per_hour_price_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'gb_per_hour_price'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -372,9 +383,11 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_created_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -389,9 +402,11 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_updated_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -406,9 +421,11 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_deleted_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -423,9 +440,11 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_created_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -440,9 +459,11 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_updated_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -457,9 +478,11 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_deleted_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -474,10 +497,12 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_created_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now(),
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -492,10 +517,12 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_updated_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now(),
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -510,10 +537,12 @@ trait IaasStoragePoolTestTraits
     public function test_iaasstoragepool_event_deleted_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now(),
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasStoragePoolQueryFilter($request);
 
@@ -524,5 +553,5 @@ trait IaasStoragePoolTestTraits
 
         $this->assertTrue(true);
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

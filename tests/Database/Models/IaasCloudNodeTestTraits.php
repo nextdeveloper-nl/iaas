@@ -16,18 +16,20 @@ trait IaasCloudNodeTestTraits
     public $http;
 
     /**
-    *   Creating the Guzzle object
-    */
+     *   Creating the Guzzle object
+     */
     public function setupGuzzle()
     {
-        $this->http = new Client([
+        $this->http = new Client(
+            [
             'base_uri'  =>  '127.0.0.1:8000'
-        ]);
+            ]
+        );
     }
 
     /**
-    *   Destroying the Guzzle object
-    */
+     *   Destroying the Guzzle object
+     */
     public function destroyGuzzle()
     {
         $this->http = null;
@@ -42,16 +44,19 @@ trait IaasCloudNodeTestTraits
             ['http_errors' => false]
         );
 
-        $this->assertContains($response->getStatusCode(), [
+        $this->assertContains(
+            $response->getStatusCode(), [
             Response::HTTP_OK,
             Response::HTTP_NOT_FOUND
-        ]);
+            ]
+        );
     }
 
     public function test_http_iaascloudnode_post()
     {
         $this->setupGuzzle();
-        $response = $this->http->request('POST', '/iaas/iaascloudnode', [
+        $response = $this->http->request(
+            'POST', '/iaas/iaascloudnode', [
             'form_params'   =>  [
                 'name'  =>  'a',
                 'slug'  =>  'a',
@@ -66,10 +71,10 @@ trait IaasCloudNodeTestTraits
     }
 
     /**
-    * Get test
-    *
-    * @return bool
-    */
+     * Get test
+     *
+     * @return bool
+     */
     public function test_iaascloudnode_model_get()
     {
         $result = AbstractIaasCloudNodeService::get();
@@ -86,9 +91,11 @@ trait IaasCloudNodeTestTraits
 
     public function test_iaascloudnode_get_paginated()
     {
-        $result = AbstractIaasCloudNodeService::get(null, [
+        $result = AbstractIaasCloudNodeService::get(
+            null, [
             'paginated' =>  'true'
-        ]);
+            ]
+        );
 
         $this->assertIsObject($result, LengthAwarePaginator::class);
     }
@@ -96,7 +103,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_retrieved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRetrievedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRetrievedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -106,7 +113,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_created_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeCreatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeCreatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -116,7 +123,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_creating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeCreatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeCreatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -126,7 +133,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_saving_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeSavingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeSavingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -136,7 +143,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_saved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeSavedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeSavedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -146,7 +153,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_updating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeUpdatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeUpdatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -156,7 +163,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_updated_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeUpdatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeUpdatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -166,7 +173,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_deleting_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeDeletingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeDeletingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -176,7 +183,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_deleted_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeDeletedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeDeletedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -186,7 +193,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_restoring_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRestoringEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRestoringEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -196,7 +203,7 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_restored_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRestoredEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRestoredEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -209,7 +216,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRetrievedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRetrievedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -221,7 +228,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeCreatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeCreatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -233,7 +240,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeCreatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeCreatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -245,7 +252,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeSavingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeSavingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -257,7 +264,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeSavedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeSavedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -269,7 +276,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeUpdatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeUpdatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -281,7 +288,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeUpdatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeUpdatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -293,7 +300,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeDeletingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeDeletingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -305,7 +312,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeDeletedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeDeletedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -317,7 +324,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRestoringEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRestoringEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -329,7 +336,7 @@ trait IaasCloudNodeTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRestoredEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasCloudNode\IaasCloudNodeRestoredEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -340,9 +347,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_name_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'name'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -357,9 +366,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_slug_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'slug'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -374,9 +385,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_maintenance_mode_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'maintenance_mode'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -391,9 +404,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_position_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'position'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -408,9 +423,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_created_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -425,9 +442,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_updated_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -442,9 +461,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_deleted_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -459,9 +480,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_created_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -476,9 +499,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_updated_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -493,9 +518,11 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_deleted_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -510,10 +537,12 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_created_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now(),
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -528,10 +557,12 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_updated_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now(),
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -546,10 +577,12 @@ trait IaasCloudNodeTestTraits
     public function test_iaascloudnode_event_deleted_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now(),
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasCloudNodeQueryFilter($request);
 
@@ -560,5 +593,5 @@ trait IaasCloudNodeTestTraits
 
         $this->assertTrue(true);
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

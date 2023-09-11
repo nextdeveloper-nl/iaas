@@ -16,18 +16,20 @@ trait IaasDatacenterTestTraits
     public $http;
 
     /**
-    *   Creating the Guzzle object
-    */
+     *   Creating the Guzzle object
+     */
     public function setupGuzzle()
     {
-        $this->http = new Client([
+        $this->http = new Client(
+            [
             'base_uri'  =>  '127.0.0.1:8000'
-        ]);
+            ]
+        );
     }
 
     /**
-    *   Destroying the Guzzle object
-    */
+     *   Destroying the Guzzle object
+     */
     public function destroyGuzzle()
     {
         $this->http = null;
@@ -42,16 +44,19 @@ trait IaasDatacenterTestTraits
             ['http_errors' => false]
         );
 
-        $this->assertContains($response->getStatusCode(), [
+        $this->assertContains(
+            $response->getStatusCode(), [
             Response::HTTP_OK,
             Response::HTTP_NOT_FOUND
-        ]);
+            ]
+        );
     }
 
     public function test_http_iaasdatacenter_post()
     {
         $this->setupGuzzle();
-        $response = $this->http->request('POST', '/iaas/iaasdatacenter', [
+        $response = $this->http->request(
+            'POST', '/iaas/iaasdatacenter', [
             'form_params'   =>  [
                 'name'  =>  'a',
                 'slug'  =>  'a',
@@ -70,10 +75,10 @@ trait IaasDatacenterTestTraits
     }
 
     /**
-    * Get test
-    *
-    * @return bool
-    */
+     * Get test
+     *
+     * @return bool
+     */
     public function test_iaasdatacenter_model_get()
     {
         $result = AbstractIaasDatacenterService::get();
@@ -90,9 +95,11 @@ trait IaasDatacenterTestTraits
 
     public function test_iaasdatacenter_get_paginated()
     {
-        $result = AbstractIaasDatacenterService::get(null, [
+        $result = AbstractIaasDatacenterService::get(
+            null, [
             'paginated' =>  'true'
-        ]);
+            ]
+        );
 
         $this->assertIsObject($result, LengthAwarePaginator::class);
     }
@@ -100,7 +107,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_retrieved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRetrievedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRetrievedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -110,7 +117,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_created_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterCreatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterCreatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -120,7 +127,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_creating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterCreatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterCreatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -130,7 +137,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_saving_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterSavingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterSavingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -140,7 +147,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_saved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterSavedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterSavedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -150,7 +157,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_updating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterUpdatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterUpdatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -160,7 +167,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_updated_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterUpdatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterUpdatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -170,7 +177,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_deleting_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterDeletingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterDeletingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -180,7 +187,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_deleted_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterDeletedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterDeletedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -190,7 +197,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_restoring_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRestoringEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRestoringEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -200,7 +207,7 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_restored_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRestoredEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRestoredEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -213,7 +220,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRetrievedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRetrievedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -225,7 +232,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterCreatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterCreatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -237,7 +244,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterCreatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterCreatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -249,7 +256,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterSavingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterSavingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -261,7 +268,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterSavedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterSavedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -273,7 +280,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterUpdatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterUpdatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -285,7 +292,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterUpdatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterUpdatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -297,7 +304,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterDeletingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterDeletingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -309,7 +316,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterDeletedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterDeletedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -321,7 +328,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRestoringEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRestoringEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -333,7 +340,7 @@ trait IaasDatacenterTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRestoredEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasDatacenter\IaasDatacenterRestoredEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -344,9 +351,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_name_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'name'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -361,9 +370,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_slug_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'slug'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -378,9 +389,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_geo_latitude_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'geo_latitude'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -395,9 +408,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_geo_longitude_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'geo_longitude'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -412,9 +427,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_city_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'city'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -429,9 +446,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_maintenance_mode_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'maintenance_mode'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -446,9 +465,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_total_capacity_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'total_capacity'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -463,9 +484,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_guaranteed_uptime_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'guaranteed_uptime'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -480,9 +503,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_created_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -497,9 +522,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_updated_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -514,9 +541,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_deleted_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -531,9 +560,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_created_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -548,9 +579,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_updated_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -565,9 +598,11 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_deleted_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -582,10 +617,12 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_created_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now(),
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -600,10 +637,12 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_updated_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now(),
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -618,10 +657,12 @@ trait IaasDatacenterTestTraits
     public function test_iaasdatacenter_event_deleted_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now(),
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasDatacenterQueryFilter($request);
 
@@ -632,5 +673,5 @@ trait IaasDatacenterTestTraits
 
         $this->assertTrue(true);
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

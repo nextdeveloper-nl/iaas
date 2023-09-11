@@ -10,20 +10,21 @@ class CloudNodesUpdateRequest extends AbstractFormRequest
     /**
      * @return array
      */
-    public function rules() {
+    public function rules()
+    {
         return [
             'name'               => 'nullable|string|max:100',
-			'slug'               => 'nullable|string|max:100',
-			'is_active'          => 'boolean',
-			'is_public'          => 'boolean',
-			'is_edge'            => 'boolean',
-			'is_alive'           => 'boolean',
-			'maintenance_mode'   => 'boolean',
-			'position'           => 'nullable|integer',
-			'iaas_datacenter_id' => 'nullable|exists:iaas_datacenters,uuid|uuid',
-			'iam_account_id'     => 'nullable|exists:iam_accounts,uuid|uuid',
-			'iam_user_id'        => 'nullable|exists:iam_users,uuid|uuid',
+        'slug'               => 'nullable|string|max:100',
+        'is_active'          => 'boolean',
+        'is_public'          => 'boolean',
+        'is_edge'            => 'boolean',
+        'is_alive'           => 'boolean',
+        'maintenance_mode'   => 'boolean',
+        'position'           => 'nullable|integer',
+        'iaas_datacenter_id' => 'nullable|exists:iaas_datacenters,uuid|uuid',
+        'iam_account_id'     => 'nullable|exists:iam_accounts,uuid|uuid',
+        'iam_user_id'        => 'nullable|exists:iam_users,uuid|uuid',
         ];
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

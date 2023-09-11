@@ -16,18 +16,20 @@ trait IaasComputeMemberTestTraits
     public $http;
 
     /**
-    *   Creating the Guzzle object
-    */
+     *   Creating the Guzzle object
+     */
     public function setupGuzzle()
     {
-        $this->http = new Client([
+        $this->http = new Client(
+            [
             'base_uri'  =>  '127.0.0.1:8000'
-        ]);
+            ]
+        );
     }
 
     /**
-    *   Destroying the Guzzle object
-    */
+     *   Destroying the Guzzle object
+     */
     public function destroyGuzzle()
     {
         $this->http = null;
@@ -42,16 +44,19 @@ trait IaasComputeMemberTestTraits
             ['http_errors' => false]
         );
 
-        $this->assertContains($response->getStatusCode(), [
+        $this->assertContains(
+            $response->getStatusCode(), [
             Response::HTTP_OK,
             Response::HTTP_NOT_FOUND
-        ]);
+            ]
+        );
     }
 
     public function test_http_iaascomputemember_post()
     {
         $this->setupGuzzle();
-        $response = $this->http->request('POST', '/iaas/iaascomputemember', [
+        $response = $this->http->request(
+            'POST', '/iaas/iaascomputemember', [
             'form_params'   =>  [
                 'name'  =>  'a',
                 'hostname'  =>  'a',
@@ -85,10 +90,10 @@ trait IaasComputeMemberTestTraits
     }
 
     /**
-    * Get test
-    *
-    * @return bool
-    */
+     * Get test
+     *
+     * @return bool
+     */
     public function test_iaascomputemember_model_get()
     {
         $result = AbstractIaasComputeMemberService::get();
@@ -105,9 +110,11 @@ trait IaasComputeMemberTestTraits
 
     public function test_iaascomputemember_get_paginated()
     {
-        $result = AbstractIaasComputeMemberService::get(null, [
+        $result = AbstractIaasComputeMemberService::get(
+            null, [
             'paginated' =>  'true'
-        ]);
+            ]
+        );
 
         $this->assertIsObject($result, LengthAwarePaginator::class);
     }
@@ -115,7 +122,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_retrieved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRetrievedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRetrievedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -125,7 +132,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_created_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberCreatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberCreatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -135,7 +142,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_creating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberCreatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberCreatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -145,7 +152,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_saving_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberSavingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberSavingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -155,7 +162,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_saved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberSavedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberSavedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -165,7 +172,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_updating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberUpdatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberUpdatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -175,7 +182,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_updated_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberUpdatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberUpdatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -185,7 +192,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_deleting_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberDeletingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberDeletingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -195,7 +202,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_deleted_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberDeletedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberDeletedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -205,7 +212,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_restoring_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRestoringEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRestoringEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -215,7 +222,7 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_restored_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRestoredEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRestoredEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -228,7 +235,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRetrievedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRetrievedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -240,7 +247,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberCreatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberCreatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -252,7 +259,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberCreatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberCreatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -264,7 +271,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberSavingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberSavingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -276,7 +283,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberSavedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberSavedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -288,7 +295,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberUpdatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberUpdatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -300,7 +307,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberUpdatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberUpdatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -312,7 +319,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberDeletingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberDeletingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -324,7 +331,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberDeletedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberDeletedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -336,7 +343,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRestoringEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRestoringEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -348,7 +355,7 @@ trait IaasComputeMemberTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRestoredEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputeMember\IaasComputeMemberRestoredEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -359,9 +366,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_name_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'name'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -376,9 +385,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_hostname_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'hostname'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -393,9 +404,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_ip_addr_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'ip_addr'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -410,9 +423,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_local_ip_addr_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'local_ip_addr'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -427,9 +442,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_api_url_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'api_url'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -444,9 +461,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_username_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'username'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -461,9 +480,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_password_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'password'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -478,9 +499,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_features_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'features'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -495,9 +518,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_hypervisor_uuid_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'hypervisor_uuid'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -512,9 +537,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_hypervisor_data_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'hypervisor_data'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -529,9 +556,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_port_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'port'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -546,9 +575,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_total_cpu_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'total_cpu'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -563,9 +594,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_total_ram_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'total_ram'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -580,9 +613,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_used_cpu_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'used_cpu'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -597,9 +632,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_used_ram_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'used_ram'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -614,9 +651,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_free_cpu_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'free_cpu'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -631,9 +670,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_free_ram_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'free_ram'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -648,9 +689,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_total_vm_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'total_vm'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -665,9 +708,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_overbooking_ratio_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'overbooking_ratio'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -682,9 +727,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_max_overbooking_ratio_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'max_overbooking_ratio'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -699,9 +746,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_uptime_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'uptime'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -716,9 +765,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_idle_time_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'idle_time'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -733,9 +784,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_benchmark_score_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'benchmark_score'  =>  '1'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -750,9 +803,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_created_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -767,9 +822,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_updated_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -784,9 +841,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_deleted_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -801,9 +860,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_created_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -818,9 +879,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_updated_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -835,9 +898,11 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_deleted_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -852,10 +917,12 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_created_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now(),
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -870,10 +937,12 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_updated_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now(),
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -888,10 +957,12 @@ trait IaasComputeMemberTestTraits
     public function test_iaascomputemember_event_deleted_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now(),
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputeMemberQueryFilter($request);
 
@@ -902,5 +973,5 @@ trait IaasComputeMemberTestTraits
 
         $this->assertTrue(true);
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

@@ -16,18 +16,20 @@ trait IaasComputePoolTestTraits
     public $http;
 
     /**
-    *   Creating the Guzzle object
-    */
+     *   Creating the Guzzle object
+     */
     public function setupGuzzle()
     {
-        $this->http = new Client([
+        $this->http = new Client(
+            [
             'base_uri'  =>  '127.0.0.1:8000'
-        ]);
+            ]
+        );
     }
 
     /**
-    *   Destroying the Guzzle object
-    */
+     *   Destroying the Guzzle object
+     */
     public function destroyGuzzle()
     {
         $this->http = null;
@@ -42,16 +44,19 @@ trait IaasComputePoolTestTraits
             ['http_errors' => false]
         );
 
-        $this->assertContains($response->getStatusCode(), [
+        $this->assertContains(
+            $response->getStatusCode(), [
             Response::HTTP_OK,
             Response::HTTP_NOT_FOUND
-        ]);
+            ]
+        );
     }
 
     public function test_http_iaascomputepool_post()
     {
         $this->setupGuzzle();
-        $response = $this->http->request('POST', '/iaas/iaascomputepool', [
+        $response = $this->http->request(
+            'POST', '/iaas/iaascomputepool', [
             'form_params'   =>  [
                 'name'  =>  'a',
                 'resource_validator'  =>  'a',
@@ -67,10 +72,10 @@ trait IaasComputePoolTestTraits
     }
 
     /**
-    * Get test
-    *
-    * @return bool
-    */
+     * Get test
+     *
+     * @return bool
+     */
     public function test_iaascomputepool_model_get()
     {
         $result = AbstractIaasComputePoolService::get();
@@ -87,9 +92,11 @@ trait IaasComputePoolTestTraits
 
     public function test_iaascomputepool_get_paginated()
     {
-        $result = AbstractIaasComputePoolService::get(null, [
+        $result = AbstractIaasComputePoolService::get(
+            null, [
             'paginated' =>  'true'
-        ]);
+            ]
+        );
 
         $this->assertIsObject($result, LengthAwarePaginator::class);
     }
@@ -97,7 +104,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_retrieved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRetrievedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRetrievedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -107,7 +114,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_created_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolCreatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolCreatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -117,7 +124,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_creating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolCreatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolCreatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -127,7 +134,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_saving_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolSavingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolSavingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -137,7 +144,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_saved_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolSavedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolSavedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -147,7 +154,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_updating_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolUpdatingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolUpdatingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -157,7 +164,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_updated_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolUpdatedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolUpdatedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -167,7 +174,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_deleting_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolDeletingEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolDeletingEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -177,7 +184,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_deleted_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolDeletedEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolDeletedEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -187,7 +194,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_restoring_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRestoringEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRestoringEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -197,7 +204,7 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_restored_without_object()
     {
         try {
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRestoredEvent() );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRestoredEvent());
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -210,7 +217,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRetrievedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRetrievedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -222,7 +229,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolCreatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolCreatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -234,7 +241,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolCreatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolCreatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -246,7 +253,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolSavingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolSavingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -258,7 +265,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolSavedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolSavedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -270,7 +277,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolUpdatingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolUpdatingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -282,7 +289,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolUpdatedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolUpdatedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -294,7 +301,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolDeletingEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolDeletingEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -306,7 +313,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolDeletedEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolDeletedEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -318,7 +325,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRestoringEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRestoringEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -330,7 +337,7 @@ trait IaasComputePoolTestTraits
         try {
             $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::first();
 
-            event( new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRestoredEvent($model) );
+            event(new \NextDeveloper\IAAS\Events\IaasComputePool\IaasComputePoolRestoredEvent($model));
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
@@ -341,9 +348,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_name_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'name'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -358,9 +367,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_resource_validator_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'resource_validator'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -375,9 +386,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_virtualization_version_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'virtualization_version'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -392,9 +405,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_provisioning_alg_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'provisioning_alg'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -409,9 +424,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_management_package_name_filter()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'management_package_name'  =>  'a'
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -426,9 +443,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_created_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -443,9 +462,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_updated_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -460,9 +481,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_deleted_at_filter_start()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -477,9 +500,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_created_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -494,9 +519,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_updated_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -511,9 +538,11 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_deleted_at_filter_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -528,10 +557,12 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_created_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'created_atStart'  =>  now(),
                 'created_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -546,10 +577,12 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_updated_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'updated_atStart'  =>  now(),
                 'updated_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -564,10 +597,12 @@ trait IaasComputePoolTestTraits
     public function test_iaascomputepool_event_deleted_at_filter_start_and_end()
     {
         try {
-            $request = new Request([
+            $request = new Request(
+                [
                 'deleted_atStart'  =>  now(),
                 'deleted_atEnd'  =>  now()
-            ]);
+                ]
+            );
 
             $filter = new IaasComputePoolQueryFilter($request);
 
@@ -578,5 +613,5 @@ trait IaasComputePoolTestTraits
 
         $this->assertTrue(true);
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

@@ -14,8 +14,8 @@ use NextDeveloper\Accounts\Database\Models\User;
 class NetworkPoolsQueryFilter extends AbstractQueryFilter
 {
     /**
-    * @var Builder
-    */
+     * @var Builder
+     */
     protected $builder;
     
     public function name($value)
@@ -43,7 +43,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         $operator = substr($value, 0, 1);
 
         if ($operator != '<' || $operator != '>') {
-           $operator = '=';
+            $operator = '=';
         } else {
             $value = substr($value, 1);
         }
@@ -56,7 +56,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         $operator = substr($value, 0, 1);
 
         if ($operator != '<' || $operator != '>') {
-           $operator = '=';
+            $operator = '=';
         } else {
             $value = substr($value, 1);
         }
@@ -69,7 +69,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         $operator = substr($value, 0, 1);
 
         if ($operator != '<' || $operator != '>') {
-           $operator = '=';
+            $operator = '=';
         } else {
             $value = substr($value, 1);
         }
@@ -82,7 +82,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         $operator = substr($value, 0, 1);
 
         if ($operator != '<' || $operator != '>') {
-           $operator = '=';
+            $operator = '=';
         } else {
             $value = substr($value, 1);
         }
@@ -95,7 +95,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         $operator = substr($value, 0, 1);
 
         if ($operator != '<' || $operator != '>') {
-           $operator = '=';
+            $operator = '=';
         } else {
             $value = substr($value, 1);
         }
@@ -108,7 +108,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         $operator = substr($value, 0, 1);
 
         if ($operator != '<' || $operator != '>') {
-           $operator = '=';
+            $operator = '=';
         } else {
             $value = substr($value, 1);
         }
@@ -123,32 +123,32 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     
     public function createdAtStart($date) 
     {
-        return $this->builder->where( 'created_at', '>=', $date );
+        return $this->builder->where('created_at', '>=', $date);
     }
 
     public function createdAtEnd($date) 
     {
-        return $this->builder->where( 'created_at', '<=', $date );
+        return $this->builder->where('created_at', '<=', $date);
     }
 
     public function updatedAtStart($date) 
     {
-        return $this->builder->where( 'updated_at', '>=', $date );
+        return $this->builder->where('updated_at', '>=', $date);
     }
 
     public function updatedAtEnd($date) 
     {
-        return $this->builder->where( 'updated_at', '<=', $date );
+        return $this->builder->where('updated_at', '<=', $date);
     }
 
     public function deletedAtStart($date) 
     {
-        return $this->builder->where( 'deleted_at', '>=', $date );
+        return $this->builder->where('deleted_at', '>=', $date);
     }
 
     public function deletedAtEnd($date) 
     {
-        return $this->builder->where( 'deleted_at', '<=', $date );
+        return $this->builder->where('deleted_at', '<=', $date);
     }
 
     public function iaasDatacenterId($value)
@@ -187,5 +187,5 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }
