@@ -5,7 +5,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
 use NextDeveloper\Accounts\Database\Models\User;
-        
+                    
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -184,7 +184,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function iaasCloudNodeId($value)
     {
-        $iaasCloudNode = IaasCloudNode::where('uuid', $value)->first();
+        $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
 
         if($iaasCloudNode) {
             return $this->builder->where('iaas_cloud_node_id', '=', $iaasCloudNode->id);
@@ -193,7 +193,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function iaasComputeMemberId($value)
     {
-        $iaasComputeMember = IaasComputeMember::where('uuid', $value)->first();
+        $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
 
         if($iaasComputeMember) {
             return $this->builder->where('iaas_compute_member_id', '=', $iaasComputeMember->id);
@@ -202,7 +202,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function iamAccountId($value)
     {
-        $iamAccount = IamAccount::where('uuid', $value)->first();
+        $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
 
         if($iamAccount) {
             return $this->builder->where('iam_account_id', '=', $iamAccount->id);
@@ -211,7 +211,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function iamUserId($value)
     {
-        $iamUser = IamUser::where('uuid', $value)->first();
+        $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
 
         if($iamUser) {
             return $this->builder->where('iam_user_id', '=', $iamUser->id);
@@ -220,12 +220,12 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function fromTemplateId($value)
     {
-        $fromTemplate = FromTemplate::where('uuid', $value)->first();
+        $fromTemplate = \NextDeveloper\\Database\Models\FromTemplates::where('uuid', $value)->first();
 
         if($fromTemplate) {
             return $this->builder->where('from_template_id', '=', $fromTemplate->id);
         }
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }
