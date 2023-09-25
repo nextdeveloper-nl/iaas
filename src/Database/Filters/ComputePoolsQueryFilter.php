@@ -90,7 +90,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
 
     public function iaasDatacenterId($value)
     {
-        $iaasDatacenter = \NextDeveloper\IAAS\Database\Models\Datacenters::where('uuid', $value)->first();
+            $iaasDatacenter = \NextDeveloper\IAAS\Database\Models\Datacenters::where('uuid', $value)->first();
 
         if($iaasDatacenter) {
             return $this->builder->where('iaas_datacenter_id', '=', $iaasDatacenter->id);
@@ -99,7 +99,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
 
     public function iaasCloudNodeId($value)
     {
-        $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
+            $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
 
         if($iaasCloudNode) {
             return $this->builder->where('iaas_cloud_node_id', '=', $iaasCloudNode->id);
@@ -108,7 +108,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
 
     public function iamAccountId($value)
     {
-        $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
+            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
 
         if($iamAccount) {
             return $this->builder->where('iam_account_id', '=', $iamAccount->id);
@@ -117,12 +117,12 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
 
     public function iamUserId($value)
     {
-        $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
+            $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
 
         if($iamUser) {
             return $this->builder->where('iam_user_id', '=', $iamUser->id);
         }
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

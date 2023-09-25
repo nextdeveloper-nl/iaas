@@ -131,7 +131,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
 
     public function iaasStoragePoolId($value)
     {
-        $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
+            $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
 
         if($iaasStoragePool) {
             return $this->builder->where('iaas_storage_pool_id', '=', $iaasStoragePool->id);
@@ -140,12 +140,12 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
 
     public function iaasStorageMemberId($value)
     {
-        $iaasStorageMember = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('uuid', $value)->first();
+            $iaasStorageMember = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('uuid', $value)->first();
 
         if($iaasStorageMember) {
             return $this->builder->where('iaas_storage_member_id', '=', $iaasStorageMember->id);
         }
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }
