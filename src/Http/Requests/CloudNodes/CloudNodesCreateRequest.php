@@ -22,9 +22,7 @@ class CloudNodesCreateRequest extends AbstractFormRequest
         'maintenance_mode'   => 'boolean',
         'position'           => 'nullable|integer',
         'iaas_datacenter_id' => 'required|exists:iaas_datacenters,uuid|uuid',
-        'iam_account_id'     => 'required|exists:iam_accounts,uuid|uuid',
-        'iam_user_id'        => 'required|exists:iam_users,uuid|uuid',
         ];
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }

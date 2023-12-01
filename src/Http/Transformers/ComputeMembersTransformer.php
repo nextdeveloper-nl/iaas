@@ -13,20 +13,23 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractComputeMem
  *
  * @package NextDeveloper\IAAS\Http\Transformers
  */
-class ComputeMembersTransformer extends AbstractComputeMembersTransformer {
+class ComputeMembersTransformer extends AbstractComputeMembersTransformer
+{
 
     /**
      * @param ComputeMembers $model
      *
      * @return array
      */
-    public function transform(ComputeMembers $model) {
+    public function transform(ComputeMembers $model)
+    {
         $transformed = Cache::get(
             CacheHelper::getKey('ComputeMembers', $model->uuid, 'Transformed')
         );
 
-        if($transformed)
+        if($transformed) {
             return $transformed;
+        }
 
         $transformed = parent::transform($model);
 

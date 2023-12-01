@@ -13,20 +13,23 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractDatacenter
  *
  * @package NextDeveloper\IAAS\Http\Transformers
  */
-class DatacentersTransformer extends AbstractDatacentersTransformer {
+class DatacentersTransformer extends AbstractDatacentersTransformer
+{
 
     /**
      * @param Datacenters $model
      *
      * @return array
      */
-    public function transform(Datacenters $model) {
+    public function transform(Datacenters $model)
+    {
         $transformed = Cache::get(
             CacheHelper::getKey('Datacenters', $model->uuid, 'Transformed')
         );
 
-        if($transformed)
+        if($transformed) {
             return $transformed;
+        }
 
         $transformed = parent::transform($model);
 

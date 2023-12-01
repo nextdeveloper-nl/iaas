@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\IAAS\Database\Observers\ComputeMembersObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
+use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 
 /**
  * Class ComputeMembers.
@@ -16,7 +17,7 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
  */
 class ComputeMembers extends Model
 {
-    use Filterable, UuidId;
+    use Filterable, UuidId, CleanCache;
     use SoftDeletes;
 
 
@@ -73,14 +74,12 @@ class ComputeMembers extends Model
     'total_vm'              => 'integer',
     'overbooking_ratio'     => 'double',
     'max_overbooking_ratio' => 'integer',
-    'uptime'                => 'integer',
-    'idle_time'             => 'integer',
+    'uptime'                => 'datetime',
+    'idle_time'             => 'datetime',
     'benchmark_score'       => 'integer',
     'is_maintenance'        => 'boolean',
     'is_alive'              => 'boolean',
     'iaas_compute_pool_id'  => 'integer',
-    'iam_account_id'        => 'integer',
-    'iam_user_id'           => 'integer',
     'created_at'            => 'datetime',
     'updated_at'            => 'datetime',
     'deleted_at'            => 'datetime',
@@ -92,6 +91,8 @@ class ComputeMembers extends Model
      @var array
      */
     protected $dates = [
+    'uptime',
+    'idle_time',
     'created_at',
     'updated_at',
     'deleted_at',
@@ -164,5 +165,6 @@ class ComputeMembers extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
 }

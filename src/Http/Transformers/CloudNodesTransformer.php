@@ -13,20 +13,23 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractCloudNodes
  *
  * @package NextDeveloper\IAAS\Http\Transformers
  */
-class CloudNodesTransformer extends AbstractCloudNodesTransformer {
+class CloudNodesTransformer extends AbstractCloudNodesTransformer
+{
 
     /**
      * @param CloudNodes $model
      *
      * @return array
      */
-    public function transform(CloudNodes $model) {
+    public function transform(CloudNodes $model)
+    {
         $transformed = Cache::get(
             CacheHelper::getKey('CloudNodes', $model->uuid, 'Transformed')
         );
 
-        if($transformed)
+        if($transformed) {
             return $transformed;
+        }
 
         $transformed = parent::transform($model);
 

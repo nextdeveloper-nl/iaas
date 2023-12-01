@@ -64,7 +64,6 @@ trait IaasDatacenterTestTraits
                 'geo_longitude'  =>  'a',
                 'city'  =>  'a',
                 'maintenance_mode'  =>  '1',
-                'total_capacity'  =>  '1',
                 'guaranteed_uptime'  =>  '1',
                             ],
                 ['http_errors' => false]
@@ -462,25 +461,6 @@ trait IaasDatacenterTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasdatacenter_event_total_capacity_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'total_capacity'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasDatacenterQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaasdatacenter_event_guaranteed_uptime_filter()
     {
         try {
@@ -673,5 +653,5 @@ trait IaasDatacenterTestTraits
 
         $this->assertTrue(true);
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

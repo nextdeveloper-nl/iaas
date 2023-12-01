@@ -13,20 +13,23 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMac
  *
  * @package NextDeveloper\IAAS\Http\Transformers
  */
-class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer {
+class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
+{
 
     /**
      * @param VirtualMachines $model
      *
      * @return array
      */
-    public function transform(VirtualMachines $model) {
+    public function transform(VirtualMachines $model)
+    {
         $transformed = Cache::get(
             CacheHelper::getKey('VirtualMachines', $model->uuid, 'Transformed')
         );
 
-        if($transformed)
+        if($transformed) {
             return $transformed;
+        }
 
         $transformed = parent::transform($model);
 

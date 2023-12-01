@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\IAAS\Database\Observers\StoragePoolsObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
+use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 
 /**
  * Class StoragePools.
@@ -16,7 +17,7 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
  */
 class StoragePools extends Model
 {
-    use Filterable, UuidId;
+    use Filterable, UuidId, CleanCache;
     use SoftDeletes;
 
 
@@ -56,8 +57,6 @@ class StoragePools extends Model
     'gb_per_hour_price'  => 'double',
     'is_active'          => 'boolean',
     'iaas_cloud_node_id' => 'integer',
-    'iam_account_id'     => 'integer',
-    'iam_user_id'        => 'integer',
     'created_at'         => 'datetime',
     'updated_at'         => 'datetime',
     'deleted_at'         => 'datetime',
@@ -141,5 +140,6 @@ class StoragePools extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
 }

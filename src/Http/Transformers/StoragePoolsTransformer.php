@@ -13,20 +13,23 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractStoragePoo
  *
  * @package NextDeveloper\IAAS\Http\Transformers
  */
-class StoragePoolsTransformer extends AbstractStoragePoolsTransformer {
+class StoragePoolsTransformer extends AbstractStoragePoolsTransformer
+{
 
     /**
      * @param StoragePools $model
      *
      * @return array
      */
-    public function transform(StoragePools $model) {
+    public function transform(StoragePools $model)
+    {
         $transformed = Cache::get(
             CacheHelper::getKey('StoragePools', $model->uuid, 'Transformed')
         );
 
-        if($transformed)
+        if($transformed) {
             return $transformed;
+        }
 
         $transformed = parent::transform($model);
 

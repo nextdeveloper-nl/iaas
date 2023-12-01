@@ -20,14 +20,16 @@ use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsDeletingEvent;
 
 
 /**
-* This class is responsible from managing the data for ComputePools
-*
-* Class ComputePoolsService.
-*
-* @package NextDeveloper\IAAS\Database\Models
-*/
-class AbstractComputePoolsService {
-    public static function get(ComputePoolsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator {
+ * This class is responsible from managing the data for ComputePools
+ *
+ * Class ComputePoolsService.
+ *
+ * @package NextDeveloper\IAAS\Database\Models
+ */
+class AbstractComputePoolsService
+{
+    public static function get(ComputePoolsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    {
         $enablePaginate = array_key_exists('paginate', $params);
 
         /**
@@ -36,19 +38,22 @@ class AbstractComputePoolsService {
         *
         * Please let me know if you have any other idea about this; baris.bulut@nextdeveloper.com
         */
-        if($filter == null)
+        if($filter == null) {
             $filter = new ComputePoolsQueryFilter(new Request());
+        }
 
         $perPage = config('commons.pagination.per_page');
 
-        if($perPage == null)
+        if($perPage == null) {
             $perPage = 20;
+        }
 
         if(array_key_exists('per_page', $params)) {
             $perPage = intval($params['per_page']);
 
-            if($perPage == 0)
+            if($perPage == 0) {
                 $perPage = 20;
+            }
         }
 
         if(array_key_exists('orderBy', $params)) {
@@ -57,165 +62,178 @@ class AbstractComputePoolsService {
 
         $model = ComputePools::filter($filter);
 
-        if($model && $enablePaginate)
+        if($model && $enablePaginate) {
             return $model->paginate($perPage);
-        else
+        } else {
             return $model->get();
+        }
     }
 
-    public static function getAll() {
+    public static function getAll()
+    {
         return ComputePools::all();
     }
 
     /**
-    * This method returns the model by looking at reference id
-    *
-    * @param $ref
-    * @return mixed
-    */
-    public static function getByRef($ref) : ?ComputePools {
+     * This method returns the model by looking at reference id
+     *
+     * @param  $ref
+     * @return mixed
+     */
+    public static function getByRef($ref) : ?ComputePools
+    {
         return ComputePools::findByRef($ref);
     }
 
     /**
-    * This method returns the model by lookint at its id
-    *
-    * @param $id
-    * @return ComputePools|null
-    */
-    public static function getById($id) : ?ComputePools {
+     * This method returns the model by lookint at its id
+     *
+     * @param  $id
+     * @return ComputePools|null
+     */
+    public static function getById($id) : ?ComputePools
+    {
         return ComputePools::where('id', $id)->first();
     }
 
     /**
-    * This method created the model from an array.
-    *
-    * Throws an exception if stuck with any problem.
-    *
-    * @param array $data
-    * @return mixed
-    * @throw Exception
-    */
-    public static function create(array $data) {
-        event( new ComputePoolsCreatingEvent() );
+     * This method created the model from an array.
+     *
+     * Throws an exception if stuck with any problem.
+     *
+     * @param  array $data
+     * @return mixed
+     * @throw  Exception
+     */
+    public static function create(array $data)
+    {
+        event(new ComputePoolsCreatingEvent());
 
-                if (array_key_exists('iaas_datacenter_id', $data))
+        if (array_key_exists('iaas_datacenter_id', $data)) {
             $data['iaas_datacenter_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\Datacenters',
                 $data['iaas_datacenter_id']
             );
-	        if (array_key_exists('iaas_cloud_node_id', $data))
+        }
+        if (array_key_exists('iaas_cloud_node_id', $data)) {
             $data['iaas_cloud_node_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\CloudNodes',
                 $data['iaas_cloud_node_id']
             );
-	        if (array_key_exists('iam_account_id', $data))
+        }
+        if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
                 $data['iam_account_id']
             );
-	        if (array_key_exists('iam_user_id', $data))
+        }
+        if (array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Users',
                 $data['iam_user_id']
             );
-	        
+        }
+    
         try {
             $model = ComputePools::create($data);
         } catch(\Exception $e) {
             throw $e;
         }
 
-        event( new ComputePoolsCreatedEvent($model) );
+        event(new ComputePoolsCreatedEvent($model));
 
         return $model->fresh();
     }
 
-/**
-* This function expects the ID inside the object.
-*
-* @param array $data
-* @return ComputePools
-*/
-public static function updateRaw(array $data) : ?ComputePools
-{
-if(array_key_exists('id', $data)) {
-return self::update($data['id'], $data);
-}
+    /**
+     This function expects the ID inside the object.
+    
+     @param  array $data
+     @return ComputePools
+     */
+    public static function updateRaw(array $data) : ?ComputePools
+    {
+        if(array_key_exists('id', $data)) {
+            return self::update($data['id'], $data);
+        }
 
-return null;
-}
+        return null;
+    }
 
     /**
-    * This method updated the model from an array.
-    *
-    * Throws an exception if stuck with any problem.
-    *
-    * @param
-    * @param array $data
-    * @return mixed
-    * @throw Exception
-    */
-    public static function update($id, array $data) {
+     * This method updated the model from an array.
+     *
+     * Throws an exception if stuck with any problem.
+     *
+     * @param
+     * @param  array $data
+     * @return mixed
+     * @throw  Exception
+     */
+    public static function update($id, array $data)
+    {
         $model = ComputePools::where('uuid', $id)->first();
 
-                if (array_key_exists('iaas_datacenter_id', $data))
+        if (array_key_exists('iaas_datacenter_id', $data)) {
             $data['iaas_datacenter_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\Datacenters',
                 $data['iaas_datacenter_id']
             );
-	        if (array_key_exists('iaas_cloud_node_id', $data))
+        }
+        if (array_key_exists('iaas_cloud_node_id', $data)) {
             $data['iaas_cloud_node_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\CloudNodes',
                 $data['iaas_cloud_node_id']
             );
-	        if (array_key_exists('iam_account_id', $data))
+        }
+        if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
                 $data['iam_account_id']
             );
-	        if (array_key_exists('iam_user_id', $data))
+        }
+        if (array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Users',
                 $data['iam_user_id']
             );
-	
-        event( new ComputePoolsUpdatingEvent($model) );
+        }
+    
+        event(new ComputePoolsUpdatingEvent($model));
 
         try {
-           $isUpdated = $model->update($data);
-           $model = $model->fresh();
+            $isUpdated = $model->update($data);
+            $model = $model->fresh();
         } catch(\Exception $e) {
-           throw $e;
+            throw $e;
         }
 
-        event( new ComputePoolsUpdatedEvent($model) );
+        event(new ComputePoolsUpdatedEvent($model));
 
         return $model->fresh();
     }
 
     /**
-    * This method updated the model from an array.
-    *
-    * Throws an exception if stuck with any problem.
-    *
-    * @param
-    * @param array $data
-    * @return mixed
-    * @throw Exception
-    */
-    public static function delete($id, array $data) {
+     * This method updated the model from an array.
+     *
+     * Throws an exception if stuck with any problem.
+     *
+     * @param
+     * @param  array $data
+     * @return mixed
+     * @throw  Exception
+     */
+    public static function delete($id)
+    {
         $model = ComputePools::where('uuid', $id)->first();
 
-        event( new ComputePoolsDeletingEvent() );
+        event(new ComputePoolsDeletingEvent());
 
         try {
             $model = $model->delete();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        event( new ComputePoolsDeletedEvent($model) );
 
         return $model;
     }

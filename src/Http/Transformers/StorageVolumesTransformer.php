@@ -13,20 +13,23 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractStorageVol
  *
  * @package NextDeveloper\IAAS\Http\Transformers
  */
-class StorageVolumesTransformer extends AbstractStorageVolumesTransformer {
+class StorageVolumesTransformer extends AbstractStorageVolumesTransformer
+{
 
     /**
      * @param StorageVolumes $model
      *
      * @return array
      */
-    public function transform(StorageVolumes $model) {
+    public function transform(StorageVolumes $model)
+    {
         $transformed = Cache::get(
             CacheHelper::getKey('StorageVolumes', $model->uuid, 'Transformed')
         );
 
-        if($transformed)
+        if($transformed) {
             return $transformed;
+        }
 
         $transformed = parent::transform($model);
 

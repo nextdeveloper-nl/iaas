@@ -198,32 +198,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('max_overbooking_ratio', $operator, $value);
     }
     
-    public function uptime($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('uptime', $operator, $value);
-    }
-    
-    public function idleTime($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('idle_time', $operator, $value);
-    }
-    
     public function benchmarkScore($value)
     {
         $operator = substr($value, 0, 1);
@@ -252,6 +226,26 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('is_alive', true);
     }
     
+    public function uptimeStart($date) 
+    {
+        return $this->builder->where('uptime', '>=', $date);
+    }
+
+    public function uptimeEnd($date) 
+    {
+        return $this->builder->where('uptime', '<=', $date);
+    }
+
+    public function idleTimeStart($date) 
+    {
+        return $this->builder->where('idle_time', '>=', $date);
+    }
+
+    public function idleTimeEnd($date) 
+    {
+        return $this->builder->where('idle_time', '<=', $date);
+    }
+
     public function createdAtStart($date) 
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -309,5 +303,5 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

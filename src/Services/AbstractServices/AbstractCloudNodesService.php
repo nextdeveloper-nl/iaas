@@ -20,14 +20,16 @@ use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesDeletingEvent;
 
 
 /**
-* This class is responsible from managing the data for CloudNodes
-*
-* Class CloudNodesService.
-*
-* @package NextDeveloper\IAAS\Database\Models
-*/
-class AbstractCloudNodesService {
-    public static function get(CloudNodesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator {
+ * This class is responsible from managing the data for CloudNodes
+ *
+ * Class CloudNodesService.
+ *
+ * @package NextDeveloper\IAAS\Database\Models
+ */
+class AbstractCloudNodesService
+{
+    public static function get(CloudNodesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    {
         $enablePaginate = array_key_exists('paginate', $params);
 
         /**
@@ -36,19 +38,22 @@ class AbstractCloudNodesService {
         *
         * Please let me know if you have any other idea about this; baris.bulut@nextdeveloper.com
         */
-        if($filter == null)
+        if($filter == null) {
             $filter = new CloudNodesQueryFilter(new Request());
+        }
 
         $perPage = config('commons.pagination.per_page');
 
-        if($perPage == null)
+        if($perPage == null) {
             $perPage = 20;
+        }
 
         if(array_key_exists('per_page', $params)) {
             $perPage = intval($params['per_page']);
 
-            if($perPage == 0)
+            if($perPage == 0) {
                 $perPage = 20;
+            }
         }
 
         if(array_key_exists('orderBy', $params)) {
@@ -57,155 +62,166 @@ class AbstractCloudNodesService {
 
         $model = CloudNodes::filter($filter);
 
-        if($model && $enablePaginate)
+        if($model && $enablePaginate) {
             return $model->paginate($perPage);
-        else
+        } else {
             return $model->get();
+        }
     }
 
-    public static function getAll() {
+    public static function getAll()
+    {
         return CloudNodes::all();
     }
 
     /**
-    * This method returns the model by looking at reference id
-    *
-    * @param $ref
-    * @return mixed
-    */
-    public static function getByRef($ref) : ?CloudNodes {
+     * This method returns the model by looking at reference id
+     *
+     * @param  $ref
+     * @return mixed
+     */
+    public static function getByRef($ref) : ?CloudNodes
+    {
         return CloudNodes::findByRef($ref);
     }
 
     /**
-    * This method returns the model by lookint at its id
-    *
-    * @param $id
-    * @return CloudNodes|null
-    */
-    public static function getById($id) : ?CloudNodes {
+     * This method returns the model by lookint at its id
+     *
+     * @param  $id
+     * @return CloudNodes|null
+     */
+    public static function getById($id) : ?CloudNodes
+    {
         return CloudNodes::where('id', $id)->first();
     }
 
     /**
-    * This method created the model from an array.
-    *
-    * Throws an exception if stuck with any problem.
-    *
-    * @param array $data
-    * @return mixed
-    * @throw Exception
-    */
-    public static function create(array $data) {
-        event( new CloudNodesCreatingEvent() );
+     * This method created the model from an array.
+     *
+     * Throws an exception if stuck with any problem.
+     *
+     * @param  array $data
+     * @return mixed
+     * @throw  Exception
+     */
+    public static function create(array $data)
+    {
+        event(new CloudNodesCreatingEvent());
 
-                if (array_key_exists('iaas_datacenter_id', $data))
+        if (array_key_exists('iaas_datacenter_id', $data)) {
             $data['iaas_datacenter_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\Datacenters',
                 $data['iaas_datacenter_id']
             );
-	        if (array_key_exists('iam_account_id', $data))
+        }
+        if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
                 $data['iam_account_id']
             );
-	        if (array_key_exists('iam_user_id', $data))
+        }
+        if (array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Users',
                 $data['iam_user_id']
             );
-	        
+        }
+    
         try {
             $model = CloudNodes::create($data);
         } catch(\Exception $e) {
             throw $e;
         }
 
-        event( new CloudNodesCreatedEvent($model) );
+        event(new CloudNodesCreatedEvent($model));
 
         return $model->fresh();
     }
 
-/**
-* This function expects the ID inside the object.
-*
-* @param array $data
-* @return CloudNodes
-*/
-public static function updateRaw(array $data) : ?CloudNodes
-{
-if(array_key_exists('id', $data)) {
-return self::update($data['id'], $data);
-}
+    /**
+     This function expects the ID inside the object.
+    
+     @param  array $data
+     @return CloudNodes
+     */
+    public static function updateRaw(array $data) : ?CloudNodes
+    {
+        if(array_key_exists('id', $data)) {
+            return self::update($data['id'], $data);
+        }
 
-return null;
-}
+        return null;
+    }
 
     /**
-    * This method updated the model from an array.
-    *
-    * Throws an exception if stuck with any problem.
-    *
-    * @param
-    * @param array $data
-    * @return mixed
-    * @throw Exception
-    */
-    public static function update($id, array $data) {
+     * This method updated the model from an array.
+     *
+     * Throws an exception if stuck with any problem.
+     *
+     * @param
+     * @param  array $data
+     * @return mixed
+     * @throw  Exception
+     */
+    public static function update($id, array $data)
+    {
         $model = CloudNodes::where('uuid', $id)->first();
 
-                if (array_key_exists('iaas_datacenter_id', $data))
+        if (array_key_exists('iaas_datacenter_id', $data)) {
             $data['iaas_datacenter_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\Datacenters',
                 $data['iaas_datacenter_id']
             );
-	        if (array_key_exists('iam_account_id', $data))
+        }
+        if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
                 $data['iam_account_id']
             );
-	        if (array_key_exists('iam_user_id', $data))
+        }
+        if (array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Users',
                 $data['iam_user_id']
             );
-	
-        event( new CloudNodesUpdatingEvent($model) );
+        }
+    
+        event(new CloudNodesUpdatingEvent($model));
 
         try {
-           $isUpdated = $model->update($data);
-           $model = $model->fresh();
+            $isUpdated = $model->update($data);
+            $model = $model->fresh();
         } catch(\Exception $e) {
-           throw $e;
+            throw $e;
         }
 
-        event( new CloudNodesUpdatedEvent($model) );
+        event(new CloudNodesUpdatedEvent($model));
 
         return $model->fresh();
     }
 
     /**
-    * This method updated the model from an array.
-    *
-    * Throws an exception if stuck with any problem.
-    *
-    * @param
-    * @param array $data
-    * @return mixed
-    * @throw Exception
-    */
-    public static function delete($id, array $data) {
+     * This method updated the model from an array.
+     *
+     * Throws an exception if stuck with any problem.
+     *
+     * @param
+     * @param  array $data
+     * @return mixed
+     * @throw  Exception
+     */
+    public static function delete($id)
+    {
         $model = CloudNodes::where('uuid', $id)->first();
 
-        event( new CloudNodesDeletingEvent() );
+        event(new CloudNodesDeletingEvent());
 
         try {
             $model = $model->delete();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        event( new CloudNodesDeletedEvent($model) );
 
         return $model;
     }

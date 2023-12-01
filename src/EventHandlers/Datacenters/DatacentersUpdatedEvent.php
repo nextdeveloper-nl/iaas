@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\EventHandlers\DatacentersUpdatedEvent;
 
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use NextDeveloper\Commons\Common\Cache\CacheHelper;
 
 /**
  * Class DatacentersUpdatedEvent
@@ -16,7 +17,6 @@ class DatacentersUpdatedEvent implements ShouldQueue
 
     public function handle($event)
     {
-
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }

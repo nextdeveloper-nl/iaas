@@ -78,9 +78,9 @@ trait IaasComputeMemberTestTraits
                 'total_vm'  =>  '1',
                 'overbooking_ratio'  =>  '1',
                 'max_overbooking_ratio'  =>  '1',
-                'uptime'  =>  '1',
-                'idle_time'  =>  '1',
                 'benchmark_score'  =>  '1',
+                    'uptime'  =>  now(),
+                    'idle_time'  =>  now(),
                             ],
                 ['http_errors' => false]
             ]
@@ -743,50 +743,50 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_uptime_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'uptime'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_idle_time_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'idle_time'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaascomputemember_event_benchmark_score_filter()
     {
         try {
             $request = new Request(
                 [
                 'benchmark_score'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_uptime_filter_start()
+    {
+        try {
+            $request = new Request(
+                [
+                'uptimeStart'  =>  now()
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_idle_time_filter_start()
+    {
+        try {
+            $request = new Request(
+                [
+                'idle_timeStart'  =>  now()
                 ]
             );
 
@@ -857,6 +857,44 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
+    public function test_iaascomputemember_event_uptime_filter_end()
+    {
+        try {
+            $request = new Request(
+                [
+                'uptimeEnd'  =>  now()
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_idle_time_filter_end()
+    {
+        try {
+            $request = new Request(
+                [
+                'idle_timeEnd'  =>  now()
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
     public function test_iaascomputemember_event_created_at_filter_end()
     {
         try {
@@ -901,6 +939,46 @@ trait IaasComputeMemberTestTraits
             $request = new Request(
                 [
                 'deleted_atEnd'  =>  now()
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_uptime_filter_start_and_end()
+    {
+        try {
+            $request = new Request(
+                [
+                'uptimeStart'  =>  now(),
+                'uptimeEnd'  =>  now()
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_idle_time_filter_start_and_end()
+    {
+        try {
+            $request = new Request(
+                [
+                'idle_timeStart'  =>  now(),
+                'idle_timeEnd'  =>  now()
                 ]
             );
 
@@ -973,5 +1051,5 @@ trait IaasComputeMemberTestTraits
 
         $this->assertTrue(true);
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 }

@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Database\Models;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
+use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\IAAS\Database\Observers\DatacentersObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
@@ -16,7 +17,7 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
  */
 class Datacenters extends Model
 {
-    use Filterable, UuidId;
+    use Filterable, UuidId, CleanCache;
     use SoftDeletes;
 
 
@@ -59,11 +60,9 @@ class Datacenters extends Model
     'maintenance_mode'   => 'boolean',
     'geo_latitude'       => 'string',
     'geo_longitude'      => 'string',
-    'total_capacity'     => 'integer',
     'guaranteed_uptime'  => 'double',
     'is_carrier_neutral' => 'boolean',
     'city'               => 'string',
-    'iam_account_id'     => 'integer',
     'common_country_id'  => 'integer',
     'created_at'         => 'datetime',
     'updated_at'         => 'datetime',
@@ -153,5 +152,7 @@ class Datacenters extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+
 }

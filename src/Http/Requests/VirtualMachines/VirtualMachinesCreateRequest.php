@@ -39,11 +39,9 @@ class VirtualMachinesCreateRequest extends AbstractFormRequest
         'hypervisor_data'        => 'nullable|string',
         'iaas_cloud_node_id'     => 'required|exists:iaas_cloud_nodes,uuid|uuid',
         'iaas_compute_member_id' => 'nullable|exists:iaas_compute_members,uuid|uuid',
-        'iam_account_id'         => 'required|exists:iam_accounts,uuid|uuid',
-        'iam_user_id'            => 'required|exists:iam_users,uuid|uuid',
         'from_template_id'       => 'nullable|exists:from_templates,uuid|uuid',
         'suspended_at'           => 'nullable|date',
         ];
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }

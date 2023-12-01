@@ -23,12 +23,10 @@ class NetworkPoolsUpdateRequest extends AbstractFormRequest
         'is_active'               => 'boolean',
         'iaas_datacenter_id'      => 'nullable|exists:iaas_datacenters,uuid|uuid',
         'iaas_cloud_node_id'      => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
-        'iam_account_id'          => 'nullable|exists:iam_accounts,uuid|uuid',
-        'iam_user_id'             => 'nullable|exists:iam_users,uuid|uuid',
         'provisioning_alg'        => 'nullable|string|max:500',
         'management_package_name' => 'nullable|string|max:500',
         'resource_validator'      => 'nullable|string|max:500',
         ];
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }
