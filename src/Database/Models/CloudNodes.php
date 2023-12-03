@@ -9,6 +9,7 @@ use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\IAAS\Database\Observers\CloudNodesObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
+use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
  * Class CloudNodes.
@@ -17,7 +18,7 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
  */
 class CloudNodes extends Model
 {
-    use Filterable, UuidId, CleanCache;
+    use Filterable, UuidId, CleanCache, Taggable;
     use SoftDeletes;
 
 
@@ -160,6 +161,7 @@ class CloudNodes extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
 
 }

@@ -25,7 +25,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
                     $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                     $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                     $fromTemplateId = \NextDeveloper\\Database\Models\FromTemplates::where('id', $model->from_template_id)->first();
-            
+        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -50,7 +50,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'is_snapshot'  =>  $model->is_snapshot,
             'is_lost'  =>  $model->is_lost,
             'is_locked'  =>  $model->is_locked,
-            'last_metadata_request'  =>  $model->last_metadata_request,
+            'last_metadata_request'  =>  $model->last_metadata_request ? $model->last_metadata_request->toIso8601String() : null,
             'features'  =>  $model->features,
             'hypervisor_uuid'  =>  $model->hypervisor_uuid,
             'hypervisor_data'  =>  $model->hypervisor_data,
@@ -59,13 +59,14 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'from_template_id'  =>  $fromTemplateId ? $fromTemplateId->uuid : null,
-            'suspended_at'  =>  $model->suspended_at,
-            'created_at'  =>  $model->created_at,
-            'updated_at'  =>  $model->updated_at,
-            'deleted_at'  =>  $model->deleted_at,
+            'suspended_at'  =>  $model->suspended_at ? $model->suspended_at->toIso8601String() : null,
+            'created_at'  =>  $model->created_at ? $model->created_at->toIso8601String() : null,
+            'updated_at'  =>  $model->updated_at ? $model->updated_at->toIso8601String() : null,
+            'deleted_at'  =>  $model->deleted_at ? $model->deleted_at->toIso8601String() : null,
             ]
         );
     }
-    
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n
+
 }

@@ -9,6 +9,7 @@ use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\IAAS\Database\Observers\StoragePoolsObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
+use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
  * Class StoragePools.
@@ -17,7 +18,7 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
  */
 class StoragePools extends Model
 {
-    use Filterable, UuidId, CleanCache;
+    use Filterable, UuidId, CleanCache, Taggable;
     use SoftDeletes;
 
 
@@ -140,6 +141,7 @@ class StoragePools extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
     }
 
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
 
 }

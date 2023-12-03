@@ -23,7 +23,7 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
                         $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
                     $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                     $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-            
+        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -49,20 +49,21 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
             'overbooking_ratio'  =>  $model->overbooking_ratio,
             'max_overbooking_ratio'  =>  $model->max_overbooking_ratio,
             'cpu_info'  =>  $model->cpu_info,
-            'uptime'  =>  $model->uptime,
-            'idle_time'  =>  $model->idle_time,
+            'uptime'  =>  $model->uptime ? $model->uptime->toIso8601String() : null,
+            'idle_time'  =>  $model->idle_time ? $model->idle_time->toIso8601String() : null,
             'benchmark_score'  =>  $model->benchmark_score,
             'is_maintenance'  =>  $model->is_maintenance == 1 ? true : false,
             'is_alive'  =>  $model->is_alive,
             'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
-            'created_at'  =>  $model->created_at,
-            'updated_at'  =>  $model->updated_at,
-            'deleted_at'  =>  $model->deleted_at,
+            'created_at'  =>  $model->created_at ? $model->created_at->toIso8601String() : null,
+            'updated_at'  =>  $model->updated_at ? $model->updated_at->toIso8601String() : null,
+            'deleted_at'  =>  $model->deleted_at ? $model->deleted_at->toIso8601String() : null,
             ]
         );
     }
-    
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n
+
 }
