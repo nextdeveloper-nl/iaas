@@ -97,6 +97,23 @@ class AbstractVirtualMachinesService
     }
 
     /**
+     * This method returns the sub objects of the related models
+     *
+     * @param  $uuid
+     * @param  $object
+     * @return void
+     * @throws \Laravel\Octane\Exceptions\DdException
+     */
+    public static function getSubObjects($uuid, $object)
+    {
+        try {
+            return VirtualMachines::where('uuid', $uuid)->first()->$object();
+        } catch (\Exception $e) {
+            dd($e);
+        }
+    }
+
+    /**
      * This method created the model from an array.
      *
      * Throws an exception if stuck with any problem.
