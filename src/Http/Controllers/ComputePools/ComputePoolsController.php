@@ -46,6 +46,20 @@ class ComputePoolsController extends AbstractController
     }
 
     /**
+     * This method returns the list of sub objects the related object.
+     *
+     * @param  $ref
+     * @param  $subObject
+     * @return void
+     */
+    public function subObjects($ref, $subObject)
+    {
+        $objects = ComputePoolsService::getSubObjects($ref, $subObject);
+
+        return ResponsableFactory::makeResponse($this, $objects);
+    }
+
+    /**
      * This method created ComputePools object on database.
      *
      * @param  ComputePoolsCreateRequest $request

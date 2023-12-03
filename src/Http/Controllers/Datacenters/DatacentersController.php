@@ -46,6 +46,20 @@ class DatacentersController extends AbstractController
     }
 
     /**
+     * This method returns the list of sub objects the related object.
+     *
+     * @param  $ref
+     * @param  $subObject
+     * @return void
+     */
+    public function subObjects($ref, $subObject)
+    {
+        $objects = DatacentersService::getSubObjects($ref, $subObject);
+
+        return ResponsableFactory::makeResponse($this, $objects);
+    }
+
+    /**
      * This method created Datacenters object on database.
      *
      * @param  DatacentersCreateRequest $request
