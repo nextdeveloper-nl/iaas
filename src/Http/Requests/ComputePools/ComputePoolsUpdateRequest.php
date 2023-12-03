@@ -29,5 +29,5 @@ class ComputePoolsUpdateRequest extends AbstractFormRequest
         'iaas_cloud_node_id'      => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
         ];
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE\n\n\n\n\n\n
 }
