@@ -11,13 +11,13 @@ use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
+use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesCreatedEvent;
 use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesCreatingEvent;
 use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesUpdatedEvent;
 use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesUpdatingEvent;
 use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesDeletedEvent;
 use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesDeletingEvent;
-
 
 /**
  * This class is responsible from managing the data for VirtualMachines
@@ -104,10 +104,18 @@ class AbstractVirtualMachinesService
      * @return void
      * @throws \Laravel\Octane\Exceptions\DdException
      */
-    public static function getSubObjects($uuid, $object)
+    public static function relatedObjects($uuid, $object)
     {
         try {
-            return VirtualMachines::where('uuid', $uuid)->first()->$object();
+            $obj = VirtualMachines::where('uuid', $uuid)->first();
+
+            if(!$obj) {
+                throw new ModelNotFoundException('Cannot find the related model');
+            }
+
+            if($obj) {
+                return $obj->$object;
+            }
         } catch (\Exception $e) {
             dd($e);
         }

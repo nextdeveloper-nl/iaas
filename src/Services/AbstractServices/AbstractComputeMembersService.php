@@ -11,13 +11,13 @@ use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Filters\ComputeMembersQueryFilter;
+use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersCreatedEvent;
 use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersCreatingEvent;
 use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersUpdatedEvent;
 use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersUpdatingEvent;
 use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersDeletedEvent;
 use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersDeletingEvent;
-
 
 /**
  * This class is responsible from managing the data for ComputeMembers
@@ -104,10 +104,18 @@ class AbstractComputeMembersService
      * @return void
      * @throws \Laravel\Octane\Exceptions\DdException
      */
-    public static function getSubObjects($uuid, $object)
+    public static function relatedObjects($uuid, $object)
     {
         try {
-            return ComputeMembers::where('uuid', $uuid)->first()->$object();
+            $obj = ComputeMembers::where('uuid', $uuid)->first();
+
+            if(!$obj) {
+                throw new ModelNotFoundException('Cannot find the related model');
+            }
+
+            if($obj) {
+                return $obj->$object;
+            }
         } catch (\Exception $e) {
             dd($e);
         }

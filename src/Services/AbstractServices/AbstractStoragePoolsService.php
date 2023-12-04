@@ -11,13 +11,13 @@ use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Filters\StoragePoolsQueryFilter;
+use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsCreatedEvent;
 use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsCreatingEvent;
 use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsUpdatedEvent;
 use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsUpdatingEvent;
 use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsDeletedEvent;
 use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsDeletingEvent;
-
 
 /**
  * This class is responsible from managing the data for StoragePools
@@ -104,10 +104,18 @@ class AbstractStoragePoolsService
      * @return void
      * @throws \Laravel\Octane\Exceptions\DdException
      */
-    public static function getSubObjects($uuid, $object)
+    public static function relatedObjects($uuid, $object)
     {
         try {
-            return StoragePools::where('uuid', $uuid)->first()->$object();
+            $obj = StoragePools::where('uuid', $uuid)->first();
+
+            if(!$obj) {
+                throw new ModelNotFoundException('Cannot find the related model');
+            }
+
+            if($obj) {
+                return $obj->$object;
+            }
         } catch (\Exception $e) {
             dd($e);
         }

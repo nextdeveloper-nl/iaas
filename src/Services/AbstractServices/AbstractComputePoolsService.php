@@ -11,13 +11,13 @@ use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Filters\ComputePoolsQueryFilter;
+use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsCreatedEvent;
 use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsCreatingEvent;
 use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsUpdatedEvent;
 use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsUpdatingEvent;
 use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsDeletedEvent;
 use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsDeletingEvent;
-
 
 /**
  * This class is responsible from managing the data for ComputePools
@@ -104,10 +104,18 @@ class AbstractComputePoolsService
      * @return void
      * @throws \Laravel\Octane\Exceptions\DdException
      */
-    public static function getSubObjects($uuid, $object)
+    public static function relatedObjects($uuid, $object)
     {
         try {
-            return ComputePools::where('uuid', $uuid)->first()->$object();
+            $obj = ComputePools::where('uuid', $uuid)->first();
+
+            if(!$obj) {
+                throw new ModelNotFoundException('Cannot find the related model');
+            }
+
+            if($obj) {
+                return $obj->$object;
+            }
         } catch (\Exception $e) {
             dd($e);
         }

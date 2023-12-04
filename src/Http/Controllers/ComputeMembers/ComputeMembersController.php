@@ -7,11 +7,15 @@ use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Generator\Http\Traits\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\ComputeMembers\ComputeMembersUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\ComputeMembersQueryFilter;
+use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Http\Requests\ComputeMembers\ComputeMembersCreateRequest;
-
+use NextDeveloper\Commons\Http\Traits\Tags;
 class ComputeMembersController extends AbstractController
 {
+    private $model = ComputeMembers::class;
+
+    use Tags;
     /**
      * This method returns the list of computemembers.
      *
@@ -46,15 +50,18 @@ class ComputeMembersController extends AbstractController
     }
 
     /**
-     * This method returns the list of sub objects the related object.
+     * This method returns the list of sub objects the related object. Sub object means an object which is preowned by
+     * this object.
+     *
+     * It can be tags, addresses, states etc.
      *
      * @param  $ref
      * @param  $subObject
      * @return void
      */
-    public function subObjects($ref, $subObject)
+    public function relatedObjects($ref, $subObject)
     {
-        $objects = ComputeMembersService::getSubObjects($ref, $subObject);
+        $objects = ComputeMembersService::relatedObjects($ref, $subObject);
 
         return ResponsableFactory::makeResponse($this, $objects);
     }

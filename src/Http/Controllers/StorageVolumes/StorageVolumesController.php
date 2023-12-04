@@ -7,11 +7,15 @@ use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Generator\Http\Traits\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\StorageVolumes\StorageVolumesUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\StorageVolumesQueryFilter;
+use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAAS\Http\Requests\StorageVolumes\StorageVolumesCreateRequest;
-
+use NextDeveloper\Commons\Http\Traits\Tags;
 class StorageVolumesController extends AbstractController
 {
+    private $model = StorageVolumes::class;
+
+    use Tags;
     /**
      * This method returns the list of storagevolumes.
      *
@@ -46,15 +50,18 @@ class StorageVolumesController extends AbstractController
     }
 
     /**
-     * This method returns the list of sub objects the related object.
+     * This method returns the list of sub objects the related object. Sub object means an object which is preowned by
+     * this object.
+     *
+     * It can be tags, addresses, states etc.
      *
      * @param  $ref
      * @param  $subObject
      * @return void
      */
-    public function subObjects($ref, $subObject)
+    public function relatedObjects($ref, $subObject)
     {
-        $objects = StorageVolumesService::getSubObjects($ref, $subObject);
+        $objects = StorageVolumesService::relatedObjects($ref, $subObject);
 
         return ResponsableFactory::makeResponse($this, $objects);
     }

@@ -7,11 +7,15 @@ use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Generator\Http\Traits\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\NetworkPools\NetworkPoolsUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\NetworkPoolsQueryFilter;
+use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Services\NetworkPoolsService;
 use NextDeveloper\IAAS\Http\Requests\NetworkPools\NetworkPoolsCreateRequest;
-
+use NextDeveloper\Commons\Http\Traits\Tags;
 class NetworkPoolsController extends AbstractController
 {
+    private $model = NetworkPools::class;
+
+    use Tags;
     /**
      * This method returns the list of networkpools.
      *
@@ -46,15 +50,18 @@ class NetworkPoolsController extends AbstractController
     }
 
     /**
-     * This method returns the list of sub objects the related object.
+     * This method returns the list of sub objects the related object. Sub object means an object which is preowned by
+     * this object.
+     *
+     * It can be tags, addresses, states etc.
      *
      * @param  $ref
      * @param  $subObject
      * @return void
      */
-    public function subObjects($ref, $subObject)
+    public function relatedObjects($ref, $subObject)
     {
-        $objects = NetworkPoolsService::getSubObjects($ref, $subObject);
+        $objects = NetworkPoolsService::relatedObjects($ref, $subObject);
 
         return ResponsableFactory::makeResponse($this, $objects);
     }

@@ -11,13 +11,13 @@ use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\Datacenters;
 use NextDeveloper\IAAS\Database\Filters\DatacentersQueryFilter;
+use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Events\Datacenters\DatacentersCreatedEvent;
 use NextDeveloper\IAAS\Events\Datacenters\DatacentersCreatingEvent;
 use NextDeveloper\IAAS\Events\Datacenters\DatacentersUpdatedEvent;
 use NextDeveloper\IAAS\Events\Datacenters\DatacentersUpdatingEvent;
 use NextDeveloper\IAAS\Events\Datacenters\DatacentersDeletedEvent;
 use NextDeveloper\IAAS\Events\Datacenters\DatacentersDeletingEvent;
-
 
 /**
  * This class is responsible from managing the data for Datacenters
@@ -104,10 +104,19 @@ class AbstractDatacentersService
      * @return void
      * @throws \Laravel\Octane\Exceptions\DdException
      */
-    public static function getSubObjects($uuid, $object)
+    public static function relatedObjects($uuid, $object)
     {
         try {
-            return Datacenters::where('uuid', $uuid)->first()->$object();
+            $obj = Datacenters::where('uuid', $uuid)->first();
+
+            if(!$obj) {
+                throw new ModelNotFoundException('I believe you are trying to reach to the related objects of this '
+                    . 'object. However I cannot find related objects. Its just does not exists in database.');
+            }
+
+            if($obj) {
+                return $obj->$object;
+            }
         } catch (\Exception $e) {
             dd($e);
         }
@@ -138,7 +147,7 @@ class AbstractDatacentersService
                 $data['common_country_id']
             );
         }
-    
+
         try {
             $model = Datacenters::create($data);
         } catch(\Exception $e) {
@@ -152,7 +161,7 @@ class AbstractDatacentersService
 
     /**
      This function expects the ID inside the object.
-    
+
      @param  array $data
      @return Datacenters
      */
@@ -191,7 +200,7 @@ class AbstractDatacentersService
                 $data['common_country_id']
             );
         }
-    
+
         event(new DatacentersUpdatingEvent($model));
 
         try {

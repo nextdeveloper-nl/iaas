@@ -11,13 +11,13 @@ use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Filters\StorageVolumesQueryFilter;
+use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesCreatedEvent;
 use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesCreatingEvent;
 use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesUpdatedEvent;
 use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesUpdatingEvent;
 use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesDeletedEvent;
 use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesDeletingEvent;
-
 
 /**
  * This class is responsible from managing the data for StorageVolumes
@@ -104,10 +104,18 @@ class AbstractStorageVolumesService
      * @return void
      * @throws \Laravel\Octane\Exceptions\DdException
      */
-    public static function getSubObjects($uuid, $object)
+    public static function relatedObjects($uuid, $object)
     {
         try {
-            return StorageVolumes::where('uuid', $uuid)->first()->$object();
+            $obj = StorageVolumes::where('uuid', $uuid)->first();
+
+            if(!$obj) {
+                throw new ModelNotFoundException('Cannot find the related model');
+            }
+
+            if($obj) {
+                return $obj->$object;
+            }
         } catch (\Exception $e) {
             dd($e);
         }

@@ -7,11 +7,16 @@ use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Generator\Http\Traits\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\CloudNodes\CloudNodesUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\CloudNodesQueryFilter;
+use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Services\CloudNodesService;
 use NextDeveloper\IAAS\Http\Requests\CloudNodes\CloudNodesCreateRequest;
+use NextDeveloper\Commons\Http\Traits\Tags;
 
 class CloudNodesController extends AbstractController
 {
+    private $model = CloudNodes::class;
+
+    use Tags;
     /**
      * This method returns the list of cloudnodes.
      *
@@ -46,15 +51,18 @@ class CloudNodesController extends AbstractController
     }
 
     /**
-     * This method returns the list of sub objects the related object.
+     * This method returns the list of sub objects the related object. Sub object means an object which is preowned by
+     * this object.
+     *
+     * It can be tags, addresses, states etc.
      *
      * @param  $ref
      * @param  $subObject
      * @return void
      */
-    public function subObjects($ref, $subObject)
+    public function relatedObjects($ref, $subObject)
     {
-        $objects = CloudNodesService::getSubObjects($ref, $subObject);
+        $objects = CloudNodesService::relatedObjects($ref, $subObject);
 
         return ResponsableFactory::makeResponse($this, $objects);
     }

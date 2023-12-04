@@ -7,11 +7,15 @@ use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Generator\Http\Traits\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\ComputePools\ComputePoolsUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\ComputePoolsQueryFilter;
+use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Services\ComputePoolsService;
 use NextDeveloper\IAAS\Http\Requests\ComputePools\ComputePoolsCreateRequest;
-
+use NextDeveloper\Commons\Http\Traits\Tags;
 class ComputePoolsController extends AbstractController
 {
+    private $model = ComputePools::class;
+
+    use Tags;
     /**
      * This method returns the list of computepools.
      *
@@ -46,15 +50,18 @@ class ComputePoolsController extends AbstractController
     }
 
     /**
-     * This method returns the list of sub objects the related object.
+     * This method returns the list of sub objects the related object. Sub object means an object which is preowned by
+     * this object.
+     *
+     * It can be tags, addresses, states etc.
      *
      * @param  $ref
      * @param  $subObject
      * @return void
      */
-    public function subObjects($ref, $subObject)
+    public function relatedObjects($ref, $subObject)
     {
-        $objects = ComputePoolsService::getSubObjects($ref, $subObject);
+        $objects = ComputePoolsService::relatedObjects($ref, $subObject);
 
         return ResponsableFactory::makeResponse($this, $objects);
     }

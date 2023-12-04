@@ -7,11 +7,15 @@ use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Generator\Http\Traits\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\StoragePools\StoragePoolsUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\StoragePoolsQueryFilter;
+use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Services\StoragePoolsService;
 use NextDeveloper\IAAS\Http\Requests\StoragePools\StoragePoolsCreateRequest;
-
+use NextDeveloper\Commons\Http\Traits\Tags;
 class StoragePoolsController extends AbstractController
 {
+    private $model = StoragePools::class;
+
+    use Tags;
     /**
      * This method returns the list of storagepools.
      *
@@ -46,15 +50,18 @@ class StoragePoolsController extends AbstractController
     }
 
     /**
-     * This method returns the list of sub objects the related object.
+     * This method returns the list of sub objects the related object. Sub object means an object which is preowned by
+     * this object.
+     *
+     * It can be tags, addresses, states etc.
      *
      * @param  $ref
      * @param  $subObject
      * @return void
      */
-    public function subObjects($ref, $subObject)
+    public function relatedObjects($ref, $subObject)
     {
-        $objects = StoragePoolsService::getSubObjects($ref, $subObject);
+        $objects = StoragePoolsService::relatedObjects($ref, $subObject);
 
         return ResponsableFactory::makeResponse($this, $objects);
     }

@@ -11,13 +11,13 @@ use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Filters\CloudNodesQueryFilter;
+use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesCreatedEvent;
 use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesCreatingEvent;
 use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesUpdatedEvent;
 use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesUpdatingEvent;
 use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesDeletedEvent;
 use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesDeletingEvent;
-
 
 /**
  * This class is responsible from managing the data for CloudNodes
@@ -104,10 +104,18 @@ class AbstractCloudNodesService
      * @return void
      * @throws \Laravel\Octane\Exceptions\DdException
      */
-    public static function getSubObjects($uuid, $object)
+    public static function relatedObjects($uuid, $object)
     {
         try {
-            return CloudNodes::where('uuid', $uuid)->first()->$object();
+            $obj = CloudNodes::where('uuid', $uuid)->first();
+
+            if(!$obj) {
+                throw new ModelNotFoundException('Cannot find the related model');
+            }
+
+            if($obj) {
+                return $obj->$object;
+            }
         } catch (\Exception $e) {
             dd($e);
         }

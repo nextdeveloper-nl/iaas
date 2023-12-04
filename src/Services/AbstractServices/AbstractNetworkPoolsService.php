@@ -11,13 +11,13 @@ use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Filters\NetworkPoolsQueryFilter;
+use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsCreatedEvent;
 use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsCreatingEvent;
 use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsUpdatedEvent;
 use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsUpdatingEvent;
 use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsDeletedEvent;
 use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsDeletingEvent;
-
 
 /**
  * This class is responsible from managing the data for NetworkPools
@@ -104,10 +104,18 @@ class AbstractNetworkPoolsService
      * @return void
      * @throws \Laravel\Octane\Exceptions\DdException
      */
-    public static function getSubObjects($uuid, $object)
+    public static function relatedObjects($uuid, $object)
     {
         try {
-            return NetworkPools::where('uuid', $uuid)->first()->$object();
+            $obj = NetworkPools::where('uuid', $uuid)->first();
+
+            if(!$obj) {
+                throw new ModelNotFoundException('Cannot find the related model');
+            }
+
+            if($obj) {
+                return $obj->$object;
+            }
         } catch (\Exception $e) {
             dd($e);
         }
