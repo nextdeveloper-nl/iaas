@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Http\Controllers\CloudNodes;
 
 use Illuminate\Http\Request;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
-use NextDeveloper\Generator\Http\Traits\ResponsableFactory;
+use NextDeveloper\Commons\Http\Traits\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\CloudNodes\CloudNodesUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\CloudNodesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;

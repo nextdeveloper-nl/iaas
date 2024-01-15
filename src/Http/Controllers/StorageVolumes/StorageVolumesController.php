@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Http\Controllers\StorageVolumes;
 
 use Illuminate\Http\Request;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
-use NextDeveloper\Generator\Http\Traits\ResponsableFactory;
+use NextDeveloper\Commons\Http\Traits\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\StorageVolumes\StorageVolumesUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\StorageVolumesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;

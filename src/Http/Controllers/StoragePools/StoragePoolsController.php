@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Http\Controllers\StoragePools;
 
 use Illuminate\Http\Request;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
-use NextDeveloper\Generator\Http\Traits\ResponsableFactory;
+use NextDeveloper\Commons\Http\Traits\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\StoragePools\StoragePoolsUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\StoragePoolsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
