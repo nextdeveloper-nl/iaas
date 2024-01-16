@@ -73,10 +73,7 @@ trait IaasComputeMemberTestTraits
                 'total_ram'  =>  '1',
                 'used_cpu'  =>  '1',
                 'used_ram'  =>  '1',
-                'free_cpu'  =>  '1',
-                'free_ram'  =>  '1',
                 'total_vm'  =>  '1',
-                'overbooking_ratio'  =>  '1',
                 'max_overbooking_ratio'  =>  '1',
                 'benchmark_score'  =>  '1',
                     'uptime'  =>  now(),
@@ -648,69 +645,12 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_free_cpu_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'free_cpu'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_free_ram_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'free_ram'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaascomputemember_event_total_vm_filter()
     {
         try {
             $request = new Request(
                 [
                 'total_vm'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_overbooking_ratio_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'overbooking_ratio'  =>  '1'
                 ]
             );
 
@@ -1052,4 +992,5 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

@@ -132,32 +132,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_ram', $operator, $value);
     }
     
-    public function freeCpu($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('free_cpu', $operator, $value);
-    }
-    
-    public function freeRam($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('free_ram', $operator, $value);
-    }
-    
     public function totalVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -169,19 +143,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         }
 
         return $this->builder->where('total_vm', $operator, $value);
-    }
-    
-    public function overbookingRatio($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('overbooking_ratio', $operator, $value);
     }
     
     public function maxOverbookingRatio($value)

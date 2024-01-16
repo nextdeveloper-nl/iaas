@@ -43,10 +43,7 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
             'total_ram'  =>  $model->total_ram,
             'used_cpu'  =>  $model->used_cpu,
             'used_ram'  =>  $model->used_ram,
-            'free_cpu'  =>  $model->free_cpu,
-            'free_ram'  =>  $model->free_ram,
             'total_vm'  =>  $model->total_vm,
-            'overbooking_ratio'  =>  $model->overbooking_ratio,
             'max_overbooking_ratio'  =>  $model->max_overbooking_ratio,
             'cpu_info'  =>  $model->cpu_info,
             'uptime'  =>  $model->uptime ? $model->uptime->toIso8601String() : null,
@@ -65,6 +62,8 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

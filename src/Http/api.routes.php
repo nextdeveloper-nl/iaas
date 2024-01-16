@@ -8,6 +8,8 @@ Route::prefix('iaas')->group(
 
                 Route::get('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@tags');
                 Route::post('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@saveTags');
+                Route::get('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@addresses');
+                Route::post('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@saveAddresses');
 
                 Route::get('/{iaas_cloud_nodes}/{subObjects}', 'CloudNodes\CloudNodesController@relatedObjects');
                 Route::get('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@show');
@@ -24,6 +26,8 @@ Route::prefix('iaas')->group(
 
                 Route::get('{iaas_compute_members}/tags ', 'ComputeMembers\ComputeMembersController@tags');
                 Route::post('{iaas_compute_members}/tags ', 'ComputeMembers\ComputeMembersController@saveTags');
+                Route::get('{iaas_compute_members}/addresses ', 'ComputeMembers\ComputeMembersController@addresses');
+                Route::post('{iaas_compute_members}/addresses ', 'ComputeMembers\ComputeMembersController@saveAddresses');
 
                 Route::get('/{iaas_compute_members}/{subObjects}', 'ComputeMembers\ComputeMembersController@relatedObjects');
                 Route::get('/{iaas_compute_members}', 'ComputeMembers\ComputeMembersController@show');
@@ -40,6 +44,8 @@ Route::prefix('iaas')->group(
 
                 Route::get('{iaas_compute_pools}/tags ', 'ComputePools\ComputePoolsController@tags');
                 Route::post('{iaas_compute_pools}/tags ', 'ComputePools\ComputePoolsController@saveTags');
+                Route::get('{iaas_compute_pools}/addresses ', 'ComputePools\ComputePoolsController@addresses');
+                Route::post('{iaas_compute_pools}/addresses ', 'ComputePools\ComputePoolsController@saveAddresses');
 
                 Route::get('/{iaas_compute_pools}/{subObjects}', 'ComputePools\ComputePoolsController@relatedObjects');
                 Route::get('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@show');
@@ -54,11 +60,10 @@ Route::prefix('iaas')->group(
             function () {
                 Route::get('/', 'Datacenters\DatacentersController@index');
 
-                Route::get('{iaas_datacenters}/tags', 'Datacenters\DatacentersController@tags');
-                Route::post('{iaas_datacenters}/tags', 'Datacenters\DatacentersController@saveTags');
-
-                Route::get('{iaas_datacenters}/addresses', 'Datacenters\DatacentersController@addresses');
-                Route::post('{iaas_datacenters}/addresses', 'Datacenters\DatacentersController@saveAddresses');
+                Route::get('{iaas_datacenters}/tags ', 'Datacenters\DatacentersController@tags');
+                Route::post('{iaas_datacenters}/tags ', 'Datacenters\DatacentersController@saveTags');
+                Route::get('{iaas_datacenters}/addresses ', 'Datacenters\DatacentersController@addresses');
+                Route::post('{iaas_datacenters}/addresses ', 'Datacenters\DatacentersController@saveAddresses');
 
                 Route::get('/{iaas_datacenters}/{subObjects}', 'Datacenters\DatacentersController@relatedObjects');
                 Route::get('/{iaas_datacenters}', 'Datacenters\DatacentersController@show');
@@ -75,6 +80,8 @@ Route::prefix('iaas')->group(
 
                 Route::get('{iaas_network_pools}/tags ', 'NetworkPools\NetworkPoolsController@tags');
                 Route::post('{iaas_network_pools}/tags ', 'NetworkPools\NetworkPoolsController@saveTags');
+                Route::get('{iaas_network_pools}/addresses ', 'NetworkPools\NetworkPoolsController@addresses');
+                Route::post('{iaas_network_pools}/addresses ', 'NetworkPools\NetworkPoolsController@saveAddresses');
 
                 Route::get('/{iaas_network_pools}/{subObjects}', 'NetworkPools\NetworkPoolsController@relatedObjects');
                 Route::get('/{iaas_network_pools}', 'NetworkPools\NetworkPoolsController@show');
@@ -91,6 +98,8 @@ Route::prefix('iaas')->group(
 
                 Route::get('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@tags');
                 Route::post('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@saveTags');
+                Route::get('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@addresses');
+                Route::post('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@saveAddresses');
 
                 Route::get('/{iaas_storage_pools}/{subObjects}', 'StoragePools\StoragePoolsController@relatedObjects');
                 Route::get('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@show');
@@ -107,6 +116,8 @@ Route::prefix('iaas')->group(
 
                 Route::get('{iaas_storage_volumes}/tags ', 'StorageVolumes\StorageVolumesController@tags');
                 Route::post('{iaas_storage_volumes}/tags ', 'StorageVolumes\StorageVolumesController@saveTags');
+                Route::get('{iaas_storage_volumes}/addresses ', 'StorageVolumes\StorageVolumesController@addresses');
+                Route::post('{iaas_storage_volumes}/addresses ', 'StorageVolumes\StorageVolumesController@saveAddresses');
 
                 Route::get('/{iaas_storage_volumes}/{subObjects}', 'StorageVolumes\StorageVolumesController@relatedObjects');
                 Route::get('/{iaas_storage_volumes}', 'StorageVolumes\StorageVolumesController@show');
@@ -123,6 +134,8 @@ Route::prefix('iaas')->group(
 
                 Route::get('{iaas_virtual_machines}/tags ', 'VirtualMachines\VirtualMachinesController@tags');
                 Route::post('{iaas_virtual_machines}/tags ', 'VirtualMachines\VirtualMachinesController@saveTags');
+                Route::get('{iaas_virtual_machines}/addresses ', 'VirtualMachines\VirtualMachinesController@addresses');
+                Route::post('{iaas_virtual_machines}/addresses ', 'VirtualMachines\VirtualMachinesController@saveAddresses');
 
                 Route::get('/{iaas_virtual_machines}/{subObjects}', 'VirtualMachines\VirtualMachinesController@relatedObjects');
                 Route::get('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@show');
@@ -135,8 +148,26 @@ Route::prefix('iaas')->group(
 
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 );
+
+
 
 
 

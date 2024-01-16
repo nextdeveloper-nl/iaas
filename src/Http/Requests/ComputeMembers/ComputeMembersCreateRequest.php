@@ -28,10 +28,7 @@ class ComputeMembersCreateRequest extends AbstractFormRequest
         'total_ram'             => 'integer',
         'used_cpu'              => 'integer',
         'used_ram'              => 'integer',
-        'free_cpu'              => 'nullable|integer',
-        'free_ram'              => 'nullable|integer',
         'total_vm'              => 'integer',
-        'overbooking_ratio'     => 'nullable|numeric',
         'max_overbooking_ratio' => 'integer',
         'cpu_info'              => 'nullable',
         'uptime'                => 'required|date',
@@ -43,5 +40,6 @@ class ComputeMembersCreateRequest extends AbstractFormRequest
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

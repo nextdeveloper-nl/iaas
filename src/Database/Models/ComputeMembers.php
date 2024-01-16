@@ -70,10 +70,7 @@ class ComputeMembers extends Model
     'total_ram'             => 'integer',
     'used_cpu'              => 'integer',
     'used_ram'              => 'integer',
-    'free_cpu'              => 'integer',
-    'free_ram'              => 'integer',
     'total_vm'              => 'integer',
-    'overbooking_ratio'     => 'double',
     'max_overbooking_ratio' => 'integer',
     'uptime'                => 'datetime',
     'idle_time'             => 'datetime',
@@ -167,6 +164,8 @@ class ComputeMembers extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

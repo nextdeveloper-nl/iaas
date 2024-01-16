@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Http\Controllers\ComputeMembers;
 
 use Illuminate\Http\Request;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
-use NextDeveloper\Commons\Http\Traits\ResponsableFactory;
+use NextDeveloper\Commons\Http\Response\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\ComputeMembers\ComputeMembersUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\ComputeMembersQueryFilter;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;

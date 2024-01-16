@@ -5,7 +5,7 @@ namespace NextDeveloper\IAAS\Http\Controllers\Datacenters;
 use Illuminate\Http\Request;
 use NextDeveloper\Commons\Http\Traits\Addresses;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
-use NextDeveloper\Commons\Http\Traits\ResponsableFactory;
+use NextDeveloper\Commons\Http\Response\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\Datacenters\DatacentersUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\DatacentersQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Datacenters;

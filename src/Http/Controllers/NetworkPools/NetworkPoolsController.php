@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Http\Controllers\NetworkPools;
 
 use Illuminate\Http\Request;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
-use NextDeveloper\Commons\Http\Traits\ResponsableFactory;
+use NextDeveloper\Commons\Http\Response\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\NetworkPools\NetworkPoolsUpdateRequest;
 use NextDeveloper\IAAS\Database\Filters\NetworkPoolsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
