@@ -16,25 +16,7 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
-    public function name($value)
-    {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
-    }
 
-    public function gbPerHourPrice($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('gb_per_hour_price', $operator, $value);
-    }
-    
     public function isActive()
     {
         return $this->builder->where('is_active', true);

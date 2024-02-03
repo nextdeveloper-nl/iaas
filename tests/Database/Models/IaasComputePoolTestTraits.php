@@ -60,9 +60,8 @@ trait IaasComputePoolTestTraits
             'form_params'   =>  [
                 'name'  =>  'a',
                 'resource_validator'  =>  'a',
-                'virtualization_version'  =>  'a',
+                'virtualization'  =>  'a',
                 'provisioning_alg'  =>  'a',
-                'management_package_name'  =>  'a',
                             ],
                 ['http_errors' => false]
             ]
@@ -383,12 +382,12 @@ trait IaasComputePoolTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputepool_event_virtualization_version_filter()
+    public function test_iaascomputepool_event_virtualization_filter()
     {
         try {
             $request = new Request(
                 [
-                'virtualization_version'  =>  'a'
+                'virtualization'  =>  'a'
                 ]
             );
 
@@ -408,25 +407,6 @@ trait IaasComputePoolTestTraits
             $request = new Request(
                 [
                 'provisioning_alg'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasComputePoolQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputepool_event_management_package_name_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'management_package_name'  =>  'a'
                 ]
             );
 

@@ -17,19 +17,9 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
      */
     protected $builder;
     
-    public function name($value)
-    {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
-    }
-    
     public function provisioningAlg($value)
     {
         return $this->builder->where('provisioning_alg', 'like', '%' . $value . '%');
-    }
-    
-    public function managementPackageName($value)
-    {
-        return $this->builder->where('management_package_name', 'like', '%' . $value . '%');
     }
     
     public function resourceValidator($value)
@@ -87,32 +77,6 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         }
 
         return $this->builder->where('vxlan_end', $operator, $value);
-    }
-    
-    public function hasVlanSupport($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('has_vlan_support', $operator, $value);
-    }
-    
-    public function hasVxlanSupport($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('has_vxlan_support', $operator, $value);
     }
     
     public function isActive()

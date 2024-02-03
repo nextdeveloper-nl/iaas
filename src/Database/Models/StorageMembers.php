@@ -1,0 +1,139 @@
+<?php
+
+namespace NextDeveloper\IAAS\Database\Models;
+
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
+use NextDeveloper\Commons\Database\Traits\Filterable;
+use NextDeveloper\IAAS\Database\Observers\StorageMembersObserver;
+use NextDeveloper\Commons\Database\Traits\UuidId;
+use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
+use NextDeveloper\Commons\Database\Traits\Taggable;
+
+/**
+ * Class StorageMembers.
+ *
+ * @package NextDeveloper\IAAS\Database\Models
+ */
+class StorageMembers extends Model
+{
+    use Filterable, UuidId, CleanCache, Taggable;
+    use SoftDeletes;
+
+
+    public $timestamps = true;
+
+    protected $table = 'iaas_storage_members';
+
+
+    /**
+     @var array
+     */
+    protected $guarded = [];
+
+    /**
+      Here we have the fulltext fields. We can use these for fulltext search if enabled.
+     */
+    protected $fullTextFields = [
+
+    ];
+
+    /**
+     @var array
+     */
+    protected $appends = [
+
+    ];
+
+    /**
+     We are casting fields to objects so that we can work on them better
+     *
+     @var array
+     */
+    protected $casts = [
+    'id' => 'integer',
+    'name' => 'string',
+    'hostname' => 'string',
+    'ip_addr' => 'string',
+    'local_ip_addr' => 'string',
+    'management_data' => 'array',
+    'features' => 'array',
+    'is_behind_firewall' => 'boolean',
+    'total_socket' => 'integer',
+    'total_cpu' => 'integer',
+    'total_ram' => 'integer',
+    'total_disk' => 'integer',
+    'used_disk' => 'integer',
+    'disk_info' => 'array',
+    'up_since' => 'datetime',
+    'benchmark_score' => 'integer',
+    'is_maintenance' => 'boolean',
+    'is_alive' => 'boolean',
+    'iaas_storage_pool_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
+    ];
+
+    /**
+     We are casting data fields.
+     *
+     @var array
+     */
+    protected $dates = [
+    'up_since',
+    'created_at',
+    'updated_at',
+    'deleted_at',
+    ];
+
+    /**
+     @var array
+     */
+    protected $with = [
+
+    ];
+
+    /**
+     @var int
+     */
+    protected $perPage = 20;
+
+    /**
+     @return void
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        //  We create and add Observer even if we wont use it.
+        parent::observe(StorageMembersObserver::class);
+
+        self::registerScopes();
+    }
+
+    public static function registerScopes()
+    {
+        $globalScopes = config('iaas.scopes.global');
+        $modelScopes = config('iaas.scopes.iaas_storage_members');
+
+        if(!$modelScopes) { $modelScopes = [];
+        }
+        if (!$globalScopes) { $globalScopes = [];
+        }
+
+        $scopes = array_merge(
+            $globalScopes,
+            $modelScopes
+        );
+
+        if($scopes) {
+            foreach ($scopes as $scope) {
+                static::addGlobalScope(app($scope));
+            }
+        }
+    }
+
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+}

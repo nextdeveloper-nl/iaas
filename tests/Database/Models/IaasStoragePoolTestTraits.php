@@ -58,8 +58,6 @@ trait IaasStoragePoolTestTraits
         $response = $this->http->request(
             'POST', '/iaas/iaasstoragepool', [
             'form_params'   =>  [
-                'name'  =>  'a',
-                'gb_per_hour_price'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -335,44 +333,6 @@ trait IaasStoragePoolTestTraits
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
             event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoredEvent($model));
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasstoragepool_event_name_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'name'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasStoragePoolQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasstoragepool_event_gb_per_hour_price_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'gb_per_hour_price'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasStoragePoolQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::filter($filter)->first();
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }

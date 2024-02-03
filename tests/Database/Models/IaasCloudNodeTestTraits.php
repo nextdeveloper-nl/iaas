@@ -60,7 +60,6 @@ trait IaasCloudNodeTestTraits
             'form_params'   =>  [
                 'name'  =>  'a',
                 'slug'  =>  'a',
-                'maintenance_mode'  =>  '1',
                 'position'  =>  '1',
                             ],
                 ['http_errors' => false]
@@ -369,25 +368,6 @@ trait IaasCloudNodeTestTraits
             $request = new Request(
                 [
                 'slug'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasCloudNodeQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascloudnode_event_maintenance_mode_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'maintenance_mode'  =>  '1'
                 ]
             );
 

@@ -62,13 +62,8 @@ trait IaasComputeMemberTestTraits
                 'hostname'  =>  'a',
                 'ip_addr'  =>  'a',
                 'local_ip_addr'  =>  'a',
-                'api_url'  =>  'a',
-                'username'  =>  'a',
-                'password'  =>  'a',
-                'features'  =>  'a',
-                'hypervisor_uuid'  =>  'a',
                 'hypervisor_data'  =>  'a',
-                'port'  =>  '1',
+                'total_socket'  =>  '1',
                 'total_cpu'  =>  '1',
                 'total_ram'  =>  '1',
                 'used_cpu'  =>  '1',
@@ -76,8 +71,7 @@ trait IaasComputeMemberTestTraits
                 'total_vm'  =>  '1',
                 'max_overbooking_ratio'  =>  '1',
                 'benchmark_score'  =>  '1',
-                    'uptime'  =>  now(),
-                    'idle_time'  =>  now(),
+                    'up_since'  =>  now(),
                             ],
                 ['http_errors' => false]
             ]
@@ -436,101 +430,6 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_api_url_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'api_url'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_username_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'username'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_password_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'password'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_features_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'features'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_hypervisor_uuid_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'hypervisor_uuid'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaascomputemember_event_hypervisor_data_filter()
     {
         try {
@@ -550,12 +449,12 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_port_filter()
+    public function test_iaascomputemember_event_total_socket_filter()
     {
         try {
             $request = new Request(
                 [
-                'port'  =>  '1'
+                'total_socket'  =>  '1'
                 ]
             );
 
@@ -702,31 +601,12 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_uptime_filter_start()
+    public function test_iaascomputemember_event_up_since_filter_start()
     {
         try {
             $request = new Request(
                 [
-                'uptimeStart'  =>  now()
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_idle_time_filter_start()
-    {
-        try {
-            $request = new Request(
-                [
-                'idle_timeStart'  =>  now()
+                'up_sinceStart'  =>  now()
                 ]
             );
 
@@ -797,31 +677,12 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_uptime_filter_end()
+    public function test_iaascomputemember_event_up_since_filter_end()
     {
         try {
             $request = new Request(
                 [
-                'uptimeEnd'  =>  now()
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_idle_time_filter_end()
-    {
-        try {
-            $request = new Request(
-                [
-                'idle_timeEnd'  =>  now()
+                'up_sinceEnd'  =>  now()
                 ]
             );
 
@@ -892,33 +753,13 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_uptime_filter_start_and_end()
+    public function test_iaascomputemember_event_up_since_filter_start_and_end()
     {
         try {
             $request = new Request(
                 [
-                'uptimeStart'  =>  now(),
-                'uptimeEnd'  =>  now()
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_idle_time_filter_start_and_end()
-    {
-        try {
-            $request = new Request(
-                [
-                'idle_timeStart'  =>  now(),
-                'idle_timeEnd'  =>  now()
+                'up_sinceStart'  =>  now(),
+                'up_sinceEnd'  =>  now()
                 ]
             );
 

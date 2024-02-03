@@ -37,37 +37,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('local_ip_addr', 'like', '%' . $value . '%');
     }
     
-    public function apiUrl($value)
-    {
-        return $this->builder->where('api_url', 'like', '%' . $value . '%');
-    }
-    
-    public function username($value)
-    {
-        return $this->builder->where('username', 'like', '%' . $value . '%');
-    }
-    
-    public function password($value)
-    {
-        return $this->builder->where('password', 'like', '%' . $value . '%');
-    }
-    
-    public function features($value)
-    {
-        return $this->builder->where('features', 'like', '%' . $value . '%');
-    }
-    
-    public function hypervisorUuid($value)
-    {
-        return $this->builder->where('hypervisor_uuid', 'like', '%' . $value . '%');
-    }
-    
     public function hypervisorData($value)
     {
         return $this->builder->where('hypervisor_data', 'like', '%' . $value . '%');
     }
 
-    public function port($value)
+    public function totalSocket($value)
     {
         $operator = substr($value, 0, 1);
 
@@ -77,7 +52,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
             $value = substr($value, 1);
         }
 
-        return $this->builder->where('port', $operator, $value);
+        return $this->builder->where('total_socket', $operator, $value);
     }
     
     public function totalCpu($value)
@@ -186,24 +161,14 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('is_alive', true);
     }
     
-    public function uptimeStart($date) 
+    public function upSinceStart($date) 
     {
-        return $this->builder->where('uptime', '>=', $date);
+        return $this->builder->where('up_since', '>=', $date);
     }
 
-    public function uptimeEnd($date) 
+    public function upSinceEnd($date) 
     {
-        return $this->builder->where('uptime', '<=', $date);
-    }
-
-    public function idleTimeStart($date) 
-    {
-        return $this->builder->where('idle_time', '>=', $date);
-    }
-
-    public function idleTimeEnd($date) 
-    {
-        return $this->builder->where('idle_time', '<=', $date);
+        return $this->builder->where('up_since', '<=', $date);
     }
 
     public function createdAtStart($date) 

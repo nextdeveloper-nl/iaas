@@ -13,14 +13,14 @@ class CloudNodesUpdateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'name'               => 'nullable|string|max:100',
-        'slug'               => 'nullable|string|max:100',
-        'is_active'          => 'boolean',
-        'is_public'          => 'boolean',
-        'is_edge'            => 'boolean',
-        'is_alive'           => 'boolean',
-        'maintenance_mode'   => 'boolean',
-        'position'           => 'nullable|integer',
+            'name' => 'nullable|string',
+        'slug' => 'nullable|string',
+        'is_active' => 'boolean',
+        'is_public' => 'boolean',
+        'is_edge' => 'boolean',
+        'is_alive' => 'boolean',
+        'is_in_maintenance' => 'boolean',
+        'position' => 'nullable|integer',
         'iaas_datacenter_id' => 'nullable|exists:iaas_datacenters,uuid|uuid',
         ];
     }

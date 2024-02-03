@@ -13,9 +13,9 @@ class StoragePoolsCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'name'               => 'required|string|max:100',
-        'gb_per_hour_price'  => 'required|numeric',
-        'is_active'          => 'boolean',
+            'name' => 'required',
+        'gb_per_hour_price' => 'required',
+        'is_active' => 'boolean',
         'iaas_cloud_node_id' => 'required|exists:iaas_cloud_nodes,uuid|uuid',
         ];
     }

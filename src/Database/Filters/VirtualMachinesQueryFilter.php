@@ -42,11 +42,6 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('description', 'like', '%' . $value . '%');
     }
     
-    public function notes($value)
-    {
-        return $this->builder->where('notes', 'like', '%' . $value . '%');
-    }
-    
     public function os($value)
     {
         return $this->builder->where('os', 'like', '%' . $value . '%');
@@ -62,19 +57,14 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('version', 'like', '%' . $value . '%');
     }
     
-    public function features($value)
+    public function domainType($value)
     {
-        return $this->builder->where('features', 'like', '%' . $value . '%');
+        return $this->builder->where('domain_type', 'like', '%' . $value . '%');
     }
     
-    public function hypervisorUuid($value)
+    public function status($value)
     {
-        return $this->builder->where('hypervisor_uuid', 'like', '%' . $value . '%');
-    }
-    
-    public function hypervisorData($value)
-    {
-        return $this->builder->where('hypervisor_data', 'like', '%' . $value . '%');
+        return $this->builder->where('status', 'like', '%' . $value . '%');
     }
 
     public function cpu($value)
@@ -103,19 +93,6 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
     
-    public function winrmEnabled($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('winrm_enabled', $operator, $value);
-    }
-    
     public function isSnapshot()
     {
         return $this->builder->where('is_snapshot', true);
@@ -139,16 +116,6 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     public function lastMetadataRequestEnd($date) 
     {
         return $this->builder->where('last_metadata_request', '<=', $date);
-    }
-
-    public function suspendedAtStart($date) 
-    {
-        return $this->builder->where('suspended_at', '>=', $date);
-    }
-
-    public function suspendedAtEnd($date) 
-    {
-        return $this->builder->where('suspended_at', '<=', $date);
     }
 
     public function createdAtStart($date) 
@@ -217,9 +184,13 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    public function fromTemplateId($value)
+    public function iaasVirtualMachinesId($value)
     {
-            return $this->builder->where('from_template_id', '=', $value);
+            $iaasVirtualMachines = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
+
+        if($iaasVirtualMachines) {
+            return $this->builder->where('iaas_virtual_machines_id', '=', $iaasVirtualMachines->id);
+        }
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

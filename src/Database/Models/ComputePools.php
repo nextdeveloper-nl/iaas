@@ -52,21 +52,20 @@ class ComputePools extends Model
      @var array
      */
     protected $casts = [
-    'id'                      => 'integer',
-    'uuid'                    => 'string',
-    'name'                    => 'string',
-    'resource_validator'      => 'string',
-    'virtualization_version'  => 'string',
-    'provisioning_alg'        => 'string',
-    'management_package_name' => 'string',
-    'is_active'               => 'boolean',
-    'is_alive'                => 'boolean',
-    'is_public'               => 'boolean',
-    'iaas_datacenter_id'      => 'integer',
-    'iaas_cloud_node_id'      => 'integer',
-    'created_at'              => 'datetime',
-    'updated_at'              => 'datetime',
-    'deleted_at'              => 'datetime',
+    'id' => 'integer',
+    'name' => 'string',
+    'resource_validator' => 'string',
+    'pool_data' => 'array',
+    'virtualization' => 'string',
+    'provisioning_alg' => 'string',
+    'is_active' => 'boolean',
+    'is_alive' => 'boolean',
+    'is_public' => 'boolean',
+    'iaas_datacenter_id' => 'integer',
+    'iaas_cloud_node_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -127,32 +126,8 @@ class ComputePools extends Model
         }
     }
 
-    public function computeMembers() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
-    }
-
-    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
-    }
-    
-    public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
-    }
-    
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
-    }
-    
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

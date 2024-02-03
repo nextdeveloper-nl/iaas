@@ -52,20 +52,19 @@ class CloudNodes extends Model
      @var array
      */
     protected $casts = [
-    'id'                 => 'integer',
-    'uuid'               => 'string',
-    'name'               => 'string',
-    'slug'               => 'string',
-    'is_active'          => 'boolean',
-    'is_public'          => 'boolean',
-    'is_edge'            => 'boolean',
-    'is_alive'           => 'boolean',
-    'maintenance_mode'   => 'boolean',
-    'position'           => 'integer',
+    'id' => 'integer',
+    'name' => 'string',
+    'slug' => 'string',
+    'is_active' => 'boolean',
+    'is_public' => 'boolean',
+    'is_edge' => 'boolean',
+    'is_alive' => 'boolean',
+    'is_in_maintenance' => 'boolean',
+    'position' => 'integer',
     'iaas_datacenter_id' => 'integer',
-    'created_at'         => 'datetime',
-    'updated_at'         => 'datetime',
-    'deleted_at'         => 'datetime',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -126,42 +125,8 @@ class CloudNodes extends Model
         }
     }
 
-    public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
-    }
-    
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
-    }
-    
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-    
-    public function computePools() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
-    }
-
-    public function networkPools() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
-    }
-
-    public function storagePools() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
-    }
-
-    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
-    }
-
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -27,19 +27,14 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('resource_validator', 'like', '%' . $value . '%');
     }
     
-    public function virtualizationVersion($value)
+    public function virtualization($value)
     {
-        return $this->builder->where('virtualization_version', 'like', '%' . $value . '%');
+        return $this->builder->where('virtualization', 'like', '%' . $value . '%');
     }
     
     public function provisioningAlg($value)
     {
         return $this->builder->where('provisioning_alg', 'like', '%' . $value . '%');
-    }
-    
-    public function managementPackageName($value)
-    {
-        return $this->builder->where('management_package_name', 'like', '%' . $value . '%');
     }
 
     public function isActive()

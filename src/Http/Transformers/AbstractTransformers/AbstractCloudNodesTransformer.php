@@ -32,20 +32,21 @@ class AbstractCloudNodesTransformer extends AbstractTransformer
             'is_active'  =>  $model->is_active,
             'is_public'  =>  $model->is_public,
             'is_edge'  =>  $model->is_edge,
-            'is_alive'  =>  $model->is_alive == 1 ? true : false,
-            'maintenance_mode'  =>  $model->maintenance_mode,
+            'is_alive'  =>  $model->is_alive,
+            'is_in_maintenance'  =>  $model->is_in_maintenance,
             'position'  =>  $model->position,
             'iaas_datacenter_id'  =>  $iaasDatacenterId ? $iaasDatacenterId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
-            'created_at'  =>  $model->created_at ? $model->created_at->toIso8601String() : null,
-            'updated_at'  =>  $model->updated_at ? $model->updated_at->toIso8601String() : null,
-            'deleted_at'  =>  $model->deleted_at ? $model->deleted_at->toIso8601String() : null,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

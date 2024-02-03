@@ -52,22 +52,25 @@ class Datacenters extends Model
      @var array
      */
     protected $casts = [
-    'id'                 => 'integer',
-    'uuid'               => 'string',
-    'name'               => 'string',
-    'slug'               => 'string',
-    'is_public'          => 'boolean',
-    'is_active'          => 'boolean',
-    'maintenance_mode'   => 'boolean',
-    'geo_latitude'       => 'string',
-    'geo_longitude'      => 'string',
-    'guaranteed_uptime'  => 'double',
+    'id' => 'integer',
+    'name' => 'string',
+    'slug' => 'string',
+    'is_public' => 'boolean',
+    'is_active' => 'boolean',
+    'maintenance_mode' => 'boolean',
+    'geo_latitude' => 'string',
+    'geo_longitude' => 'string',
+    'tier_level' => 'integer',
+    'total_capacity' => 'array',
     'is_carrier_neutral' => 'boolean',
-    'city'               => 'string',
-    'common_country_id'  => 'integer',
-    'created_at'         => 'datetime',
-    'updated_at'         => 'datetime',
-    'deleted_at'         => 'datetime',
+    'power_source' => 'string',
+    'ups' => 'string',
+    'cooling' => 'string',
+    'common_city_id' => 'integer',
+    'common_country_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -128,32 +131,8 @@ class Datacenters extends Model
         }
     }
 
-    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
-    }
-
-    public function computePools() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
-    }
-
-    public function countries() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\Commons\Database\Models\Countries::class);
-    }
-    
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
-    }
-    
-    public function networkPools() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
-    }
-
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

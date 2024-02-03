@@ -27,19 +27,6 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('slug', 'like', '%' . $value . '%');
     }
 
-    public function maintenanceMode($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('maintenance_mode', $operator, $value);
-    }
-    
     public function position($value)
     {
         $operator = substr($value, 0, 1);
@@ -71,6 +58,11 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     public function isAlive()
     {
         return $this->builder->where('is_alive', true);
+    }
+    
+    public function isInMaintenance()
+    {
+        return $this->builder->where('is_in_maintenance', true);
     }
     
     public function createdAtStart($date) 

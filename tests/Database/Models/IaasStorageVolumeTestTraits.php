@@ -58,7 +58,6 @@ trait IaasStorageVolumeTestTraits
         $response = $this->http->request(
             'POST', '/iaas/iaasstoragevolume', [
             'form_params'   =>  [
-                'hypervisor_uuid'  =>  'a',
                 'name'  =>  'a',
                 'disk_physical_type'  =>  'a',
                 'total_hdd'  =>  '1',
@@ -340,25 +339,6 @@ trait IaasStorageVolumeTestTraits
             $model = \NextDeveloper\IAAS\Database\Models\IaasStorageVolume::first();
 
             event(new \NextDeveloper\IAAS\Events\IaasStorageVolume\IaasStorageVolumeRestoredEvent($model));
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasstoragevolume_event_hypervisor_uuid_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'hypervisor_uuid'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasStorageVolumeQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasStorageVolume::filter($filter)->first();
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }

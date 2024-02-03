@@ -62,9 +62,10 @@ trait IaasDatacenterTestTraits
                 'slug'  =>  'a',
                 'geo_latitude'  =>  'a',
                 'geo_longitude'  =>  'a',
-                'city'  =>  'a',
-                'maintenance_mode'  =>  '1',
-                'guaranteed_uptime'  =>  '1',
+                'power_source'  =>  'a',
+                'ups'  =>  'a',
+                'cooling'  =>  'a',
+                'tier_level'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -423,12 +424,12 @@ trait IaasDatacenterTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasdatacenter_event_city_filter()
+    public function test_iaasdatacenter_event_power_source_filter()
     {
         try {
             $request = new Request(
                 [
-                'city'  =>  'a'
+                'power_source'  =>  'a'
                 ]
             );
 
@@ -442,12 +443,12 @@ trait IaasDatacenterTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasdatacenter_event_maintenance_mode_filter()
+    public function test_iaasdatacenter_event_ups_filter()
     {
         try {
             $request = new Request(
                 [
-                'maintenance_mode'  =>  '1'
+                'ups'  =>  'a'
                 ]
             );
 
@@ -461,12 +462,31 @@ trait IaasDatacenterTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasdatacenter_event_guaranteed_uptime_filter()
+    public function test_iaasdatacenter_event_cooling_filter()
     {
         try {
             $request = new Request(
                 [
-                'guaranteed_uptime'  =>  '1'
+                'cooling'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasDatacenterQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasdatacenter_event_tier_level_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'tier_level'  =>  '1'
                 ]
             );
 

@@ -52,24 +52,21 @@ class NetworkPools extends Model
      @var array
      */
     protected $casts = [
-    'id'                      => 'integer',
-    'uuid'                    => 'string',
-    'name'                    => 'string',
-    'vlan_start'              => 'integer',
-    'vlan_end'                => 'integer',
-    'vxlan_start'             => 'integer',
-    'vxlan_end'               => 'integer',
-    'has_vlan_support'        => 'boolean',
-    'has_vxlan_support'       => 'boolean',
-    'is_active'               => 'boolean',
-    'iaas_datacenter_id'      => 'integer',
-    'iaas_cloud_node_id'      => 'integer',
-    'provisioning_alg'        => 'string',
-    'management_package_name' => 'string',
-    'resource_validator'      => 'string',
-    'created_at'              => 'datetime',
-    'updated_at'              => 'datetime',
-    'deleted_at'              => 'datetime',
+    'id' => 'integer',
+    'vlan_start' => 'integer',
+    'vlan_end' => 'integer',
+    'vxlan_start' => 'integer',
+    'vxlan_end' => 'integer',
+    'has_vlan_support' => 'boolean',
+    'has_vxlan_support' => 'boolean',
+    'is_active' => 'boolean',
+    'iaas_datacenter_id' => 'integer',
+    'iaas_cloud_node_id' => 'integer',
+    'provisioning_alg' => 'string',
+    'resource_validator' => 'string',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -130,27 +127,8 @@ class NetworkPools extends Model
         }
     }
 
-    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
-    }
-    
-    public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
-    }
-    
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
-    }
-    
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

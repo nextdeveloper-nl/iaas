@@ -13,14 +13,14 @@ class CloudNodesCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'name'               => 'required|string|max:100',
-        'slug'               => 'required|string|max:100',
-        'is_active'          => 'boolean',
-        'is_public'          => 'boolean',
-        'is_edge'            => 'boolean',
-        'is_alive'           => 'boolean',
-        'maintenance_mode'   => 'boolean',
-        'position'           => 'nullable|integer',
+            'name' => 'required|string',
+        'slug' => 'required|string',
+        'is_active' => 'boolean',
+        'is_public' => 'boolean',
+        'is_edge' => 'boolean',
+        'is_alive' => 'boolean',
+        'is_in_maintenance' => 'boolean',
+        'position' => 'nullable|integer',
         'iaas_datacenter_id' => 'required|exists:iaas_datacenters,uuid|uuid',
         ];
     }

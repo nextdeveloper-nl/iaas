@@ -24,7 +24,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
                     $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
                     $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                     $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                    $fromTemplateId = \NextDeveloper\\Database\Models\FromTemplates::where('id', $model->from_template_id)->first();
+                    $iaasVirtualMachinesId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machines_id)->first();
         
         return $this->buildPayload(
             [
@@ -34,7 +34,6 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'password'  =>  $model->password,
             'hostname'  =>  $model->hostname,
             'description'  =>  $model->description,
-            'notes'  =>  $model->notes,
             'os'  =>  $model->os,
             'distro'  =>  $model->distro,
             'version'  =>  $model->version,
@@ -50,7 +49,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'is_snapshot'  =>  $model->is_snapshot,
             'is_lost'  =>  $model->is_lost,
             'is_locked'  =>  $model->is_locked,
-            'last_metadata_request'  =>  $model->last_metadata_request ? $model->last_metadata_request->toIso8601String() : null,
+            'last_metadata_request'  =>  $model->last_metadata_request,
             'features'  =>  $model->features,
             'hypervisor_uuid'  =>  $model->hypervisor_uuid,
             'hypervisor_data'  =>  $model->hypervisor_data,
@@ -58,16 +57,16 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'iaas_compute_member_id'  =>  $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
-            'from_template_id'  =>  $fromTemplateId ? $fromTemplateId->uuid : null,
-            'suspended_at'  =>  $model->suspended_at ? $model->suspended_at->toIso8601String() : null,
-            'created_at'  =>  $model->created_at ? $model->created_at->toIso8601String() : null,
-            'updated_at'  =>  $model->updated_at ? $model->updated_at->toIso8601String() : null,
-            'deleted_at'  =>  $model->deleted_at ? $model->deleted_at->toIso8601String() : null,
+            'iaas_virtual_machines_id'  =>  $iaasVirtualMachinesId ? $iaasVirtualMachinesId->uuid : null,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

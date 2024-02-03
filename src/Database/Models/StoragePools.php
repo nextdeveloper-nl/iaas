@@ -52,15 +52,12 @@ class StoragePools extends Model
      @var array
      */
     protected $casts = [
-    'id'                 => 'integer',
-    'uuid'               => 'string',
-    'name'               => 'string',
-    'gb_per_hour_price'  => 'double',
-    'is_active'          => 'boolean',
+    'id' => 'integer',
+    'is_active' => 'boolean',
     'iaas_cloud_node_id' => 'integer',
-    'created_at'         => 'datetime',
-    'updated_at'         => 'datetime',
-    'deleted_at'         => 'datetime',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -121,27 +118,8 @@ class StoragePools extends Model
         }
     }
 
-    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
-    }
-    
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
-    }
-    
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-    
-    public function storageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
-    }
-
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

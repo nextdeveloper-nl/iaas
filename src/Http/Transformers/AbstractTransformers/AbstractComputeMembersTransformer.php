@@ -31,14 +31,12 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
             'hostname'  =>  $model->hostname,
             'ip_addr'  =>  $model->ip_addr,
             'local_ip_addr'  =>  $model->local_ip_addr,
-            'api_url'  =>  $model->api_url,
-            'port'  =>  $model->port,
-            'username'  =>  $model->username,
-            'password'  =>  $model->password,
+            'management_data'  =>  $model->management_data,
             'features'  =>  $model->features,
             'is_behind_firewall'  =>  $model->is_behind_firewall,
             'hypervisor_uuid'  =>  $model->hypervisor_uuid,
             'hypervisor_data'  =>  $model->hypervisor_data,
+            'total_socket'  =>  $model->total_socket,
             'total_cpu'  =>  $model->total_cpu,
             'total_ram'  =>  $model->total_ram,
             'used_cpu'  =>  $model->used_cpu,
@@ -46,22 +44,22 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
             'total_vm'  =>  $model->total_vm,
             'max_overbooking_ratio'  =>  $model->max_overbooking_ratio,
             'cpu_info'  =>  $model->cpu_info,
-            'uptime'  =>  $model->uptime ? $model->uptime->toIso8601String() : null,
-            'idle_time'  =>  $model->idle_time ? $model->idle_time->toIso8601String() : null,
+            'up_since'  =>  $model->up_since,
             'benchmark_score'  =>  $model->benchmark_score,
-            'is_maintenance'  =>  $model->is_maintenance == 1 ? true : false,
+            'is_maintenance'  =>  $model->is_maintenance,
             'is_alive'  =>  $model->is_alive,
             'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
-            'created_at'  =>  $model->created_at ? $model->created_at->toIso8601String() : null,
-            'updated_at'  =>  $model->updated_at ? $model->updated_at->toIso8601String() : null,
-            'deleted_at'  =>  $model->deleted_at ? $model->deleted_at->toIso8601String() : null,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

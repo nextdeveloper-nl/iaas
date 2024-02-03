@@ -52,34 +52,36 @@ class VirtualMachines extends Model
      @var array
      */
     protected $casts = [
-    'id'                     => 'integer',
-    'uuid'                   => 'string',
-    'name'                   => 'string',
-    'username'               => 'string',
-    'password'               => 'string',
-    'hostname'               => 'string',
-    'description'            => 'string',
-    'notes'                  => 'string',
-    'os'                     => 'string',
-    'distro'                 => 'string',
-    'version'                => 'string',
-    'cpu'                    => 'boolean',
-    'ram'                    => 'integer',
-    'winrm_enabled'          => 'boolean',
-    'is_snapshot'            => 'boolean',
-    'is_lost'                => 'boolean',
-    'is_locked'              => 'boolean',
-    'last_metadata_request'  => 'datetime',
-    'features'               => 'string',
-    'hypervisor_uuid'        => 'string',
-    'hypervisor_data'        => 'string',
-    'iaas_cloud_node_id'     => 'integer',
+    'id' => 'integer',
+    'name' => 'string',
+    'username' => 'string',
+    'password' => 'string',
+    'hostname' => 'string',
+    'description' => 'string',
+    'os' => 'string',
+    'distro' => 'string',
+    'version' => 'string',
+    'domain_type' => 'string',
+    'status' => 'string',
+    'cpu' => 'integer',
+    'ram' => 'integer',
+    'winrm_enabled' => 'boolean',
+    'available_operations' => 'array',
+    'current_operations' => 'array',
+    'blocked_operations' => 'array',
+    'console_data' => 'array',
+    'is_snapshot' => 'boolean',
+    'is_lost' => 'boolean',
+    'is_locked' => 'boolean',
+    'last_metadata_request' => 'datetime',
+    'features' => 'array',
+    'hypervisor_data' => 'array',
+    'iaas_cloud_node_id' => 'integer',
     'iaas_compute_member_id' => 'integer',
-    'from_template_id'       => 'integer',
-    'suspended_at'           => 'datetime',
-    'created_at'             => 'datetime',
-    'updated_at'             => 'datetime',
-    'deleted_at'             => 'datetime',
+    'iaas_virtual_machines_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -89,7 +91,6 @@ class VirtualMachines extends Model
      */
     protected $dates = [
     'last_metadata_request',
-    'suspended_at',
     'created_at',
     'updated_at',
     'deleted_at',
@@ -142,27 +143,8 @@ class VirtualMachines extends Model
         }
     }
 
-    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
-    }
-    
-    public function computeMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
-    }
-    
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
-    }
-    
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

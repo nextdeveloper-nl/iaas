@@ -17,11 +17,6 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
      */
     protected $builder;
     
-    public function hypervisorUuid($value)
-    {
-        return $this->builder->where('hypervisor_uuid', 'like', '%' . $value . '%');
-    }
-    
     public function name($value)
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
@@ -92,6 +87,11 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     public function isRepo()
     {
         return $this->builder->where('is_repo', true);
+    }
+    
+    public function isCdrom()
+    {
+        return $this->builder->where('is_cdrom', true);
     }
     
     public function isAlive()

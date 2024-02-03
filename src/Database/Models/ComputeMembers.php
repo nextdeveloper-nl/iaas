@@ -52,35 +52,31 @@ class ComputeMembers extends Model
      @var array
      */
     protected $casts = [
-    'id'                    => 'integer',
-    'uuid'                  => 'string',
-    'name'                  => 'string',
-    'hostname'              => 'string',
-    'ip_addr'               => 'string',
-    'local_ip_addr'         => 'string',
-    'api_url'               => 'string',
-    'port'                  => 'integer',
-    'username'              => 'string',
-    'password'              => 'string',
-    'features'              => 'string',
-    'is_behind_firewall'    => 'boolean',
-    'hypervisor_uuid'       => 'string',
-    'hypervisor_data'       => 'string',
-    'total_cpu'             => 'integer',
-    'total_ram'             => 'integer',
-    'used_cpu'              => 'integer',
-    'used_ram'              => 'integer',
-    'total_vm'              => 'integer',
+    'id' => 'integer',
+    'name' => 'string',
+    'hostname' => 'string',
+    'ip_addr' => 'string',
+    'local_ip_addr' => 'string',
+    'management_data' => 'array',
+    'features' => 'array',
+    'is_behind_firewall' => 'boolean',
+    'hypervisor_data' => 'string',
+    'total_socket' => 'integer',
+    'total_cpu' => 'integer',
+    'total_ram' => 'integer',
+    'used_cpu' => 'integer',
+    'used_ram' => 'integer',
+    'total_vm' => 'integer',
     'max_overbooking_ratio' => 'integer',
-    'uptime'                => 'datetime',
-    'idle_time'             => 'datetime',
-    'benchmark_score'       => 'integer',
-    'is_maintenance'        => 'boolean',
-    'is_alive'              => 'boolean',
-    'iaas_compute_pool_id'  => 'integer',
-    'created_at'            => 'datetime',
-    'updated_at'            => 'datetime',
-    'deleted_at'            => 'datetime',
+    'cpu_info' => 'array',
+    'up_since' => 'datetime',
+    'benchmark_score' => 'integer',
+    'is_maintenance' => 'boolean',
+    'is_alive' => 'boolean',
+    'iaas_compute_pool_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -89,8 +85,7 @@ class ComputeMembers extends Model
      @var array
      */
     protected $dates = [
-    'uptime',
-    'idle_time',
+    'up_since',
     'created_at',
     'updated_at',
     'deleted_at',
@@ -143,27 +138,8 @@ class ComputeMembers extends Model
         }
     }
 
-    public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
-    }
-    
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
-    }
-    
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-    
-    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
-    }
-
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -63,18 +63,14 @@ trait IaasVirtualMachineTestTraits
                 'password'  =>  'a',
                 'hostname'  =>  'a',
                 'description'  =>  'a',
-                'notes'  =>  'a',
                 'os'  =>  'a',
                 'distro'  =>  'a',
                 'version'  =>  'a',
-                'features'  =>  'a',
-                'hypervisor_uuid'  =>  'a',
-                'hypervisor_data'  =>  'a',
+                'domain_type'  =>  'a',
+                'status'  =>  'a',
                 'cpu'  =>  '1',
                 'ram'  =>  '1',
-                'winrm_enabled'  =>  '1',
                     'last_metadata_request'  =>  now(),
-                    'suspended_at'  =>  now(),
                             ],
                 ['http_errors' => false]
             ]
@@ -452,25 +448,6 @@ trait IaasVirtualMachineTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachine_event_notes_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'notes'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasVirtualMachineQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachine::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaasvirtualmachine_event_os_filter()
     {
         try {
@@ -528,12 +505,12 @@ trait IaasVirtualMachineTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachine_event_features_filter()
+    public function test_iaasvirtualmachine_event_domain_type_filter()
     {
         try {
             $request = new Request(
                 [
-                'features'  =>  'a'
+                'domain_type'  =>  'a'
                 ]
             );
 
@@ -547,31 +524,12 @@ trait IaasVirtualMachineTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachine_event_hypervisor_uuid_filter()
+    public function test_iaasvirtualmachine_event_status_filter()
     {
         try {
             $request = new Request(
                 [
-                'hypervisor_uuid'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasVirtualMachineQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachine::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasvirtualmachine_event_hypervisor_data_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'hypervisor_data'  =>  'a'
+                'status'  =>  'a'
                 ]
             );
 
@@ -623,50 +581,12 @@ trait IaasVirtualMachineTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachine_event_winrm_enabled_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'winrm_enabled'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasVirtualMachineQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachine::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaasvirtualmachine_event_last_metadata_request_filter_start()
     {
         try {
             $request = new Request(
                 [
                 'last_metadata_requestStart'  =>  now()
-                ]
-            );
-
-            $filter = new IaasVirtualMachineQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachine::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasvirtualmachine_event_suspended_at_filter_start()
-    {
-        try {
-            $request = new Request(
-                [
-                'suspended_atStart'  =>  now()
                 ]
             );
 
@@ -756,25 +676,6 @@ trait IaasVirtualMachineTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachine_event_suspended_at_filter_end()
-    {
-        try {
-            $request = new Request(
-                [
-                'suspended_atEnd'  =>  now()
-                ]
-            );
-
-            $filter = new IaasVirtualMachineQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachine::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaasvirtualmachine_event_created_at_filter_end()
     {
         try {
@@ -839,26 +740,6 @@ trait IaasVirtualMachineTestTraits
                 [
                 'last_metadata_requestStart'  =>  now(),
                 'last_metadata_requestEnd'  =>  now()
-                ]
-            );
-
-            $filter = new IaasVirtualMachineQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachine::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasvirtualmachine_event_suspended_at_filter_start_and_end()
-    {
-        try {
-            $request = new Request(
-                [
-                'suspended_atStart'  =>  now(),
-                'suspended_atEnd'  =>  now()
                 ]
             );
 

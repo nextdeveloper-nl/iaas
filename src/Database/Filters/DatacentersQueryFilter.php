@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-        
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,25 +37,22 @@ class DatacentersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('geo_longitude', 'like', '%' . $value . '%');
     }
     
-    public function city($value)
+    public function powerSource($value)
     {
-        return $this->builder->where('city', 'like', '%' . $value . '%');
-    }
-
-    public function maintenanceMode($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('maintenance_mode', $operator, $value);
+        return $this->builder->where('power_source', 'like', '%' . $value . '%');
     }
     
-    public function guaranteedUptime($value)
+    public function ups($value)
+    {
+        return $this->builder->where('ups', 'like', '%' . $value . '%');
+    }
+    
+    public function cooling($value)
+    {
+        return $this->builder->where('cooling', 'like', '%' . $value . '%');
+    }
+
+    public function tierLevel($value)
     {
         $operator = substr($value, 0, 1);
 
@@ -65,7 +62,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
             $value = substr($value, 1);
         }
 
-        return $this->builder->where('guaranteed_uptime', $operator, $value);
+        return $this->builder->where('tier_level', $operator, $value);
     }
     
     public function isPublic()
@@ -111,6 +108,24 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date) 
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    public function commonCityId($value)
+    {
+            $commonCity = \NextDeveloper\Commons\Database\Models\Cities::where('uuid', $value)->first();
+
+        if($commonCity) {
+            return $this->builder->where('common_city_id', '=', $commonCity->id);
+        }
+    }
+
+    public function iamUserId($value)
+    {
+            $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
+
+        if($iamUser) {
+            return $this->builder->where('iam_user_id', '=', $iamUser->id);
+        }
     }
 
     public function iamAccountId($value)

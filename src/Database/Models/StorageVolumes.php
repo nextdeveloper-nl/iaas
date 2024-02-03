@@ -52,23 +52,24 @@ class StorageVolumes extends Model
      @var array
      */
     protected $casts = [
-    'id'                     => 'integer',
-    'uuid'                   => 'string',
-    'hypervisor_uuid'        => 'string',
-    'name'                   => 'string',
-    'disk_physical_type'     => 'string',
-    'total_hdd'              => 'integer',
-    'used_hdd'               => 'integer',
-    'free_hdd'               => 'integer',
-    'virtual_allocation'     => 'integer',
-    'is_storage'             => 'boolean',
-    'is_repo'                => 'boolean',
-    'iaas_storage_pool_id'   => 'integer',
+    'id' => 'integer',
+    'name' => 'string',
+    'disk_physical_type' => 'string',
+    'connection_parameters' => 'array',
+    'total_hdd' => 'integer',
+    'used_hdd' => 'integer',
+    'free_hdd' => 'integer',
+    'virtual_allocation' => 'integer',
+    'is_storage' => 'boolean',
+    'is_repo' => 'boolean',
+    'is_cdrom' => 'boolean',
+    'hypervisor_data' => 'array',
+    'iaas_storage_pool_id' => 'integer',
     'iaas_storage_member_id' => 'integer',
-    'is_alive'               => 'boolean',
-    'created_at'             => 'datetime',
-    'updated_at'             => 'datetime',
-    'deleted_at'             => 'datetime',
+    'is_alive' => 'boolean',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -129,12 +130,8 @@ class StorageVolumes extends Model
         }
     }
 
-    public function storagePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
-    }
-    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

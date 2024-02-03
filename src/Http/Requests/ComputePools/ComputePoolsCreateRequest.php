@@ -13,20 +13,16 @@ class ComputePoolsCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'name'                    => 'required|string|max:100',
-        'resource_validator'      => 'nullable|string|max:500',
-        'pool_type'               => 'nullable',
-        'pool_data'               => 'nullable',
-        'management_type'         => '',
-        'virtualization'          => '',
-        'virtualization_version'  => 'nullable|string|max:10',
-        'provisioning_alg'        => 'nullable|string|max:255',
-        'management_package_name' => 'nullable|string|max:200',
-        'is_active'               => 'boolean',
-        'is_alive'                => 'boolean',
-        'is_public'               => 'boolean',
-        'iaas_datacenter_id'      => 'nullable|exists:iaas_datacenters,uuid|uuid',
-        'iaas_cloud_node_id'      => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
+            'name' => 'required|string',
+        'resource_validator' => 'nullable|string',
+        'pool_data' => 'nullable',
+        'virtualization' => 'string',
+        'provisioning_alg' => 'nullable|string',
+        'is_active' => 'boolean',
+        'is_alive' => 'boolean',
+        'is_public' => 'boolean',
+        'iaas_datacenter_id' => 'nullable|exists:iaas_datacenters,uuid|uuid',
+        'iaas_cloud_node_id' => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

@@ -58,16 +58,12 @@ trait IaasNetworkPoolTestTraits
         $response = $this->http->request(
             'POST', '/iaas/iaasnetworkpool', [
             'form_params'   =>  [
-                'name'  =>  'a',
                 'provisioning_alg'  =>  'a',
-                'management_package_name'  =>  'a',
                 'resource_validator'  =>  'a',
                 'vlan_start'  =>  '1',
                 'vlan_end'  =>  '1',
                 'vxlan_start'  =>  '1',
                 'vxlan_end'  =>  '1',
-                'has_vlan_support'  =>  '1',
-                'has_vxlan_support'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -350,50 +346,12 @@ trait IaasNetworkPoolTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasnetworkpool_event_name_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'name'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasNetworkPoolQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasNetworkPool::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaasnetworkpool_event_provisioning_alg_filter()
     {
         try {
             $request = new Request(
                 [
                 'provisioning_alg'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasNetworkPoolQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasNetworkPool::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasnetworkpool_event_management_package_name_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'management_package_name'  =>  'a'
                 ]
             );
 
@@ -489,44 +447,6 @@ trait IaasNetworkPoolTestTraits
             $request = new Request(
                 [
                 'vxlan_end'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasNetworkPoolQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasNetworkPool::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasnetworkpool_event_has_vlan_support_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'has_vlan_support'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasNetworkPoolQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasNetworkPool::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasnetworkpool_event_has_vxlan_support_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'has_vxlan_support'  =>  '1'
                 ]
             );
 

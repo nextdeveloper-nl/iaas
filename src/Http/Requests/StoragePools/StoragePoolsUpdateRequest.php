@@ -13,9 +13,9 @@ class StoragePoolsUpdateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'name'               => 'nullable|string|max:100',
-        'gb_per_hour_price'  => 'nullable|numeric',
-        'is_active'          => 'boolean',
+            'name' => 'nullable',
+        'gb_per_hour_price' => 'nullable',
+        'is_active' => 'boolean',
         'iaas_cloud_node_id' => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
         ];
     }
