@@ -25,6 +25,7 @@ class NetworkPoolsCreateRequest extends AbstractFormRequest
         'iaas_cloud_node_id' => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
         'provisioning_alg' => 'nullable|string',
         'resource_validator' => 'nullable|string',
+        'tags' => '',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

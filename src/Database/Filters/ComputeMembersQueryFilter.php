@@ -161,14 +161,24 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('is_alive', true);
     }
     
-    public function upSinceStart($date) 
+    public function uptimeStart($date) 
     {
-        return $this->builder->where('up_since', '>=', $date);
+        return $this->builder->where('uptime', '>=', $date);
     }
 
-    public function upSinceEnd($date) 
+    public function uptimeEnd($date) 
     {
-        return $this->builder->where('up_since', '<=', $date);
+        return $this->builder->where('uptime', '<=', $date);
+    }
+
+    public function idleTimeStart($date) 
+    {
+        return $this->builder->where('idle_time', '>=', $date);
+    }
+
+    public function idleTimeEnd($date) 
+    {
+        return $this->builder->where('idle_time', '<=', $date);
     }
 
     public function createdAtStart($date) 

@@ -62,6 +62,7 @@ class CloudNodes extends Model
     'is_in_maintenance' => 'boolean',
     'position' => 'integer',
     'iaas_datacenter_id' => 'integer',
+    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -126,6 +127,9 @@ class CloudNodes extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
 
 
 

@@ -12,12 +12,7 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Filters\StoragePoolsQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
-use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsCreatedEvent;
-use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsCreatingEvent;
-use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsUpdatedEvent;
-use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsUpdatingEvent;
-use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsDeletedEvent;
-use NextDeveloper\IAAS\Events\StoragePools\StoragePoolsDeletingEvent;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * This class is responsible from managing the data for StoragePools
@@ -132,8 +127,6 @@ class AbstractStoragePoolsService
      */
     public static function create(array $data)
     {
-        event(new StoragePoolsCreatingEvent());
-
         if (array_key_exists('iaas_cloud_node_id', $data)) {
             $data['iaas_cloud_node_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\CloudNodes',
@@ -159,16 +152,16 @@ class AbstractStoragePoolsService
             throw $e;
         }
 
-        event(new StoragePoolsCreatedEvent($model));
+        Events::fire('created:NextDeveloper\IAAS\StoragePools', $model);
 
         return $model->fresh();
     }
 
     /**
-     This function expects the ID inside the object.
-    
-     @param  array $data
-     @return StoragePools
+     * This function expects the ID inside the object.
+     *
+     * @param  array $data
+     * @return StoragePools
      */
     public static function updateRaw(array $data) : ?StoragePools
     {
@@ -212,7 +205,7 @@ class AbstractStoragePoolsService
             );
         }
     
-        event(new StoragePoolsUpdatingEvent($model));
+        Events::fire('updating:NextDeveloper\IAAS\StoragePools', $model);
 
         try {
             $isUpdated = $model->update($data);
@@ -221,7 +214,7 @@ class AbstractStoragePoolsService
             throw $e;
         }
 
-        event(new StoragePoolsUpdatedEvent($model));
+        Events::fire('updated:NextDeveloper\IAAS\StoragePools', $model);
 
         return $model->fresh();
     }
@@ -240,7 +233,7 @@ class AbstractStoragePoolsService
     {
         $model = StoragePools::where('uuid', $id)->first();
 
-        event(new StoragePoolsDeletingEvent());
+        Events::fire('deleted:NextDeveloper\IAAS\StoragePools', $model);
 
         try {
             $model = $model->delete();

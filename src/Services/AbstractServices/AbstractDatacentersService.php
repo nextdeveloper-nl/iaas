@@ -12,12 +12,7 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\Datacenters;
 use NextDeveloper\IAAS\Database\Filters\DatacentersQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
-use NextDeveloper\IAAS\Events\Datacenters\DatacentersCreatedEvent;
-use NextDeveloper\IAAS\Events\Datacenters\DatacentersCreatingEvent;
-use NextDeveloper\IAAS\Events\Datacenters\DatacentersUpdatedEvent;
-use NextDeveloper\IAAS\Events\Datacenters\DatacentersUpdatingEvent;
-use NextDeveloper\IAAS\Events\Datacenters\DatacentersDeletedEvent;
-use NextDeveloper\IAAS\Events\Datacenters\DatacentersDeletingEvent;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * This class is responsible from managing the data for Datacenters
@@ -110,8 +105,7 @@ class AbstractDatacentersService
             $obj = Datacenters::where('uuid', $uuid)->first();
 
             if(!$obj) {
-                throw new ModelNotFoundException('I believe you are trying to reach to the related objects of this '
-                    . 'object. However I cannot find related objects. Its just does not exists in database.');
+                throw new ModelNotFoundException('Cannot find the related model');
             }
 
             if($obj) {
@@ -133,8 +127,18 @@ class AbstractDatacentersService
      */
     public static function create(array $data)
     {
-        event(new DatacentersCreatingEvent());
-
+        if (array_key_exists('common_city_id', $data)) {
+            $data['common_city_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\Commons\Database\Models\Cities',
+                $data['common_city_id']
+            );
+        }
+        if (array_key_exists('iam_user_id', $data)) {
+            $data['iam_user_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAM\Database\Models\Users',
+                $data['iam_user_id']
+            );
+        }
         if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
@@ -147,23 +151,23 @@ class AbstractDatacentersService
                 $data['common_country_id']
             );
         }
-
+    
         try {
             $model = Datacenters::create($data);
         } catch(\Exception $e) {
             throw $e;
         }
 
-        event(new DatacentersCreatedEvent($model));
+        Events::fire('created:NextDeveloper\IAAS\Datacenters', $model);
 
         return $model->fresh();
     }
 
     /**
-     This function expects the ID inside the object.
-
-     @param  array $data
-     @return Datacenters
+     * This function expects the ID inside the object.
+     *
+     * @param  array $data
+     * @return Datacenters
      */
     public static function updateRaw(array $data) : ?Datacenters
     {
@@ -188,6 +192,18 @@ class AbstractDatacentersService
     {
         $model = Datacenters::where('uuid', $id)->first();
 
+        if (array_key_exists('common_city_id', $data)) {
+            $data['common_city_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\Commons\Database\Models\Cities',
+                $data['common_city_id']
+            );
+        }
+        if (array_key_exists('iam_user_id', $data)) {
+            $data['iam_user_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAM\Database\Models\Users',
+                $data['iam_user_id']
+            );
+        }
         if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
@@ -200,8 +216,8 @@ class AbstractDatacentersService
                 $data['common_country_id']
             );
         }
-
-        event(new DatacentersUpdatingEvent($model));
+    
+        Events::fire('updating:NextDeveloper\IAAS\Datacenters', $model);
 
         try {
             $isUpdated = $model->update($data);
@@ -210,7 +226,7 @@ class AbstractDatacentersService
             throw $e;
         }
 
-        event(new DatacentersUpdatedEvent($model));
+        Events::fire('updated:NextDeveloper\IAAS\Datacenters', $model);
 
         return $model->fresh();
     }
@@ -229,7 +245,7 @@ class AbstractDatacentersService
     {
         $model = Datacenters::where('uuid', $id)->first();
 
-        event(new DatacentersDeletingEvent());
+        Events::fire('deleted:NextDeveloper\IAAS\Datacenters', $model);
 
         try {
             $model = $model->delete();

@@ -29,6 +29,7 @@ class DatacentersCreateRequest extends AbstractFormRequest
         'cooling' => 'nullable|string',
         'common_city_id' => 'nullable|exists:common_cities,uuid|uuid',
         'common_country_id' => 'nullable|exists:common_countries,uuid|uuid',
+        'tags' => '',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

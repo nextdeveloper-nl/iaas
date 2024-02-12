@@ -29,11 +29,13 @@ class ComputeMembersUpdateRequest extends AbstractFormRequest
         'total_vm' => 'integer',
         'max_overbooking_ratio' => 'integer',
         'cpu_info' => 'nullable',
-        'up_since' => 'nullable|date',
+        'uptime' => 'nullable|date',
+        'idle_time' => 'nullable|date',
         'benchmark_score' => 'integer',
         'is_maintenance' => 'boolean',
         'is_alive' => 'boolean',
         'iaas_compute_pool_id' => 'nullable|exists:iaas_compute_pools,uuid|uuid',
+        'tags' => '',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

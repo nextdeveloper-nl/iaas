@@ -17,6 +17,7 @@ class StoragePoolsCreateRequest extends AbstractFormRequest
         'gb_per_hour_price' => 'required',
         'is_active' => 'boolean',
         'iaas_cloud_node_id' => 'required|exists:iaas_cloud_nodes,uuid|uuid',
+        'tags' => '',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

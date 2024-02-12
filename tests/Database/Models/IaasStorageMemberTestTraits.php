@@ -68,7 +68,8 @@ trait IaasStorageMemberTestTraits
                 'total_disk'  =>  '1',
                 'used_disk'  =>  '1',
                 'benchmark_score'  =>  '1',
-                    'up_since'  =>  now(),
+                    'uptime'  =>  now(),
+                    'idle_time'  =>  now(),
                             ],
                 ['http_errors' => false]
             ]
@@ -541,12 +542,31 @@ trait IaasStorageMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasstoragemember_event_up_since_filter_start()
+    public function test_iaasstoragemember_event_uptime_filter_start()
     {
         try {
             $request = new Request(
                 [
-                'up_sinceStart'  =>  now()
+                'uptimeStart'  =>  now()
+                ]
+            );
+
+            $filter = new IaasStorageMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasStorageMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasstoragemember_event_idle_time_filter_start()
+    {
+        try {
+            $request = new Request(
+                [
+                'idle_timeStart'  =>  now()
                 ]
             );
 
@@ -617,12 +637,31 @@ trait IaasStorageMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasstoragemember_event_up_since_filter_end()
+    public function test_iaasstoragemember_event_uptime_filter_end()
     {
         try {
             $request = new Request(
                 [
-                'up_sinceEnd'  =>  now()
+                'uptimeEnd'  =>  now()
+                ]
+            );
+
+            $filter = new IaasStorageMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasStorageMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasstoragemember_event_idle_time_filter_end()
+    {
+        try {
+            $request = new Request(
+                [
+                'idle_timeEnd'  =>  now()
                 ]
             );
 
@@ -693,13 +732,33 @@ trait IaasStorageMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasstoragemember_event_up_since_filter_start_and_end()
+    public function test_iaasstoragemember_event_uptime_filter_start_and_end()
     {
         try {
             $request = new Request(
                 [
-                'up_sinceStart'  =>  now(),
-                'up_sinceEnd'  =>  now()
+                'uptimeStart'  =>  now(),
+                'uptimeEnd'  =>  now()
+                ]
+            );
+
+            $filter = new IaasStorageMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasStorageMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasstoragemember_event_idle_time_filter_start_and_end()
+    {
+        try {
+            $request = new Request(
+                [
+                'idle_timeStart'  =>  now(),
+                'idle_timeEnd'  =>  now()
                 ]
             );
 

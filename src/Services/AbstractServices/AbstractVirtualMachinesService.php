@@ -12,12 +12,7 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
-use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesCreatedEvent;
-use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesCreatingEvent;
-use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesUpdatedEvent;
-use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesUpdatingEvent;
-use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesDeletedEvent;
-use NextDeveloper\IAAS\Events\VirtualMachines\VirtualMachinesDeletingEvent;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * This class is responsible from managing the data for VirtualMachines
@@ -132,8 +127,6 @@ class AbstractVirtualMachinesService
      */
     public static function create(array $data)
     {
-        event(new VirtualMachinesCreatingEvent());
-
         if (array_key_exists('iaas_cloud_node_id', $data)) {
             $data['iaas_cloud_node_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\CloudNodes',
@@ -158,10 +151,10 @@ class AbstractVirtualMachinesService
                 $data['iam_user_id']
             );
         }
-        if (array_key_exists('from_template_id', $data)) {
-            $data['from_template_id'] = DatabaseHelper::uuidToId(
-                '\NextDeveloper\\Database\Models\FromTemplates',
-                $data['from_template_id']
+        if (array_key_exists('iaas_virtual_machines_id', $data)) {
+            $data['iaas_virtual_machines_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\VirtualMachines',
+                $data['iaas_virtual_machines_id']
             );
         }
     
@@ -171,16 +164,16 @@ class AbstractVirtualMachinesService
             throw $e;
         }
 
-        event(new VirtualMachinesCreatedEvent($model));
+        Events::fire('created:NextDeveloper\IAAS\VirtualMachines', $model);
 
         return $model->fresh();
     }
 
     /**
-     This function expects the ID inside the object.
-    
-     @param  array $data
-     @return VirtualMachines
+     * This function expects the ID inside the object.
+     *
+     * @param  array $data
+     * @return VirtualMachines
      */
     public static function updateRaw(array $data) : ?VirtualMachines
     {
@@ -229,14 +222,14 @@ class AbstractVirtualMachinesService
                 $data['iam_user_id']
             );
         }
-        if (array_key_exists('from_template_id', $data)) {
-            $data['from_template_id'] = DatabaseHelper::uuidToId(
-                '\NextDeveloper\\Database\Models\FromTemplates',
-                $data['from_template_id']
+        if (array_key_exists('iaas_virtual_machines_id', $data)) {
+            $data['iaas_virtual_machines_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\VirtualMachines',
+                $data['iaas_virtual_machines_id']
             );
         }
     
-        event(new VirtualMachinesUpdatingEvent($model));
+        Events::fire('updating:NextDeveloper\IAAS\VirtualMachines', $model);
 
         try {
             $isUpdated = $model->update($data);
@@ -245,7 +238,7 @@ class AbstractVirtualMachinesService
             throw $e;
         }
 
-        event(new VirtualMachinesUpdatedEvent($model));
+        Events::fire('updated:NextDeveloper\IAAS\VirtualMachines', $model);
 
         return $model->fresh();
     }
@@ -264,7 +257,7 @@ class AbstractVirtualMachinesService
     {
         $model = VirtualMachines::where('uuid', $id)->first();
 
-        event(new VirtualMachinesDeletingEvent());
+        Events::fire('deleted:NextDeveloper\IAAS\VirtualMachines', $model);
 
         try {
             $model = $model->delete();

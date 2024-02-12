@@ -12,12 +12,7 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Filters\StorageVolumesQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
-use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesCreatedEvent;
-use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesCreatingEvent;
-use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesUpdatedEvent;
-use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesUpdatingEvent;
-use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesDeletedEvent;
-use NextDeveloper\IAAS\Events\StorageVolumes\StorageVolumesDeletingEvent;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * This class is responsible from managing the data for StorageVolumes
@@ -132,8 +127,6 @@ class AbstractStorageVolumesService
      */
     public static function create(array $data)
     {
-        event(new StorageVolumesCreatingEvent());
-
         if (array_key_exists('iaas_storage_pool_id', $data)) {
             $data['iaas_storage_pool_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\StoragePools',
@@ -153,16 +146,16 @@ class AbstractStorageVolumesService
             throw $e;
         }
 
-        event(new StorageVolumesCreatedEvent($model));
+        Events::fire('created:NextDeveloper\IAAS\StorageVolumes', $model);
 
         return $model->fresh();
     }
 
     /**
-     This function expects the ID inside the object.
-    
-     @param  array $data
-     @return StorageVolumes
+     * This function expects the ID inside the object.
+     *
+     * @param  array $data
+     * @return StorageVolumes
      */
     public static function updateRaw(array $data) : ?StorageVolumes
     {
@@ -200,7 +193,7 @@ class AbstractStorageVolumesService
             );
         }
     
-        event(new StorageVolumesUpdatingEvent($model));
+        Events::fire('updating:NextDeveloper\IAAS\StorageVolumes', $model);
 
         try {
             $isUpdated = $model->update($data);
@@ -209,7 +202,7 @@ class AbstractStorageVolumesService
             throw $e;
         }
 
-        event(new StorageVolumesUpdatedEvent($model));
+        Events::fire('updated:NextDeveloper\IAAS\StorageVolumes', $model);
 
         return $model->fresh();
     }
@@ -228,7 +221,7 @@ class AbstractStorageVolumesService
     {
         $model = StorageVolumes::where('uuid', $id)->first();
 
-        event(new StorageVolumesDeletingEvent());
+        Events::fire('deleted:NextDeveloper\IAAS\StorageVolumes', $model);
 
         try {
             $model = $model->delete();

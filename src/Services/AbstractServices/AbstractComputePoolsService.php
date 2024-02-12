@@ -12,12 +12,7 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Filters\ComputePoolsQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
-use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsCreatedEvent;
-use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsCreatingEvent;
-use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsUpdatedEvent;
-use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsUpdatingEvent;
-use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsDeletedEvent;
-use NextDeveloper\IAAS\Events\ComputePools\ComputePoolsDeletingEvent;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * This class is responsible from managing the data for ComputePools
@@ -132,8 +127,6 @@ class AbstractComputePoolsService
      */
     public static function create(array $data)
     {
-        event(new ComputePoolsCreatingEvent());
-
         if (array_key_exists('iaas_datacenter_id', $data)) {
             $data['iaas_datacenter_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\Datacenters',
@@ -165,16 +158,16 @@ class AbstractComputePoolsService
             throw $e;
         }
 
-        event(new ComputePoolsCreatedEvent($model));
+        Events::fire('created:NextDeveloper\IAAS\ComputePools', $model);
 
         return $model->fresh();
     }
 
     /**
-     This function expects the ID inside the object.
-    
-     @param  array $data
-     @return ComputePools
+     * This function expects the ID inside the object.
+     *
+     * @param  array $data
+     * @return ComputePools
      */
     public static function updateRaw(array $data) : ?ComputePools
     {
@@ -224,7 +217,7 @@ class AbstractComputePoolsService
             );
         }
     
-        event(new ComputePoolsUpdatingEvent($model));
+        Events::fire('updating:NextDeveloper\IAAS\ComputePools', $model);
 
         try {
             $isUpdated = $model->update($data);
@@ -233,7 +226,7 @@ class AbstractComputePoolsService
             throw $e;
         }
 
-        event(new ComputePoolsUpdatedEvent($model));
+        Events::fire('updated:NextDeveloper\IAAS\ComputePools', $model);
 
         return $model->fresh();
     }
@@ -252,7 +245,7 @@ class AbstractComputePoolsService
     {
         $model = ComputePools::where('uuid', $id)->first();
 
-        event(new ComputePoolsDeletingEvent());
+        Events::fire('deleted:NextDeveloper\IAAS\ComputePools', $model);
 
         try {
             $model = $model->delete();

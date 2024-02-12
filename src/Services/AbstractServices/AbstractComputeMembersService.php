@@ -12,12 +12,7 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Filters\ComputeMembersQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
-use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersCreatedEvent;
-use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersCreatingEvent;
-use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersUpdatedEvent;
-use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersUpdatingEvent;
-use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersDeletedEvent;
-use NextDeveloper\IAAS\Events\ComputeMembers\ComputeMembersDeletingEvent;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * This class is responsible from managing the data for ComputeMembers
@@ -132,8 +127,6 @@ class AbstractComputeMembersService
      */
     public static function create(array $data)
     {
-        event(new ComputeMembersCreatingEvent());
-
         if (array_key_exists('iaas_compute_pool_id', $data)) {
             $data['iaas_compute_pool_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\ComputePools',
@@ -159,16 +152,16 @@ class AbstractComputeMembersService
             throw $e;
         }
 
-        event(new ComputeMembersCreatedEvent($model));
+        Events::fire('created:NextDeveloper\IAAS\ComputeMembers', $model);
 
         return $model->fresh();
     }
 
     /**
-     This function expects the ID inside the object.
-    
-     @param  array $data
-     @return ComputeMembers
+     * This function expects the ID inside the object.
+     *
+     * @param  array $data
+     * @return ComputeMembers
      */
     public static function updateRaw(array $data) : ?ComputeMembers
     {
@@ -212,7 +205,7 @@ class AbstractComputeMembersService
             );
         }
     
-        event(new ComputeMembersUpdatingEvent($model));
+        Events::fire('updating:NextDeveloper\IAAS\ComputeMembers', $model);
 
         try {
             $isUpdated = $model->update($data);
@@ -221,7 +214,7 @@ class AbstractComputeMembersService
             throw $e;
         }
 
-        event(new ComputeMembersUpdatedEvent($model));
+        Events::fire('updated:NextDeveloper\IAAS\ComputeMembers', $model);
 
         return $model->fresh();
     }
@@ -240,7 +233,7 @@ class AbstractComputeMembersService
     {
         $model = ComputeMembers::where('uuid', $id)->first();
 
-        event(new ComputeMembersDeletingEvent());
+        Events::fire('deleted:NextDeveloper\IAAS\ComputeMembers', $model);
 
         try {
             $model = $model->delete();

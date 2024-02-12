@@ -27,6 +27,7 @@ class StorageVolumesUpdateRequest extends AbstractFormRequest
         'iaas_storage_pool_id' => 'nullable|exists:iaas_storage_pools,uuid|uuid',
         'iaas_storage_member_id' => 'nullable|exists:iaas_storage_members,uuid|uuid',
         'is_alive' => 'boolean',
+        'tags' => '',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

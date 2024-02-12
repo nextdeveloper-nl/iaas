@@ -64,6 +64,7 @@ class NetworkPools extends Model
     'iaas_cloud_node_id' => 'integer',
     'provisioning_alg' => 'string',
     'resource_validator' => 'string',
+    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -128,6 +129,9 @@ class NetworkPools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
 
 
 

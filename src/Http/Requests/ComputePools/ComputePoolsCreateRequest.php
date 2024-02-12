@@ -23,6 +23,7 @@ class ComputePoolsCreateRequest extends AbstractFormRequest
         'is_public' => 'boolean',
         'iaas_datacenter_id' => 'nullable|exists:iaas_datacenters,uuid|uuid',
         'iaas_cloud_node_id' => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
+        'tags' => '',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

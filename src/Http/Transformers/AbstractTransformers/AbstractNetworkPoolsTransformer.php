@@ -42,6 +42,7 @@ class AbstractNetworkPoolsTransformer extends AbstractTransformer
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'provisioning_alg'  =>  $model->provisioning_alg,
             'resource_validator'  =>  $model->resource_validator,
+            'tags'  =>  $model->tags,
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
@@ -50,6 +51,9 @@ class AbstractNetworkPoolsTransformer extends AbstractTransformer
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
 
 
 

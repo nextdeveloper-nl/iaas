@@ -12,12 +12,7 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Filters\NetworkPoolsQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
-use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsCreatedEvent;
-use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsCreatingEvent;
-use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsUpdatedEvent;
-use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsUpdatingEvent;
-use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsDeletedEvent;
-use NextDeveloper\IAAS\Events\NetworkPools\NetworkPoolsDeletingEvent;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * This class is responsible from managing the data for NetworkPools
@@ -132,8 +127,6 @@ class AbstractNetworkPoolsService
      */
     public static function create(array $data)
     {
-        event(new NetworkPoolsCreatingEvent());
-
         if (array_key_exists('iaas_datacenter_id', $data)) {
             $data['iaas_datacenter_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\Datacenters',
@@ -165,16 +158,16 @@ class AbstractNetworkPoolsService
             throw $e;
         }
 
-        event(new NetworkPoolsCreatedEvent($model));
+        Events::fire('created:NextDeveloper\IAAS\NetworkPools', $model);
 
         return $model->fresh();
     }
 
     /**
-     This function expects the ID inside the object.
-    
-     @param  array $data
-     @return NetworkPools
+     * This function expects the ID inside the object.
+     *
+     * @param  array $data
+     * @return NetworkPools
      */
     public static function updateRaw(array $data) : ?NetworkPools
     {
@@ -224,7 +217,7 @@ class AbstractNetworkPoolsService
             );
         }
     
-        event(new NetworkPoolsUpdatingEvent($model));
+        Events::fire('updating:NextDeveloper\IAAS\NetworkPools', $model);
 
         try {
             $isUpdated = $model->update($data);
@@ -233,7 +226,7 @@ class AbstractNetworkPoolsService
             throw $e;
         }
 
-        event(new NetworkPoolsUpdatedEvent($model));
+        Events::fire('updated:NextDeveloper\IAAS\NetworkPools', $model);
 
         return $model->fresh();
     }
@@ -252,7 +245,7 @@ class AbstractNetworkPoolsService
     {
         $model = NetworkPools::where('uuid', $id)->first();
 
-        event(new NetworkPoolsDeletingEvent());
+        Events::fire('deleted:NextDeveloper\IAAS\NetworkPools', $model);
 
         try {
             $model = $model->delete();

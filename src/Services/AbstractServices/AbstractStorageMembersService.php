@@ -12,6 +12,7 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\StorageMembers;
 use NextDeveloper\IAAS\Database\Filters\StorageMembersQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * This class is responsible from managing the data for StorageMembers
@@ -204,7 +205,7 @@ class AbstractStorageMembersService
             );
         }
     
-        event(new StorageMembersUpdatingEvent($model));
+        Events::fire('updating:NextDeveloper\IAAS\StorageMembers', $model);
 
         try {
             $isUpdated = $model->update($data);

@@ -12,12 +12,7 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Filters\CloudNodesQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
-use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesCreatedEvent;
-use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesCreatingEvent;
-use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesUpdatedEvent;
-use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesUpdatingEvent;
-use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesDeletedEvent;
-use NextDeveloper\IAAS\Events\CloudNodes\CloudNodesDeletingEvent;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * This class is responsible from managing the data for CloudNodes
@@ -132,8 +127,6 @@ class AbstractCloudNodesService
      */
     public static function create(array $data)
     {
-        event(new CloudNodesCreatingEvent());
-
         if (array_key_exists('iaas_datacenter_id', $data)) {
             $data['iaas_datacenter_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\Datacenters',
@@ -159,16 +152,16 @@ class AbstractCloudNodesService
             throw $e;
         }
 
-        event(new CloudNodesCreatedEvent($model));
+        Events::fire('created:NextDeveloper\IAAS\CloudNodes', $model);
 
         return $model->fresh();
     }
 
     /**
-     This function expects the ID inside the object.
-    
-     @param  array $data
-     @return CloudNodes
+     * This function expects the ID inside the object.
+     *
+     * @param  array $data
+     * @return CloudNodes
      */
     public static function updateRaw(array $data) : ?CloudNodes
     {
@@ -212,7 +205,7 @@ class AbstractCloudNodesService
             );
         }
     
-        event(new CloudNodesUpdatingEvent($model));
+        Events::fire('updating:NextDeveloper\IAAS\CloudNodes', $model);
 
         try {
             $isUpdated = $model->update($data);
@@ -221,7 +214,7 @@ class AbstractCloudNodesService
             throw $e;
         }
 
-        event(new CloudNodesUpdatedEvent($model));
+        Events::fire('updated:NextDeveloper\IAAS\CloudNodes', $model);
 
         return $model->fresh();
     }
@@ -240,7 +233,7 @@ class AbstractCloudNodesService
     {
         $model = CloudNodes::where('uuid', $id)->first();
 
-        event(new CloudNodesDeletingEvent());
+        Events::fire('deleted:NextDeveloper\IAAS\CloudNodes', $model);
 
         try {
             $model = $model->delete();

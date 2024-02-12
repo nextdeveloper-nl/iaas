@@ -44,13 +44,15 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
             'total_vm'  =>  $model->total_vm,
             'max_overbooking_ratio'  =>  $model->max_overbooking_ratio,
             'cpu_info'  =>  $model->cpu_info,
-            'up_since'  =>  $model->up_since,
+            'uptime'  =>  $model->uptime,
+            'idle_time'  =>  $model->idle_time,
             'benchmark_score'  =>  $model->benchmark_score,
             'is_maintenance'  =>  $model->is_maintenance,
             'is_alive'  =>  $model->is_alive,
             'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'tags'  =>  $model->tags,
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
@@ -59,6 +61,9 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
 
 
 

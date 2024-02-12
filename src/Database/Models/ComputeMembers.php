@@ -69,11 +69,13 @@ class ComputeMembers extends Model
     'total_vm' => 'integer',
     'max_overbooking_ratio' => 'integer',
     'cpu_info' => 'array',
-    'up_since' => 'datetime',
+    'uptime' => 'datetime',
+    'idle_time' => 'datetime',
     'benchmark_score' => 'integer',
     'is_maintenance' => 'boolean',
     'is_alive' => 'boolean',
     'iaas_compute_pool_id' => 'integer',
+    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -85,7 +87,8 @@ class ComputeMembers extends Model
      @var array
      */
     protected $dates = [
-    'up_since',
+    'uptime',
+    'idle_time',
     'created_at',
     'updated_at',
     'deleted_at',
@@ -139,6 +142,9 @@ class ComputeMembers extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
 
 
 

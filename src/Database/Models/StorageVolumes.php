@@ -67,6 +67,7 @@ class StorageVolumes extends Model
     'iaas_storage_pool_id' => 'integer',
     'iaas_storage_member_id' => 'integer',
     'is_alive' => 'boolean',
+    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -131,6 +132,9 @@ class StorageVolumes extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
 
 
 

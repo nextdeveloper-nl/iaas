@@ -63,6 +63,7 @@ class ComputePools extends Model
     'is_public' => 'boolean',
     'iaas_datacenter_id' => 'integer',
     'iaas_cloud_node_id' => 'integer',
+    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -127,6 +128,9 @@ class ComputePools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
 
 
 

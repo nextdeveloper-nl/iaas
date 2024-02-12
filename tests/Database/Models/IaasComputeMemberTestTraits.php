@@ -71,7 +71,8 @@ trait IaasComputeMemberTestTraits
                 'total_vm'  =>  '1',
                 'max_overbooking_ratio'  =>  '1',
                 'benchmark_score'  =>  '1',
-                    'up_since'  =>  now(),
+                    'uptime'  =>  now(),
+                    'idle_time'  =>  now(),
                             ],
                 ['http_errors' => false]
             ]
@@ -601,12 +602,31 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_up_since_filter_start()
+    public function test_iaascomputemember_event_uptime_filter_start()
     {
         try {
             $request = new Request(
                 [
-                'up_sinceStart'  =>  now()
+                'uptimeStart'  =>  now()
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_idle_time_filter_start()
+    {
+        try {
+            $request = new Request(
+                [
+                'idle_timeStart'  =>  now()
                 ]
             );
 
@@ -677,12 +697,31 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_up_since_filter_end()
+    public function test_iaascomputemember_event_uptime_filter_end()
     {
         try {
             $request = new Request(
                 [
-                'up_sinceEnd'  =>  now()
+                'uptimeEnd'  =>  now()
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_idle_time_filter_end()
+    {
+        try {
+            $request = new Request(
+                [
+                'idle_timeEnd'  =>  now()
                 ]
             );
 
@@ -753,13 +792,33 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_up_since_filter_start_and_end()
+    public function test_iaascomputemember_event_uptime_filter_start_and_end()
     {
         try {
             $request = new Request(
                 [
-                'up_sinceStart'  =>  now(),
-                'up_sinceEnd'  =>  now()
+                'uptimeStart'  =>  now(),
+                'uptimeEnd'  =>  now()
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_idle_time_filter_start_and_end()
+    {
+        try {
+            $request = new Request(
+                [
+                'idle_timeStart'  =>  now(),
+                'idle_timeEnd'  =>  now()
                 ]
             );
 

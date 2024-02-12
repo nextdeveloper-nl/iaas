@@ -39,6 +39,7 @@ class VirtualMachinesUpdateRequest extends AbstractFormRequest
         'iaas_cloud_node_id' => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
         'iaas_compute_member_id' => 'nullable|exists:iaas_compute_members,uuid|uuid',
         'iaas_virtual_machines_id' => 'nullable|exists:iaas_virtual_machines,uuid|uuid',
+        'tags' => '',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

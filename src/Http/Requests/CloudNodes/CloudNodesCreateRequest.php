@@ -22,6 +22,7 @@ class CloudNodesCreateRequest extends AbstractFormRequest
         'is_in_maintenance' => 'boolean',
         'position' => 'nullable|integer',
         'iaas_datacenter_id' => 'required|exists:iaas_datacenters,uuid|uuid',
+        'tags' => '',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
