@@ -12,9 +12,27 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
- * Class ComputePools.
+ * ComputePools model.
  *
- * @package NextDeveloper\IAAS\Database\Models
+ * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
+ * @property string $name
+ * @property string $resource_validator
+ * @property $pool_data
+ * @property string $virtualization
+ * @property string $provisioning_alg
+ * @property boolean $is_active
+ * @property boolean $is_alive
+ * @property boolean $is_public
+ * @property integer $iaas_datacenter_id
+ * @property integer $iaas_cloud_node_id
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
+ * @property array $tags
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class ComputePools extends Model
 {
@@ -31,6 +49,22 @@ class ComputePools extends Model
      @var array
      */
     protected $guarded = [];
+
+    protected $fillable = [
+            'name',
+            'resource_validator',
+            'pool_data',
+            'virtualization',
+            'provisioning_alg',
+            'is_active',
+            'is_alive',
+            'is_public',
+            'iaas_datacenter_id',
+            'iaas_cloud_node_id',
+            'iam_account_id',
+            'iam_user_id',
+            'tags',
+    ];
 
     /**
       Here we have the fulltext fields. We can use these for fulltext search if enabled.
@@ -128,6 +162,7 @@ class ComputePools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

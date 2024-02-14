@@ -12,9 +12,33 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
- * Class Datacenters.
+ * Datacenters model.
  *
- * @package NextDeveloper\IAAS\Database\Models
+ * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
+ * @property string $name
+ * @property string $slug
+ * @property boolean $is_public
+ * @property boolean $is_active
+ * @property boolean $maintenance_mode
+ * @property string $geo_latitude
+ * @property string $geo_longitude
+ * @property integer $tier_level
+ * @property $total_capacity
+ * @property $guaranteed_uptime
+ * @property boolean $is_carrier_neutral
+ * @property string $power_source
+ * @property string $ups
+ * @property string $cooling
+ * @property integer $common_city_id
+ * @property integer $iam_user_id
+ * @property integer $iam_account_id
+ * @property integer $common_country_id
+ * @property array $tags
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class Datacenters extends Model
 {
@@ -31,6 +55,28 @@ class Datacenters extends Model
      @var array
      */
     protected $guarded = [];
+
+    protected $fillable = [
+            'name',
+            'slug',
+            'is_public',
+            'is_active',
+            'maintenance_mode',
+            'geo_latitude',
+            'geo_longitude',
+            'tier_level',
+            'total_capacity',
+            'guaranteed_uptime',
+            'is_carrier_neutral',
+            'power_source',
+            'ups',
+            'cooling',
+            'common_city_id',
+            'iam_user_id',
+            'iam_account_id',
+            'common_country_id',
+            'tags',
+    ];
 
     /**
       Here we have the fulltext fields. We can use these for fulltext search if enabled.
@@ -133,6 +179,7 @@ class Datacenters extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -12,9 +12,21 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
- * Class StoragePools.
+ * StoragePools model.
  *
- * @package NextDeveloper\IAAS\Database\Models
+ * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
+ * @property $name
+ * @property $gb_per_hour_price
+ * @property boolean $is_active
+ * @property integer $iaas_cloud_node_id
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
+ * @property array $tags
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class StoragePools extends Model
 {
@@ -31,6 +43,16 @@ class StoragePools extends Model
      @var array
      */
     protected $guarded = [];
+
+    protected $fillable = [
+            'name',
+            'gb_per_hour_price',
+            'is_active',
+            'iaas_cloud_node_id',
+            'iam_account_id',
+            'iam_user_id',
+            'tags',
+    ];
 
     /**
       Here we have the fulltext fields. We can use these for fulltext search if enabled.
@@ -120,6 +142,7 @@ class StoragePools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

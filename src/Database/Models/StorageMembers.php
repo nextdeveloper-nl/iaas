@@ -12,9 +12,36 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
- * Class StorageMembers.
+ * StorageMembers model.
  *
- * @package NextDeveloper\IAAS\Database\Models
+ * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
+ * @property string $name
+ * @property string $hostname
+ * @property string $ip_addr
+ * @property string $local_ip_addr
+ * @property $management_data
+ * @property $features
+ * @property boolean $is_behind_firewall
+ * @property integer $total_socket
+ * @property integer $total_cpu
+ * @property integer $total_ram
+ * @property integer $total_disk
+ * @property integer $used_disk
+ * @property $disk_info
+ * @property \Carbon\Carbon $uptime
+ * @property \Carbon\Carbon $idle_time
+ * @property integer $benchmark_score
+ * @property boolean $is_maintenance
+ * @property boolean $is_alive
+ * @property integer $iaas_storage_pool_id
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
+ * @property array $tags
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class StorageMembers extends Model
 {
@@ -31,6 +58,31 @@ class StorageMembers extends Model
      @var array
      */
     protected $guarded = [];
+
+    protected $fillable = [
+            'name',
+            'hostname',
+            'ip_addr',
+            'local_ip_addr',
+            'management_data',
+            'features',
+            'is_behind_firewall',
+            'total_socket',
+            'total_cpu',
+            'total_ram',
+            'total_disk',
+            'used_disk',
+            'disk_info',
+            'uptime',
+            'idle_time',
+            'benchmark_score',
+            'is_maintenance',
+            'is_alive',
+            'iaas_storage_pool_id',
+            'iam_account_id',
+            'iam_user_id',
+            'tags',
+    ];
 
     /**
       Here we have the fulltext fields. We can use these for fulltext search if enabled.
@@ -139,6 +191,7 @@ class StorageMembers extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

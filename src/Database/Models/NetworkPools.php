@@ -12,9 +12,29 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
- * Class NetworkPools.
+ * NetworkPools model.
  *
- * @package NextDeveloper\IAAS\Database\Models
+ * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
+ * @property $name
+ * @property integer $vlan_start
+ * @property integer $vlan_end
+ * @property integer $vxlan_start
+ * @property integer $vxlan_end
+ * @property boolean $has_vlan_support
+ * @property boolean $has_vxlan_support
+ * @property boolean $is_active
+ * @property integer $iaas_datacenter_id
+ * @property integer $iaas_cloud_node_id
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
+ * @property string $provisioning_alg
+ * @property string $resource_validator
+ * @property array $tags
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class NetworkPools extends Model
 {
@@ -31,6 +51,24 @@ class NetworkPools extends Model
      @var array
      */
     protected $guarded = [];
+
+    protected $fillable = [
+            'name',
+            'vlan_start',
+            'vlan_end',
+            'vxlan_start',
+            'vxlan_end',
+            'has_vlan_support',
+            'has_vxlan_support',
+            'is_active',
+            'iaas_datacenter_id',
+            'iaas_cloud_node_id',
+            'iam_account_id',
+            'iam_user_id',
+            'provisioning_alg',
+            'resource_validator',
+            'tags',
+    ];
 
     /**
       Here we have the fulltext fields. We can use these for fulltext search if enabled.
@@ -129,6 +167,7 @@ class NetworkPools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

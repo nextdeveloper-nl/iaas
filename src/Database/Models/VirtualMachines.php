@@ -12,9 +12,44 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
- * Class VirtualMachines.
+ * VirtualMachines model.
  *
- * @package NextDeveloper\IAAS\Database\Models
+ * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
+ * @property string $name
+ * @property string $username
+ * @property string $password
+ * @property string $hostname
+ * @property string $description
+ * @property string $os
+ * @property string $distro
+ * @property string $version
+ * @property string $domain_type
+ * @property string $status
+ * @property integer $cpu
+ * @property integer $ram
+ * @property boolean $winrm_enabled
+ * @property $available_operations
+ * @property $current_operations
+ * @property $blocked_operations
+ * @property $console_data
+ * @property boolean $is_snapshot
+ * @property boolean $is_lost
+ * @property boolean $is_locked
+ * @property \Carbon\Carbon $last_metadata_request
+ * @property $features
+ * @property string $hypervisor_uuid
+ * @property $hypervisor_data
+ * @property integer $iaas_cloud_node_id
+ * @property integer $iaas_compute_member_id
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
+ * @property integer $iaas_virtual_machines_id
+ * @property array $tags
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class VirtualMachines extends Model
 {
@@ -31,6 +66,39 @@ class VirtualMachines extends Model
      @var array
      */
     protected $guarded = [];
+
+    protected $fillable = [
+            'name',
+            'username',
+            'password',
+            'hostname',
+            'description',
+            'os',
+            'distro',
+            'version',
+            'domain_type',
+            'status',
+            'cpu',
+            'ram',
+            'winrm_enabled',
+            'available_operations',
+            'current_operations',
+            'blocked_operations',
+            'console_data',
+            'is_snapshot',
+            'is_lost',
+            'is_locked',
+            'last_metadata_request',
+            'features',
+            'hypervisor_uuid',
+            'hypervisor_data',
+            'iaas_cloud_node_id',
+            'iaas_compute_member_id',
+            'iam_account_id',
+            'iam_user_id',
+            'iaas_virtual_machines_id',
+            'tags',
+    ];
 
     /**
       Here we have the fulltext fields. We can use these for fulltext search if enabled.
@@ -145,6 +213,7 @@ class VirtualMachines extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

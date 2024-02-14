@@ -12,9 +12,30 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
- * Class StorageVolumes.
+ * StorageVolumes model.
  *
- * @package NextDeveloper\IAAS\Database\Models
+ * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
+ * @property string $hypervisor_uuid
+ * @property string $name
+ * @property string $disk_physical_type
+ * @property $connection_parameters
+ * @property integer $total_hdd
+ * @property integer $used_hdd
+ * @property integer $free_hdd
+ * @property integer $virtual_allocation
+ * @property boolean $is_storage
+ * @property boolean $is_repo
+ * @property boolean $is_cdrom
+ * @property $hypervisor_data
+ * @property integer $iaas_storage_pool_id
+ * @property integer $iaas_storage_member_id
+ * @property boolean $is_alive
+ * @property array $tags
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class StorageVolumes extends Model
 {
@@ -31,6 +52,25 @@ class StorageVolumes extends Model
      @var array
      */
     protected $guarded = [];
+
+    protected $fillable = [
+            'hypervisor_uuid',
+            'name',
+            'disk_physical_type',
+            'connection_parameters',
+            'total_hdd',
+            'used_hdd',
+            'free_hdd',
+            'virtual_allocation',
+            'is_storage',
+            'is_repo',
+            'is_cdrom',
+            'hypervisor_data',
+            'iaas_storage_pool_id',
+            'iaas_storage_member_id',
+            'is_alive',
+            'tags',
+    ];
 
     /**
       Here we have the fulltext fields. We can use these for fulltext search if enabled.
@@ -132,6 +172,7 @@ class StorageVolumes extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

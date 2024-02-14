@@ -12,9 +12,26 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
- * Class CloudNodes.
+ * CloudNodes model.
  *
- * @package NextDeveloper\IAAS\Database\Models
+ * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
+ * @property string $name
+ * @property string $slug
+ * @property boolean $is_active
+ * @property boolean $is_public
+ * @property boolean $is_edge
+ * @property boolean $is_alive
+ * @property boolean $is_in_maintenance
+ * @property integer $position
+ * @property integer $iaas_datacenter_id
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
+ * @property array $tags
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class CloudNodes extends Model
 {
@@ -31,6 +48,21 @@ class CloudNodes extends Model
      @var array
      */
     protected $guarded = [];
+
+    protected $fillable = [
+            'name',
+            'slug',
+            'is_active',
+            'is_public',
+            'is_edge',
+            'is_alive',
+            'is_in_maintenance',
+            'position',
+            'iaas_datacenter_id',
+            'iam_account_id',
+            'iam_user_id',
+            'tags',
+    ];
 
     /**
       Here we have the fulltext fields. We can use these for fulltext search if enabled.
@@ -127,6 +159,7 @@ class CloudNodes extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

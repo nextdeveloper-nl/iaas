@@ -12,9 +12,40 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 
 /**
- * Class ComputeMembers.
+ * ComputeMembers model.
  *
- * @package NextDeveloper\IAAS\Database\Models
+ * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
+ * @property string $name
+ * @property string $hostname
+ * @property string $ip_addr
+ * @property string $local_ip_addr
+ * @property $management_data
+ * @property $features
+ * @property boolean $is_behind_firewall
+ * @property string $hypervisor_uuid
+ * @property string $hypervisor_data
+ * @property integer $total_socket
+ * @property integer $total_cpu
+ * @property integer $total_ram
+ * @property integer $used_cpu
+ * @property integer $used_ram
+ * @property integer $total_vm
+ * @property integer $max_overbooking_ratio
+ * @property $cpu_info
+ * @property \Carbon\Carbon $uptime
+ * @property \Carbon\Carbon $idle_time
+ * @property integer $benchmark_score
+ * @property boolean $is_maintenance
+ * @property boolean $is_alive
+ * @property integer $iaas_compute_pool_id
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
+ * @property array $tags
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class ComputeMembers extends Model
 {
@@ -31,6 +62,35 @@ class ComputeMembers extends Model
      @var array
      */
     protected $guarded = [];
+
+    protected $fillable = [
+            'name',
+            'hostname',
+            'ip_addr',
+            'local_ip_addr',
+            'management_data',
+            'features',
+            'is_behind_firewall',
+            'hypervisor_uuid',
+            'hypervisor_data',
+            'total_socket',
+            'total_cpu',
+            'total_ram',
+            'used_cpu',
+            'used_ram',
+            'total_vm',
+            'max_overbooking_ratio',
+            'cpu_info',
+            'uptime',
+            'idle_time',
+            'benchmark_score',
+            'is_maintenance',
+            'is_alive',
+            'iaas_compute_pool_id',
+            'iam_account_id',
+            'iam_user_id',
+            'tags',
+    ];
 
     /**
       Here we have the fulltext fields. We can use these for fulltext search if enabled.
@@ -142,6 +202,7 @@ class ComputeMembers extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
