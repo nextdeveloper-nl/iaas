@@ -15,7 +15,7 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
 {
     public const NAME = 'cloud-node-admin';
 
-    public const LEVEL = 45;
+    public const LEVEL = 110;
 
     public const DESCRIPTION = 'Cloud node admin is the user who has highest level of access to the cloud node that '
         . 'the user and or its organization (company) owns. However this role does not have privilege to list the '

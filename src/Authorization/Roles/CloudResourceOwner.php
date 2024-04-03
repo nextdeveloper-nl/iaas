@@ -11,11 +11,11 @@ use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
-class ResourceOwner extends AbstractRole implements IAuthorizationRole
+class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
 {
     public const NAME = 'cloud-resource-owner';
 
-    public const LEVEL = 40;
+    public const LEVEL = 150;
 
     public const DESCRIPTION = 'This is the role for the user who creates and manages the related resources.';
 

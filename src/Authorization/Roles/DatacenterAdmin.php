@@ -15,7 +15,7 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
 {
     public const NAME = 'datacenter-admin';
 
-    public const LEVEL = 50;
+    public const LEVEL = 100;
 
     public const DESCRIPTION = 'Datacenter admin is the role where the user can manage the nodes in datacenter.'
         . 'This role is the highest level of access in the system. However this role does not have privilege to list '
