@@ -27,7 +27,8 @@ class Initiate extends AbstractAction
         'created:NextDeveloper\IAAS\CloudNodes',
         'created:NextDeveloper\IAAS\ComputePools',
         'created:NextDeveloper\IAAS\StoragePools',
-        'created:NextDeveloper\IAAS\NetworkPools'
+        'created:NextDeveloper\IAAS\NetworkPools',
+        'initiation-failed:NextDeveloper\IAAS\Datacenters',
     ];
 
 
@@ -50,19 +51,31 @@ class Initiate extends AbstractAction
      */
     public function handle(): void
     {
-        // 1) Create Cloud Node
-        $cloudNode = $this->createCloudNode();
+        try {
+            $this->setProgress(0, 'Initiating Datacenter');
+            // 1) Create Cloud Node
+            $cloudNode = $this->createCloudNode();
 
-        // 2) Create ComputePool
-        $this->createComputePool($cloudNode->id);
+            $this->setProgress(25, 'Cloud Node created');
+            // 2) Create ComputePool
+            $this->createComputePool($cloudNode->id);
 
-        // 3) Create StoragePool
-        $this->createStoragePool($cloudNode->id);
+            $this->setProgress(50, 'Compute pool created');
+            // 3) Create StoragePool
+            $this->createStoragePool($cloudNode->id);
 
-        // 4) Create NetworkPool
-        $this->createNetworkPool($cloudNode->id);
+            $this->setProgress(75, 'Storage pool created');
+            // 4) Create NetworkPool
+            $this->createNetworkPool($cloudNode->id);
 
-        $this->setFinished();
+            $this->setProgress(90, 'Network pool created');
+
+            $this->setFinished('Datacenter initiated successfully');
+        }
+        catch (\Exception $e) {
+            Events::fire('initiation-failed:NextDeveloper\IAAS\Datacenters', $this->model);
+            throw $e;
+        }
     }
 
     /**
@@ -80,8 +93,6 @@ class Initiate extends AbstractAction
         ]);
 
         Events::fire('created:NextDeveloper\IAAS\CloudNodes', $cloudNode);
-
-        $this->setProgress(25, 'Cloud Node created');
 
         return $cloudNode;
     }
@@ -102,8 +113,6 @@ class Initiate extends AbstractAction
         ]);
 
         Events::fire('created:NextDeveloper\IAAS\ComputePools', $computePool);
-
-        $this->setProgress(50, 'Compute Pool created');
     }
 
     /**
@@ -123,8 +132,6 @@ class Initiate extends AbstractAction
         ]);
 
         Events::fire('created:NextDeveloper\IAAS\StoragePools', $storagePool);
-
-        $this->setProgress(75, 'Storage Pool created');
     }
 
     /**
@@ -146,7 +153,5 @@ class Initiate extends AbstractAction
         ]);
 
         Events::fire('created:NextDeveloper\IAAS\NetworkPools', $networkPool);
-
-        $this->setProgress(100, 'Network Pool created');
     }
 }

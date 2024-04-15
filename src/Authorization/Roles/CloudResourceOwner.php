@@ -2,10 +2,12 @@
 
 namespace NextDeveloper\IAAS\Authorization\Roles;
 
+use Exceptions\MustHaveNIN;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use NextDeveloper\CRM\Database\Models\AccountManagers;
+use NextDeveloper\IAAS\Authorization\Rules\ServiceAvailability\TurkishMustHaveNIN;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
 use NextDeveloper\IAM\Database\Models\Users;
@@ -33,11 +35,7 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
         /**
          * Here user will be able to list all models, because by default, sales manager can see everybody.
          */
-        $ids = AccountManagers::withoutGlobalScopes()
-            ->where('iam_account_id', UserHelper::currentAccount()->id)
-            ->pluck('crm_account_id');
-
-        $builder->whereIn('iam_account_id', $ids);
+        $builder->where('iam_account_id', UserHelper::currentAccount()->id);
     }
 
     public function checkPrivileges(Users $users = null)
@@ -45,6 +43,12 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
         //return UserHelper::hasRole(self::NAME, $users);
     }
 
+    public function checkRules(Users $users): bool
+    {
+        if(!TurkishMustHaveNIN::can($users)) { throw new MustHaveNIN(); }
+
+        return true;
+    }
 
     public function getModule()
     {

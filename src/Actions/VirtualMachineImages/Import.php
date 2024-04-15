@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachineImages;
 
+use JetBrains\PhpStorm\NoReturn;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
@@ -16,14 +17,14 @@ class Import extends AbstractAction
         'import-failed:NextDeveloper\IAAS\VirtualMachineImages'
     ];
 
-    public function __construct(VirtualMachines $vm)
+    #[NoReturn] public function __construct(VirtualMachines $vm)
     {
         trigger_error('This action is not yet implemented', E_USER_ERROR);
 
         $this->model = $vm;
     }
 
-    public function handle()
+    public function handle(): void
     {
         $this->setProgress(0, 'Initiate virtual machine started');
 
