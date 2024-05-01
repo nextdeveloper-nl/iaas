@@ -10,12 +10,13 @@ use NextDeveloper\IAAS\Database\Filters\NetworkPoolsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Services\NetworkPoolsService;
 use NextDeveloper\IAAS\Http\Requests\NetworkPools\NetworkPoolsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;
+use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
 class NetworkPoolsController extends AbstractController
 {
     private $model = NetworkPools::class;
 
     use Tags;
+    use Addresses;
     /**
      * This method returns the list of networkpools.
      *
@@ -31,6 +32,36 @@ class NetworkPoolsController extends AbstractController
         $data = NetworkPoolsService::get($filter, $request->all());
 
         return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * This function returns the list of actions that can be performed on this object.
+     *
+     * @return void
+     */
+    public function getActions()
+    {
+        $data = NetworkPoolsService::getActions();
+
+        return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * Makes the related action to the object
+     *
+     * @param  $objectId
+     * @param  $action
+     * @return array
+     */
+    public function doAction($objectId, $action)
+    {
+        $actionId = NetworkPoolsService::doAction($objectId, $action);
+
+        return $this->withArray(
+            [
+            'action_id' =>  $actionId
+            ]
+        );
     }
 
     /**

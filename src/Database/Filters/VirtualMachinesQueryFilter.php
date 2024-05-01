@@ -13,6 +13,27 @@ use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
 class VirtualMachinesQueryFilter extends AbstractQueryFilter
 {
     /**
+     * Filter by tags
+     *
+     * @param  $values
+     * @return Builder
+     */
+    public function tags($values)
+    {
+        $tags = explode(',', $values);
+
+        $search = '';
+
+        for($i = 0; $i < count($tags); $i++) {
+            $search .= "'" . trim($tags[$i]) . "',";
+        }
+
+        $search = substr($search, 0, -1);
+
+        return $this->builder->whereRaw('tags @> ARRAY[' . $search . ']');
+    }
+
+    /**
      * @var Builder
      */
     protected $builder;
@@ -79,7 +100,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
         return $this->builder->where('cpu', $operator, $value);
     }
-    
+
     public function ram($value)
     {
         $operator = substr($value, 0, 1);
@@ -92,58 +113,58 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
         return $this->builder->where('ram', $operator, $value);
     }
-    
+
     public function isSnapshot()
     {
         return $this->builder->where('is_snapshot', true);
     }
-    
+
     public function isLost()
     {
         return $this->builder->where('is_lost', true);
     }
-    
+
     public function isLocked()
     {
         return $this->builder->where('is_locked', true);
     }
-    
-    public function lastMetadataRequestStart($date) 
+
+    public function lastMetadataRequestStart($date)
     {
         return $this->builder->where('last_metadata_request', '>=', $date);
     }
 
-    public function lastMetadataRequestEnd($date) 
+    public function lastMetadataRequestEnd($date)
     {
         return $this->builder->where('last_metadata_request', '<=', $date);
     }
 
-    public function createdAtStart($date) 
+    public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
     }
 
-    public function createdAtEnd($date) 
+    public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
     }
 
-    public function updatedAtStart($date) 
+    public function updatedAtStart($date)
     {
         return $this->builder->where('updated_at', '>=', $date);
     }
 
-    public function updatedAtEnd($date) 
+    public function updatedAtEnd($date)
     {
         return $this->builder->where('updated_at', '<=', $date);
     }
 
-    public function deletedAtStart($date) 
+    public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
     }
 
-    public function deletedAtEnd($date) 
+    public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
     }
@@ -194,4 +215,5 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

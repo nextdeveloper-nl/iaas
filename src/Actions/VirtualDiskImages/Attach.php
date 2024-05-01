@@ -16,7 +16,7 @@ class Attach extends AbstractAction
         'attach-failed:NextDeveloper\IAAS\VirtualDiskImages'
     ];
 
-    public function __construct(VirtualDisk $vm)
+    public function __construct(VirtualDiskImages $vm)
     {
         trigger_error('This action is not yet implemented', E_USER_ERROR);
 

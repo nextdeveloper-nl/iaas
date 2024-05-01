@@ -22,6 +22,10 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property string $ip_addr
  * @property string $local_ip_addr
  * @property $management_data
+ * @property string $configuration_data
+ * @property boolean $is_healthy
+ * @property boolean $has_warning
+ * @property boolean $has_error
  * @property $features
  * @property boolean $is_behind_firewall
  * @property integer $total_socket
@@ -65,6 +69,10 @@ class StorageMembers extends Model
             'ip_addr',
             'local_ip_addr',
             'management_data',
+            'configuration_data',
+            'is_healthy',
+            'has_warning',
+            'has_error',
             'features',
             'is_behind_firewall',
             'total_socket',
@@ -110,6 +118,10 @@ class StorageMembers extends Model
     'ip_addr' => 'string',
     'local_ip_addr' => 'string',
     'management_data' => 'array',
+    'configuration_data' => 'string',
+    'is_healthy' => 'boolean',
+    'has_warning' => 'boolean',
+    'has_error' => 'boolean',
     'features' => 'array',
     'is_behind_firewall' => 'boolean',
     'total_socket' => 'integer',
@@ -191,17 +203,5 @@ class StorageMembers extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

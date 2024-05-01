@@ -62,6 +62,7 @@ trait IaasStorageMemberTestTraits
                 'hostname'  =>  'a',
                 'ip_addr'  =>  'a',
                 'local_ip_addr'  =>  'a',
+                'configuration_data'  =>  'a',
                 'total_socket'  =>  '1',
                 'total_cpu'  =>  '1',
                 'total_ram'  =>  '1',
@@ -415,6 +416,25 @@ trait IaasStorageMemberTestTraits
             $request = new Request(
                 [
                 'local_ip_addr'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasStorageMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasStorageMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasstoragemember_event_configuration_data_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'configuration_data'  =>  'a'
                 ]
             );
 

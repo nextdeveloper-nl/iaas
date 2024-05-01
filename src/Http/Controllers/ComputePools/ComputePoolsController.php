@@ -10,12 +10,13 @@ use NextDeveloper\IAAS\Database\Filters\ComputePoolsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Services\ComputePoolsService;
 use NextDeveloper\IAAS\Http\Requests\ComputePools\ComputePoolsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;
+use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
 class ComputePoolsController extends AbstractController
 {
     private $model = ComputePools::class;
 
     use Tags;
+    use Addresses;
     /**
      * This method returns the list of computepools.
      *
@@ -31,6 +32,36 @@ class ComputePoolsController extends AbstractController
         $data = ComputePoolsService::get($filter, $request->all());
 
         return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * This function returns the list of actions that can be performed on this object.
+     *
+     * @return void
+     */
+    public function getActions()
+    {
+        $data = ComputePoolsService::getActions();
+
+        return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * Makes the related action to the object
+     *
+     * @param  $objectId
+     * @param  $action
+     * @return array
+     */
+    public function doAction($objectId, $action)
+    {
+        $actionId = ComputePoolsService::doAction($objectId, $action);
+
+        return $this->withArray(
+            [
+            'action_id' =>  $actionId
+            ]
+        );
     }
 
     /**

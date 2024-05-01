@@ -14,7 +14,7 @@ class DatacentersCreateRequest extends AbstractFormRequest
     {
         return [
             'name' => 'required|string',
-        'slug' => 'required|string',
+        'slug' => 'nullable|string',
         'is_public' => 'boolean',
         'is_active' => 'boolean',
         'maintenance_mode' => 'boolean',
@@ -33,6 +33,7 @@ class DatacentersCreateRequest extends AbstractFormRequest
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 }

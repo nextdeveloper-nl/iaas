@@ -33,6 +33,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $iaas_storage_member_id
  * @property boolean $is_alive
  * @property array $tags
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
@@ -70,6 +72,8 @@ class StorageVolumes extends Model
             'iaas_storage_member_id',
             'is_alive',
             'tags',
+            'iam_account_id',
+            'iam_user_id',
     ];
 
     /**
@@ -172,27 +176,5 @@ class StorageVolumes extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

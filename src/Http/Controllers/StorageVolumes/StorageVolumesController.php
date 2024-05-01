@@ -10,12 +10,13 @@ use NextDeveloper\IAAS\Database\Filters\StorageVolumesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAAS\Http\Requests\StorageVolumes\StorageVolumesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;
+use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
 class StorageVolumesController extends AbstractController
 {
     private $model = StorageVolumes::class;
 
     use Tags;
+    use Addresses;
     /**
      * This method returns the list of storagevolumes.
      *
@@ -31,6 +32,36 @@ class StorageVolumesController extends AbstractController
         $data = StorageVolumesService::get($filter, $request->all());
 
         return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * This function returns the list of actions that can be performed on this object.
+     *
+     * @return void
+     */
+    public function getActions()
+    {
+        $data = StorageVolumesService::getActions();
+
+        return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * Makes the related action to the object
+     *
+     * @param  $objectId
+     * @param  $action
+     * @return array
+     */
+    public function doAction($objectId, $action)
+    {
+        $actionId = StorageVolumesService::doAction($objectId, $action);
+
+        return $this->withArray(
+            [
+            'action_id' =>  $actionId
+            ]
+        );
     }
 
     /**

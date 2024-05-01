@@ -10,12 +10,13 @@ use NextDeveloper\IAAS\Database\Filters\ComputeMembersQueryFilter;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Http\Requests\ComputeMembers\ComputeMembersCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;
+use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
 class ComputeMembersController extends AbstractController
 {
     private $model = ComputeMembers::class;
 
     use Tags;
+    use Addresses;
     /**
      * This method returns the list of computemembers.
      *
@@ -31,6 +32,36 @@ class ComputeMembersController extends AbstractController
         $data = ComputeMembersService::get($filter, $request->all());
 
         return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * This function returns the list of actions that can be performed on this object.
+     *
+     * @return void
+     */
+    public function getActions()
+    {
+        $data = ComputeMembersService::getActions();
+
+        return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * Makes the related action to the object
+     *
+     * @param  $objectId
+     * @param  $action
+     * @return array
+     */
+    public function doAction($objectId, $action)
+    {
+        $actionId = ComputeMembersService::doAction($objectId, $action);
+
+        return $this->withArray(
+            [
+            'action_id' =>  $actionId
+            ]
+        );
     }
 
     /**

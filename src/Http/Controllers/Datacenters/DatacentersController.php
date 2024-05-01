@@ -3,7 +3,6 @@
 namespace NextDeveloper\IAAS\Http\Controllers\Datacenters;
 
 use Illuminate\Http\Request;
-use NextDeveloper\Commons\Http\Traits\Addresses;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\Datacenters\DatacentersUpdateRequest;
@@ -11,7 +10,7 @@ use NextDeveloper\IAAS\Database\Filters\DatacentersQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Datacenters;
 use NextDeveloper\IAAS\Services\DatacentersService;
 use NextDeveloper\IAAS\Http\Requests\Datacenters\DatacentersCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;
+use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
 class DatacentersController extends AbstractController
 {
     private $model = Datacenters::class;
@@ -33,6 +32,36 @@ class DatacentersController extends AbstractController
         $data = DatacentersService::get($filter, $request->all());
 
         return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * This function returns the list of actions that can be performed on this object.
+     *
+     * @return void
+     */
+    public function getActions()
+    {
+        $data = DatacentersService::getActions();
+
+        return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * Makes the related action to the object
+     *
+     * @param  $objectId
+     * @param  $action
+     * @return array
+     */
+    public function doAction($objectId, $action)
+    {
+        $actionId = DatacentersService::doAction($objectId, $action);
+
+        return $this->withArray(
+            [
+            'action_id' =>  $actionId
+            ]
+        );
     }
 
     /**

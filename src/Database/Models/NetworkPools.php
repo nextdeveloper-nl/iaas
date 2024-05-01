@@ -22,8 +22,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $vlan_end
  * @property integer $vxlan_start
  * @property integer $vxlan_end
- * @property boolean $has_vlan_support
- * @property boolean $has_vxlan_support
+ * @property boolean $is_vlan_available
+ * @property boolean $is_vxlan_available
  * @property boolean $is_active
  * @property integer $iaas_datacenter_id
  * @property integer $iaas_cloud_node_id
@@ -32,6 +32,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property string $provisioning_alg
  * @property string $resource_validator
  * @property array $tags
+ * @property $price_pergb
+ * @property integer $common_currency_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
@@ -58,8 +60,8 @@ class NetworkPools extends Model
             'vlan_end',
             'vxlan_start',
             'vxlan_end',
-            'has_vlan_support',
-            'has_vxlan_support',
+            'is_vlan_available',
+            'is_vxlan_available',
             'is_active',
             'iaas_datacenter_id',
             'iaas_cloud_node_id',
@@ -68,6 +70,8 @@ class NetworkPools extends Model
             'provisioning_alg',
             'resource_validator',
             'tags',
+            'price_pergb',
+            'common_currency_id',
     ];
 
     /**
@@ -95,14 +99,15 @@ class NetworkPools extends Model
     'vlan_end' => 'integer',
     'vxlan_start' => 'integer',
     'vxlan_end' => 'integer',
-    'has_vlan_support' => 'boolean',
-    'has_vxlan_support' => 'boolean',
+    'is_vlan_available' => 'boolean',
+    'is_vxlan_available' => 'boolean',
     'is_active' => 'boolean',
     'iaas_datacenter_id' => 'integer',
     'iaas_cloud_node_id' => 'integer',
     'provisioning_alg' => 'string',
     'resource_validator' => 'string',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'common_currency_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -167,27 +172,5 @@ class NetworkPools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

@@ -10,12 +10,13 @@ use NextDeveloper\IAAS\Database\Filters\StoragePoolsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Services\StoragePoolsService;
 use NextDeveloper\IAAS\Http\Requests\StoragePools\StoragePoolsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;
+use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
 class StoragePoolsController extends AbstractController
 {
     private $model = StoragePools::class;
 
     use Tags;
+    use Addresses;
     /**
      * This method returns the list of storagepools.
      *
@@ -31,6 +32,36 @@ class StoragePoolsController extends AbstractController
         $data = StoragePoolsService::get($filter, $request->all());
 
         return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * This function returns the list of actions that can be performed on this object.
+     *
+     * @return void
+     */
+    public function getActions()
+    {
+        $data = StoragePoolsService::getActions();
+
+        return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * Makes the related action to the object
+     *
+     * @param  $objectId
+     * @param  $action
+     * @return array
+     */
+    public function doAction($objectId, $action)
+    {
+        $actionId = StoragePoolsService::doAction($objectId, $action);
+
+        return $this->withArray(
+            [
+            'action_id' =>  $actionId
+            ]
+        );
     }
 
     /**

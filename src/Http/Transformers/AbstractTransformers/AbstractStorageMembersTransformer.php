@@ -32,6 +32,10 @@ class AbstractStorageMembersTransformer extends AbstractTransformer
             'ip_addr'  =>  $model->ip_addr,
             'local_ip_addr'  =>  $model->local_ip_addr,
             'management_data'  =>  $model->management_data,
+            'configuration_data'  =>  $model->configuration_data,
+            'is_healthy'  =>  $model->is_healthy,
+            'has_warning'  =>  $model->has_warning,
+            'has_error'  =>  $model->has_error,
             'features'  =>  $model->features,
             'is_behind_firewall'  =>  $model->is_behind_firewall,
             'total_socket'  =>  $model->total_socket,
@@ -57,6 +61,8 @@ class AbstractStorageMembersTransformer extends AbstractTransformer
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

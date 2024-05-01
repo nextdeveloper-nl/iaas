@@ -10,13 +10,13 @@ use NextDeveloper\IAAS\Database\Filters\CloudNodesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Services\CloudNodesService;
 use NextDeveloper\IAAS\Http\Requests\CloudNodes\CloudNodesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;
-
+use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
 class CloudNodesController extends AbstractController
 {
     private $model = CloudNodes::class;
 
     use Tags;
+    use Addresses;
     /**
      * This method returns the list of cloudnodes.
      *
@@ -32,6 +32,36 @@ class CloudNodesController extends AbstractController
         $data = CloudNodesService::get($filter, $request->all());
 
         return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * This function returns the list of actions that can be performed on this object.
+     *
+     * @return void
+     */
+    public function getActions()
+    {
+        $data = CloudNodesService::getActions();
+
+        return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * Makes the related action to the object
+     *
+     * @param  $objectId
+     * @param  $action
+     * @return array
+     */
+    public function doAction($objectId, $action)
+    {
+        $actionId = CloudNodesService::doAction($objectId, $action);
+
+        return $this->withArray(
+            [
+            'action_id' =>  $actionId
+            ]
+        );
     }
 
     /**

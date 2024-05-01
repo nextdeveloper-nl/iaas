@@ -30,6 +30,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property array $tags
+ * @property $price_pergb
+ * @property integer $common_currency_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
@@ -64,6 +66,8 @@ class ComputePools extends Model
             'iam_account_id',
             'iam_user_id',
             'tags',
+            'price_pergb',
+            'common_currency_id',
     ];
 
     /**
@@ -98,6 +102,7 @@ class ComputePools extends Model
     'iaas_datacenter_id' => 'integer',
     'iaas_cloud_node_id' => 'integer',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'common_currency_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -162,28 +167,5 @@ class ComputePools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

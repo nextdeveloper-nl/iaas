@@ -58,15 +58,15 @@ class Initiate extends AbstractAction
 
             $this->setProgress(25, 'Cloud Node created');
             // 2) Create ComputePool
-            $this->createComputePool($cloudNode->id);
+            $this->createComputePool($cloudNode);
 
             $this->setProgress(50, 'Compute pool created');
             // 3) Create StoragePool
-            $this->createStoragePool($cloudNode->id);
+            $this->createStoragePool($cloudNode);
 
             $this->setProgress(75, 'Storage pool created');
             // 4) Create NetworkPool
-            $this->createNetworkPool($cloudNode->id);
+            $this->createNetworkPool($cloudNode);
 
             $this->setProgress(90, 'Network pool created');
 
@@ -87,7 +87,7 @@ class Initiate extends AbstractAction
     private function createCloudNode(): mixed
     {
         $cloudNode = CloudNodesService::create([
-            'name'                  => 'My Cloud Node',
+            'name'                  => $this->model->name . ' Cloud Node',
             'slug'                  => 'my-cloud-node',
             'iaas_datacenter_id'    => $this->model->id,
         ]);
@@ -100,16 +100,16 @@ class Initiate extends AbstractAction
     /**
      * Create a Compute Pool.
      *
-     * @param int $cloudNodeId
+     * @param $cloudNode
      * @return void
      * @throws \Exception
      */
-    private function createComputePool(int $cloudNodeId): void
+    private function createComputePool($cloudNode): void
     {
         $computePool = ComputePoolsService::create([
-            'name'                  => 'My Compute Pool',
+            'name'                  => $this->model->name . ' Compute Pool',
             'iaas_datacenter_id'    => $this->model->id,
-            'iaas_cloud_node_id'    => $cloudNodeId,
+            'iaas_cloud_node_id'    => $cloudNode->id,
         ]);
 
         Events::fire('created:NextDeveloper\IAAS\ComputePools', $computePool);
@@ -118,17 +118,17 @@ class Initiate extends AbstractAction
     /**
      * Create a Storage Pool.
      *
-     * @param int $cloudNodeId
+     * @param $cloudNode
      * @return void
      */
-    private function createStoragePool(int $cloudNodeId): void
+    private function createStoragePool($cloudNode): void
     {
         $storagePool = StoragePoolsService::create([
-            'name'                  => 'My Storage Pool',
+            'name'                  => $this->model->name . ' Storage Pool',
             'slug'                  => 'my-storage-pool',
             'gb_per_hour_price'     => 0.1,
             'iaas_datacenter_id'    => $this->model->id,
-            'iaas_cloud_node_id'    => $cloudNodeId,
+            'iaas_cloud_node_id'    => $cloudNode->id,
         ]);
 
         Events::fire('created:NextDeveloper\IAAS\StoragePools', $storagePool);
@@ -137,19 +137,19 @@ class Initiate extends AbstractAction
     /**
      * Create a Network Pool.
      *
-     * @param int $cloudNodeId
+     * @param $cloudNode
      * @return void
      */
-    private function createNetworkPool(int $cloudNodeId): void
+    private function createNetworkPool($cloudNode): void
     {
         $networkPool = NetworkPoolsService::create([
-            'name'                  => 'My Network Pool',
+            'name'                  => $this->model->name . ' Network Pool',
             'vlan_start'            => 1,
             'vlan_end'              => 10,
             'vxlan_start'           => 1,
             'vxlan_end'             => 10,
             'iaas_datacenter_id'    => $this->model->id,
-            'iaas_cloud_node_id'    => $cloudNodeId,
+            'iaas_cloud_node_id'    => $cloudNode->id,
         ]);
 
         Events::fire('created:NextDeveloper\IAAS\NetworkPools', $networkPool);
