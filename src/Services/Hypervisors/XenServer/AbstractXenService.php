@@ -2,7 +2,9 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
-class ParserService
+use function Laravel\Prompts\error;
+
+class AbstractXenService
 {
     /**
      * This function parses xenserver result to an array. But this function removes RO or RW values.
@@ -45,15 +47,16 @@ class ParserService
                     $params = trim($params);
             }
 
-            if(is_array($params)) {
-                $tempParams = [];
-
-                foreach ($params as $param) {
-                    $tempParams[] = trim($param);
-                }
-
-                $params = $tempParams;
-            }
+            // Removed because it was causing changes in array
+//            if(is_array($params)) {
+//                $tempParams = [];
+//
+//                foreach ($params as $param) {
+//                    $tempParams[] = trim($param);
+//                }
+//
+//                $params = $tempParams;
+//            }
 
             if($key != '')
                 $data[$key] = $params;
@@ -75,12 +78,7 @@ class ParserService
 
             $explodedItem = explode(':', $item);
 
-            $key = $explodedItem[0];
-
-            unset($explodedItem[0]);
-            $parameter = implode(':', $explodedItem);
-
-            $parameters[$key] = trim($parameter);
+            $parameters[ $explodedItem[0] ] = $explodedItem[1];
         }
 
         return $parameters;
@@ -120,6 +118,8 @@ class ParserService
     }
 
     public static function isError($result) : bool {
+        trigger_error('This function should be updated. It is not working as expected.');
+
         if($result == 'Error: No matching VMs found') {
             return true;
         }

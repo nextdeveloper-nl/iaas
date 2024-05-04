@@ -56,6 +56,7 @@ class StoragePools extends Model
             'tags',
             'price_pergb',
             'common_currency_id',
+        'storage_pool_type'
     ];
 
     /**

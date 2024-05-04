@@ -57,6 +57,7 @@ class ComputeMemberNetworkInterfaces extends Model
             'is_default',
             'is_connected',
             'hypervisor_data',
+            'hypervisor_uuid',
             'iaas_compute_member_id',
             'iam_account_id',
             'iam_user_id',
