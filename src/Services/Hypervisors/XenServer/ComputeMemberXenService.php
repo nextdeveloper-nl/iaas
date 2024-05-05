@@ -8,15 +8,14 @@ use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\Networks;
-use NextDeveloper\IAAS\Database\Models\StorageMembers;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
+use NextDeveloper\IAAS\Helpers\NetworkCalculationHelper;
 use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
 use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use PlusClouds\IAAS\Services\XenServer\XenServerService;
 
 class ComputeMemberXenService extends AbstractXenService
 {
@@ -28,7 +27,8 @@ class ComputeMemberXenService extends AbstractXenService
         $hostname = self::performCommand($command, $computeMember);
         $hostname = $hostname[0]['output'];
 
-        $command = 'uptime';
+        //  This command will give us the uptime of the host as timestamp
+        $command = 'stat -c %Z /proc/ ';
         $uptime = self::performCommand($command, $computeMember);
         $uptime = $uptime[0]['output'];
 
@@ -53,15 +53,48 @@ class ComputeMemberXenService extends AbstractXenService
         Log::info('[ComputeMemberService@sync] We got the correct host: ' . $hypervisor['name-label']);
         Log::info('[ComputeMemberService@sync] Going to update compute member information');
 
+        $cpuInformation = self::parseDeviceConfigParameters($hypervisor['cpu_info']);
+        $softwareInformation = self::parseDeviceConfigParameters($hypervisor['software-version']);
+
         $computeMember->update([
             'name'  => $hypervisor['name-label'],
             'hostname'  =>  $hypervisor['hostname'],
             'hypervisor_uuid'   =>  $hypervisor['uuid'],
+            'hypervisor_data'   =>  $hypervisor,
             'uptime'            =>  $uptime,
+            'total_ram'         =>  ceil($hypervisor['memory-total']  / 1024 / 1024 / 1024),
+            'used_ram'          =>  ceil(($hypervisor['memory-total'] - $hypervisor['memory-free']) / 1024 / 1024),
+            'total_cpu'         =>  $cpuInformation['cpu_count'],
+            'total_socket'      =>  $cpuInformation['socket_count'],
+            'hypervisor_model'  =>  'XenServer ' . trim($softwareInformation['product_version_text_short']),
+            'cpu_info'          =>  $cpuInformation,
             'overbooking_ratio' => $computeMember->overbooking_ratio == 0 ? 15 : $computeMember->overbooking_ratio,
         ]);
 
         return $computeMember->fresh();
+    }
+
+    public static function updateConnectionInformation(ComputeMembers $computeMembers) : ComputeMembers
+    {
+        $mgmtInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('is_management', true)
+            ->where('iaas_compute_member_id', $computeMembers->id)
+            ->first();
+
+        $data = $mgmtInterface->hypervisor_data;
+
+        $computeMemberIp = $computeMembers->ip_addr;
+
+        if(Str::contains($computeMemberIp, '/'))
+            $computeMemberIp = explode('/', $computeMembers->ip_addr)[0];
+
+        $computeMembers->update([
+            'ip_addr'   =>  $computeMemberIp . '/' . NetworkCalculationHelper::mask2cidr($data['netmask']),
+            'local_ip_addr' =>  $data['IP'] . '/' . NetworkCalculationHelper::mask2cidr($data['netmask']),
+            'is_behind_firewall'    =>  $data['IP'] != $computeMemberIp ? true : false,
+        ]);
+
+        return $computeMembers->fresh();
     }
 
     public static function updateInterfaceInformation(ComputeMembers $computeMember) : ComputeMembers

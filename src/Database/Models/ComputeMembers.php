@@ -145,7 +145,7 @@ class ComputeMembers extends Model
         'ssh_username' => 'string',
         'ssh_password' => 'string',
         'ssh_port' => 'integer',
-        'hypervisor_data' => 'string',
+        'hypervisor_data' => 'json',
         'hypervisor_model' => 'string',
         'has_warning' => 'boolean',
         'has_error' => 'boolean',
