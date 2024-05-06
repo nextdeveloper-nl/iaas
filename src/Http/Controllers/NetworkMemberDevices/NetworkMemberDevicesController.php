@@ -106,6 +106,12 @@ class NetworkMemberDevicesController extends AbstractController
      */
     public function store(NetworkMemberDevicesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = NetworkMemberDevicesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class NetworkMemberDevicesController extends AbstractController
      */
     public function update($networkMemberDevicesId, NetworkMemberDevicesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = NetworkMemberDevicesService::update($networkMemberDevicesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

@@ -106,6 +106,12 @@ class ComputeMembersController extends AbstractController
      */
     public function store(ComputeMembersCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMembersService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class ComputeMembersController extends AbstractController
      */
     public function update($computeMembersId, ComputeMembersUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMembersService::update($computeMembersId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

@@ -106,6 +106,12 @@ class IpAddressesController extends AbstractController
      */
     public function store(IpAddressesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = IpAddressesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class IpAddressesController extends AbstractController
      */
     public function update($ipAddressesId, IpAddressesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = IpAddressesService::update($ipAddressesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

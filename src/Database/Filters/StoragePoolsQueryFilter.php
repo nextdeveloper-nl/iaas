@@ -37,6 +37,11 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
+    
+    public function storagePoolType($value)
+    {
+        return $this->builder->where('storage_pool_type', 'like', '%' . $value . '%');
+    }
 
     public function isActive()
     {
@@ -110,5 +115,6 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

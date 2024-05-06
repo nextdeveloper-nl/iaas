@@ -106,6 +106,12 @@ class AnsibleServersController extends AbstractController
      */
     public function store(AnsibleServersCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = AnsibleServersService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class AnsibleServersController extends AbstractController
      */
     public function update($ansibleServersId, AnsibleServersUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = AnsibleServersService::update($ansibleServersId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

@@ -31,6 +31,9 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  * @property \Carbon\Carbon $deleted_at
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property integer $ssh_port
+ * @property $local_ip_addr
+ * @property boolean $is_behind_firewall
  */
 class NetworkMembers extends Model
 {
@@ -44,82 +47,82 @@ class NetworkMembers extends Model
 
 
     /**
-     * @var array
+     @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-        'name',
-        'ip_addr',
-        'local_ip_addr',
-        'ssh_username',
-        'ssh_password',
-        'ssh_port',
-        'is_behind_firewall',
-        'iaas_network_pool_id',
-        'tags',
-        'iam_account_id',
-        'iam_user_id',
+            'name',
+            'ip_addr',
+            'ssh_username',
+            'ssh_password',
+            'iaas_network_pool_id',
+            'tags',
+            'iam_account_id',
+            'iam_user_id',
+            'ssh_port',
+            'local_ip_addr',
+            'is_behind_firewall',
     ];
 
     /**
-     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
+      Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     * We are casting fields to objects so that we can work on them better
+     We are casting fields to objects so that we can work on them better
      *
-     * @var array
+     @var array
      */
     protected $casts = [
-        'id' => 'integer',
-        'name' => 'string',
-        'ssh_username' => 'string',
-        'ssh_password' => 'string',
-        'iaas_network_pool_id' => 'integer',
-        'ssh_port' => 'integer',
-        'is_behind_firewall' => 'boolean',
-        'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+    'id' => 'integer',
+    'name' => 'string',
+    'ssh_username' => 'string',
+    'ssh_password' => 'string',
+    'iaas_network_pool_id' => 'integer',
+    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
+    'ssh_port' => 'integer',
+    'is_behind_firewall' => 'boolean',
     ];
 
     /**
-     * We are casting data fields.
+     We are casting data fields.
      *
-     * @var array
+     @var array
      */
     protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $with = [
 
     ];
 
     /**
-     * @var int
+     @var int
      */
     protected $perPage = 20;
 
     /**
-     * @return void
+     @return void
      */
     public static function boot()
     {
@@ -136,11 +139,9 @@ class NetworkMembers extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_network_members');
 
-        if (!$modelScopes) {
-            $modelScopes = [];
+        if(!$modelScopes) { $modelScopes = [];
         }
-        if (!$globalScopes) {
-            $globalScopes = [];
+        if (!$globalScopes) { $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -148,7 +149,7 @@ class NetworkMembers extends Model
             $modelScopes
         );
 
-        if ($scopes) {
+        if($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
@@ -167,4 +168,5 @@ class NetworkMembers extends Model
             },
         );
     }
+
 }

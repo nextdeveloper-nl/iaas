@@ -48,16 +48,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('hostname', 'like', '%' . $value . '%');
     }
     
-    public function ipAddr($value)
-    {
-        return $this->builder->where('ip_addr', 'like', '%' . $value . '%');
-    }
-    
-    public function localIpAddr($value)
-    {
-        return $this->builder->where('local_ip_addr', 'like', '%' . $value . '%');
-    }
-    
     public function sshUsername($value)
     {
         return $this->builder->where('ssh_username', 'like', '%' . $value . '%');
@@ -66,11 +56,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     public function sshPassword($value)
     {
         return $this->builder->where('ssh_password', 'like', '%' . $value . '%');
-    }
-    
-    public function hypervisorData($value)
-    {
-        return $this->builder->where('hypervisor_data', 'like', '%' . $value . '%');
     }
     
     public function hypervisorModel($value)
@@ -319,5 +304,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

@@ -106,6 +106,12 @@ class AnsibleSystemPlaybooksController extends AbstractController
      */
     public function store(AnsibleSystemPlaybooksCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = AnsibleSystemPlaybooksService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class AnsibleSystemPlaybooksController extends AbstractController
      */
     public function update($ansibleSystemPlaybooksId, AnsibleSystemPlaybooksUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = AnsibleSystemPlaybooksService::update($ansibleSystemPlaybooksId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

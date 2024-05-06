@@ -63,12 +63,15 @@ trait IaasStorageMemberTestTraits
                 'ip_addr'  =>  'a',
                 'local_ip_addr'  =>  'a',
                 'configuration_data'  =>  'a',
+                'ssh_username'  =>  'a',
+                'ssh_password'  =>  'a',
                 'total_socket'  =>  '1',
                 'total_cpu'  =>  '1',
                 'total_ram'  =>  '1',
                 'total_disk'  =>  '1',
                 'used_disk'  =>  '1',
                 'benchmark_score'  =>  '1',
+                'ssh_port'  =>  '1',
                     'uptime'  =>  now(),
                     'idle_time'  =>  now(),
                             ],
@@ -448,6 +451,44 @@ trait IaasStorageMemberTestTraits
         $this->assertTrue(true);
     }
 
+    public function test_iaasstoragemember_event_ssh_username_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'ssh_username'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasStorageMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasStorageMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasstoragemember_event_ssh_password_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'ssh_password'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasStorageMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasStorageMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
     public function test_iaasstoragemember_event_total_socket_filter()
     {
         try {
@@ -549,6 +590,25 @@ trait IaasStorageMemberTestTraits
             $request = new Request(
                 [
                 'benchmark_score'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasStorageMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasStorageMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasstoragemember_event_ssh_port_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'ssh_port'  =>  '1'
                 ]
             );
 

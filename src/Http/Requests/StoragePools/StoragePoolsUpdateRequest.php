@@ -14,11 +14,10 @@ class StoragePoolsUpdateRequest extends AbstractFormRequest
     {
         return [
             'name' => 'nullable',
-        'gb_per_hour_price' => 'nullable',
+        'gb_per_hour_price' => '',
         'is_active' => 'boolean',
         'iaas_cloud_node_id' => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
         'tags' => '',
-        'price_pergb' => '',
         'common_currency_id' => 'nullable|exists:common_currencies,uuid|uuid',
         ];
     }

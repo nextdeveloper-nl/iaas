@@ -62,6 +62,16 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('configuration_data', 'like', '%' . $value . '%');
     }
+    
+    public function sshUsername($value)
+    {
+        return $this->builder->where('ssh_username', 'like', '%' . $value . '%');
+    }
+    
+    public function sshPassword($value)
+    {
+        return $this->builder->where('ssh_password', 'like', '%' . $value . '%');
+    }
 
     public function totalSocket($value)
     {
@@ -139,6 +149,19 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
         }
 
         return $this->builder->where('benchmark_score', $operator, $value);
+    }
+
+    public function sshPort($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('ssh_port', $operator, $value);
     }
 
     public function isHealthy()
@@ -239,5 +262,6 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

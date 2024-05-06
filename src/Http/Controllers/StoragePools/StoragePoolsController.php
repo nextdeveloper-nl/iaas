@@ -106,6 +106,12 @@ class StoragePoolsController extends AbstractController
      */
     public function store(StoragePoolsCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = StoragePoolsService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class StoragePoolsController extends AbstractController
      */
     public function update($storagePoolsId, StoragePoolsUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = StoragePoolsService::update($storagePoolsId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

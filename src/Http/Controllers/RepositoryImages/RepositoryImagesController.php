@@ -106,6 +106,12 @@ class RepositoryImagesController extends AbstractController
      */
     public function store(RepositoryImagesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = RepositoryImagesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class RepositoryImagesController extends AbstractController
      */
     public function update($repositoryImagesId, RepositoryImagesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = RepositoryImagesService::update($repositoryImagesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

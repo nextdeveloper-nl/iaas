@@ -106,6 +106,12 @@ class AnsibleSystemPlaysController extends AbstractController
      */
     public function store(AnsibleSystemPlaysCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = AnsibleSystemPlaysService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class AnsibleSystemPlaysController extends AbstractController
      */
     public function update($ansibleSystemPlaysId, AnsibleSystemPlaysUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = AnsibleSystemPlaysService::update($ansibleSystemPlaysId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

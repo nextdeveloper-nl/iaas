@@ -106,6 +106,12 @@ class VirtualMachinesController extends AbstractController
      */
     public function store(VirtualMachinesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = VirtualMachinesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class VirtualMachinesController extends AbstractController
      */
     public function update($virtualMachinesId, VirtualMachinesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = VirtualMachinesService::update($virtualMachinesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

@@ -41,10 +41,13 @@ class AbstractComputeMemberNetworkInterfacesTransformer extends AbstractTransfor
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'is_bridge'  =>  $model->is_bridge,
+            'hypervisor_uuid'  =>  $model->hypervisor_uuid,
             ]
         );
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

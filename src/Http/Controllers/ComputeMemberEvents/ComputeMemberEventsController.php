@@ -106,6 +106,12 @@ class ComputeMemberEventsController extends AbstractController
      */
     public function store(ComputeMemberEventsCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMemberEventsService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class ComputeMemberEventsController extends AbstractController
      */
     public function update($computeMemberEventsId, ComputeMemberEventsUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMemberEventsService::update($computeMemberEventsId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

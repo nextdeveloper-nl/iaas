@@ -106,6 +106,12 @@ class VirtualDiskImagesController extends AbstractController
      */
     public function store(VirtualDiskImagesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = VirtualDiskImagesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class VirtualDiskImagesController extends AbstractController
      */
     public function update($virtualDiskImagesId, VirtualDiskImagesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = VirtualDiskImagesService::update($virtualDiskImagesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

@@ -22,6 +22,7 @@ class ComputeMemberNetworkInterfacesCreateRequest extends AbstractFormRequest
         'is_connected' => 'boolean',
         'hypervisor_data' => 'nullable',
         'iaas_compute_member_id' => 'required|exists:iaas_compute_members,uuid|uuid',
+        'is_bridge' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

@@ -106,6 +106,12 @@ class ComputeMemberStorageVolumesController extends AbstractController
      */
     public function store(ComputeMemberStorageVolumesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMemberStorageVolumesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class ComputeMemberStorageVolumesController extends AbstractController
      */
     public function update($computeMemberStorageVolumesId, ComputeMemberStorageVolumesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMemberStorageVolumesService::update($computeMemberStorageVolumesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

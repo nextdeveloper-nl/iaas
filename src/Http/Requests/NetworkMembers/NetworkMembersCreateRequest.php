@@ -19,6 +19,9 @@ class NetworkMembersCreateRequest extends AbstractFormRequest
         'ssh_password' => 'nullable|string',
         'iaas_network_pool_id' => 'required|exists:iaas_network_pools,uuid|uuid',
         'tags' => '',
+        'ssh_port' => 'integer',
+        'local_ip_addr' => 'nullable',
+        'is_behind_firewall' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

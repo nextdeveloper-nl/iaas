@@ -106,6 +106,12 @@ class ComputeMemberNetworkInterfacesController extends AbstractController
      */
     public function store(ComputeMemberNetworkInterfacesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMemberNetworkInterfacesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class ComputeMemberNetworkInterfacesController extends AbstractController
      */
     public function update($computeMemberNetworkInterfacesId, ComputeMemberNetworkInterfacesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMemberNetworkInterfacesService::update($computeMemberNetworkInterfacesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

@@ -59,7 +59,8 @@ trait IaasComputeMemberStorageVolumeTestTraits
             'POST', '/iaas/iaascomputememberstoragevolume', [
             'form_params'   =>  [
                 'hypervisor_uuid'  =>  'a',
-                'hypervisor_data'  =>  'a',
+                'name'  =>  'a',
+                'description'  =>  'a',
                             ],
                 ['http_errors' => false]
             ]
@@ -361,12 +362,31 @@ trait IaasComputeMemberStorageVolumeTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputememberstoragevolume_event_hypervisor_data_filter()
+    public function test_iaascomputememberstoragevolume_event_name_filter()
     {
         try {
             $request = new Request(
                 [
-                'hypervisor_data'  =>  'a'
+                'name'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasComputeMemberStorageVolumeQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMemberStorageVolume::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputememberstoragevolume_event_description_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'description'  =>  'a'
                 ]
             );
 

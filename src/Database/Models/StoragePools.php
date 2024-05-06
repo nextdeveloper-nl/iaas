@@ -24,11 +24,11 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property array $tags
- * @property $price_pergb
  * @property integer $common_currency_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property string $storage_pool_type
  */
 class StoragePools extends Model
 {
@@ -54,9 +54,8 @@ class StoragePools extends Model
             'iam_account_id',
             'iam_user_id',
             'tags',
-            'price_pergb',
             'common_currency_id',
-        'storage_pool_type'
+            'storage_pool_type',
     ];
 
     /**
@@ -87,6 +86,7 @@ class StoragePools extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'storage_pool_type' => 'string',
     ];
 
     /**
@@ -148,5 +148,6 @@ class StoragePools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

@@ -46,6 +46,9 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property string $ssh_username
+ * @property string $ssh_password
+ * @property integer $ssh_port
  */
 class StorageMembers extends Model
 {
@@ -90,6 +93,9 @@ class StorageMembers extends Model
             'iam_account_id',
             'iam_user_id',
             'tags',
+            'ssh_username',
+            'ssh_password',
+            'ssh_port',
     ];
 
     /**
@@ -140,6 +146,9 @@ class StorageMembers extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'ssh_username' => 'string',
+    'ssh_password' => 'string',
+    'ssh_port' => 'integer',
     ];
 
     /**
@@ -203,5 +212,6 @@ class StorageMembers extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

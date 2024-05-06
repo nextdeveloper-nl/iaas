@@ -58,6 +58,7 @@ trait IaasStoragePoolTestTraits
         $response = $this->http->request(
             'POST', '/iaas/iaasstoragepool', [
             'form_params'   =>  [
+                'storage_pool_type'  =>  'a',
                             ],
                 ['http_errors' => false]
             ]
@@ -333,6 +334,25 @@ trait IaasStoragePoolTestTraits
             $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::first();
 
             event(new \NextDeveloper\IAAS\Events\IaasStoragePool\IaasStoragePoolRestoredEvent($model));
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasstoragepool_event_storage_pool_type_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'storage_pool_type'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasStoragePoolQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasStoragePool::filter($filter)->first();
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }

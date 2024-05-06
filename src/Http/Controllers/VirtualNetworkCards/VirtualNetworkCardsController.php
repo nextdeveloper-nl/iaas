@@ -106,6 +106,12 @@ class VirtualNetworkCardsController extends AbstractController
      */
     public function store(VirtualNetworkCardsCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = VirtualNetworkCardsService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class VirtualNetworkCardsController extends AbstractController
      */
     public function update($virtualNetworkCardsId, VirtualNetworkCardsUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = VirtualNetworkCardsService::update($virtualNetworkCardsId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

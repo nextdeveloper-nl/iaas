@@ -106,6 +106,12 @@ class ComputePoolsController extends AbstractController
      */
     public function store(ComputePoolsCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputePoolsService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class ComputePoolsController extends AbstractController
      */
     public function update($computePoolsId, ComputePoolsUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputePoolsService::update($computePoolsId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

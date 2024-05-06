@@ -106,6 +106,12 @@ class ComputeMemberDevicesController extends AbstractController
      */
     public function store(ComputeMemberDevicesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMemberDevicesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class ComputeMemberDevicesController extends AbstractController
      */
     public function update($computeMemberDevicesId, ComputeMemberDevicesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = ComputeMemberDevicesService::update($computeMemberDevicesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

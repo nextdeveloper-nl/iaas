@@ -13,7 +13,10 @@ class ComputeMemberStorageVolumesCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'hypervisor_data' => 'nullable|string',
+            'hypervisor_data' => 'nullable',
+        'name' => 'nullable|string',
+        'description' => 'nullable|string',
+        'block_device_data' => 'nullable',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

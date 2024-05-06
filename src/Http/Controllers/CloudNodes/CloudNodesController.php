@@ -106,6 +106,12 @@ class CloudNodesController extends AbstractController
      */
     public function store(CloudNodesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = CloudNodesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class CloudNodesController extends AbstractController
      */
     public function update($cloudNodesId, CloudNodesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = CloudNodesService::update($cloudNodesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

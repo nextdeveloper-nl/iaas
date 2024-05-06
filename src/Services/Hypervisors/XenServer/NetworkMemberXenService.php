@@ -26,7 +26,7 @@ class NetworkMemberXenService
 
         $networkMember = NetworkMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('local_ip_addr', $computeMember->local_ip_addr)
-            ->toSql();
+            ->first();
 
         if(!$networkMember) {
             $networkMember = NetworkMembersService::create([

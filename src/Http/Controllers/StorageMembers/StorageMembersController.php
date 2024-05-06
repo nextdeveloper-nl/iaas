@@ -106,6 +106,12 @@ class StorageMembersController extends AbstractController
      */
     public function store(StorageMembersCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = StorageMembersService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class StorageMembersController extends AbstractController
      */
     public function update($storageMembersId, StorageMembersUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = StorageMembersService::update($storageMembersId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

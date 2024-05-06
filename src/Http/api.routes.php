@@ -2,27 +2,6 @@
 
 Route::prefix('iaas')->group(
     function () {
-        Route::prefix('compute-member-storage-volumes')->group(
-            function () {
-                Route::get('/', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@index');
-                Route::get('/actions', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@getActions');
-
-                Route::get('{icmsv}/tags ', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@tags');
-                Route::post('{icmsv}/tags ', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@saveTags');
-                Route::get('{icmsv}/addresses ', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@addresses');
-                Route::post('{icmsv}/addresses ', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@saveAddresses');
-
-                Route::get('/{icmsv}/{subObjects}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@relatedObjects');
-                Route::get('/{icmsv}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@show');
-
-                Route::post('/', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@store');
-                Route::post('/{icmsv}/do/{action}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@doAction');
-
-                Route::patch('/{icmsv}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@update');
-                Route::delete('/{icmsv}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@destroy');
-            }
-        );
-
         Route::prefix('network-members-interfaces')->group(
             function () {
                 Route::get('/', 'NetworkMembersInterfaces\NetworkMembersInterfacesController@index');
@@ -83,6 +62,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_virtual_network_cards}', 'VirtualNetworkCards\VirtualNetworkCardsController@update');
                 Route::delete('/{iaas_virtual_network_cards}', 'VirtualNetworkCards\VirtualNetworkCardsController@destroy');
+            }
+        );
+
+        Route::prefix('compute-member-storage-volumes')->group(
+            function () {
+                Route::get('/', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@index');
+                Route::get('/actions', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@getActions');
+
+                Route::get('{icmsv}/tags ', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@tags');
+                Route::post('{icmsv}/tags ', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@saveTags');
+                Route::get('{icmsv}/addresses ', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@addresses');
+                Route::post('{icmsv}/addresses ', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@saveAddresses');
+
+                Route::get('/{icmsv}/{subObjects}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@relatedObjects');
+                Route::get('/{icmsv}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@show');
+
+                Route::post('/', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@store');
+                Route::post('/{icmsv}/do/{action}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@doAction');
+
+                Route::patch('/{icmsv}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@update');
+                Route::delete('/{icmsv}', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@destroy');
             }
         );
 
@@ -254,48 +254,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('network-members')->group(
-            function () {
-                Route::get('/', 'NetworkMembers\NetworkMembersController@index');
-                Route::get('/actions', 'NetworkMembers\NetworkMembersController@getActions');
-
-                Route::get('{iaas_network_members}/tags ', 'NetworkMembers\NetworkMembersController@tags');
-                Route::post('{iaas_network_members}/tags ', 'NetworkMembers\NetworkMembersController@saveTags');
-                Route::get('{iaas_network_members}/addresses ', 'NetworkMembers\NetworkMembersController@addresses');
-                Route::post('{iaas_network_members}/addresses ', 'NetworkMembers\NetworkMembersController@saveAddresses');
-
-                Route::get('/{iaas_network_members}/{subObjects}', 'NetworkMembers\NetworkMembersController@relatedObjects');
-                Route::get('/{iaas_network_members}', 'NetworkMembers\NetworkMembersController@show');
-
-                Route::post('/', 'NetworkMembers\NetworkMembersController@store');
-                Route::post('/{iaas_network_members}/do/{action}', 'NetworkMembers\NetworkMembersController@doAction');
-
-                Route::patch('/{iaas_network_members}', 'NetworkMembers\NetworkMembersController@update');
-                Route::delete('/{iaas_network_members}', 'NetworkMembers\NetworkMembersController@destroy');
-            }
-        );
-
-        Route::prefix('storage-pools')->group(
-            function () {
-                Route::get('/', 'StoragePools\StoragePoolsController@index');
-                Route::get('/actions', 'StoragePools\StoragePoolsController@getActions');
-
-                Route::get('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@tags');
-                Route::post('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@saveTags');
-                Route::get('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@addresses');
-                Route::post('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@saveAddresses');
-
-                Route::get('/{iaas_storage_pools}/{subObjects}', 'StoragePools\StoragePoolsController@relatedObjects');
-                Route::get('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@show');
-
-                Route::post('/', 'StoragePools\StoragePoolsController@store');
-                Route::post('/{iaas_storage_pools}/do/{action}', 'StoragePools\StoragePoolsController@doAction');
-
-                Route::patch('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@update');
-                Route::delete('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@destroy');
-            }
-        );
-
         Route::prefix('storage-members')->group(
             function () {
                 Route::get('/', 'StorageMembers\StorageMembersController@index');
@@ -314,6 +272,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_storage_members}', 'StorageMembers\StorageMembersController@update');
                 Route::delete('/{iaas_storage_members}', 'StorageMembers\StorageMembersController@destroy');
+            }
+        );
+
+        Route::prefix('network-members')->group(
+            function () {
+                Route::get('/', 'NetworkMembers\NetworkMembersController@index');
+                Route::get('/actions', 'NetworkMembers\NetworkMembersController@getActions');
+
+                Route::get('{iaas_network_members}/tags ', 'NetworkMembers\NetworkMembersController@tags');
+                Route::post('{iaas_network_members}/tags ', 'NetworkMembers\NetworkMembersController@saveTags');
+                Route::get('{iaas_network_members}/addresses ', 'NetworkMembers\NetworkMembersController@addresses');
+                Route::post('{iaas_network_members}/addresses ', 'NetworkMembers\NetworkMembersController@saveAddresses');
+
+                Route::get('/{iaas_network_members}/{subObjects}', 'NetworkMembers\NetworkMembersController@relatedObjects');
+                Route::get('/{iaas_network_members}', 'NetworkMembers\NetworkMembersController@show');
+
+                Route::post('/', 'NetworkMembers\NetworkMembersController@store');
+                Route::post('/{iaas_network_members}/do/{action}', 'NetworkMembers\NetworkMembersController@doAction');
+
+                Route::patch('/{iaas_network_members}', 'NetworkMembers\NetworkMembersController@update');
+                Route::delete('/{iaas_network_members}', 'NetworkMembers\NetworkMembersController@destroy');
             }
         );
 
@@ -440,6 +419,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_storage_member_devices}', 'StorageMemberDevices\StorageMemberDevicesController@update');
                 Route::delete('/{iaas_storage_member_devices}', 'StorageMemberDevices\StorageMemberDevicesController@destroy');
+            }
+        );
+
+        Route::prefix('storage-pools')->group(
+            function () {
+                Route::get('/', 'StoragePools\StoragePoolsController@index');
+                Route::get('/actions', 'StoragePools\StoragePoolsController@getActions');
+
+                Route::get('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@tags');
+                Route::post('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@saveTags');
+                Route::get('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@addresses');
+                Route::post('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@saveAddresses');
+
+                Route::get('/{iaas_storage_pools}/{subObjects}', 'StoragePools\StoragePoolsController@relatedObjects');
+                Route::get('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@show');
+
+                Route::post('/', 'StoragePools\StoragePoolsController@store');
+                Route::post('/{iaas_storage_pools}/do/{action}', 'StoragePools\StoragePoolsController@doAction');
+
+                Route::patch('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@update');
+                Route::delete('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@destroy');
             }
         );
 
@@ -885,8 +885,43 @@ Route::prefix('iaas')->group(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 );
+
 
 
 

@@ -106,6 +106,12 @@ class NetworkPoolsController extends AbstractController
      */
     public function store(NetworkPoolsCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = NetworkPoolsService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class NetworkPoolsController extends AbstractController
      */
     public function update($networkPoolsId, NetworkPoolsUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = NetworkPoolsService::update($networkPoolsId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

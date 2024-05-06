@@ -60,11 +60,8 @@ trait IaasComputeMemberTestTraits
             'form_params'   =>  [
                 'name'  =>  'a',
                 'hostname'  =>  'a',
-                'ip_addr'  =>  'a',
-                'local_ip_addr'  =>  'a',
                 'ssh_username'  =>  'a',
                 'ssh_password'  =>  'a',
-                'hypervisor_data'  =>  'a',
                 'hypervisor_model'  =>  'a',
                 'ssh_port'  =>  '1',
                 'total_socket'  =>  '1',
@@ -399,44 +396,6 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_ip_addr_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'ip_addr'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_local_ip_addr_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'local_ip_addr'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaascomputemember_event_ssh_username_filter()
     {
         try {
@@ -462,25 +421,6 @@ trait IaasComputeMemberTestTraits
             $request = new Request(
                 [
                 'ssh_password'  =>  'a'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_hypervisor_data_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'hypervisor_data'  =>  'a'
                 ]
             );
 

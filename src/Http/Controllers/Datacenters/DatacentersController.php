@@ -106,6 +106,12 @@ class DatacentersController extends AbstractController
      */
     public function store(DatacentersCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = DatacentersService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class DatacentersController extends AbstractController
      */
     public function update($datacentersId, DatacentersUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = DatacentersService::update($datacentersId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

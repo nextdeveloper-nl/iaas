@@ -56,11 +56,15 @@ class AbstractStorageMembersTransformer extends AbstractTransformer
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'ssh_username'  =>  $model->ssh_username,
+            'ssh_password'  =>  $model->ssh_password,
+            'ssh_port'  =>  $model->ssh_port,
             ]
         );
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

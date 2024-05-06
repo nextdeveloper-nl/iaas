@@ -106,6 +106,12 @@ class RepositoriesController extends AbstractController
      */
     public function store(RepositoriesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = RepositoriesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class RepositoriesController extends AbstractController
      */
     public function update($repositoriesId, RepositoriesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = RepositoriesService::update($repositoriesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

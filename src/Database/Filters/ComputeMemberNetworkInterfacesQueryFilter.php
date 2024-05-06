@@ -22,6 +22,11 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('device', 'like', '%' . $value . '%');
     }
+    
+    public function hypervisorUuid($value)
+    {
+        return $this->builder->where('hypervisor_uuid', 'like', '%' . $value . '%');
+    }
 
     public function vlan($value)
     {
@@ -62,6 +67,11 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     public function isConnected()
     {
         return $this->builder->where('is_connected', true);
+    }
+
+    public function isBridge()
+    {
+        return $this->builder->where('is_bridge', true);
     }
 
     public function createdAtStart($date)
@@ -122,5 +132,6 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

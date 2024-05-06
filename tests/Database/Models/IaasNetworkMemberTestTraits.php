@@ -61,6 +61,7 @@ trait IaasNetworkMemberTestTraits
                 'name'  =>  'a',
                 'ssh_username'  =>  'a',
                 'ssh_password'  =>  'a',
+                'ssh_port'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -387,6 +388,25 @@ trait IaasNetworkMemberTestTraits
             $request = new Request(
                 [
                 'ssh_password'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasNetworkMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasNetworkMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasnetworkmember_event_ssh_port_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'ssh_port'  =>  '1'
                 ]
             );
 

@@ -106,6 +106,12 @@ class GatewaysController extends AbstractController
      */
     public function store(GatewaysCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = GatewaysService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class GatewaysController extends AbstractController
      */
     public function update($gatewaysId, GatewaysUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = GatewaysService::update($gatewaysId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

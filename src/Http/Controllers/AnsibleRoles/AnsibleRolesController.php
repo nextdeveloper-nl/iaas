@@ -106,6 +106,12 @@ class AnsibleRolesController extends AbstractController
      */
     public function store(AnsibleRolesCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = AnsibleRolesService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class AnsibleRolesController extends AbstractController
      */
     public function update($ansibleRolesId, AnsibleRolesUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = AnsibleRolesService::update($ansibleRolesId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

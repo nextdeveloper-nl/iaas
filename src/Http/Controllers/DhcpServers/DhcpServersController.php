@@ -106,6 +106,12 @@ class DhcpServersController extends AbstractController
      */
     public function store(DhcpServersCreateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = DhcpServersService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
@@ -121,6 +127,12 @@ class DhcpServersController extends AbstractController
      */
     public function update($dhcpServersId, DhcpServersUpdateRequest $request)
     {
+        if($request->has('validateOnly') && $request->get('validateOnly') == true) {
+            return [
+                'validation'    =>  'success'
+            ];
+        }
+
         $model = DhcpServersService::update($dhcpServersId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);

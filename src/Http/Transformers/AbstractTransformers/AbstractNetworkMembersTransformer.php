@@ -38,10 +38,14 @@ class AbstractNetworkMembersTransformer extends AbstractTransformer
             'deleted_at'  =>  $model->deleted_at,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'ssh_port'  =>  $model->ssh_port,
+            'local_ip_addr'  =>  $model->local_ip_addr,
+            'is_behind_firewall'  =>  $model->is_behind_firewall,
             ]
         );
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }
