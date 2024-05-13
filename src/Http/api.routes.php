@@ -2,6 +2,27 @@
 
 Route::prefix('iaas')->group(
     function () {
+        Route::prefix('network-pool-stats')->group(
+            function () {
+                Route::get('/', 'NetworkPoolStats\NetworkPoolStatsController@index');
+                Route::get('/actions', 'NetworkPoolStats\NetworkPoolStatsController@getActions');
+
+                Route::get('{iaas_network_pool_stats}/tags ', 'NetworkPoolStats\NetworkPoolStatsController@tags');
+                Route::post('{iaas_network_pool_stats}/tags ', 'NetworkPoolStats\NetworkPoolStatsController@saveTags');
+                Route::get('{iaas_network_pool_stats}/addresses ', 'NetworkPoolStats\NetworkPoolStatsController@addresses');
+                Route::post('{iaas_network_pool_stats}/addresses ', 'NetworkPoolStats\NetworkPoolStatsController@saveAddresses');
+
+                Route::get('/{iaas_network_pool_stats}/{subObjects}', 'NetworkPoolStats\NetworkPoolStatsController@relatedObjects');
+                Route::get('/{iaas_network_pool_stats}', 'NetworkPoolStats\NetworkPoolStatsController@show');
+
+                Route::post('/', 'NetworkPoolStats\NetworkPoolStatsController@store');
+                Route::post('/{iaas_network_pool_stats}/do/{action}', 'NetworkPoolStats\NetworkPoolStatsController@doAction');
+
+                Route::patch('/{iaas_network_pool_stats}', 'NetworkPoolStats\NetworkPoolStatsController@update');
+                Route::delete('/{iaas_network_pool_stats}', 'NetworkPoolStats\NetworkPoolStatsController@destroy');
+            }
+        );
+
         Route::prefix('network-members-interfaces')->group(
             function () {
                 Route::get('/', 'NetworkMembersInterfaces\NetworkMembersInterfacesController@index');
@@ -65,6 +86,48 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('networks')->group(
+            function () {
+                Route::get('/', 'Networks\NetworksController@index');
+                Route::get('/actions', 'Networks\NetworksController@getActions');
+
+                Route::get('{iaas_networks}/tags ', 'Networks\NetworksController@tags');
+                Route::post('{iaas_networks}/tags ', 'Networks\NetworksController@saveTags');
+                Route::get('{iaas_networks}/addresses ', 'Networks\NetworksController@addresses');
+                Route::post('{iaas_networks}/addresses ', 'Networks\NetworksController@saveAddresses');
+
+                Route::get('/{iaas_networks}/{subObjects}', 'Networks\NetworksController@relatedObjects');
+                Route::get('/{iaas_networks}', 'Networks\NetworksController@show');
+
+                Route::post('/', 'Networks\NetworksController@store');
+                Route::post('/{iaas_networks}/do/{action}', 'Networks\NetworksController@doAction');
+
+                Route::patch('/{iaas_networks}', 'Networks\NetworksController@update');
+                Route::delete('/{iaas_networks}', 'Networks\NetworksController@destroy');
+            }
+        );
+
+        Route::prefix('ip-addresses')->group(
+            function () {
+                Route::get('/', 'IpAddresses\IpAddressesController@index');
+                Route::get('/actions', 'IpAddresses\IpAddressesController@getActions');
+
+                Route::get('{iaas_ip_addresses}/tags ', 'IpAddresses\IpAddressesController@tags');
+                Route::post('{iaas_ip_addresses}/tags ', 'IpAddresses\IpAddressesController@saveTags');
+                Route::get('{iaas_ip_addresses}/addresses ', 'IpAddresses\IpAddressesController@addresses');
+                Route::post('{iaas_ip_addresses}/addresses ', 'IpAddresses\IpAddressesController@saveAddresses');
+
+                Route::get('/{iaas_ip_addresses}/{subObjects}', 'IpAddresses\IpAddressesController@relatedObjects');
+                Route::get('/{iaas_ip_addresses}', 'IpAddresses\IpAddressesController@show');
+
+                Route::post('/', 'IpAddresses\IpAddressesController@store');
+                Route::post('/{iaas_ip_addresses}/do/{action}', 'IpAddresses\IpAddressesController@doAction');
+
+                Route::patch('/{iaas_ip_addresses}', 'IpAddresses\IpAddressesController@update');
+                Route::delete('/{iaas_ip_addresses}', 'IpAddresses\IpAddressesController@destroy');
+            }
+        );
+
         Route::prefix('compute-member-storage-volumes')->group(
             function () {
                 Route::get('/', 'ComputeMemberStorageVolumes\ComputeMemberStorageVolumesController@index');
@@ -104,6 +167,111 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_compute_members}', 'ComputeMembers\ComputeMembersController@update');
                 Route::delete('/{iaas_compute_members}', 'ComputeMembers\ComputeMembersController@destroy');
+            }
+        );
+
+        Route::prefix('virtual-network-card-stats')->group(
+            function () {
+                Route::get('/', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@index');
+                Route::get('/actions', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@getActions');
+
+                Route::get('{iaas_virtual_network_card_stats}/tags ', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@tags');
+                Route::post('{iaas_virtual_network_card_stats}/tags ', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@saveTags');
+                Route::get('{iaas_virtual_network_card_stats}/addresses ', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@addresses');
+                Route::post('{iaas_virtual_network_card_stats}/addresses ', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@saveAddresses');
+
+                Route::get('/{iaas_virtual_network_card_stats}/{subObjects}', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@relatedObjects');
+                Route::get('/{iaas_virtual_network_card_stats}', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@show');
+
+                Route::post('/', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@store');
+                Route::post('/{iaas_virtual_network_card_stats}/do/{action}', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@doAction');
+
+                Route::patch('/{iaas_virtual_network_card_stats}', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@update');
+                Route::delete('/{iaas_virtual_network_card_stats}', 'VirtualNetworkCardStats\VirtualNetworkCardStatsController@destroy');
+            }
+        );
+
+        Route::prefix('storage-volume-stats')->group(
+            function () {
+                Route::get('/', 'StorageVolumeStats\StorageVolumeStatsController@index');
+                Route::get('/actions', 'StorageVolumeStats\StorageVolumeStatsController@getActions');
+
+                Route::get('{iaas_storage_volume_stats}/tags ', 'StorageVolumeStats\StorageVolumeStatsController@tags');
+                Route::post('{iaas_storage_volume_stats}/tags ', 'StorageVolumeStats\StorageVolumeStatsController@saveTags');
+                Route::get('{iaas_storage_volume_stats}/addresses ', 'StorageVolumeStats\StorageVolumeStatsController@addresses');
+                Route::post('{iaas_storage_volume_stats}/addresses ', 'StorageVolumeStats\StorageVolumeStatsController@saveAddresses');
+
+                Route::get('/{iaas_storage_volume_stats}/{subObjects}', 'StorageVolumeStats\StorageVolumeStatsController@relatedObjects');
+                Route::get('/{iaas_storage_volume_stats}', 'StorageVolumeStats\StorageVolumeStatsController@show');
+
+                Route::post('/', 'StorageVolumeStats\StorageVolumeStatsController@store');
+                Route::post('/{iaas_storage_volume_stats}/do/{action}', 'StorageVolumeStats\StorageVolumeStatsController@doAction');
+
+                Route::patch('/{iaas_storage_volume_stats}', 'StorageVolumeStats\StorageVolumeStatsController@update');
+                Route::delete('/{iaas_storage_volume_stats}', 'StorageVolumeStats\StorageVolumeStatsController@destroy');
+            }
+        );
+
+        Route::prefix('compute-member-stats')->group(
+            function () {
+                Route::get('/', 'ComputeMemberStats\ComputeMemberStatsController@index');
+                Route::get('/actions', 'ComputeMemberStats\ComputeMemberStatsController@getActions');
+
+                Route::get('{iaas_compute_member_stats}/tags ', 'ComputeMemberStats\ComputeMemberStatsController@tags');
+                Route::post('{iaas_compute_member_stats}/tags ', 'ComputeMemberStats\ComputeMemberStatsController@saveTags');
+                Route::get('{iaas_compute_member_stats}/addresses ', 'ComputeMemberStats\ComputeMemberStatsController@addresses');
+                Route::post('{iaas_compute_member_stats}/addresses ', 'ComputeMemberStats\ComputeMemberStatsController@saveAddresses');
+
+                Route::get('/{iaas_compute_member_stats}/{subObjects}', 'ComputeMemberStats\ComputeMemberStatsController@relatedObjects');
+                Route::get('/{iaas_compute_member_stats}', 'ComputeMemberStats\ComputeMemberStatsController@show');
+
+                Route::post('/', 'ComputeMemberStats\ComputeMemberStatsController@store');
+                Route::post('/{iaas_compute_member_stats}/do/{action}', 'ComputeMemberStats\ComputeMemberStatsController@doAction');
+
+                Route::patch('/{iaas_compute_member_stats}', 'ComputeMemberStats\ComputeMemberStatsController@update');
+                Route::delete('/{iaas_compute_member_stats}', 'ComputeMemberStats\ComputeMemberStatsController@destroy');
+            }
+        );
+
+        Route::prefix('network-stats')->group(
+            function () {
+                Route::get('/', 'NetworkStats\NetworkStatsController@index');
+                Route::get('/actions', 'NetworkStats\NetworkStatsController@getActions');
+
+                Route::get('{iaas_network_stats}/tags ', 'NetworkStats\NetworkStatsController@tags');
+                Route::post('{iaas_network_stats}/tags ', 'NetworkStats\NetworkStatsController@saveTags');
+                Route::get('{iaas_network_stats}/addresses ', 'NetworkStats\NetworkStatsController@addresses');
+                Route::post('{iaas_network_stats}/addresses ', 'NetworkStats\NetworkStatsController@saveAddresses');
+
+                Route::get('/{iaas_network_stats}/{subObjects}', 'NetworkStats\NetworkStatsController@relatedObjects');
+                Route::get('/{iaas_network_stats}', 'NetworkStats\NetworkStatsController@show');
+
+                Route::post('/', 'NetworkStats\NetworkStatsController@store');
+                Route::post('/{iaas_network_stats}/do/{action}', 'NetworkStats\NetworkStatsController@doAction');
+
+                Route::patch('/{iaas_network_stats}', 'NetworkStats\NetworkStatsController@update');
+                Route::delete('/{iaas_network_stats}', 'NetworkStats\NetworkStatsController@destroy');
+            }
+        );
+
+        Route::prefix('storage-member-stats')->group(
+            function () {
+                Route::get('/', 'StorageMemberStats\StorageMemberStatsController@index');
+                Route::get('/actions', 'StorageMemberStats\StorageMemberStatsController@getActions');
+
+                Route::get('{iaas_storage_member_stats}/tags ', 'StorageMemberStats\StorageMemberStatsController@tags');
+                Route::post('{iaas_storage_member_stats}/tags ', 'StorageMemberStats\StorageMemberStatsController@saveTags');
+                Route::get('{iaas_storage_member_stats}/addresses ', 'StorageMemberStats\StorageMemberStatsController@addresses');
+                Route::post('{iaas_storage_member_stats}/addresses ', 'StorageMemberStats\StorageMemberStatsController@saveAddresses');
+
+                Route::get('/{iaas_storage_member_stats}/{subObjects}', 'StorageMemberStats\StorageMemberStatsController@relatedObjects');
+                Route::get('/{iaas_storage_member_stats}', 'StorageMemberStats\StorageMemberStatsController@show');
+
+                Route::post('/', 'StorageMemberStats\StorageMemberStatsController@store');
+                Route::post('/{iaas_storage_member_stats}/do/{action}', 'StorageMemberStats\StorageMemberStatsController@doAction');
+
+                Route::patch('/{iaas_storage_member_stats}', 'StorageMemberStats\StorageMemberStatsController@update');
+                Route::delete('/{iaas_storage_member_stats}', 'StorageMemberStats\StorageMemberStatsController@destroy');
             }
         );
 
@@ -317,27 +485,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('virtual-machines')->group(
-            function () {
-                Route::get('/', 'VirtualMachines\VirtualMachinesController@index');
-                Route::get('/actions', 'VirtualMachines\VirtualMachinesController@getActions');
-
-                Route::get('{iaas_virtual_machines}/tags ', 'VirtualMachines\VirtualMachinesController@tags');
-                Route::post('{iaas_virtual_machines}/tags ', 'VirtualMachines\VirtualMachinesController@saveTags');
-                Route::get('{iaas_virtual_machines}/addresses ', 'VirtualMachines\VirtualMachinesController@addresses');
-                Route::post('{iaas_virtual_machines}/addresses ', 'VirtualMachines\VirtualMachinesController@saveAddresses');
-
-                Route::get('/{iaas_virtual_machines}/{subObjects}', 'VirtualMachines\VirtualMachinesController@relatedObjects');
-                Route::get('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@show');
-
-                Route::post('/', 'VirtualMachines\VirtualMachinesController@store');
-                Route::post('/{iaas_virtual_machines}/do/{action}', 'VirtualMachines\VirtualMachinesController@doAction');
-
-                Route::patch('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@update');
-                Route::delete('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@destroy');
-            }
-        );
-
         Route::prefix('network-member-devices')->group(
             function () {
                 Route::get('/', 'NetworkMemberDevices\NetworkMemberDevicesController@index');
@@ -440,6 +587,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@update');
                 Route::delete('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@destroy');
+            }
+        );
+
+        Route::prefix('virtual-machines')->group(
+            function () {
+                Route::get('/', 'VirtualMachines\VirtualMachinesController@index');
+                Route::get('/actions', 'VirtualMachines\VirtualMachinesController@getActions');
+
+                Route::get('{iaas_virtual_machines}/tags ', 'VirtualMachines\VirtualMachinesController@tags');
+                Route::post('{iaas_virtual_machines}/tags ', 'VirtualMachines\VirtualMachinesController@saveTags');
+                Route::get('{iaas_virtual_machines}/addresses ', 'VirtualMachines\VirtualMachinesController@addresses');
+                Route::post('{iaas_virtual_machines}/addresses ', 'VirtualMachines\VirtualMachinesController@saveAddresses');
+
+                Route::get('/{iaas_virtual_machines}/{subObjects}', 'VirtualMachines\VirtualMachinesController@relatedObjects');
+                Route::get('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@show');
+
+                Route::post('/', 'VirtualMachines\VirtualMachinesController@store');
+                Route::post('/{iaas_virtual_machines}/do/{action}', 'VirtualMachines\VirtualMachinesController@doAction');
+
+                Route::patch('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@update');
+                Route::delete('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@destroy');
             }
         );
 
@@ -548,27 +716,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('networks')->group(
-            function () {
-                Route::get('/', 'Networks\NetworksController@index');
-                Route::get('/actions', 'Networks\NetworksController@getActions');
-
-                Route::get('{iaas_networks}/tags ', 'Networks\NetworksController@tags');
-                Route::post('{iaas_networks}/tags ', 'Networks\NetworksController@saveTags');
-                Route::get('{iaas_networks}/addresses ', 'Networks\NetworksController@addresses');
-                Route::post('{iaas_networks}/addresses ', 'Networks\NetworksController@saveAddresses');
-
-                Route::get('/{iaas_networks}/{subObjects}', 'Networks\NetworksController@relatedObjects');
-                Route::get('/{iaas_networks}', 'Networks\NetworksController@show');
-
-                Route::post('/', 'Networks\NetworksController@store');
-                Route::post('/{iaas_networks}/do/{action}', 'Networks\NetworksController@doAction');
-
-                Route::patch('/{iaas_networks}', 'Networks\NetworksController@update');
-                Route::delete('/{iaas_networks}', 'Networks\NetworksController@destroy');
-            }
-        );
-
         Route::prefix('ansible-playbook-ansible-role')->group(
             function () {
                 Route::get('/', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@index');
@@ -650,27 +797,6 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_ip_address_history}', 'IpAddressHistory\IpAddressHistoryController@update');
                 Route::delete('/{iaas_ip_address_history}', 'IpAddressHistory\IpAddressHistoryController@destroy');
-            }
-        );
-
-        Route::prefix('ip-addresses')->group(
-            function () {
-                Route::get('/', 'IpAddresses\IpAddressesController@index');
-                Route::get('/actions', 'IpAddresses\IpAddressesController@getActions');
-
-                Route::get('{iaas_ip_addresses}/tags ', 'IpAddresses\IpAddressesController@tags');
-                Route::post('{iaas_ip_addresses}/tags ', 'IpAddresses\IpAddressesController@saveTags');
-                Route::get('{iaas_ip_addresses}/addresses ', 'IpAddresses\IpAddressesController@addresses');
-                Route::post('{iaas_ip_addresses}/addresses ', 'IpAddresses\IpAddressesController@saveAddresses');
-
-                Route::get('/{iaas_ip_addresses}/{subObjects}', 'IpAddresses\IpAddressesController@relatedObjects');
-                Route::get('/{iaas_ip_addresses}', 'IpAddresses\IpAddressesController@show');
-
-                Route::post('/', 'IpAddresses\IpAddressesController@store');
-                Route::post('/{iaas_ip_addresses}/do/{action}', 'IpAddresses\IpAddressesController@doAction');
-
-                Route::patch('/{iaas_ip_addresses}', 'IpAddresses\IpAddressesController@update');
-                Route::delete('/{iaas_ip_addresses}', 'IpAddresses\IpAddressesController@destroy');
             }
         );
 
@@ -1021,8 +1147,49 @@ Route::prefix('iaas')->group(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 );
+
 
 
 

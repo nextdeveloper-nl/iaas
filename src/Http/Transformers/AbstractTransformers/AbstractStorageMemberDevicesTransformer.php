@@ -11,6 +11,18 @@ use NextDeveloper\Commons\Http\Transformers\StatesTransformer;
 use NextDeveloper\IAAS\Database\Models\StorageMemberDevices;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\Commons\Database\Models\Addresses;
+use NextDeveloper\Commons\Database\Models\Comments;
+use NextDeveloper\Commons\Database\Models\Meta;
+use NextDeveloper\Commons\Database\Models\PhoneNumbers;
+use NextDeveloper\Commons\Database\Models\SocialMedia;
+use NextDeveloper\Commons\Database\Models\Votes;
+use NextDeveloper\Commons\Http\Transformers\CommentsTransformer;
+use NextDeveloper\Commons\Http\Transformers\SocialMediaTransformer;
+use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
+use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
+use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
+use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
 
 /**
  * Class StorageMemberDevicesTransformer. This class is being used to manipulate the data we are serving to the customer
@@ -26,7 +38,13 @@ class AbstractStorageMemberDevicesTransformer extends AbstractTransformer
     protected array $availableIncludes = [
         'states',
         'actions',
-        'media'
+        'media',
+        'comments',
+        'votes',
+        'socialMedia',
+        'phoneNumbers',
+        'addresses',
+        'meta'
     ];
 
     /**
@@ -36,10 +54,10 @@ class AbstractStorageMemberDevicesTransformer extends AbstractTransformer
      */
     public function transform(StorageMemberDevices $model)
     {
-                        $iaasStorageMemberId = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('id', $model->iaas_storage_member_id)->first();
-                    $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                    $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-        
+                                                $iaasStorageMemberId = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('id', $model->iaas_storage_member_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -79,7 +97,7 @@ class AbstractStorageMemberDevicesTransformer extends AbstractTransformer
         return $this->collection($actions, new AvailableActionsTransformer());
     }
 
-    public function includeMedia(Datacenters $model)
+    public function includeMedia(StorageMemberDevices $model)
     {
         $media = Media::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -88,6 +106,60 @@ class AbstractStorageMemberDevicesTransformer extends AbstractTransformer
         return $this->collection($media, new MediaTransformer());
     }
 
+    public function includeSocialMedia(StorageMemberDevices $model)
+    {
+        $socialMedia = SocialMedia::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($socialMedia, new SocialMediaTransformer());
+    }
+
+    public function includeComments(StorageMemberDevices $model)
+    {
+        $comments = Comments::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($comments, new CommentsTransformer());
+    }
+
+    public function includeVotes(StorageMemberDevices $model)
+    {
+        $votes = Votes::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($votes, new VotesTransformer());
+    }
+
+    public function includeMeta(StorageMemberDevices $model)
+    {
+        $meta = Meta::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($meta, new MetaTransformer());
+    }
+
+    public function includePhoneNumbers(StorageMemberDevices $model)
+    {
+        $phoneNumbers = PhoneNumbers::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($phoneNumbers, new PhoneNumbersTransformer());
+    }
+
+    public function includeAddresses(StorageMemberDevices $model)
+    {
+        $addresses = Addresses::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($addresses, new AddressesTransformer());
+    }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

@@ -128,9 +128,15 @@ physical interfaces and vlans of compute member');
                 'iam_user_id'       =>  $computeMember->iam_user_id
             ];
 
-            if($interfaceDetail['management']) {
+            Log::info('[ComputeMemberService@updateInterfaceInformation] Syncing interface: '
+                . $interfaceDetail['device'] . ' for compute member: ' . $computeMember->name
+                . ' with details: ' . print_r($data, true));
+
+            Log::info('[ComputeMemberService@updateInterfaceInformation] ' . $interfaceDetail['IP'] . '/' . NetworkCalculationHelper::mask2cidr($interfaceDetail['netmask']));
+
+            if($data['is_management']) {
                 $computeMember->update([
-                    'local_ip_addr' =>  $interfaceDetail['IP']
+                    'local_ip_addr' =>  $interfaceDetail['IP'] . '/' . NetworkCalculationHelper::mask2cidr($interfaceDetail['netmask'])
                 ]);
 
                 $computeMember = $computeMember->fresh();
@@ -140,6 +146,8 @@ physical interfaces and vlans of compute member');
                 ->where('device', $interfaceDetail['device'])
                 ->where('iaas_compute_member_id', $computeMember->id)
                 ->first();
+
+            dump($netInterface);
 
             Log::info('[ComputeMemberService@updateInterfaceInformation] Syncing interface: '
                 . $interfaceDetail['device'] . ' for compute member: ' . $computeMember->name
@@ -251,7 +259,7 @@ physical interfaces and vlans of compute member');
             }
         }
 
-        dd($volumes);
+        return $computeMember->fresh();
     }
 
     private static function updateNfsStorageVolume($volume, $computeMember) : ComputeMemberStorageVolumes

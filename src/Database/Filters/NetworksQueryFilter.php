@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                    
+                            
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -54,6 +54,19 @@ class NetworksQueryFilter extends AbstractQueryFilter
         return $this->builder->where('bandwidth', $operator, $value);
     }
 
+    public function speedLimit($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('speed_limit', $operator, $value);
+    }
+
     public function mtu($value)
     {
         $operator = substr($value, 0, 1);
@@ -80,6 +93,11 @@ class NetworksQueryFilter extends AbstractQueryFilter
     public function isManagement()
     {
         return $this->builder->where('is_management', true);
+    }
+
+    public function isDmz()
+    {
+        return $this->builder->where('is_dmz', true);
     }
 
     public function createdAtStart($date)
@@ -139,6 +157,24 @@ class NetworksQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function iaasNetworkPoolId($value)
+    {
+            $iaasNetworkPool = \NextDeveloper\IAAS\Database\Models\NetworkPools::where('uuid', $value)->first();
+
+        if($iaasNetworkPool) {
+            return $this->builder->where('iaas_network_pool_id', '=', $iaasNetworkPool->id);
+        }
+    }
+
+    public function iaasCloudNodeId($value)
+    {
+            $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
+
+        if($iaasCloudNode) {
+            return $this->builder->where('iaas_cloud_node_id', '=', $iaasCloudNode->id);
+        }
+    }
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -158,6 +194,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

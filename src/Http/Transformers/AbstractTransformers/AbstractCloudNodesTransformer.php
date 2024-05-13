@@ -11,6 +11,18 @@ use NextDeveloper\Commons\Http\Transformers\StatesTransformer;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\Commons\Database\Models\Addresses;
+use NextDeveloper\Commons\Database\Models\Comments;
+use NextDeveloper\Commons\Database\Models\Meta;
+use NextDeveloper\Commons\Database\Models\PhoneNumbers;
+use NextDeveloper\Commons\Database\Models\SocialMedia;
+use NextDeveloper\Commons\Database\Models\Votes;
+use NextDeveloper\Commons\Http\Transformers\CommentsTransformer;
+use NextDeveloper\Commons\Http\Transformers\SocialMediaTransformer;
+use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
+use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
+use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
+use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
 
 /**
  * Class CloudNodesTransformer. This class is being used to manipulate the data we are serving to the customer
@@ -26,7 +38,13 @@ class AbstractCloudNodesTransformer extends AbstractTransformer
     protected array $availableIncludes = [
         'states',
         'actions',
-        'media'
+        'media',
+        'comments',
+        'votes',
+        'socialMedia',
+        'phoneNumbers',
+        'addresses',
+        'meta'
     ];
 
     /**
@@ -36,10 +54,10 @@ class AbstractCloudNodesTransformer extends AbstractTransformer
      */
     public function transform(CloudNodes $model)
     {
-                        $iaasDatacenterId = \NextDeveloper\IAAS\Database\Models\Datacenters::where('id', $model->iaas_datacenter_id)->first();
-                    $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                    $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-        
+                                                $iaasDatacenterId = \NextDeveloper\IAAS\Database\Models\Datacenters::where('id', $model->iaas_datacenter_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -83,7 +101,7 @@ class AbstractCloudNodesTransformer extends AbstractTransformer
         return $this->collection($actions, new AvailableActionsTransformer());
     }
 
-    public function includeMedia(Datacenters $model)
+    public function includeMedia(CloudNodes $model)
     {
         $media = Media::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -92,6 +110,60 @@ class AbstractCloudNodesTransformer extends AbstractTransformer
         return $this->collection($media, new MediaTransformer());
     }
 
+    public function includeSocialMedia(CloudNodes $model)
+    {
+        $socialMedia = SocialMedia::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($socialMedia, new SocialMediaTransformer());
+    }
+
+    public function includeComments(CloudNodes $model)
+    {
+        $comments = Comments::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($comments, new CommentsTransformer());
+    }
+
+    public function includeVotes(CloudNodes $model)
+    {
+        $votes = Votes::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($votes, new VotesTransformer());
+    }
+
+    public function includeMeta(CloudNodes $model)
+    {
+        $meta = Meta::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($meta, new MetaTransformer());
+    }
+
+    public function includePhoneNumbers(CloudNodes $model)
+    {
+        $phoneNumbers = PhoneNumbers::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($phoneNumbers, new PhoneNumbersTransformer());
+    }
+
+    public function includeAddresses(CloudNodes $model)
+    {
+        $addresses = Addresses::where('object_type', get_class($model))
+            ->where('object_id', $model->id)
+            ->get();
+
+        return $this->collection($addresses, new AddressesTransformer());
+    }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

@@ -62,6 +62,7 @@ trait IaasNetworkTestTraits
                 'vxlan'  =>  'a',
                 'vlan'  =>  '1',
                 'bandwidth'  =>  '1',
+                'speed_limit'  =>  '1',
                 'mtu'  =>  '1',
                             ],
                 ['http_errors' => false]
@@ -408,6 +409,25 @@ trait IaasNetworkTestTraits
             $request = new Request(
                 [
                 'bandwidth'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasNetworkQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasNetwork::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasnetwork_event_speed_limit_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'speed_limit'  =>  '1'
                 ]
             );
 
