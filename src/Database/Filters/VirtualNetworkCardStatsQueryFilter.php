@@ -79,4 +79,5 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

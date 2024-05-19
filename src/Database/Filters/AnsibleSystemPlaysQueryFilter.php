@@ -96,4 +96,5 @@ class AnsibleSystemPlaysQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

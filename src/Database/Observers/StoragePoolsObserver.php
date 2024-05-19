@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\IAM\Helpers\UserHelper;
+use NextDeveloper\Events\Services\Events;
 
 /**
  * Class StoragePoolsObserver
@@ -35,6 +36,8 @@ class StoragePoolsObserver
             !UserHelper::can('create', $model),
             new NotAllowedException('You are not allowed to create this record')
         );
+
+        Events::fire('creating:NextDeveloper\IAAS\StoragePools', $model);
     }
 
     /**
@@ -44,6 +47,7 @@ class StoragePoolsObserver
      */
     public function created(Model $model)
     {
+        Events::fire('created:NextDeveloper\IAAS\StoragePools', $model);
     }
 
     /**
@@ -54,9 +58,11 @@ class StoragePoolsObserver
     public function saving(Model $model)
     {
         throw_if(
-            !UserHelper::can('update', $model),
+            !UserHelper::can('save', $model),
             new NotAllowedException('You are not allowed to save this record')
         );
+
+        Events::fire('saving:NextDeveloper\IAAS\StoragePools', $model);
     }
 
     /**
@@ -66,6 +72,7 @@ class StoragePoolsObserver
      */
     public function saved(Model $model)
     {
+        Events::fire('saved:NextDeveloper\IAAS\StoragePools', $model);
     }
 
 
@@ -78,6 +85,8 @@ class StoragePoolsObserver
             !UserHelper::can('update', $model),
             new NotAllowedException('You are not allowed to update this record')
         );
+
+        Events::fire('updating:NextDeveloper\IAAS\StoragePools', $model);
     }
 
     /**
@@ -87,6 +96,7 @@ class StoragePoolsObserver
      */
     public function updated(Model $model)
     {
+        Events::fire('updated:NextDeveloper\IAAS\StoragePools', $model);
     }
 
 
@@ -99,6 +109,8 @@ class StoragePoolsObserver
             !UserHelper::can('delete', $model),
             new NotAllowedException('You are not allowed to delete this record')
         );
+
+        Events::fire('deleting:NextDeveloper\IAAS\StoragePools', $model);
     }
 
     /**
@@ -108,6 +120,7 @@ class StoragePoolsObserver
      */
     public function deleted(Model $model)
     {
+        Events::fire('deleted:NextDeveloper\IAAS\StoragePools', $model);
     }
 
     /**
@@ -121,6 +134,8 @@ class StoragePoolsObserver
             !UserHelper::can('restore', $model),
             new NotAllowedException('You are not allowed to restore this record')
         );
+
+        Events::fire('restoring:NextDeveloper\IAAS\StoragePools', $model);
     }
 
     /**
@@ -130,6 +145,7 @@ class StoragePoolsObserver
      */
     public function restored(Model $model)
     {
+        Events::fire('restored:NextDeveloper\IAAS\StoragePools', $model);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }
