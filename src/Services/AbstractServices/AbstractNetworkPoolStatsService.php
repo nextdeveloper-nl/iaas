@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Models\NetworkPoolStats;
 use NextDeveloper\IAAS\Database\Filters\NetworkPoolStatsQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\Commons\Exceptions\NotAllowedException;
 
 /**
  * This class is responsible from managing the data for NetworkPoolStats
@@ -216,6 +217,13 @@ class AbstractNetworkPoolStatsService
     {
         $model = NetworkPoolStats::where('uuid', $id)->first();
 
+        if(!$model) {
+            throw new NotAllowedException(
+                'We cannot find the related object to update. ' .
+                'Maybe you dont have the permission to update this object?'
+            );
+        }
+
         if (array_key_exists('iaas_network_pool_id', $data)) {
             $data['iaas_network_pool_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\NetworkPools',
@@ -250,6 +258,13 @@ class AbstractNetworkPoolStatsService
     public static function delete($id)
     {
         $model = NetworkPoolStats::where('uuid', $id)->first();
+
+        if(!$model) {
+            throw new NotAllowedException(
+                'We cannot find the related object to delete. ' .
+                'Maybe you dont have the permission to update this object?'
+            );
+        }
 
         Events::fire('deleted:NextDeveloper\IAAS\NetworkPoolStats', $model);
 

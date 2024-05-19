@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumeStats;
 use NextDeveloper\IAAS\Database\Filters\StorageVolumeStatsQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\Commons\Exceptions\NotAllowedException;
 
 /**
  * This class is responsible from managing the data for StorageVolumeStats
@@ -216,6 +217,13 @@ class AbstractStorageVolumeStatsService
     {
         $model = StorageVolumeStats::where('uuid', $id)->first();
 
+        if(!$model) {
+            throw new NotAllowedException(
+                'We cannot find the related object to update. ' .
+                'Maybe you dont have the permission to update this object?'
+            );
+        }
+
         if (array_key_exists('iaas_storage_volume_id', $data)) {
             $data['iaas_storage_volume_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\StorageVolumes',
@@ -250,6 +258,13 @@ class AbstractStorageVolumeStatsService
     public static function delete($id)
     {
         $model = StorageVolumeStats::where('uuid', $id)->first();
+
+        if(!$model) {
+            throw new NotAllowedException(
+                'We cannot find the related object to delete. ' .
+                'Maybe you dont have the permission to update this object?'
+            );
+        }
 
         Events::fire('deleted:NextDeveloper\IAAS\StorageVolumeStats', $model);
 

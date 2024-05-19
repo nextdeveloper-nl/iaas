@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualNetworkCardStats;
 use NextDeveloper\IAAS\Database\Filters\VirtualNetworkCardStatsQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\Commons\Exceptions\NotAllowedException;
 
 /**
  * This class is responsible from managing the data for VirtualNetworkCardStats
@@ -210,6 +211,13 @@ class AbstractVirtualNetworkCardStatsService
     {
         $model = VirtualNetworkCardStats::where('uuid', $id)->first();
 
+        if(!$model) {
+            throw new NotAllowedException(
+                'We cannot find the related object to update. ' .
+                'Maybe you dont have the permission to update this object?'
+            );
+        }
+
         
         Events::fire('updating:NextDeveloper\IAAS\VirtualNetworkCardStats', $model);
 
@@ -238,6 +246,13 @@ class AbstractVirtualNetworkCardStatsService
     public static function delete($id)
     {
         $model = VirtualNetworkCardStats::where('uuid', $id)->first();
+
+        if(!$model) {
+            throw new NotAllowedException(
+                'We cannot find the related object to delete. ' .
+                'Maybe you dont have the permission to update this object?'
+            );
+        }
 
         Events::fire('deleted:NextDeveloper\IAAS\VirtualNetworkCardStats', $model);
 
