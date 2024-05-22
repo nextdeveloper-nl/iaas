@@ -2,14 +2,17 @@
 
 namespace NextDeveloper\IAAS\Database\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use NextDeveloper\Commons\Database\Traits\Filterable;
+use NextDeveloper\Commons\Database\Traits\SSHable;
 use NextDeveloper\IAAS\Database\Observers\RepositoriesObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * Repositories model.
@@ -58,6 +61,7 @@ class Repositories extends Model
             'description',
             'ssh_username',
             'ssh_password',
+            'ssh_port',
             'ip_addr',
             'is_active',
             'is_public',
@@ -70,6 +74,8 @@ class Repositories extends Model
             'docker_registry_port',
             'iam_account_id',
             'iam_user_id',
+        'local_ip_addr',
+        'is_behind_firewall'
     ];
 
     /**
@@ -171,14 +177,14 @@ class Repositories extends Model
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
+    use SSHable, Agentable;
 
-
-
-
-
-
-
-
-
-
+    protected function sshPassword(): Attribute
+    {
+        return Attribute::make(
+            set: function ($value) {
+                return encrypt($value);
+            },
+        );
+    }
 }

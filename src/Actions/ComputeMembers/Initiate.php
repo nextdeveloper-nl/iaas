@@ -26,6 +26,8 @@ class Initiate extends AbstractAction
     public function __construct(ComputeMembers $computeMember)
     {
         $this->model = $computeMember;
+
+        parent::__construct();
     }
 
     public function handle()
@@ -80,38 +82,7 @@ class Initiate extends AbstractAction
 
         $this->setProgress(90, 'Creating network member');
         NetworkMemberXenService::createNetworkMemberFromComputeMember($this->model);
-    }
 
-    private function createNetworkMember()
-    {
-        // Create network member
-    }
-
-    private function createStorageMember()
-    {
-        // Create storage member
-    }
-
-    private function autoDiscoverComputeMemberFeatures()
-    {
-        // Auto discover compute member features
-    }
-
-    private function autoDiscoverDevices()
-    {
-        // Auto discover devices
-        //  We will look for lspci and lsusb commands to understand the devices.
-    }
-
-    private function autoDiscoverNetworkInterfaces()
-    {
-        // Auto discover network interfaces
-    }
-
-    private function discoverNetwork()
-    {
-        //  Here we will discover the network and try to understand what we have missing in the cloud node.
-        //  If we can login with the same ssh credentials, we will try to understand the machine.
-        //  If the machine is a compute member, we will create a new compute member.
+        $this->setFinished('Compute member initiated');
     }
 }

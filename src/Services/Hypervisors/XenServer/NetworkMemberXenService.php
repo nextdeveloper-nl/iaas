@@ -7,16 +7,12 @@ use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\NetworkMembersService;
+use NextDeveloper\IAAS\Services\NetworkPoolsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class NetworkMemberXenService
 {
     public static function createNetworkMemberFromComputeMember(ComputeMembers $computeMember)
-    {
-        $networkPool = self::getNetworkPoolFromComputeMember($computeMember);
-    }
-
-    public static function getNetworkPoolFromComputeMember(ComputeMembers $computeMember)
     {
         $cloudNode = ComputeMembersService::getCloudNode($computeMember);
 

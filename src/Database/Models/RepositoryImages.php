@@ -80,6 +80,7 @@ class RepositoryImages extends Model
             'supported_virtualizations',
             'iaas_repository_id',
             'hash',
+        'size',
             'iam_account_id',
             'iam_user_id',
     ];
@@ -125,6 +126,7 @@ class RepositoryImages extends Model
     'supported_virtualizations' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'iaas_repository_id' => 'integer',
     'hash' => 'string',
+        'size'  =>  'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',

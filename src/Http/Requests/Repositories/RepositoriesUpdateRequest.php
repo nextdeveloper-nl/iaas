@@ -13,10 +13,11 @@ class RepositoriesUpdateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'name' => 'nullable|string',
+        'name' => 'nullable|string',
         'description' => 'nullable|string',
         'ssh_username' => 'nullable|string',
         'ssh_password' => 'nullable|string',
+        'ssh_port'  =>  'nullable|integer',
         'ip_addr' => 'nullable',
         'is_active' => 'boolean',
         'is_public' => 'boolean',

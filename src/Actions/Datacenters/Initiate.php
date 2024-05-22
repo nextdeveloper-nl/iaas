@@ -4,11 +4,16 @@ namespace NextDeveloper\IAAS\Actions\Datacenters;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\CloudNodes;
+use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Datacenters;
+use NextDeveloper\IAAS\Database\Models\NetworkPools;
+use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Services\CloudNodesService;
 use NextDeveloper\IAAS\Services\ComputePoolsService;
 use NextDeveloper\IAAS\Services\NetworkPoolsService;
 use NextDeveloper\IAAS\Services\StoragePoolsService;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * Class Initiate
@@ -86,6 +91,13 @@ class Initiate extends AbstractAction
      */
     private function createCloudNode(): mixed
     {
+        $cloudNode = CloudNodes::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_datacenter_id', $this->model->id)
+            ->first();
+
+        if($cloudNode)
+            return $cloudNode;
+
         $cloudNode = CloudNodesService::create([
             'name'                  => $this->model->name . ' Cloud Node',
             'slug'                  => 'my-cloud-node',
@@ -104,8 +116,16 @@ class Initiate extends AbstractAction
      * @return void
      * @throws \Exception
      */
-    private function createComputePool($cloudNode): void
+    private function createComputePool($cloudNode): mixed
     {
+        $computePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_cloud_node_id', $cloudNode->id)
+            ->where('iaas_datacenter_id', $this->model->id)
+            ->first();
+
+        if($computePool)
+            return $computePool;
+
         $computePool = ComputePoolsService::create([
             'name'                  => $this->model->name . ' Compute Pool',
             'iaas_datacenter_id'    => $this->model->id,
@@ -121,8 +141,16 @@ class Initiate extends AbstractAction
      * @param $cloudNode
      * @return void
      */
-    private function createStoragePool($cloudNode): void
+    private function createStoragePool($cloudNode): mixed
     {
+        $storagePool = StoragePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_cloud_node_id', $cloudNode->id)
+            ->where('iaas_datacenter_id', $this->model->id)
+            ->first();
+
+        if($storagePool)
+            return $storagePool;
+
         $storagePool = StoragePoolsService::create([
             'name'                  => $this->model->name . ' Storage Pool',
             'slug'                  => 'my-storage-pool',
@@ -140,8 +168,16 @@ class Initiate extends AbstractAction
      * @param $cloudNode
      * @return void
      */
-    private function createNetworkPool($cloudNode): void
+    private function createNetworkPool($cloudNode): mixed
     {
+        $networkPool = NetworkPools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_cloud_node_id', $cloudNode->id)
+            ->where('iaas_datacenter_id', $this->model->id)
+            ->first();
+
+        if($networkPool)
+            return $networkPool;
+
         $networkPool = NetworkPoolsService::create([
             'name'                  => $this->model->name . ' Network Pool',
             'vlan_start'            => 1,

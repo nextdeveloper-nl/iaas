@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractComputeMembersService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -28,7 +29,7 @@ class ComputeMembersService extends AbstractComputeMembersService
 
         if(!$computePool) {
             /// This is highly unlikely but we need to log this
-            Log::error('Compute pool not found for compute member: ' . $computeMember->id);
+            Log::error('[ComputeMemberService@getCloudNode] Compute pool not found for compute member: ' . $computeMember->id);
 
             return null;
         }
@@ -39,9 +40,35 @@ class ComputeMembersService extends AbstractComputeMembersService
 
         if(!$cloudNode) {
             /// This is highly unlikely but we need to log this
-            Log::error('Cloud node not found for compute member: ' . $computeMember->id);
+            Log::error('[ComputeMemberService@getCloudNode] Cloud node not found for compute member: ' . $computeMember->id);
         }
 
         return $cloudNode;
+    }
+
+    public static function getNetworkPool(ComputeMembers $computeMember) : ?NetworkPools
+    {
+        $computePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $computeMember->iaas_compute_pool_id)
+            ->first();
+
+        if(!$computePool) {
+            /// This is highly unlikely but we need to log this
+            Log::error('[ComputeMemberService@getNetworkPool] Compute pool not found for compute member: ' . $computeMember->id);
+
+            return null;
+        }
+
+        $networkPool = NetworkPools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_cloud_node_id', $computePool->iaas_cloud_node_id)
+            ->first();
+
+        if(!$networkPool) {
+            Log::error('[ComputeMemberService@getNetworkPool] Network pool not found for compute member: ' . $computeMember->id);
+
+            return null;
+        }
+
+        return $networkPool;
     }
 }

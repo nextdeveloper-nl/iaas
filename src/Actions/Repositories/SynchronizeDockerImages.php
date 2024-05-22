@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Actions\Repositories;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\Repositories;
 
 /**
  * This action will scan compute member and sync all findings
@@ -12,15 +13,15 @@ use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 class SynchronizeDockerImages extends AbstractAction
 {
     public const EVENTS = [
-        'synching:NextDeveloper\IAAS\Repositories',
-        'synced:NextDeveloper\IAAS\Repositories'
+        'syncing-docker-images:NextDeveloper\IAAS\Repositories',
+        'docker-images-synced:NextDeveloper\IAAS\Repositories'
     ];
 
-    public function __construct(ComputeMembers $computeMember)
+    public function __construct(Repositories $repo)
     {
-        trigger_error('This action is not yet implemented', E_USER_ERROR);
+        parent::__construct();
 
-        $this->model = $computeMember;
+        $this->model = $repo;
     }
 
     public function handle()

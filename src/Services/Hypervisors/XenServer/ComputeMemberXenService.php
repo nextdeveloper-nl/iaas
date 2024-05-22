@@ -8,9 +8,12 @@ use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\Networks;
+use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Helpers\NetworkCalculationHelper;
+use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
 use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\StorageMembersService;
@@ -147,8 +150,6 @@ physical interfaces and vlans of compute member');
                 ->where('iaas_compute_member_id', $computeMember->id)
                 ->first();
 
-            dump($netInterface);
-
             Log::info('[ComputeMemberService@updateInterfaceInformation] Syncing interface: '
                 . $interfaceDetail['device'] . ' for compute member: ' . $computeMember->name
                 . ' with details: ' . print_r($data, true));
@@ -211,6 +212,8 @@ physical interfaces and vlans of compute member');
                 'vlan'          =>  $pif->vlan,
                 'vxlan'         =>  0,
                 'bandwidth'     =>  Str::remove('Mbit/s', $pif->hypervisor_data['speed']),
+                'iaas_network_pool_id'  => ComputeMembersService::getNetworkPool($computeMember)->id,
+                'iaas_cloud_node_id'    =>  ComputeMembersService::getCloudNode($computeMember)->id,
                 'iam_account_id'    =>  $computeMember->iam_account_id,
                 'iam_user_id'       =>  $computeMember->iam_user_id
             ];
@@ -258,6 +261,13 @@ physical interfaces and vlans of compute member');
                 self::updateNfsStorageVolume($volume, $computeMember);
             }
         }
+
+        return $computeMember->fresh();
+    }
+
+    public static function updateVirtualMachines(ComputeMembers $computeMember) : ComputeMembers
+    {
+
 
         return $computeMember->fresh();
     }
@@ -413,6 +423,66 @@ physical interfaces and vlans of compute member');
         return ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('hypervisor_uuid', $uuid)
             ->first();
+    }
+
+    public static function mountVmRepository(ComputeMembers $computeMember, Repositories $repo) : bool
+    {
+        if(config('leo.debug.iaas.compupe_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Starting to mount the repository: ' .
+                $repo->name . ' to the compute member: ' . $computeMember->name);
+
+        $computeMemberPath = '/mnt/plusclouds-repo/' . $repo->uuid;
+        $createDirectoryCommand = 'mkdir -p ' . $computeMemberPath;
+
+        if(config('leo.debug.iaas.compupe_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Creating the directory with command; ' .
+                $createDirectoryCommand);
+
+        $result = self::performCommand($createDirectoryCommand, $computeMember);
+        $result = $result[0]['output'];
+
+        $mountRepoCommand = 'mount -t nfs ' . $repo->local_ip_addr . ':' . $repo->vm_path . ' ' . $computeMemberPath;
+
+        if(config('leo.debug.iaas.compupe_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Mounting the repository with command; ' .
+                $mountRepoCommand);
+
+        $result = self::performCommand($mountRepoCommand, $computeMember);
+        $result = $result[0]['output'];
+
+        $result = self::performCommand('ls ' . $computeMemberPath . '/hash.txt', $computeMember);
+        $result = $result[0]['output'];
+
+        if($result == $computeMemberPath . '/hash.txt')
+            return true;
+
+        return false;
+    }
+
+    public static function unmountVmRepository(ComputeMembers $computeMember, Repositories $repo) : ComputeMembers
+    {
+        if(config('leo.debug.iaas.compupe_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Starting to mount the repository: ' .
+                $repo->name . ' to the compute member: ' . $computeMember->name);
+
+        $computeMemberPath = '/mnt/plusclouds-repo/' . $repo->uuid;
+
+        $umountRepoCommand = 'umount ' . $computeMemberPath;
+
+        if(config('leo.debug.iaas.compupe_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Unmounting the repository with command; ' .
+                $umountRepoCommand);
+
+        $result = self::performCommand($umountRepoCommand, $computeMember);
+
+        $checkCommand = 'ls ' . $computeMemberPath . '/';
+        $result = self::performCommand($checkCommand, $computeMember);
+        $result = $result[0]['output'];
+
+        if(strlen($result) > 0)
+            return false;
+
+        return true;
     }
 
     public static function performCommand($command, ComputeMembers $computeMember) : ?array

@@ -3,8 +3,11 @@
 namespace NextDeveloper\IAAS\Actions\Repositories;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 
 /**
  * This action will scan compute member and sync all findings
@@ -12,23 +15,43 @@ use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 class SynchronizeMachineImages extends AbstractAction
 {
     public const EVENTS = [
-        'synching:NextDeveloper\IAAS\Repositories',
-        'synced:NextDeveloper\IAAS\Repositories'
+        'syncing-machine-images:NextDeveloper\IAAS\Repositories',
+        'machine-images-synced:NextDeveloper\IAAS\Repositories',
+        'cannot-sync-machine-images:NextDeveloper\IAAS\Repositories'
     ];
 
-    public function __construct(ComputeMembers $computeMember)
+    public function __construct(Repositories $repo)
     {
-        trigger_error('This action is not yet implemented', E_USER_ERROR);
+        parent::__construct();
 
-        $this->model = $computeMember;
+        $this->model = $repo;
     }
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate storage member started');
+        $this->setProgress(0, 'Starting sync machine images for' .
+            ' repository: ' . $this->model->name);
 
-        Events::fire('checked:NextDeveloper\IAAS\StorageMembers', $this->model);
+        Events::fire('syncing-machine-images:NextDeveloper\IAAS\StorageMembers', $this->model);
 
-        $this->setProgress(100, 'Storage member scanned and synced');
+        if(!$this->model->vm_path) {
+            StateHelper::setState($this->model, 'vm_repo', 'not_configured');
+
+            $this->model->update([
+                'is_vm_repo'   =>  false
+            ]);
+
+            $this->setFinishedWithError('Machine image repository not configured. You need to check' .
+                ' the machine image directory, if its available or you provided the correct path.');
+
+            Events::fire('syncing-machine-images:NextDeveloper\IAAS\StorageMembers', $this->model);
+            return;
+        }
+
+        SyncRepositoryService::syncRepoImages($this->model, $this);
+
+        Events::fire('cannot-sync-machine-images:NextDeveloper\IAAS\StorageMembers', $this->model);
+
+        $this->setProgress(100, 'Machine image syncronization finished');
     }
 }

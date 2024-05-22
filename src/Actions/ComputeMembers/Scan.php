@@ -38,7 +38,7 @@ class Scan extends AbstractAction
         ComputeMemberXenService::updateConnectionInformation($this->model);
 
         $this->setProgress(80, 'Scanning all virtual machines');
-
+        ComputeMemberXenService::updateVirtualMachines($this->model);
 
         Events::fire('scanned:NextDeveloper\IAAS\ComputeMembers', $this->model);
 

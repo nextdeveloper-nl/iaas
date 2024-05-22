@@ -17,6 +17,7 @@ class RepositoriesCreateRequest extends AbstractFormRequest
         'description' => 'nullable|string',
         'ssh_username' => 'required|string',
         'ssh_password' => 'required|string',
+            'ssh_port'  =>  'required|integer',
         'ip_addr' => 'required',
         'is_active' => 'boolean',
         'is_public' => 'boolean',
