@@ -52,6 +52,10 @@ class ComputeMemberStorageVolumes extends Model
             'block_device_data',
             'iam_account_id',
             'iam_user_id',
+        'iaas_compute_member_id',
+        'iaas_storage_volume_id',
+        'iaas_storage_member_id',
+        'iaas_storage_pool_id'
     ];
 
     /**

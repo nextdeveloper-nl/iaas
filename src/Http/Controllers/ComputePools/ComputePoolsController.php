@@ -55,7 +55,7 @@ class ComputePoolsController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = ComputePoolsService::doAction($objectId, $action);
+        $actionId = ComputePoolsService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

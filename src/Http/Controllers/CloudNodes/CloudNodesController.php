@@ -55,7 +55,7 @@ class CloudNodesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = CloudNodesService::doAction($objectId, $action);
+        $actionId = CloudNodesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

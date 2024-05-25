@@ -55,7 +55,7 @@ class StoragePoolsController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = StoragePoolsService::doAction($objectId, $action);
+        $actionId = StoragePoolsService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

@@ -55,7 +55,7 @@ class AnsibleSystemPlaysController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = AnsibleSystemPlaysService::doAction($objectId, $action);
+        $actionId = AnsibleSystemPlaysService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

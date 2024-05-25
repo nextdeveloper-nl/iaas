@@ -55,7 +55,7 @@ class AnsibleRolesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = AnsibleRolesService::doAction($objectId, $action);
+        $actionId = AnsibleRolesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

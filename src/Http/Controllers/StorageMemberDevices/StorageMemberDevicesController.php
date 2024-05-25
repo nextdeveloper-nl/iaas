@@ -55,7 +55,7 @@ class StorageMemberDevicesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = StorageMemberDevicesService::doAction($objectId, $action);
+        $actionId = StorageMemberDevicesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

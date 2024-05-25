@@ -55,7 +55,7 @@ class AnsiblePlaybookAnsibleRolesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = AnsiblePlaybookAnsibleRolesService::doAction($objectId, $action);
+        $actionId = AnsiblePlaybookAnsibleRolesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

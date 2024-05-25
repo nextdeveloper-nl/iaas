@@ -55,7 +55,7 @@ class DhcpServersController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = DhcpServersService::doAction($objectId, $action);
+        $actionId = DhcpServersService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

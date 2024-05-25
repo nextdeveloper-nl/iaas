@@ -55,7 +55,7 @@ class IpAddressHistoriesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = IpAddressHistoriesService::doAction($objectId, $action);
+        $actionId = IpAddressHistoriesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

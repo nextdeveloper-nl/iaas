@@ -55,7 +55,7 @@ class ComputeMemberEventsController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = ComputeMemberEventsService::doAction($objectId, $action);
+        $actionId = ComputeMemberEventsService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

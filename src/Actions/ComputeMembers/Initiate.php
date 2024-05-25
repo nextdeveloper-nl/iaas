@@ -65,23 +65,23 @@ class Initiate extends AbstractAction
          *
          */
 
-        $this->setProgress(0, 'Updating compute member information');
-        ComputeMemberXenService::updateMemberInformation($this->model);
-
-        $this->setProgress(20, 'Updating compute member network interface information');
-        ComputeMemberXenService::updateInterfaceInformation($this->model);
-
-        $this->setProgress(40, 'Updating compute member bridges/networks information');
-        ComputeMemberXenService::updateNetworkInformation($this->model);
+//        $this->setProgress(0, 'Updating compute member information');
+//        ComputeMemberXenService::updateMemberInformation($this->model);
+//
+//        $this->setProgress(20, 'Updating compute member network interface information');
+//        ComputeMemberXenService::updateInterfaceInformation($this->model);
+//
+//        $this->setProgress(40, 'Updating compute member bridges/networks information');
+//        ComputeMemberXenService::updateNetworkInformation($this->model);
 
         $this->setProgress(60, 'Updating compute member storage volume information');
         ComputeMemberXenService::updateStorageVolumes($this->model);
 
-        $this->setProgress(80, 'Updating network information');
-        ComputeMemberXenService::updateConnectionInformation($this->model);
-
-        $this->setProgress(90, 'Creating network member');
-        NetworkMemberXenService::createNetworkMemberFromComputeMember($this->model);
+//        $this->setProgress(80, 'Updating network information');
+//        ComputeMemberXenService::updateConnectionInformation($this->model);
+//
+//        $this->setProgress(90, 'Creating network member');
+//        NetworkMemberXenService::createNetworkMemberFromComputeMember($this->model);
 
         $this->setFinished('Compute member initiated');
     }

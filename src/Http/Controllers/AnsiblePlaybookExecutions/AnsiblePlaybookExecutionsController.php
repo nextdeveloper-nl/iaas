@@ -55,7 +55,7 @@ class AnsiblePlaybookExecutionsController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = AnsiblePlaybookExecutionsService::doAction($objectId, $action);
+        $actionId = AnsiblePlaybookExecutionsService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

@@ -55,7 +55,7 @@ class VirtualMachinesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = VirtualMachinesService::doAction($objectId, $action);
+        $actionId = VirtualMachinesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

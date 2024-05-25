@@ -55,7 +55,7 @@ class StorageVolumesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = StorageVolumesService::doAction($objectId, $action);
+        $actionId = StorageVolumesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

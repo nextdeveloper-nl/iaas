@@ -55,7 +55,7 @@ class ComputeMemberStorageVolumesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = ComputeMemberStorageVolumesService::doAction($objectId, $action);
+        $actionId = ComputeMemberStorageVolumesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

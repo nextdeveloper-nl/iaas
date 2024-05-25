@@ -55,7 +55,7 @@ class RepositoryImagesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = RepositoryImagesService::doAction($objectId, $action);
+        $actionId = RepositoryImagesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

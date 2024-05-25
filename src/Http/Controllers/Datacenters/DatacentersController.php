@@ -55,7 +55,7 @@ class DatacentersController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = DatacentersService::doAction($objectId, $action);
+        $actionId = DatacentersService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

@@ -66,7 +66,7 @@ class ComputeMemberXenService extends AbstractXenService
             'hypervisor_data'   =>  $hypervisor,
             'uptime'            =>  $uptime,
             'total_ram'         =>  ceil($hypervisor['memory-total']  / 1024 / 1024 / 1024),
-            'used_ram'          =>  ceil(($hypervisor['memory-total'] - $hypervisor['memory-free']) / 1024 / 1024),
+            'used_ram'          =>  ceil(($hypervisor['memory-total'] - $hypervisor['memory-free']) / 1024 / 1024 / 1024),
             'total_cpu'         =>  $cpuInformation['cpu_count'],
             'total_socket'      =>  $cpuInformation['socket_count'],
             'hypervisor_model'  =>  'XenServer ' . trim($softwareInformation['product_version_text_short']),
@@ -284,6 +284,13 @@ physical interfaces and vlans of compute member');
         $result = self::performCommand($command, $computeMember);
         $pbdParams = self::parseListResult($result[0]['output']);
 
+        $command = 'xe sr-param-list uuid=' . $volume['uuid'];
+        $result = self::performCommand($command, $computeMember);
+        $volumeParamList = self::parseListResult($result[0]['output']);
+
+        if(array_key_exists(0, $volumeParamList))
+            $volumeParamList = $volumeParamList[0];
+
         if(array_key_exists(0, $pbdParams))
             $pbdParams = $pbdParams[0];
 
@@ -291,10 +298,11 @@ physical interfaces and vlans of compute member');
             'name'   =>  $volume['name-label'],
             'description'   =>  $volume['name-description'],
             'hypervisor_uuid'  => $volume['uuid'],
-            'hypervisor_data'  => $volume,
+            'hypervisor_data'  => $volumeParamList,
             'block_device_data' =>  $pbdParams,
             'iam_user_id'       =>  $computeMember->iam_user_id,
-            'iam_account_id'    =>  $computeMember->iam_account_id
+            'iam_account_id'    =>  $computeMember->iam_account_id,
+            'iaas_compute_member_id'    =>  $computeMember->id
         ];
 
         if(!$storageVolume) {
@@ -374,7 +382,8 @@ physical interfaces and vlans of compute member');
             'hypervisor_data'  => $volume,
             'block_device_data' =>  $pbdParams,
             'iam_user_id'       =>  $computeMember->iam_user_id,
-            'iam_account_id'    =>  $computeMember->iam_account_id
+            'iam_account_id'    =>  $computeMember->iam_account_id,
+            'iaas_compute_member_id'    =>  $computeMember->id
         ];
 
         if(!$storageVolume) {
@@ -398,7 +407,7 @@ physical interfaces and vlans of compute member');
             ->first();
 
         if(!$storageMemberVolume) {
-            StorageVolumesService::create([
+            $storageMemberVolume = StorageVolumesService::create([
                 'hypervisor_uuid'   =>  $volume['uuid'],
                 'name'   =>  $volume['name-label'],
                 'description'   =>  $volume['name-description'],
@@ -408,7 +417,13 @@ physical interfaces and vlans of compute member');
             ]);
         }
 
-        return $storageVolume;
+        $storageVolume->update([
+            'iaas_storage_volume_id'    =>  $storageMemberVolume->id,
+            'iaas_storage_member_id'    =>  $storageMember->id,
+            'iaas_storage_pool_id'      =>  $storageMemberPool->id
+        ]);
+
+        return $storageVolume->fresh();
     }
 
     public static function createNetwork(Networks $network, ComputeMembers $computeMember) : ComputeMembers
@@ -483,6 +498,13 @@ physical interfaces and vlans of compute member');
             return false;
 
         return true;
+    }
+
+    public static function importVirtualMachine(ComputeMembers $computeMember, StorageVolumes $volume, RepositoryImages $image)
+    {
+        if(config('leo.debug.iaas.compupe_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Starting to import the repository: ' .
+                $image->name . ' to the compute member: ' . $computeMember->name);
     }
 
     public static function performCommand($command, ComputeMembers $computeMember) : ?array

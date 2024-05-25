@@ -80,6 +80,8 @@ class RepositoryImages extends Model
             'supported_virtualizations',
             'iaas_repository_id',
             'hash',
+        'ram',
+        'cpu',
         'size',
             'iam_account_id',
             'iam_user_id',

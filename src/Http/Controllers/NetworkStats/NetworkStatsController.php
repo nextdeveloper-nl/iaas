@@ -55,7 +55,7 @@ class NetworkStatsController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = NetworkStatsService::doAction($objectId, $action);
+        $actionId = NetworkStatsService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

@@ -55,7 +55,7 @@ class ComputeMemberDevicesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = ComputeMemberDevicesService::doAction($objectId, $action);
+        $actionId = ComputeMemberDevicesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

@@ -55,7 +55,7 @@ class StorageMemberStatsController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = StorageMemberStatsService::doAction($objectId, $action);
+        $actionId = StorageMemberStatsService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

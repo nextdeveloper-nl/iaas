@@ -55,7 +55,7 @@ class IpAddressesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = IpAddressesService::doAction($objectId, $action);
+        $actionId = IpAddressesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

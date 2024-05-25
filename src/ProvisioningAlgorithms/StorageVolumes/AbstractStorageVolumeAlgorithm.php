@@ -8,20 +8,23 @@
  * file that was distributed with this source code.
  */
 
-namespace NextDeveloper\IAAS\Common\ProvisioningAlgorithms;
+namespace NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes;
 
+use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\StoragePools;
+use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 
 /**
  * Class AbstractProvisioningAlg
  * @package PlusClouds\IAAS\Common\ProvisioningAlg
  */
-abstract class AbstractAlgorithm
+abstract class AbstractStorageVolumeAlgorithm
 {
     /**
      * @var ComputePools
      */
-    protected $computePool;
+    protected $storagePools;
 
     /**
      * @var mixed
@@ -33,11 +36,9 @@ abstract class AbstractAlgorithm
      *
      * @param ComputePools|null $computePool
      */
-    public function __construct(ComputePools $computePool = null)
+    public function __construct(StoragePools $storagePools = null)
     {
-        $this->computePool = $computePool;
-
-        $this->type = $this->computePool->pool_type;
+        $this->storagePools = $storagePools;
     }
 
     /**
@@ -47,5 +48,5 @@ abstract class AbstractAlgorithm
      * @param integer $ram
      * @return mixed
      */
-    abstract public function calculate($ram = 0, $cpu = null);
+    abstract public function calculate(ComputeMembers $member, $size) : ?StorageVolumes;
 }

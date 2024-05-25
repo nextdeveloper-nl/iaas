@@ -42,12 +42,19 @@ class StorageVolumeXenService extends AbstractXenService
             ->where('hypervisor_uuid', $storageVolume->hypervisor_uuid)
             ->first();
 
+        $hypervisorData = $storageVolume->hypervisor_data;
+
         $data = [
-            'hypervisor_uuid'   =>  $storageVolume->hypervisor_uuid,
             'name'              =>  $storageVolume->name,
             'iam_account_id'    =>  $storageVolume->iam_account_id,
             'iam_user_id'       =>  $storageVolume->iam_user_id,
-            'iaas_storage_member_id'    =>  $storageMember->id
+            'total_hdd'         =>  ceil($hypervisorData['physical-size'] / 1000 / 1000 / 1000),
+            'used_hdd'          =>  ceil($hypervisorData['physical-utilisation'] / 1000 / 1000 / 1000),
+            'virtual_allocation' =>  ceil($hypervisorData['virtual-allocation'] / 1000 / 1000 / 1000),
+            //  Free HDD is a generated column, that is why we are not calculating that.
+            //'free_hdd'      =>  .....
+            'iaas_storage_member_id'    =>  $storageMember->id,
+            'iaas_storage_pool_id'      =>  $storageMember->iaas_storage_pool_id
         ];
 
         if(!$storageMemberVolume) {
@@ -55,6 +62,22 @@ class StorageVolumeXenService extends AbstractXenService
         } else {
             $storageMemberVolume->update($data);
         }
+
+        //  This is here because just in case of missed this in the past!
+        //  Since this is a complex scanning, it may happen, so we need to update the storage member id
+        if(!$storageMemberVolume->iaas_storage_pool_id) {
+            $storageMemberVolume->update([
+                'iaas_storage_pool_id'  =>  $storageMember->iaas_storage_pool_id
+            ]);
+        }
+
+        $storageVolume = $storageVolume->fresh();
+
+        $storageVolume->update([
+            'iaas_storage_volume_id'    =>  $storageMemberVolume->id,
+            'iaas_storage_member_id'    =>  $storageMember->id,
+            'iaas_storage_pool_id'      =>  $storageMember->iaas_storage_pool_id
+        ]);
 
         return $storageMemberVolume;
     }

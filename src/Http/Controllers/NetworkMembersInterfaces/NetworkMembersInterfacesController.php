@@ -55,7 +55,7 @@ class NetworkMembersInterfacesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = NetworkMembersInterfacesService::doAction($objectId, $action);
+        $actionId = NetworkMembersInterfacesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

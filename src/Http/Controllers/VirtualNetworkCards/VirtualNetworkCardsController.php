@@ -55,7 +55,7 @@ class VirtualNetworkCardsController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = VirtualNetworkCardsService::doAction($objectId, $action);
+        $actionId = VirtualNetworkCardsService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

@@ -55,7 +55,7 @@ class NetworkMemberDevicesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = NetworkMemberDevicesService::doAction($objectId, $action);
+        $actionId = NetworkMemberDevicesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

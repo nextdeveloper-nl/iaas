@@ -55,7 +55,7 @@ class GatewaysController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = GatewaysService::doAction($objectId, $action);
+        $actionId = GatewaysService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

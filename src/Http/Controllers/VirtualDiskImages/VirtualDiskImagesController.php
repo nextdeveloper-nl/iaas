@@ -55,7 +55,7 @@ class VirtualDiskImagesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = VirtualDiskImagesService::doAction($objectId, $action);
+        $actionId = VirtualDiskImagesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

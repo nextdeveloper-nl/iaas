@@ -55,7 +55,7 @@ class RepositoriesController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = RepositoriesService::doAction($objectId, $action);
+        $actionId = RepositoriesService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

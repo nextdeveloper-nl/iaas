@@ -55,7 +55,7 @@ class AnsibleServersController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = AnsibleServersService::doAction($objectId, $action);
+        $actionId = AnsibleServersService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [

@@ -55,7 +55,7 @@ class NetworkPoolsController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = NetworkPoolsService::doAction($objectId, $action);
+        $actionId = NetworkPoolsService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [
