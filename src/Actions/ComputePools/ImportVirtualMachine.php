@@ -2,7 +2,12 @@
 namespace NextDeveloper\IAAS\Actions\ComputePools;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
+use NextDeveloper\IAAS\Database\Models\StorageVolumes;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Exceptions\AlreadyImportedVirtualMachine;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers\UtilizeComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Repositories;
@@ -11,6 +16,8 @@ use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes\UtilizeStorageVolumes;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\StorageMemberXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -30,9 +37,7 @@ class ImportVirtualMachine extends AbstractAction
     public const PARAMS = [
         'iaas_repository_image_id'  =>  'required|exists:iaas_repository_images,uuid',
         'iaas_storage_pool_id'      =>  'required|exists:iaas_storage_pools,uuid',
-        'iaas_virtual_machine_id'   =>  'required|exists:iaas_virtual_machine_id',
-        'ram'                       =>  'integer',
-        'cpu'                       =>  'integer'
+        'iaas_virtual_machine_id'   =>  'required|exists:iaas_virtual_machines,uuid'
     ];
 
     private $image;
@@ -43,11 +48,7 @@ class ImportVirtualMachine extends AbstractAction
 
     private $computePool;
 
-    private $storageVolume;
-
-    private $ram = 0;
-
-    private $cpu = 0;
+    private $virtualMachine;
 
     public function __construct(ComputePools $pool, $params)
     {
@@ -61,15 +62,12 @@ class ImportVirtualMachine extends AbstractAction
 
         $this->image = RepositoryImages::where('uuid', $params['iaas_repository_image_id'])->first();
         $this->storagePool = StoragePools::where('uuid', $params['iaas_storage_pool_id'])->first();
+        $this->virtualMachine = VirtualMachines::where('uuid', $params['iaas_virtual_machine_id'])->first();
 
-        $this->ram = $this->image->ram;
-        $this->cpu = $this->image->cpu;
-
-        if(array_key_exists('ram', $params))
-            $this->ram = $params['ram'];
-
-        if(array_key_exists('cpu', $params))
-            $this->ram = $params['cpu'];
+        if($this->virtualMachine->hypervisor_uuid)
+            throw new AlreadyImportedVirtualMachine('According to our database this VM is' .
+                ' already imported. If you think' .
+                ' this is a mistake, please contact support.');
     }
 
     public function handle()
@@ -84,7 +82,10 @@ class ImportVirtualMachine extends AbstractAction
 
         $this->setProgress(5, 'Finding the best compute member');
 
-        $computeMember = (new UtilizeComputeMembers($this->computePool))->calculate($this->ram, $this->cpu);
+        $computeMember = (new UtilizeComputeMembers($this->computePool))->calculate(
+            $this->virtualMachine->ram,
+            $this->virtualMachine->cpu
+        );
 
         $this->setProgress(10, 'Finding the best storage volume for the compute member');
 
@@ -95,23 +96,75 @@ class ImportVirtualMachine extends AbstractAction
          * To do this we need to create a directory in storage member and then mount that volume to this compute member.
          */
         if(!$storageVolume) {
-            $this->setProgress(13, 'Creating storage volume for the compute member');
+            $this->setProgress(20, 'Creating storage volume for the compute member');
             $storageVolume = StorageMemberXenService::createStorageVolume($computeMember, $this->storagePool);
         }
 
-//        $this->setProgress(15, 'Mounting repository to compute member');
-//        ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
+        $this->setProgress(15, 'Mounting repository to compute member');
+        ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
 
-        $this->setProgress(20, 'Importing virtual machine image');
+        $this->setProgress(30, 'Importing virtual machine image');
         $uuid = ComputeMemberXenService::importVirtualMachine($computeMember, $storageVolume, $this->image);
 
-        $this->syncVirtualMachine($uuid, $this->params);
+        $this->setProgress(60, 'Updating virtual machine parameters');
 
-//        $this->setProgress(90, 'Unmounting repository from compute member');
-//        ComputeMemberXenService::unmountVmRepository($computeMember, $this->repository);
+        $vmParams = VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
+
+        $this->virtualMachine->update([
+            'hypervisor_uuid'           =>  $vmParams['uuid'],
+            'hypervisor_data'           =>  $vmParams,
+            'iaas_compute_member_id'    =>  $computeMember->id,
+            'state'                     =>  $vmParams['power-state'],
+            'os'        =>  $this->image->os,
+            'distro'    =>  $this->image->distro,
+            'version'   =>  $this->image->version,
+            'is_draft'  =>  false,
+            'status'    =>  'halted'
+        ]);
+
+        Events::listen('imported:NextDeveloper\IAAS\VirtualMachines', $this->virtualMachine);
+
+        $this->setProgress(70, 'Updating virtual machine CPU');
+
+        VirtualMachinesXenService::setCPUCore($this->virtualMachine, $this->virtualMachine->cpu);
+
+        $this->setProgress(80, 'Updating virtual machine RAM');
+        VirtualMachinesXenService::setRam($this->virtualMachine, $this->virtualMachine->ram);
+
+        $this->setProgress(85, 'Updating virtual machine RAM');
+        $disks = VirtualMachinesXenService::getVmDisks($this->virtualMachine);
+
+        $this->setProgress(87, 'Updating virtual machine disks/cdroms');
+
+        foreach ($disks as $disk) {
+            $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);
+            $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
+
+            $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                ->where('hypervisor_uuid', $disk['uuid'])
+                ->first();
+
+            $data = [
+                'name'                      =>  $vbdParams['type'] !== 'CD' ? 'Disk of: ' . $this->virtualMachine->name : 'CDROM',
+                'size'                      =>  $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
+                'physical_utilisation'      =>  $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
+                'iaas_storage_volume_id'    =>  $vbdParams['type'] !== 'CD' ?? $diskVolume->iaas_storage_volume_id,
+                'iaas_virtual_machine_id'   =>  $this->virtualMachine->id,
+                'device_number'             =>  $vbdParams['userdevice'],
+                'is_cdrom'                  =>  $vbdParams['type'] === 'CD',
+                'hypervisor_uuid'       =>  $vbdParams['vdi-uuid'],
+                'hypervisor_data'       =>  $disk,
+                'iam_account_id'        =>  $this->virtualMachine->iam_account_id,
+                'iam_user_id'           =>  $this->virtualMachine->iam_user_id,
+                'is_draft'              =>  false,
+            ];
+
+            VirtualDiskImages::create($data);
+        }
+
+        $this->setProgress(90, 'Unmounting repository from compute member');
+        $result = ComputeMemberXenService::unmountVmRepository($computeMember, $this->repository);
 
         $this->setProgress(100, 'Virtual machine imported');
     }
-
-
 }

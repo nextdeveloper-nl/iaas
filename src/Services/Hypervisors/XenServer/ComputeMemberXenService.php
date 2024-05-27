@@ -444,14 +444,14 @@ physical interfaces and vlans of compute member');
 
     public static function mountVmRepository(ComputeMembers $computeMember, Repositories $repo) : bool
     {
-        if(config('leo.debug.iaas.compupe_members'))
+        if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@mountVmRepo] Starting to mount the repository: ' .
                 $repo->name . ' to the compute member: ' . $computeMember->name);
 
         $computeMemberPath = '/mnt/plusclouds-repo/' . $repo->uuid;
         $createDirectoryCommand = 'mkdir -p ' . $computeMemberPath;
 
-        if(config('leo.debug.iaas.compupe_members'))
+        if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@mountVmRepo] Creating the directory with command; ' .
                 $createDirectoryCommand);
 
@@ -460,7 +460,7 @@ physical interfaces and vlans of compute member');
 
         $mountRepoCommand = 'mount -t nfs ' . $repo->local_ip_addr . ':' . $repo->vm_path . ' ' . $computeMemberPath;
 
-        if(config('leo.debug.iaas.compupe_members'))
+        if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@mountVmRepo] Mounting the repository with command; ' .
                 $mountRepoCommand);
 
@@ -476,9 +476,9 @@ physical interfaces and vlans of compute member');
         return false;
     }
 
-    public static function unmountVmRepository(ComputeMembers $computeMember, Repositories $repo) : ComputeMembers
+    public static function unmountVmRepository(ComputeMembers $computeMember, Repositories $repo) : bool
     {
-        if(config('leo.debug.iaas.compupe_members'))
+        if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@mountVmRepo] Starting to mount the repository: ' .
                 $repo->name . ' to the compute member: ' . $computeMember->name);
 
@@ -486,7 +486,7 @@ physical interfaces and vlans of compute member');
 
         $umountRepoCommand = 'umount ' . $computeMemberPath;
 
-        if(config('leo.debug.iaas.compupe_members'))
+        if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@mountVmRepo] Unmounting the repository with command; ' .
                 $umountRepoCommand);
 
@@ -496,8 +496,12 @@ physical interfaces and vlans of compute member');
         $result = self::performCommand($checkCommand, $computeMember);
         $result = $result[0]['output'];
 
-        if(strlen($result) > 0)
+        if(strlen($result) > 0) {
+            Log::error('[ComputeMembersXenService@mountVmRepo] The repository is not unmounted properly. ' .
+                'The directory is not empty. ');
+
             return false;
+        }
 
         return true;
     }
@@ -508,7 +512,7 @@ physical interfaces and vlans of compute member');
         RepositoryImages $image
     )
     {
-        if(config('leo.debug.iaas.compupe_members'))
+        if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@mountVmRepo] Starting to import the repository: ' .
                 $image->name . ' to the compute member: ' . $computeMember->name);
 
@@ -519,7 +523,7 @@ physical interfaces and vlans of compute member');
             ->where('id', $image->iaas_repository_id)
             ->first();
 
-        if(config('leo.debug.iaas.compupe_members'))
+        if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@mountVmRepo] Checking if the related' .
                 ' image (' . $image->name . '/' . $image->uuid . ') is available in the' .
                 ' repository: ' . $repository->name . '/' . $repository->uuid);
@@ -530,7 +534,7 @@ physical interfaces and vlans of compute member');
         if(Str::contains($result[0]['error'], "ls: cannot access")) {
             Events::fire('image-lost:NextDeveloper\Iaas\RepositoryImages', $image);
 
-            if(config('leo.debug.iaas.compupe_members'))
+            if(config('leo.debug.iaas.compute_members'))
                 Log::error('[ComputeMembersXenService@mountVmRepo] Unfortunately the image: ' .
                     $image->name . ' is not available in the repository: ' . $repository->name . '. ' .
                     'We triggered an event to fix this issue.');
@@ -554,5 +558,14 @@ physical interfaces and vlans of compute member');
         $result = self::performCommand($command, $computeMember);
 
         return $result[0]['output'];
+    }
+
+    public static function performCommand($command, ComputeMembers $computeMember) : ?array
+    {
+        if($computeMember->is_management_agent_available == true) {
+            return $computeMember->performAgentCommand($command);
+        } else {
+            return $computeMember->performSSHCommand($command);
+        }
     }
 }

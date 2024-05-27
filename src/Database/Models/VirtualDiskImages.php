@@ -53,7 +53,7 @@ class VirtualDiskImages extends Model
     protected $fillable = [
             'name',
             'size',
-            'physical_utilization',
+            'physical_utilisation',
             'available_operations',
             'current_operations',
             'is_cdrom',
@@ -89,7 +89,7 @@ class VirtualDiskImages extends Model
     'id' => 'integer',
     'name' => 'string',
     'size' => 'integer',
-    'physical_utilization' => 'integer',
+    'physical_utilisation' => 'integer',
     'available_operations' => 'array',
     'current_operations' => 'array',
     'is_cdrom' => 'boolean',

@@ -98,6 +98,10 @@ class VirtualMachines extends Model
             'iam_user_id',
             'iaas_virtual_machines_id',
             'tags',
+        'is_draft',
+        'common_domain_id',
+        'lock_password',
+        'is_template'
     ];
 
     /**
