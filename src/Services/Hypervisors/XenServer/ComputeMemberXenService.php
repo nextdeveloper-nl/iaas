@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
@@ -12,6 +13,7 @@ use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
+use NextDeveloper\IAAS\Exceptions\CannotImportException;
 use NextDeveloper\IAAS\Helpers\NetworkCalculationHelper;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
@@ -500,19 +502,57 @@ physical interfaces and vlans of compute member');
         return true;
     }
 
-    public static function importVirtualMachine(ComputeMembers $computeMember, StorageVolumes $volume, RepositoryImages $image)
+    public static function importVirtualMachine(
+        ComputeMembers $computeMember,
+        StorageVolumes $volume,
+        RepositoryImages $image
+    )
     {
         if(config('leo.debug.iaas.compupe_members'))
             Log::info('[ComputeMembersXenService@mountVmRepo] Starting to import the repository: ' .
                 $image->name . ' to the compute member: ' . $computeMember->name);
-    }
 
-    public static function performCommand($command, ComputeMembers $computeMember) : ?array
-    {
-        if($computeMember->is_management_agent_available == true) {
-            return $computeMember->performAgentCommand($command);
-        } else {
-            return $computeMember->performSSHCommand($command);
+        //  First we need to check if the image exists. If image does not exists we will trigger an event so that
+        // we can catch that event later and fix the error.
+
+        $repository = Repositories::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $image->iaas_repository_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compupe_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Checking if the related' .
+                ' image (' . $image->name . '/' . $image->uuid . ') is available in the' .
+                ' repository: ' . $repository->name . '/' . $repository->uuid);
+
+        $command = 'ls /mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
+        $result = self::performCommand($command, $computeMember);
+
+        if(Str::contains($result[0]['error'], "ls: cannot access")) {
+            Events::fire('image-lost:NextDeveloper\Iaas\RepositoryImages', $image);
+
+            if(config('leo.debug.iaas.compupe_members'))
+                Log::error('[ComputeMembersXenService@mountVmRepo] Unfortunately the image: ' .
+                    $image->name . ' is not available in the repository: ' . $repository->name . '. ' .
+                    'We triggered an event to fix this issue.');
+
+            throw new CannotImportException('I cannot find the given machine image. Seems' .
+                ' like it is missing. ' .
+                'I also fired an image-lost event, to syncronize the image service again.' .
+                ' Next time you try to import a machine you may not find the' .
+                ' same machine image in the database.');
         }
+
+        $mountedVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_compute_member_id', $computeMember->id)
+            ->where('iaas_storage_volume_id', $volume->id)
+            ->first();
+
+        $command = 'xe vm-import ';
+        $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
+        $command .= ' sr-uuid='.$volume->hypervisor_uuid;
+
+        $result = self::performCommand($command, $computeMember);
+
+        return $result[0]['output'];
     }
 }

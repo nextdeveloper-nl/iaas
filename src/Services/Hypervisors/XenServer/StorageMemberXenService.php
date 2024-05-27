@@ -15,6 +15,7 @@ use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StoragePoolsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\LMS\Events\Courses\sCoursesCreatedEvent;
 use PlusClouds\IAAS\Services\XenServer\XenServerService;
 
 class StorageMemberXenService extends AbstractXenService
@@ -38,6 +39,11 @@ class StorageMemberXenService extends AbstractXenService
         ]);
 
         return $storageMember;
+    }
+
+    public static function createStorageVolume(ComputeMembers $computeMembers, StoragePools $pools)
+    {
+        trigger_error('Not yet implemented, please dont use this at the moment', E_USER_ERROR);
     }
 
     public static function createStorageMemberFromComputeMember(ComputeMembers $computeMember) : StorageMembers {

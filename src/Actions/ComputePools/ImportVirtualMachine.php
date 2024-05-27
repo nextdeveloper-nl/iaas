@@ -2,6 +2,7 @@
 namespace NextDeveloper\IAAS\Actions\ComputePools;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers\UtilizeComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Repositories;
@@ -9,6 +10,7 @@ use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes\UtilizeStorageVolumes;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\StorageMemberXenService;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -28,6 +30,7 @@ class ImportVirtualMachine extends AbstractAction
     public const PARAMS = [
         'iaas_repository_image_id'  =>  'required|exists:iaas_repository_images,uuid',
         'iaas_storage_pool_id'      =>  'required|exists:iaas_storage_pools,uuid',
+        'iaas_virtual_machine_id'   =>  'required|exists:iaas_virtual_machine_id',
         'ram'                       =>  'integer',
         'cpu'                       =>  'integer'
     ];
@@ -87,14 +90,28 @@ class ImportVirtualMachine extends AbstractAction
 
         $storageVolume = (new UtilizeStorageVolumes($this->storagePool))->calculate($computeMember, 20);
 
-        dd($storageVolume);
+        /**
+         * At this point if the storage volume is null, we need to create a storage volume for the compute member.
+         * To do this we need to create a directory in storage member and then mount that volume to this compute member.
+         */
+        if(!$storageVolume) {
+            $this->setProgress(13, 'Creating storage volume for the compute member');
+            $storageVolume = StorageMemberXenService::createStorageVolume($computeMember, $this->storagePool);
+        }
 
-        $this->setProgress(15, 'Mounting repository to compute member');
-        ComputeMemberXenService::mountVmRepository($this->computeMember, $this->repository);
+//        $this->setProgress(15, 'Mounting repository to compute member');
+//        ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
 
         $this->setProgress(20, 'Importing virtual machine image');
-        ComputeMemberXenService::importVirtualMachine($computeMember, $storageVolume, $this->image);
+        $uuid = ComputeMemberXenService::importVirtualMachine($computeMember, $storageVolume, $this->image);
+
+        $this->syncVirtualMachine($uuid, $this->params);
+
+//        $this->setProgress(90, 'Unmounting repository from compute member');
+//        ComputeMemberXenService::unmountVmRepository($computeMember, $this->repository);
 
         $this->setProgress(100, 'Virtual machine imported');
     }
+
+
 }

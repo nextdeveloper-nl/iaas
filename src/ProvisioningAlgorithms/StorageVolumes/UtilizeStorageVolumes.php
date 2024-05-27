@@ -37,14 +37,14 @@ class UtilizeStorageVolumes extends AbstractStorageVolumeAlgorithm
             ->where('iaas_storage_pool_id', $this->storagePools->id)
             ->pluck('iaas_storage_volume_id');
 
+        /**
+         * We didnt check the disk size here. We need to check the disk size here.
+         */
+
         $storageVolumes = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->whereIn('id', $storageVolumesMounted)
-            ->get();
+            ->first();
 
-        dd($storageVolumes);
-
-        throw new NotEnoughResourcesException('There is not enough resources to allocate this' .
-            ' much ram (' . $ram . ' GB) in the pool: '
-            . $this->computePool->name . '. You may want to try another pool that is not full.');
+        return $storageVolumes;
     }
 }
