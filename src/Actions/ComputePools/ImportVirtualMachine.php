@@ -30,8 +30,9 @@ class ImportVirtualMachine extends AbstractAction
     public const EVENTS = [
         'importing:NextDeveloper\IAAS\VirtualMachines',
         'imported:NextDeveloper\IAAS\VirtualMachines',
-        'importing:NextDeveloper\IAAS\ComputePools',
-        'imported:NextDeveloper\IAAS\ComputePools',
+        'importing-virtual-machine:NextDeveloper\IAAS\ComputePools',
+        'imported-virtual-machine:NextDeveloper\IAAS\ComputePools',
+        'imported-virtual-machine:NextDeveloper\IAAS\ComputeMembers',
     ];
 
     public const PARAMS = [
@@ -106,7 +107,7 @@ class ImportVirtualMachine extends AbstractAction
         $this->setProgress(30, 'Importing virtual machine image');
         $uuid = ComputeMemberXenService::importVirtualMachine($computeMember, $storageVolume, $this->image);
 
-        $this->setProgress(60, 'Updating virtual machine parameters');
+        $this->setProgress(40, 'Updating virtual machine parameters');
 
         $vmParams = VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
 
@@ -123,18 +124,20 @@ class ImportVirtualMachine extends AbstractAction
         ]);
 
         Events::listen('imported:NextDeveloper\IAAS\VirtualMachines', $this->virtualMachine);
+        Events::listen('imported-virtual-machine:NextDeveloper\IAAS\ComputePools', $this->computePool);
+        Events::listen('imported-virtual-machine:NextDeveloper\IAAS\ComputeMembers', $computeMember);
 
-        $this->setProgress(70, 'Updating virtual machine CPU');
+        $this->setProgress(50, 'Updating virtual machine CPU');
 
         VirtualMachinesXenService::setCPUCore($this->virtualMachine, $this->virtualMachine->cpu);
 
-        $this->setProgress(80, 'Updating virtual machine RAM');
+        $this->setProgress(60, 'Updating virtual machine RAM');
         VirtualMachinesXenService::setRam($this->virtualMachine, $this->virtualMachine->ram);
 
-        $this->setProgress(85, 'Updating virtual machine RAM');
+        $this->setProgress(70, 'Updating virtual machine RAM');
         $disks = VirtualMachinesXenService::getVmDisks($this->virtualMachine);
 
-        $this->setProgress(87, 'Updating virtual machine disks/cdroms');
+        $this->setProgress(80, 'Updating virtual machine disks/cdroms');
 
         foreach ($disks as $disk) {
             $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);

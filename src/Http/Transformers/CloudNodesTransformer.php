@@ -38,6 +38,6 @@ class CloudNodesTransformer extends AbstractCloudNodesTransformer
             $transformed
         );
 
-        return parent::transform($model);
+        return $transformed;
     }
 }

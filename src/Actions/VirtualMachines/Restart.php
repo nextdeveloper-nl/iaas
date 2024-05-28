@@ -3,7 +3,9 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 
 /**
  * This action restarts the Virtual Machine
@@ -18,18 +20,31 @@ class Restart extends AbstractAction
 
     public function __construct(VirtualMachines $vm)
     {
-        trigger_error('This action is not yet implemented', E_USER_ERROR);
-
         $this->model = $vm;
     }
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Restarting the virtual machine');
 
-        $this->model->status = 'initiated';
-        $this->model->save();
+        Events::fire('restarting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $this->setProgress(100, 'Virtual machine initiated');
+        $vm = VirtualMachinesXenService::restart($this->model);
+        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+
+        if($vmParams['power-state'] != 'halted') {
+            $this->setProgress(100, 'Virtual machine failed to start again');
+            Events::fire('restart-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
+            return;
+        }
+
+        $this->model->update([
+            'status'            =>  'running',
+            'hypervisor_data'   =>  $vmParams
+        ]);
+
+        Events::fire('restarted:NextDeveloper\IAAS\VirtualMachines', $this->model);
+
+        $this->setProgress(100, 'Virtual machine restarted');
     }
 }

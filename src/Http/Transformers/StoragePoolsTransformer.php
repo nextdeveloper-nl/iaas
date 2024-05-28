@@ -38,6 +38,6 @@ class StoragePoolsTransformer extends AbstractStoragePoolsTransformer
             $transformed
         );
 
-        return parent::transform($model);
+        return $transformed;
     }
 }

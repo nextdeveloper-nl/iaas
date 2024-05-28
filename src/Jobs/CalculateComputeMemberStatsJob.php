@@ -1,6 +1,6 @@
 <?php
 
-namespace Jobs;
+namespace NextDeveloper\IAAS\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

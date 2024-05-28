@@ -38,6 +38,6 @@ class ComputeMembersTransformer extends AbstractComputeMembersTransformer
             $transformed
         );
 
-        return parent::transform($model);
+        return $transformed;
     }
 }

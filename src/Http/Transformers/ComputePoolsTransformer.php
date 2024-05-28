@@ -38,6 +38,6 @@ class ComputePoolsTransformer extends AbstractComputePoolsTransformer
             $transformed
         );
 
-        return parent::transform($model);
+        return $transformed;
     }
 }

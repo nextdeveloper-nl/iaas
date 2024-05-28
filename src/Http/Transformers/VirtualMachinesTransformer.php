@@ -33,11 +33,14 @@ class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
 
         $transformed = parent::transform($model);
 
+        unset($transformed['hypervisor_uuid']);
+        unset($transformed['hypervisor_data']);
+
         Cache::set(
             CacheHelper::getKey('VirtualMachines', $model->uuid, 'Transformed'),
             $transformed
         );
 
-        return parent::transform($model);
+        return $transformed;
     }
 }

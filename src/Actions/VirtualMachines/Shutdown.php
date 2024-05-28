@@ -3,7 +3,9 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 
 /**
  * This action shutdowns the Virtual Machine
@@ -18,8 +20,6 @@ class Shutdown extends AbstractAction
 
     public function __construct(VirtualMachines $vm)
     {
-        trigger_error('This action is not yet implemented', E_USER_ERROR);
-
         $this->model = $vm;
     }
 
@@ -27,8 +27,23 @@ class Shutdown extends AbstractAction
     {
         $this->setProgress(0, 'Initiate virtual machine started');
 
-        $this->model->status = 'initiated';
-        $this->model->save();
+        Events::fire('halting:NextDeveloper\IAAS\VirtualMachines', $this->model);
+
+        $vm = VirtualMachinesXenService::shutdown($this->model);
+        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+
+        if($vmParams['power-state'] != 'halted') {
+            $this->setProgress(100, 'Virtual machine failed to shutdown');
+            Events::fire('shutdown-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
+            return;
+        }
+
+        $this->model->update([
+            'status'            =>  'halted',
+            'hypervisor_data'   =>  $vmParams
+        ]);
+
+        Events::fire('halted:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         $this->setProgress(100, 'Virtual machine initiated');
     }

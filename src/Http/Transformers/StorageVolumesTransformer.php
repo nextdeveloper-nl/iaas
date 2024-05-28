@@ -38,6 +38,6 @@ class StorageVolumesTransformer extends AbstractStorageVolumesTransformer
             $transformed
         );
 
-        return parent::transform($model);
+        return $transformed;
     }
 }

@@ -38,6 +38,6 @@ class DatacentersTransformer extends AbstractDatacentersTransformer
             $transformed
         );
 
-        return parent::transform($model);
+        return $transformed;
     }
 }

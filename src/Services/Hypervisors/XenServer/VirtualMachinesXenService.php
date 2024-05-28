@@ -9,6 +9,113 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class VirtualMachinesXenService extends AbstractXenService
 {
+    public static function start(VirtualMachines $vm) : VirtualMachines
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@start] I am starting the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-start uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return $vm;
+    }
+
+    public static function restart(VirtualMachines $vm) : bool
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@restart] I am restarting the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-reboot uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return true;
+    }
+
+    public static function forceRestart(VirtualMachines $vm) : bool
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@restart] I am restarting the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-reboot force=true uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return true;
+    }
+
+    public static function shutdown(VirtualMachines $vm) : bool
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@shutdown] I am shutting down the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-shutdown uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return true;
+    }
+
+    public static function forceShutdown(VirtualMachines $vm) : bool
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@shutdown] I am shutting down the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-shutdown force=true uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return true;
+    }
+
+    public static function getVmParameters(VirtualMachines $vm) : array
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@getVmParameters] I am taking the' .
+                ' parameters of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-param-list uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        return self::parseResult($result[0]['output']);
+    }
+
     public static function getVmParametersByUuid(ComputeMembers $computeMember, $vmUuid) : array
     {
         if(config('leo.debug.iaas.compute_members'))
