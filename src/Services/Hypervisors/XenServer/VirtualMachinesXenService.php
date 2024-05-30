@@ -45,6 +45,42 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
+    public static function unpause(VirtualMachines $vm) : bool
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@pause] I am unpausing the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-unpause uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return true;
+    }
+
+    public static function pause(VirtualMachines $vm) : bool
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@pause] I am pausing the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-pause uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return true;
+    }
+
     public static function forceRestart(VirtualMachines $vm) : bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)

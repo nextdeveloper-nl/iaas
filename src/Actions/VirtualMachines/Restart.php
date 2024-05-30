@@ -29,17 +29,26 @@ class Restart extends AbstractAction
 
         Events::fire('restarting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $vm = VirtualMachinesXenService::restart($this->model);
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
-        if($vmParams['power-state'] != 'halted') {
-            $this->setProgress(100, 'Virtual machine failed to start again');
+        if($vmParams['power-state'] != 'running') {
+            $this->setProgress(100, 'We cannot restart the virtual machine. It is not halted.');
             Events::fire('restart-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
 
+        $result = VirtualMachinesXenService::restart($this->model);
+
+        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+
+        if($vmParams['power-state'] == 'running') {
+            $this->setProgress(100, 'We restarted the virtual machine. It is now running.');
+            Events::fire('restarted:NextDeveloper\IAAS\VirtualMachines', $this->model);
+            return;
+        }
+
         $this->model->update([
-            'status'            =>  'running',
+            'status'            =>  $vmParams['power-state'],
             'hypervisor_data'   =>  $vmParams
         ]);
 

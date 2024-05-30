@@ -10,7 +10,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 /**
  * This action will scan compute member and sync all findings
  */
-class Scan extends AbstractAction
+class ScanVirtualMachines extends AbstractAction
 {
     public const EVENTS = [
         'scanned:NextDeveloper\IAAS\ComputeMembers'
