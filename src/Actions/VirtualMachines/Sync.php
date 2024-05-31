@@ -37,6 +37,8 @@ class Sync extends AbstractAction
             return;
         }
 
+        dd($params);
+
         $this->model->update([
             'status'    =>  $params['power-state'],
             'cpu'       =>  $params['VCPUs-max'],

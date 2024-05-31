@@ -32,7 +32,7 @@ class Restart extends AbstractAction
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
         if($vmParams['power-state'] != 'running') {
-            $this->setProgress(100, 'We cannot restart the virtual machine. It is not halted.');
+            $this->setProgress(100, 'We cannot restart the virtual machine. It is not running.');
             Events::fire('restart-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }

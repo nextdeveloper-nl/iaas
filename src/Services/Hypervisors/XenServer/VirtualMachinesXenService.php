@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -133,6 +134,27 @@ class VirtualMachinesXenService extends AbstractXenService
         $result = $result[0]['output'];
 
         return true;
+    }
+
+    public static function export(VirtualMachines $vm, Repositories $repo) : string
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@export] I am exporting the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $newUuid = uuid_create(UUID_TYPE_DEFAULT);
+
+        $command = 'xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
+            'filename=/mnt/plusclouds-repo/' . $repo->uuid . '/' . $newUuid. '.pvm';
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return $newUuid;
     }
 
     public static function getVmParameters(VirtualMachines $vm) : array

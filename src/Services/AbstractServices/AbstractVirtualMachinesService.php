@@ -188,7 +188,7 @@ class AbstractVirtualMachinesService
                 $data['iam_account_id']
             );
         }
-            
+
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
@@ -198,7 +198,7 @@ class AbstractVirtualMachinesService
                 $data['iam_user_id']
             );
         }
-                    
+
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
@@ -208,7 +208,7 @@ class AbstractVirtualMachinesService
                 $data['iaas_virtual_machines_id']
             );
         }
-                        
+
         try {
             $model = VirtualMachines::create($data);
         } catch(\Exception $e) {
@@ -286,7 +286,7 @@ class AbstractVirtualMachinesService
                 $data['iaas_virtual_machines_id']
             );
         }
-    
+
         Events::fire('updating:NextDeveloper\IAAS\VirtualMachines', $model);
 
         try {
