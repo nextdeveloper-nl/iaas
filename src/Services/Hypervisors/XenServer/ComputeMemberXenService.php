@@ -560,6 +560,44 @@ physical interfaces and vlans of compute member');
         return $result[0]['output'];
     }
 
+    public static function mountIsoRepository(ComputeMembers $computeMember, Repositories $repo) {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Starting to mount the repository: ' .
+                $repo->name . ' to the compute member: ' . $computeMember->name);
+
+        $srList = self::performCommand('xe sr-list', $computeMember);
+        $srList = self::parseListResult($srList[0]['output']);
+
+        foreach ($srList as $sr) {
+            if($sr['name-label'] == 'ISO on ' . $repo->name) {
+                Log::info('[ComputeMembersXenService@mountIsoRepo] The ISO' .
+                    ' repository is already mounted on the compute member: ' . $computeMember->name);
+                return true;
+            }
+        }
+
+        $command = 'xe sr-create content-type=iso type=iso' .
+            ' name-label="ISO on ' . $repo->name . '" device-config:nfsversion=4 device-config:type=nfs_iso' .
+            ' device-config:location=' . $repo->local_ip_addr . ':' . $repo->iso_path .
+            ' shared=true';
+
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        $srList = self::performCommand('xe sr-list', $computeMember);
+        $srList = self::parseListResult($srList[0]['output']);
+
+        foreach ($srList as $sr) {
+            if($sr['name-label'] == 'ISO on ' . $repo->name) {
+                Log::info('[ComputeMembersXenService@mountIsoRepo] The ISO' .
+                    ' repository is already mounted on the compute member: ' . $computeMember->name);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static function performCommand($command, ComputeMembers $computeMember) : ?array
     {
         if($computeMember->is_management_agent_available == true) {

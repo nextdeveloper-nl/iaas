@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Services\Repositories;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
@@ -11,6 +12,37 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class SyncRepositoryService
 {
+    /**
+     * Get the iso image files list
+     *
+     * @param Repositories $repo
+     * @return array
+     */
+    public static function getIsoImages(Repositories $repo) : array
+    {
+        $command = 'find ' . $repo->iso_path;
+        $images = self::performCommand($command, $repo);
+        $images = $images[0]['output'];
+
+        $images = array_filter(explode("\n", trim($images)));
+
+        $tempImages = [];
+
+        foreach ($images as $image) {
+            if(Str::contains($image, '.iso')) {
+                $tempImages[] = $image;
+            }
+        }
+
+        foreach ($tempImages as &$image) {
+            if(Str::contains($image, '.iso')) {
+                $image = str_replace($repo->iso_path . '/', '', $image);
+            }
+        }
+
+        return $tempImages;
+    }
+
     public static function syncRepoImages(Repositories $repo) : Repositories
     {
         if(config('leo.debug.iaas.repo'))
@@ -131,6 +163,7 @@ class SyncRepositoryService
                             'default_password'  =>  'pep0movt!',
                             'hash' => $hash,
                             'path' => $file,
+                            'is_iso'    =>  false,
                             'supported_virtualizations' =>  ImageSupportService::getSupportedModels($imageType),
                             'is_virtual_machine_image'  =>  true,
                             'filename' => $filename,

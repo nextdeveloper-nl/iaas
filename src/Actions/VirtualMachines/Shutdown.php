@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 
 /**
@@ -28,6 +29,8 @@ class Shutdown extends AbstractAction
         $this->setProgress(0, 'Initiate virtual machine started');
 
         Events::fire('halting:NextDeveloper\IAAS\VirtualMachines', $this->model);
+
+        (new Fix($this->model))->handle();
 
         $vm = VirtualMachinesXenService::shutdown($this->model);
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);

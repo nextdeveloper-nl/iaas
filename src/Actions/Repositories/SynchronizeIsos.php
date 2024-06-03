@@ -2,11 +2,16 @@
 
 namespace NextDeveloper\IAAS\Actions\Repositories;
 
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
+use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
+use NextDeveloper\IAAS\Services\RepositoryImagesService;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * This action will scan compute member and sync all findings
@@ -21,9 +26,9 @@ class SynchronizeIsos extends AbstractAction
 
     public function __construct(Repositories $repo)
     {
-        parent::__construct();
-
         $this->model = $repo;
+
+        parent::__construct();
     }
 
     public function handle()
@@ -47,8 +52,49 @@ class SynchronizeIsos extends AbstractAction
             return;
         }
 
-        return;
+        $this->model->update([
+            'is_iso_repo'   =>  true
+        ]);
 
-        $this->setProgress(100, 'Storage member scanned and synced');
+        StateHelper::setState($this->model, 'iso_repo', 'Iso repository is configured');
+
+        $this->setProgress(20, 'Retrieving ISO images in repository.');
+
+        $isoImages = SyncRepositoryService::getIsoImages($this->model);
+
+        $this->setProgress(20, 'Syncing ISO images in repository.');
+
+        $imageCount = count($isoImages);
+        $step = 80 / $imageCount;
+        $now = 0;
+
+        foreach ($isoImages as $image) {
+            $this->setProgress(20 + ceil($now), 'Syncing ISO image: ' . $image);
+
+            $dbImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_repository_id', $this->model->id)
+                ->where('is_iso', true)
+                ->where('filename', $image)
+                ->first();
+
+            if(!$dbImage) {
+                $dbImage = RepositoryImagesService::create([
+                    'iaas_repository_id'    =>  $this->model->id,
+                    'name'                  =>  Str::remove('.iso', $image),
+                    'filename'              =>  $image,
+                    'path'                  =>  $this->model->iso_path . '/' . $image,
+                    'is_iso'                =>  true,
+                    'is_public'             =>  $this->model->is_public,
+                    'ram'                   =>  1,
+                    'cpu'                   =>  2,
+                    'iam_account_id'        =>  $this->model->iam_account_id,
+                    'iam_user_id'           =>  $this->model->iam_user_id
+                ]);
+            }
+
+            $now = $now + $step;
+        }
+
+        $this->setFinished('Storage member scanned and synced');
     }
 }

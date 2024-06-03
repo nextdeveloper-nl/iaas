@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 
 /**
@@ -26,6 +27,8 @@ class Pause extends AbstractAction
     public function handle()
     {
         $this->setProgress(0, 'Initiate virtual machine started');
+
+        (new Fix($this->model))->handle();
 
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 

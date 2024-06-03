@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 
 /**
@@ -29,6 +30,8 @@ class Start extends AbstractAction
         $this->setProgress(0, 'Initiate virtual machine started');
 
         Events::fire('starting:NextDeveloper\IAAS\VirtualMachines', $this->model);
+
+        (new Fix($this->model))->handle();
 
         $vm = VirtualMachinesXenService::start($this->model);
         $vmParams = VirtualMachinesXenService::getVmParameters($vm);

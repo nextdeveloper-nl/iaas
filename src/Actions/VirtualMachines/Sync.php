@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 
 /**
@@ -27,6 +28,8 @@ class Sync extends AbstractAction
     {
         $this->setProgress(0, 'Initiate virtual machine started');
 
+        (new Fix($this->model))->handle();
+
         Events::fire('syncing:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         $params = VirtualMachinesXenService::getVmParameters($this->model);
@@ -36,8 +39,6 @@ class Sync extends AbstractAction
             Events::fire('sync-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
-
-        dd($params);
 
         $this->model->update([
             'status'    =>  $params['power-state'],

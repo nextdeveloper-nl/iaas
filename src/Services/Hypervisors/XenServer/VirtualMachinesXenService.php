@@ -3,8 +3,11 @@
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
 use Illuminate\Support\Facades\Log;
+use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -132,6 +135,107 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe vm-shutdown force=true uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
         $result = $result[0]['output'];
+
+        return true;
+    }
+
+    public static function fixName(VirtualMachines $vm) : bool
+    {
+        if(StateHelper::getState($vm, 'name') == 'fixed')
+            return true;
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@fixName] I am fixing the' .
+                ' name of the VM (' . $vm->name. '/' . $vm->uuid . ')');
+
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        $command = 'xe vm-param-set name-label="' . $vm->uuid . '" uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        StateHelper::setState($vm, 'name', 'fixed');
+
+        return true;
+    }
+
+    public static function mountCD(VirtualMachines $vm, RepositoryImages $image) : bool
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@mountCD] I am mounting the' .
+                ' CD (' . $image->name. '/' . $image->uuid . ') to the VM (' .
+                $vm->name. '/' . $vm->uuid . ')');
+
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        $command = 'xe vm-cd-insert vm=' . $vm->uuid . ' cd-name=' . $image->filename;
+        $command = self::performCommand($command, $computeMember);
+
+        $checkCommand = 'xe vm-cd-list vm=' . $vm->uuid;
+        $command = self::performCommand($checkCommand, $computeMember);
+        $result = self::parseListResult($command[0]['output']);
+
+        $cdrom = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('is_cdrom', 'true')
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->first();
+
+        if(count($result)>1) {
+            if(array_key_exists('CD 0 VDI', $result[1])) {
+                $cdrom->update([
+                    'hypervisor_uuid'   =>  $result[1]['uuid'],
+                    'name'     =>   'CD: ' . $result[1]['name-label'],
+                    'size'      =>  $result[1]['virtual-size']
+                ]);
+
+                return true;
+            }
+        }
+
+        $cdrom->update([
+            'hypervisor_uuid'   =>  null,
+            'name'     =>   'CDROM',
+            'size'      =>  0
+        ]);
+
+        return false;
+    }
+
+    public static function unmountCD(VirtualMachines $vm)
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@unmountCD] I am unmounting the' .
+                ' CD from the VM (' . $vm->name. '/' . $vm->uuid . ')');
+
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        $command = 'xe vm-cd-eject vm=' . $vm->uuid;
+        $command = self::performCommand($command, $computeMember);
+
+        $checkCommand = 'xe vm-cd-list vm=' . $vm->uuid;
+        $command = self::performCommand($checkCommand, $computeMember);
+        $result = self::parseListResult($command[0]['output']);
+
+        $cdrom = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('is_cdrom', 'true')
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->first();
+
+        if(count($result)>1) {
+            if(array_key_exists('CD 0 VDI', $result[1]))
+                return false;
+        }
+
+        $cdrom->update([
+            'hypervisor_uuid'   =>  null,
+            'name'     =>   'CDROM',
+            'size'      =>  0
+        ]);
 
         return true;
     }
