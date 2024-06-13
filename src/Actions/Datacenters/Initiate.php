@@ -160,6 +160,8 @@ class Initiate extends AbstractAction
         ]);
 
         Events::fire('created:NextDeveloper\IAAS\StoragePools', $storagePool);
+
+        return $storagePool;
     }
 
     /**

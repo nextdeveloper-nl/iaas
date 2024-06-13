@@ -55,6 +55,7 @@ class StoragePools extends Model
             'iam_user_id',
             'tags',
             'common_currency_id',
+        'iaas_datacenter_id',
             'storage_pool_type',
     ];
 
