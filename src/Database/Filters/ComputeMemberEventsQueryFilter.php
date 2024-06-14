@@ -33,9 +33,13 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('event', 'like', '%' . $value . '%');
     }
 
-    public function isExecuted()
+    public function isExecuted($value)
     {
-        return $this->builder->where('is_executed', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_executed', $value);
     }
 
     public function createdAtStart($date)
@@ -96,16 +100,4 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

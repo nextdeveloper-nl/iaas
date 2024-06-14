@@ -110,11 +110,11 @@ class AbstractVirtualNetworkCardsService
     {
         $object = VirtualNetworkCards::where('uuid', $objectId)->first();
 
-        $action = '\\NextDeveloper\\IAAS\\Actions\\VirtualNetworkCards\\' . Str::studly($action);
+        $action = AvailableActions::where('name', $action)->first();
+        $class = $action->class;
 
-        if(class_exists($action)) {
-            $action = new $action($object, $params);
-
+        if(class_exists($class)) {
+            $action = new $class($object, $params);
             dispatch($action);
 
             return $action->getActionId();

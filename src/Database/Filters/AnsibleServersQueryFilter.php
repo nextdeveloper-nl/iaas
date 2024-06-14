@@ -74,19 +74,31 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ansible_version', $operator, $value);
     }
 
-    public function isExternalMachine()
+    public function isExternalMachine($value)
     {
-        return $this->builder->where('is_external_machine', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_external_machine', $value);
     }
 
-    public function isActive()
+    public function isActive($value)
     {
-        return $this->builder->where('is_active', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_active', $value);
     }
 
-    public function isPublic()
+    public function isPublic($value)
     {
-        return $this->builder->where('is_public', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_public', $value);
     }
 
     public function createdAtStart($date)
@@ -156,16 +168,4 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

@@ -110,11 +110,11 @@ class AbstractStoragePoolsService
     {
         $object = StoragePools::where('uuid', $objectId)->first();
 
-        $action = '\\NextDeveloper\\IAAS\\Actions\\StoragePools\\' . Str::studly($action);
+        $action = AvailableActions::where('name', $action)->first();
+        $class = $action->class;
 
-        if(class_exists($action)) {
-            $action = new $action($object, $params);
-
+        if(class_exists($class)) {
+            $action = new $class($object, $params);
             dispatch($action);
 
             return $action->getActionId();
@@ -202,6 +202,12 @@ class AbstractStoragePoolsService
                 $data['common_currency_id']
             );
         }
+        if (array_key_exists('iaas_datacenter_id', $data)) {
+            $data['iaas_datacenter_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\Datacenters',
+                $data['iaas_datacenter_id']
+            );
+        }
                         
         try {
             $model = StoragePools::create($data);
@@ -272,6 +278,12 @@ class AbstractStoragePoolsService
             $data['common_currency_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\Commons\Database\Models\Currencies',
                 $data['common_currency_id']
+            );
+        }
+        if (array_key_exists('iaas_datacenter_id', $data)) {
+            $data['iaas_datacenter_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\Datacenters',
+                $data['iaas_datacenter_id']
             );
         }
     

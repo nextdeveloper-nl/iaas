@@ -121,7 +121,7 @@ class ComputeMemberDevicesController extends AbstractController
      * This method updates ComputeMemberDevices object on database.
      *
      * @param  $computeMemberDevicesId
-     * @param  CountryCreateRequest $request
+     * @param  ComputeMemberDevicesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class ComputeMemberDevicesController extends AbstractController
      * This method updates ComputeMemberDevices object on database.
      *
      * @param  $computeMemberDevicesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

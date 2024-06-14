@@ -121,7 +121,7 @@ class NetworksController extends AbstractController
      * This method updates Networks object on database.
      *
      * @param  $networksId
-     * @param  CountryCreateRequest $request
+     * @param  NetworksUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class NetworksController extends AbstractController
      * This method updates Networks object on database.
      *
      * @param  $networksId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

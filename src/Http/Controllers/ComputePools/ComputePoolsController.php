@@ -121,7 +121,7 @@ class ComputePoolsController extends AbstractController
      * This method updates ComputePools object on database.
      *
      * @param  $computePoolsId
-     * @param  CountryCreateRequest $request
+     * @param  ComputePoolsUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class ComputePoolsController extends AbstractController
      * This method updates ComputePools object on database.
      *
      * @param  $computePoolsId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

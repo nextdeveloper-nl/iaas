@@ -121,7 +121,7 @@ class VirtualDiskImagesController extends AbstractController
      * This method updates VirtualDiskImages object on database.
      *
      * @param  $virtualDiskImagesId
-     * @param  CountryCreateRequest $request
+     * @param  VirtualDiskImagesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class VirtualDiskImagesController extends AbstractController
      * This method updates VirtualDiskImages object on database.
      *
      * @param  $virtualDiskImagesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

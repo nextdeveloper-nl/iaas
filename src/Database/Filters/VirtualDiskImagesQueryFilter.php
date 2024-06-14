@@ -67,14 +67,22 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('device_number', $operator, $value);
     }
 
-    public function isCdrom()
+    public function isCdrom($value)
     {
-        return $this->builder->where('is_cdrom', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_cdrom', $value);
     }
 
-    public function isDraft()
+    public function isDraft($value)
     {
-        return $this->builder->where('is_draft', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_draft', $value);
     }
 
     public function createdAtStart($date)
@@ -153,16 +161,4 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

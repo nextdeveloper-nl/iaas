@@ -121,7 +121,7 @@ class VirtualNetworkCardsController extends AbstractController
      * This method updates VirtualNetworkCards object on database.
      *
      * @param  $virtualNetworkCardsId
-     * @param  CountryCreateRequest $request
+     * @param  VirtualNetworkCardsUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class VirtualNetworkCardsController extends AbstractController
      * This method updates VirtualNetworkCards object on database.
      *
      * @param  $virtualNetworkCardsId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

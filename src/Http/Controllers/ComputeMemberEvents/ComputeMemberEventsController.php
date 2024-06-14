@@ -121,7 +121,7 @@ class ComputeMemberEventsController extends AbstractController
      * This method updates ComputeMemberEvents object on database.
      *
      * @param  $computeMemberEventsId
-     * @param  CountryCreateRequest $request
+     * @param  ComputeMemberEventsUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class ComputeMemberEventsController extends AbstractController
      * This method updates ComputeMemberEvents object on database.
      *
      * @param  $computeMemberEventsId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

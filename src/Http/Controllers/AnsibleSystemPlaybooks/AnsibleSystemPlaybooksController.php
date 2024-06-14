@@ -121,7 +121,7 @@ class AnsibleSystemPlaybooksController extends AbstractController
      * This method updates AnsibleSystemPlaybooks object on database.
      *
      * @param  $ansibleSystemPlaybooksId
-     * @param  CountryCreateRequest $request
+     * @param  AnsibleSystemPlaybooksUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class AnsibleSystemPlaybooksController extends AbstractController
      * This method updates AnsibleSystemPlaybooks object on database.
      *
      * @param  $ansibleSystemPlaybooksId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

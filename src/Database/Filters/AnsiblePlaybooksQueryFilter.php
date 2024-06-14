@@ -28,14 +28,22 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
         return $this->builder->where('description', 'like', '%' . $value . '%');
     }
 
-    public function isPublic()
+    public function isPublic($value)
     {
-        return $this->builder->where('is_public', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_public', $value);
     }
 
-    public function isProcedure()
+    public function isProcedure($value)
     {
-        return $this->builder->where('is_procedure', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_procedure', $value);
     }
 
     public function createdAtStart($date)
@@ -96,16 +104,4 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

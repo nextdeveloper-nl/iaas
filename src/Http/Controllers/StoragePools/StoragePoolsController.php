@@ -121,7 +121,7 @@ class StoragePoolsController extends AbstractController
      * This method updates StoragePools object on database.
      *
      * @param  $storagePoolsId
-     * @param  CountryCreateRequest $request
+     * @param  StoragePoolsUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class StoragePoolsController extends AbstractController
      * This method updates StoragePools object on database.
      *
      * @param  $storagePoolsId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

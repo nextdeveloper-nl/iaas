@@ -121,7 +121,7 @@ class AnsiblePlaybookExecutionsController extends AbstractController
      * This method updates AnsiblePlaybookExecutions object on database.
      *
      * @param  $ansiblePlaybookExecutionsId
-     * @param  CountryCreateRequest $request
+     * @param  AnsiblePlaybookExecutionsUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class AnsiblePlaybookExecutionsController extends AbstractController
      * This method updates AnsiblePlaybookExecutions object on database.
      *
      * @param  $ansiblePlaybookExecutionsId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

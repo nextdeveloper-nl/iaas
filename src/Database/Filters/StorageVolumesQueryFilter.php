@@ -100,24 +100,40 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('virtual_allocation', $operator, $value);
     }
 
-    public function isStorage()
+    public function isStorage($value)
     {
-        return $this->builder->where('is_storage', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_storage', $value);
     }
 
-    public function isRepo()
+    public function isRepo($value)
     {
-        return $this->builder->where('is_repo', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_repo', $value);
     }
 
-    public function isCdrom()
+    public function isCdrom($value)
     {
-        return $this->builder->where('is_cdrom', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_cdrom', $value);
     }
 
-    public function isAlive()
+    public function isAlive($value)
     {
-        return $this->builder->where('is_alive', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_alive', $value);
     }
 
     public function createdAtStart($date)
@@ -187,16 +203,4 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

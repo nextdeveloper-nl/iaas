@@ -110,11 +110,11 @@ class AbstractVirtualMachinesService
     {
         $object = VirtualMachines::where('uuid', $objectId)->first();
 
-        $action = '\\NextDeveloper\\IAAS\\Actions\\VirtualMachines\\' . Str::studly($action);
+        $action = AvailableActions::where('name', $action)->first();
+        $class = $action->class;
 
-        if(class_exists($action)) {
-            $action = new $action($object, $params);
-
+        if(class_exists($class)) {
+            $action = new $class($object, $params);
             dispatch($action);
 
             return $action->getActionId();
@@ -188,7 +188,7 @@ class AbstractVirtualMachinesService
                 $data['iam_account_id']
             );
         }
-
+            
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
@@ -198,17 +198,35 @@ class AbstractVirtualMachinesService
                 $data['iam_user_id']
             );
         }
-
+                    
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
-        if (array_key_exists('iaas_virtual_machines_id', $data)) {
-            $data['iaas_virtual_machines_id'] = DatabaseHelper::uuidToId(
+        if (array_key_exists('template_id', $data)) {
+            $data['template_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\VirtualMachines',
-                $data['iaas_virtual_machines_id']
+                $data['template_id']
             );
         }
-
+        if (array_key_exists('common_domain_id', $data)) {
+            $data['common_domain_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\Commons\Database\Models\Domains',
+                $data['common_domain_id']
+            );
+        }
+        if (array_key_exists('iaas_repository_image_id', $data)) {
+            $data['iaas_repository_image_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\RepositoryImages',
+                $data['iaas_repository_image_id']
+            );
+        }
+        if (array_key_exists('iaas_compute_pool_id', $data)) {
+            $data['iaas_compute_pool_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\ComputePools',
+                $data['iaas_compute_pool_id']
+            );
+        }
+                        
         try {
             $model = VirtualMachines::create($data);
         } catch(\Exception $e) {
@@ -280,13 +298,31 @@ class AbstractVirtualMachinesService
                 $data['iam_user_id']
             );
         }
-        if (array_key_exists('iaas_virtual_machines_id', $data)) {
-            $data['iaas_virtual_machines_id'] = DatabaseHelper::uuidToId(
+        if (array_key_exists('template_id', $data)) {
+            $data['template_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\VirtualMachines',
-                $data['iaas_virtual_machines_id']
+                $data['template_id']
             );
         }
-
+        if (array_key_exists('common_domain_id', $data)) {
+            $data['common_domain_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\Commons\Database\Models\Domains',
+                $data['common_domain_id']
+            );
+        }
+        if (array_key_exists('iaas_repository_image_id', $data)) {
+            $data['iaas_repository_image_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\RepositoryImages',
+                $data['iaas_repository_image_id']
+            );
+        }
+        if (array_key_exists('iaas_compute_pool_id', $data)) {
+            $data['iaas_compute_pool_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\ComputePools',
+                $data['iaas_compute_pool_id']
+            );
+        }
+    
         Events::fire('updating:NextDeveloper\IAAS\VirtualMachines', $model);
 
         try {

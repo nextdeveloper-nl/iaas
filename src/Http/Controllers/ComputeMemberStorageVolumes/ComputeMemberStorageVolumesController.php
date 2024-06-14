@@ -121,7 +121,7 @@ class ComputeMemberStorageVolumesController extends AbstractController
      * This method updates ComputeMemberStorageVolumes object on database.
      *
      * @param  $computeMemberStorageVolumesId
-     * @param  CountryCreateRequest $request
+     * @param  ComputeMemberStorageVolumesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class ComputeMemberStorageVolumesController extends AbstractController
      * This method updates ComputeMemberStorageVolumes object on database.
      *
      * @param  $computeMemberStorageVolumesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

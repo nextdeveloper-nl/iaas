@@ -121,7 +121,7 @@ class RepositoryImagesController extends AbstractController
      * This method updates RepositoryImages object on database.
      *
      * @param  $repositoryImagesId
-     * @param  CountryCreateRequest $request
+     * @param  RepositoryImagesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class RepositoryImagesController extends AbstractController
      * This method updates RepositoryImages object on database.
      *
      * @param  $repositoryImagesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

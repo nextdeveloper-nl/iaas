@@ -164,24 +164,40 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ssh_port', $operator, $value);
     }
 
-    public function isHealthy()
+    public function isHealthy($value)
     {
-        return $this->builder->where('is_healthy', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_healthy', $value);
     }
 
-    public function isBehindFirewall()
+    public function isBehindFirewall($value)
     {
-        return $this->builder->where('is_behind_firewall', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_behind_firewall', $value);
     }
 
-    public function isMaintenance()
+    public function isMaintenance($value)
     {
-        return $this->builder->where('is_maintenance', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_maintenance', $value);
     }
 
-    public function isAlive()
+    public function isAlive($value)
     {
-        return $this->builder->where('is_alive', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_alive', $value);
     }
 
     public function uptimeStart($date)
@@ -262,16 +278,4 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

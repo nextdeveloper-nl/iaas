@@ -28,14 +28,22 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('hash', 'like', '%' . $value . '%');
     }
 
-    public function isCreate()
+    public function isCreate($value)
     {
-        return $this->builder->where('is_create', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_create', $value);
     }
 
-    public function isUpdate()
+    public function isUpdate($value)
     {
-        return $this->builder->where('is_update', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_update', $value);
     }
 
     public function createdAtStart($date)
@@ -87,16 +95,4 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

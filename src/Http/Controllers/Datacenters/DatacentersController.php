@@ -121,7 +121,7 @@ class DatacentersController extends AbstractController
      * This method updates Datacenters object on database.
      *
      * @param  $datacentersId
-     * @param  CountryCreateRequest $request
+     * @param  DatacentersUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class DatacentersController extends AbstractController
      * This method updates Datacenters object on database.
      *
      * @param  $datacentersId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

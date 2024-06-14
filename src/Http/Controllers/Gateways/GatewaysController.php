@@ -121,7 +121,7 @@ class GatewaysController extends AbstractController
      * This method updates Gateways object on database.
      *
      * @param  $gatewaysId
-     * @param  CountryCreateRequest $request
+     * @param  GatewaysUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class GatewaysController extends AbstractController
      * This method updates Gateways object on database.
      *
      * @param  $gatewaysId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

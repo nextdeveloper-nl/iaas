@@ -121,7 +121,7 @@ class NetworkPoolsController extends AbstractController
      * This method updates NetworkPools object on database.
      *
      * @param  $networkPoolsId
-     * @param  CountryCreateRequest $request
+     * @param  NetworkPoolsUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class NetworkPoolsController extends AbstractController
      * This method updates NetworkPools object on database.
      *
      * @param  $networkPoolsId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

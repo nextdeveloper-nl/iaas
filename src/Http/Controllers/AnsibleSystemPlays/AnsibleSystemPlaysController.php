@@ -121,7 +121,7 @@ class AnsibleSystemPlaysController extends AbstractController
      * This method updates AnsibleSystemPlays object on database.
      *
      * @param  $ansibleSystemPlaysId
-     * @param  CountryCreateRequest $request
+     * @param  AnsibleSystemPlaysUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class AnsibleSystemPlaysController extends AbstractController
      * This method updates AnsibleSystemPlays object on database.
      *
      * @param  $ansibleSystemPlaysId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

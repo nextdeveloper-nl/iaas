@@ -121,7 +121,7 @@ class VirtualMachinesController extends AbstractController
      * This method updates VirtualMachines object on database.
      *
      * @param  $virtualMachinesId
-     * @param  CountryCreateRequest $request
+     * @param  VirtualMachinesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class VirtualMachinesController extends AbstractController
      * This method updates VirtualMachines object on database.
      *
      * @param  $virtualMachinesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

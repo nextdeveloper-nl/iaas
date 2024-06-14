@@ -66,9 +66,13 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ssh_port', $operator, $value);
     }
 
-    public function isBehindFirewall()
+    public function isBehindFirewall($value)
     {
-        return $this->builder->where('is_behind_firewall', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_behind_firewall', $value);
     }
 
     public function createdAtStart($date)
@@ -129,16 +133,4 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

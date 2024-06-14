@@ -100,19 +100,31 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('vxlan_end', $operator, $value);
     }
 
-    public function isVlanAvailable()
+    public function isVlanAvailable($value)
     {
-        return $this->builder->where('is_vlan_available', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_vlan_available', $value);
     }
 
-    public function isVxlanAvailable()
+    public function isVxlanAvailable($value)
     {
-        return $this->builder->where('is_vxlan_available', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_vxlan_available', $value);
     }
 
-    public function isActive()
+    public function isActive($value)
     {
-        return $this->builder->where('is_active', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_active', $value);
     }
 
     public function createdAtStart($date)
@@ -191,16 +203,4 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

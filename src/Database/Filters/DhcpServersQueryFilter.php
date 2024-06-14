@@ -43,9 +43,13 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('api_url', 'like', '%' . $value . '%');
     }
 
-    public function isPublic()
+    public function isPublic($value)
     {
-        return $this->builder->where('is_public', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_public', $value);
     }
 
     public function createdAtStart($date)
@@ -106,16 +110,4 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

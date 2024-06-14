@@ -61,29 +61,49 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('position', $operator, $value);
     }
 
-    public function isActive()
+    public function isActive($value)
     {
-        return $this->builder->where('is_active', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_active', $value);
     }
 
-    public function isPublic()
+    public function isPublic($value)
     {
-        return $this->builder->where('is_public', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_public', $value);
     }
 
-    public function isEdge()
+    public function isEdge($value)
     {
-        return $this->builder->where('is_edge', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_edge', $value);
     }
 
-    public function isAlive()
+    public function isAlive($value)
     {
-        return $this->builder->where('is_alive', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_alive', $value);
     }
 
-    public function isInMaintenance()
+    public function isInMaintenance($value)
     {
-        return $this->builder->where('is_in_maintenance', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_in_maintenance', $value);
     }
 
     public function createdAtStart($date)
@@ -144,16 +164,4 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

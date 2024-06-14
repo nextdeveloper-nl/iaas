@@ -64,14 +64,22 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('release_number', $operator, $value);
     }
 
-    public function isActive()
+    public function isActive($value)
     {
-        return $this->builder->where('is_active', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_active', $value);
     }
 
-    public function isProcedure()
+    public function isProcedure($value)
     {
-        return $this->builder->where('is_procedure', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_procedure', $value);
     }
 
     public function createdAtStart($date)
@@ -132,16 +140,4 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

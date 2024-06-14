@@ -119,34 +119,58 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
-    public function isWinrmEnabled()
+    public function isWinrmEnabled($value)
     {
-        return $this->builder->where('is_winrm_enabled', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_winrm_enabled', $value);
     }
 
-    public function isSnapshot()
+    public function isSnapshot($value)
     {
-        return $this->builder->where('is_snapshot', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_snapshot', $value);
     }
 
-    public function isLost()
+    public function isLost($value)
     {
-        return $this->builder->where('is_lost', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_lost', $value);
     }
 
-    public function isLocked()
+    public function isLocked($value)
     {
-        return $this->builder->where('is_locked', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_locked', $value);
     }
 
-    public function isDraft()
+    public function isDraft($value)
     {
-        return $this->builder->where('is_draft', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_draft', $value);
     }
 
-    public function isTemplate()
+    public function isTemplate($value)
     {
-        return $this->builder->where('is_template', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_template', $value);
     }
 
     public function lastMetadataRequestStart($date)
@@ -262,16 +286,4 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

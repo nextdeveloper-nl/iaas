@@ -121,7 +121,7 @@ class AnsiblePlaybookAnsibleRolesController extends AbstractController
      * This method updates AnsiblePlaybookAnsibleRoles object on database.
      *
      * @param  $ansiblePlaybookAnsibleRolesId
-     * @param  CountryCreateRequest $request
+     * @param  AnsiblePlaybookAnsibleRolesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class AnsiblePlaybookAnsibleRolesController extends AbstractController
      * This method updates AnsiblePlaybookAnsibleRoles object on database.
      *
      * @param  $ansiblePlaybookAnsibleRolesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

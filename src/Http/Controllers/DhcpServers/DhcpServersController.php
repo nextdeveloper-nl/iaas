@@ -121,7 +121,7 @@ class DhcpServersController extends AbstractController
      * This method updates DhcpServers object on database.
      *
      * @param  $dhcpServersId
-     * @param  CountryCreateRequest $request
+     * @param  DhcpServersUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class DhcpServersController extends AbstractController
      * This method updates DhcpServers object on database.
      *
      * @param  $dhcpServersId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

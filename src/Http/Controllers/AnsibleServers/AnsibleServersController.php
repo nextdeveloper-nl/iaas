@@ -121,7 +121,7 @@ class AnsibleServersController extends AbstractController
      * This method updates AnsibleServers object on database.
      *
      * @param  $ansibleServersId
-     * @param  CountryCreateRequest $request
+     * @param  AnsibleServersUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class AnsibleServersController extends AbstractController
      * This method updates AnsibleServers object on database.
      *
      * @param  $ansibleServersId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

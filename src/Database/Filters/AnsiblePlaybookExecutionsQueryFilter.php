@@ -137,9 +137,13 @@ class AnsiblePlaybookExecutionsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('result_ignored', $operator, $value);
     }
 
-    public function isExternalMachine()
+    public function isExternalMachine($value)
     {
-        return $this->builder->where('is_external_machine', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_external_machine', $value);
     }
 
     public function lastExecutionTimeStart($date)
@@ -210,16 +214,4 @@ class AnsiblePlaybookExecutionsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

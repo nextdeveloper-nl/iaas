@@ -206,24 +206,40 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('benchmark_score', $operator, $value);
     }
 
-    public function isBehindFirewall()
+    public function isBehindFirewall($value)
     {
-        return $this->builder->where('is_behind_firewall', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_behind_firewall', $value);
     }
 
-    public function isManagementAgentAvailable()
+    public function isManagementAgentAvailable($value)
     {
-        return $this->builder->where('is_management_agent_available', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_management_agent_available', $value);
     }
 
-    public function isInMaintenance()
+    public function isInMaintenance($value)
     {
-        return $this->builder->where('is_in_maintenance', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_in_maintenance', $value);
     }
 
-    public function isAlive()
+    public function isAlive($value)
     {
-        return $this->builder->where('is_alive', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_alive', $value);
     }
 
     public function uptimeStart($date)
@@ -304,16 +320,4 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

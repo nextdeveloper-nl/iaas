@@ -79,39 +79,67 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ssh_port', $operator, $value);
     }
 
-    public function isActive()
+    public function isActive($value)
     {
-        return $this->builder->where('is_active', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_active', $value);
     }
 
-    public function isPublic()
+    public function isPublic($value)
     {
-        return $this->builder->where('is_public', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_public', $value);
     }
 
-    public function isVmRepo()
+    public function isVmRepo($value)
     {
-        return $this->builder->where('is_vm_repo', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_vm_repo', $value);
     }
 
-    public function isIsoRepo()
+    public function isIsoRepo($value)
     {
-        return $this->builder->where('is_iso_repo', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_iso_repo', $value);
     }
 
-    public function isDockerRegistry()
+    public function isDockerRegistry($value)
     {
-        return $this->builder->where('is_docker_registry', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_docker_registry', $value);
     }
 
-    public function isBehindFirewall()
+    public function isBehindFirewall($value)
     {
-        return $this->builder->where('is_behind_firewall', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_behind_firewall', $value);
     }
 
-    public function isManagementAgentAvailable()
+    public function isManagementAgentAvailable($value)
     {
-        return $this->builder->where('is_management_agent_available', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_management_agent_available', $value);
     }
 
     public function createdAtStart($date)
@@ -163,16 +191,4 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

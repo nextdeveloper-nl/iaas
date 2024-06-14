@@ -121,7 +121,7 @@ class StorageVolumesController extends AbstractController
      * This method updates StorageVolumes object on database.
      *
      * @param  $storageVolumesId
-     * @param  CountryCreateRequest $request
+     * @param  StorageVolumesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class StorageVolumesController extends AbstractController
      * This method updates StorageVolumes object on database.
      *
      * @param  $storageVolumesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

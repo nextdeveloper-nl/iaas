@@ -110,11 +110,11 @@ class AbstractVirtualDiskImagesService
     {
         $object = VirtualDiskImages::where('uuid', $objectId)->first();
 
-        $action = '\\NextDeveloper\\IAAS\\Actions\\VirtualDiskImages\\' . Str::studly($action);
+        $action = AvailableActions::where('name', $action)->first();
+        $class = $action->class;
 
-        if(class_exists($action)) {
-            $action = new $action($object, $params);
-
+        if(class_exists($class)) {
+            $action = new $class($object, $params);
             dispatch($action);
 
             return $action->getActionId();
@@ -202,7 +202,13 @@ class AbstractVirtualDiskImagesService
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
-            
+        if (array_key_exists('iaas_repository_image_id', $data)) {
+            $data['iaas_repository_image_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\RepositoryImages',
+                $data['iaas_repository_image_id']
+            );
+        }
+                        
         try {
             $model = VirtualDiskImages::create($data);
         } catch(\Exception $e) {
@@ -272,6 +278,12 @@ class AbstractVirtualDiskImagesService
             $data['iam_user_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Users',
                 $data['iam_user_id']
+            );
+        }
+        if (array_key_exists('iaas_repository_image_id', $data)) {
+            $data['iaas_repository_image_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\RepositoryImages',
+                $data['iaas_repository_image_id']
             );
         }
     

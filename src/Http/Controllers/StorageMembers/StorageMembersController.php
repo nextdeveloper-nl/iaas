@@ -121,7 +121,7 @@ class StorageMembersController extends AbstractController
      * This method updates StorageMembers object on database.
      *
      * @param  $storageMembersId
-     * @param  CountryCreateRequest $request
+     * @param  StorageMembersUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class StorageMembersController extends AbstractController
      * This method updates StorageMembers object on database.
      *
      * @param  $storageMembersId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

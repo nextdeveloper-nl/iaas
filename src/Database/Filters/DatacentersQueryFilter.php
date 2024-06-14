@@ -86,19 +86,31 @@ class DatacentersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('tier_level', $operator, $value);
     }
 
-    public function isPublic()
+    public function isPublic($value)
     {
-        return $this->builder->where('is_public', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_public', $value);
     }
 
-    public function isActive()
+    public function isActive($value)
     {
-        return $this->builder->where('is_active', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_active', $value);
     }
 
-    public function isCarrierNeutral()
+    public function isCarrierNeutral($value)
     {
-        return $this->builder->where('is_carrier_neutral', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_carrier_neutral', $value);
     }
 
     public function createdAtStart($date)
@@ -168,16 +180,4 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

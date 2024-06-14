@@ -54,24 +54,40 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('mtu', $operator, $value);
     }
 
-    public function isManagement()
+    public function isManagement($value)
     {
-        return $this->builder->where('is_management', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_management', $value);
     }
 
-    public function isDefault()
+    public function isDefault($value)
     {
-        return $this->builder->where('is_default', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_default', $value);
     }
 
-    public function isConnected()
+    public function isConnected($value)
     {
-        return $this->builder->where('is_connected', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_connected', $value);
     }
 
-    public function isBridge()
+    public function isBridge($value)
     {
-        return $this->builder->where('is_bridge', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_bridge', $value);
     }
 
     public function createdAtStart($date)
@@ -132,16 +148,4 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

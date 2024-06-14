@@ -121,7 +121,7 @@ class NetworkMemberDevicesController extends AbstractController
      * This method updates NetworkMemberDevices object on database.
      *
      * @param  $networkMemberDevicesId
-     * @param  CountryCreateRequest $request
+     * @param  NetworkMemberDevicesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class NetworkMemberDevicesController extends AbstractController
      * This method updates NetworkMemberDevices object on database.
      *
      * @param  $networkMemberDevicesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

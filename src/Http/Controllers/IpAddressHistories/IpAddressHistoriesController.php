@@ -121,7 +121,7 @@ class IpAddressHistoriesController extends AbstractController
      * This method updates IpAddressHistories object on database.
      *
      * @param  $ipAddressHistoriesId
-     * @param  CountryCreateRequest $request
+     * @param  IpAddressHistoriesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class IpAddressHistoriesController extends AbstractController
      * This method updates IpAddressHistories object on database.
      *
      * @param  $ipAddressHistoriesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

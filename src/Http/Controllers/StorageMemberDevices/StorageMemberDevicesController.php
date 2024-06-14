@@ -121,7 +121,7 @@ class StorageMemberDevicesController extends AbstractController
      * This method updates StorageMemberDevices object on database.
      *
      * @param  $storageMemberDevicesId
-     * @param  CountryCreateRequest $request
+     * @param  StorageMemberDevicesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class StorageMemberDevicesController extends AbstractController
      * This method updates StorageMemberDevices object on database.
      *
      * @param  $storageMemberDevicesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

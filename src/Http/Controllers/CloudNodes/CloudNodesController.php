@@ -121,7 +121,7 @@ class CloudNodesController extends AbstractController
      * This method updates CloudNodes object on database.
      *
      * @param  $cloudNodesId
-     * @param  CountryCreateRequest $request
+     * @param  CloudNodesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class CloudNodesController extends AbstractController
      * This method updates CloudNodes object on database.
      *
      * @param  $cloudNodesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

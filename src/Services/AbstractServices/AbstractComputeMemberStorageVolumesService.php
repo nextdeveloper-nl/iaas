@@ -110,11 +110,11 @@ class AbstractComputeMemberStorageVolumesService
     {
         $object = ComputeMemberStorageVolumes::where('uuid', $objectId)->first();
 
-        $action = '\\NextDeveloper\\IAAS\\Actions\\ComputeMemberStorageVolumes\\' . Str::studly($action);
+        $action = AvailableActions::where('name', $action)->first();
+        $class = $action->class;
 
-        if(class_exists($action)) {
-            $action = new $action($object, $params);
-
+        if(class_exists($class)) {
+            $action = new $class($object, $params);
             dispatch($action);
 
             return $action->getActionId();
@@ -190,7 +190,31 @@ class AbstractComputeMemberStorageVolumesService
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
-            
+        if (array_key_exists('iaas_storage_volume_id', $data)) {
+            $data['iaas_storage_volume_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\StorageVolumes',
+                $data['iaas_storage_volume_id']
+            );
+        }
+        if (array_key_exists('iaas_storage_member_id', $data)) {
+            $data['iaas_storage_member_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\StorageMembers',
+                $data['iaas_storage_member_id']
+            );
+        }
+        if (array_key_exists('iaas_storage_pool_id', $data)) {
+            $data['iaas_storage_pool_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\StoragePools',
+                $data['iaas_storage_pool_id']
+            );
+        }
+        if (array_key_exists('iaas_compute_member_id', $data)) {
+            $data['iaas_compute_member_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\ComputeMembers',
+                $data['iaas_compute_member_id']
+            );
+        }
+                        
         try {
             $model = ComputeMemberStorageVolumes::create($data);
         } catch(\Exception $e) {
@@ -248,6 +272,30 @@ class AbstractComputeMemberStorageVolumesService
             $data['iam_user_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Users',
                 $data['iam_user_id']
+            );
+        }
+        if (array_key_exists('iaas_storage_volume_id', $data)) {
+            $data['iaas_storage_volume_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\StorageVolumes',
+                $data['iaas_storage_volume_id']
+            );
+        }
+        if (array_key_exists('iaas_storage_member_id', $data)) {
+            $data['iaas_storage_member_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\StorageMembers',
+                $data['iaas_storage_member_id']
+            );
+        }
+        if (array_key_exists('iaas_storage_pool_id', $data)) {
+            $data['iaas_storage_pool_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\StoragePools',
+                $data['iaas_storage_pool_id']
+            );
+        }
+        if (array_key_exists('iaas_compute_member_id', $data)) {
+            $data['iaas_compute_member_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\ComputeMembers',
+                $data['iaas_compute_member_id']
             );
         }
     

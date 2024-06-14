@@ -33,9 +33,13 @@ class StorageMemberDevicesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('device_type', 'like', '%' . $value . '%');
     }
 
-    public function isHealthy()
+    public function isHealthy($value)
     {
-        return $this->builder->where('is_healthy', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_healthy', $value);
     }
 
     public function createdAtStart($date)
@@ -96,16 +100,4 @@ class StorageMemberDevicesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

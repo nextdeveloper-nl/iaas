@@ -80,24 +80,40 @@ class NetworksQueryFilter extends AbstractQueryFilter
         return $this->builder->where('mtu', $operator, $value);
     }
 
-    public function isPublic()
+    public function isPublic($value)
     {
-        return $this->builder->where('is_public', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_public', $value);
     }
 
-    public function isVpn()
+    public function isVpn($value)
     {
-        return $this->builder->where('is_vpn', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_vpn', $value);
     }
 
-    public function isManagement()
+    public function isManagement($value)
     {
-        return $this->builder->where('is_management', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_management', $value);
     }
 
-    public function isDmz()
+    public function isDmz($value)
     {
-        return $this->builder->where('is_dmz', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_dmz', $value);
     }
 
     public function createdAtStart($date)
@@ -194,16 +210,4 @@ class NetworksQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }

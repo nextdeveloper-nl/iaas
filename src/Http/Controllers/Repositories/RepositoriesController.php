@@ -121,7 +121,7 @@ class RepositoriesController extends AbstractController
      * This method updates Repositories object on database.
      *
      * @param  $repositoriesId
-     * @param  CountryCreateRequest $request
+     * @param  RepositoriesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class RepositoriesController extends AbstractController
      * This method updates Repositories object on database.
      *
      * @param  $repositoriesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

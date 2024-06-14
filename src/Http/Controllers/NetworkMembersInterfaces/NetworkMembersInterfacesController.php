@@ -121,7 +121,7 @@ class NetworkMembersInterfacesController extends AbstractController
      * This method updates NetworkMembersInterfaces object on database.
      *
      * @param  $networkMembersInterfacesId
-     * @param  CountryCreateRequest $request
+     * @param  NetworkMembersInterfacesUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
@@ -142,7 +142,6 @@ class NetworkMembersInterfacesController extends AbstractController
      * This method updates NetworkMembersInterfaces object on database.
      *
      * @param  $networkMembersInterfacesId
-     * @param  CountryCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */

@@ -122,34 +122,58 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
-    public function isActive()
+    public function isActive($value)
     {
-        return $this->builder->where('is_active', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_active', $value);
     }
 
-    public function isIso()
+    public function isIso($value)
     {
-        return $this->builder->where('is_iso', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_iso', $value);
     }
 
-    public function isVirtualMachineImage()
+    public function isVirtualMachineImage($value)
     {
-        return $this->builder->where('is_virtual_machine_image', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_virtual_machine_image', $value);
     }
 
-    public function isDockerImage()
+    public function isDockerImage($value)
     {
-        return $this->builder->where('is_docker_image', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_docker_image', $value);
     }
 
-    public function isLatest()
+    public function isLatest($value)
     {
-        return $this->builder->where('is_latest', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_latest', $value);
     }
 
-    public function isPublic()
+    public function isPublic($value)
     {
-        return $this->builder->where('is_public', true);
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_public', $value);
     }
 
     public function createdAtStart($date)
@@ -219,16 +243,4 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
 }
