@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+                    
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -114,7 +114,17 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function iaasDatacenterId($value)
+    {
+            $iaasDatacenter = \NextDeveloper\IAAS\Database\Models\Datacenters::where('uuid', $value)->first();
+
+        if($iaasDatacenter) {
+            return $this->builder->where('iaas_datacenter_id', '=', $iaasDatacenter->id);
+        }
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

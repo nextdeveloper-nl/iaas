@@ -66,6 +66,7 @@ trait IaasRepositoryTestTraits
                 'iso_path'  =>  'a',
                 'vm_path'  =>  'a',
                 'docker_registry_port'  =>  '1',
+                'ssh_port'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -487,6 +488,25 @@ trait IaasRepositoryTestTraits
             $request = new Request(
                 [
                 'docker_registry_port'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasRepositoryQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasRepository::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasrepository_event_ssh_port_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'ssh_port'  =>  '1'
                 ]
             );
 

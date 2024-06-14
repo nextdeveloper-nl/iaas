@@ -29,7 +29,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property string $status
  * @property integer $cpu
  * @property integer $ram
- * @property boolean $winrm_enabled
+ * @property boolean $is_winrm_enabled
  * @property $available_operations
  * @property $current_operations
  * @property $blocked_operations
@@ -45,11 +45,17 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $iaas_compute_member_id
  * @property integer $iam_account_id
  * @property integer $iam_user_id
- * @property integer $iaas_virtual_machines_id
+ * @property integer $template_id
  * @property array $tags
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property boolean $is_draft
+ * @property integer $common_domain_id
+ * @property string $lock_password
+ * @property boolean $is_template
+ * @property integer $iaas_repository_image_id
+ * @property integer $iaas_compute_pool_id
  */
 class VirtualMachines extends Model
 {
@@ -80,7 +86,7 @@ class VirtualMachines extends Model
             'status',
             'cpu',
             'ram',
-            'winrm_enabled',
+            'is_winrm_enabled',
             'available_operations',
             'current_operations',
             'blocked_operations',
@@ -96,12 +102,14 @@ class VirtualMachines extends Model
             'iaas_compute_member_id',
             'iam_account_id',
             'iam_user_id',
-            'iaas_virtual_machines_id',
+            'template_id',
             'tags',
-        'is_draft',
-        'common_domain_id',
-        'lock_password',
-        'is_template'
+            'is_draft',
+            'common_domain_id',
+            'lock_password',
+            'is_template',
+            'iaas_repository_image_id',
+            'iaas_compute_pool_id',
     ];
 
     /**
@@ -137,7 +145,7 @@ class VirtualMachines extends Model
     'status' => 'string',
     'cpu' => 'integer',
     'ram' => 'integer',
-    'winrm_enabled' => 'boolean',
+    'is_winrm_enabled' => 'boolean',
     'available_operations' => 'array',
     'current_operations' => 'array',
     'blocked_operations' => 'array',
@@ -150,11 +158,17 @@ class VirtualMachines extends Model
     'hypervisor_data' => 'array',
     'iaas_cloud_node_id' => 'integer',
     'iaas_compute_member_id' => 'integer',
-    'iaas_virtual_machines_id' => 'integer',
+    'template_id' => 'integer',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'is_draft' => 'boolean',
+    'common_domain_id' => 'integer',
+    'lock_password' => 'string',
+    'is_template' => 'boolean',
+    'iaas_repository_image_id' => 'integer',
+    'iaas_compute_pool_id' => 'integer',
     ];
 
     /**
@@ -217,6 +231,7 @@ class VirtualMachines extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

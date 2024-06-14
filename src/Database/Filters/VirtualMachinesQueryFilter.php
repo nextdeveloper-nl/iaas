@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                    
+                                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -87,6 +87,11 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('status', 'like', '%' . $value . '%');
     }
+    
+    public function lockPassword($value)
+    {
+        return $this->builder->where('lock_password', 'like', '%' . $value . '%');
+    }
 
     public function cpu($value)
     {
@@ -114,6 +119,11 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
+    public function isWinrmEnabled()
+    {
+        return $this->builder->where('is_winrm_enabled', true);
+    }
+
     public function isSnapshot()
     {
         return $this->builder->where('is_snapshot', true);
@@ -127,6 +137,16 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     public function isLocked()
     {
         return $this->builder->where('is_locked', true);
+    }
+
+    public function isDraft()
+    {
+        return $this->builder->where('is_draft', true);
+    }
+
+    public function isTemplate()
+    {
+        return $this->builder->where('is_template', true);
     }
 
     public function lastMetadataRequestStart($date)
@@ -205,16 +225,44 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    public function iaasVirtualMachinesId($value)
+    public function templateId($value)
     {
-            $iaasVirtualMachines = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
+            $template = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
 
-        if($iaasVirtualMachines) {
-            return $this->builder->where('iaas_virtual_machines_id', '=', $iaasVirtualMachines->id);
+        if($template) {
+            return $this->builder->where('template_id', '=', $template->id);
+        }
+    }
+
+    public function commonDomainId($value)
+    {
+            $commonDomain = \NextDeveloper\Commons\Database\Models\Domains::where('uuid', $value)->first();
+
+        if($commonDomain) {
+            return $this->builder->where('common_domain_id', '=', $commonDomain->id);
+        }
+    }
+
+    public function iaasRepositoryImageId($value)
+    {
+            $iaasRepositoryImage = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('uuid', $value)->first();
+
+        if($iaasRepositoryImage) {
+            return $this->builder->where('iaas_repository_image_id', '=', $iaasRepositoryImage->id);
+        }
+    }
+
+    public function iaasComputePoolId($value)
+    {
+            $iaasComputePool = \NextDeveloper\IAAS\Database\Models\ComputePools::where('uuid', $value)->first();
+
+        if($iaasComputePool) {
+            return $this->builder->where('iaas_compute_pool_id', '=', $iaasComputePool->id);
         }
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

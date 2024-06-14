@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-        
+                        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -81,7 +81,44 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function iaasStorageVolumeId($value)
+    {
+            $iaasStorageVolume = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('uuid', $value)->first();
+
+        if($iaasStorageVolume) {
+            return $this->builder->where('iaas_storage_volume_id', '=', $iaasStorageVolume->id);
+        }
+    }
+
+    public function iaasStorageMemberId($value)
+    {
+            $iaasStorageMember = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('uuid', $value)->first();
+
+        if($iaasStorageMember) {
+            return $this->builder->where('iaas_storage_member_id', '=', $iaasStorageMember->id);
+        }
+    }
+
+    public function iaasStoragePoolId($value)
+    {
+            $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
+
+        if($iaasStoragePool) {
+            return $this->builder->where('iaas_storage_pool_id', '=', $iaasStoragePool->id);
+        }
+    }
+
+    public function iaasComputeMemberId($value)
+    {
+            $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
+
+        if($iaasComputeMember) {
+            return $this->builder->where('iaas_compute_member_id', '=', $iaasComputeMember->id);
+        }
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

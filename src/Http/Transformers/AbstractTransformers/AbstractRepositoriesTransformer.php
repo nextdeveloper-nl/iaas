@@ -79,6 +79,10 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'local_ip_addr'  =>  $model->local_ip_addr,
+            'is_behind_firewall'  =>  $model->is_behind_firewall,
+            'is_management_agent_available'  =>  $model->is_management_agent_available,
+            'ssh_port'  =>  $model->ssh_port,
             ]
         );
     }
@@ -167,6 +171,7 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

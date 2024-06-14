@@ -54,6 +54,11 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('device_number', $operator, $value);
     }
 
+    public function isDraft()
+    {
+        return $this->builder->where('is_draft', true);
+    }
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -121,6 +126,7 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

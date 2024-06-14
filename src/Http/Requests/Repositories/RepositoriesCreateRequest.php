@@ -17,7 +17,6 @@ class RepositoriesCreateRequest extends AbstractFormRequest
         'description' => 'nullable|string',
         'ssh_username' => 'required|string',
         'ssh_password' => 'required|string',
-            'ssh_port'  =>  'required|integer',
         'ip_addr' => 'required',
         'is_active' => 'boolean',
         'is_public' => 'boolean',
@@ -27,6 +26,10 @@ class RepositoriesCreateRequest extends AbstractFormRequest
         'iso_path' => 'nullable|string',
         'vm_path' => 'nullable|string',
         'docker_registry_port' => 'integer',
+        'local_ip_addr' => 'nullable',
+        'is_behind_firewall' => 'boolean',
+        'is_management_agent_available' => 'boolean',
+        'ssh_port' => 'integer',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

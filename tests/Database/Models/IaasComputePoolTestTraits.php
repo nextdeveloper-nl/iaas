@@ -62,6 +62,7 @@ trait IaasComputePoolTestTraits
                 'resource_validator'  =>  'a',
                 'virtualization'  =>  'a',
                 'provisioning_alg'  =>  'a',
+                'pool_type'  =>  'a',
                             ],
                 ['http_errors' => false]
             ]
@@ -407,6 +408,25 @@ trait IaasComputePoolTestTraits
             $request = new Request(
                 [
                 'provisioning_alg'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasComputePoolQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputepool_event_pool_type_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'pool_type'  =>  'a'
                 ]
             );
 

@@ -39,6 +39,10 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property $local_ip_addr
+ * @property boolean $is_behind_firewall
+ * @property boolean $is_management_agent_available
+ * @property integer $ssh_port
  */
 class Repositories extends Model
 {
@@ -61,7 +65,6 @@ class Repositories extends Model
             'description',
             'ssh_username',
             'ssh_password',
-            'ssh_port',
             'ip_addr',
             'is_active',
             'is_public',
@@ -74,8 +77,10 @@ class Repositories extends Model
             'docker_registry_port',
             'iam_account_id',
             'iam_user_id',
-        'local_ip_addr',
-        'is_behind_firewall'
+            'local_ip_addr',
+            'is_behind_firewall',
+            'is_management_agent_available',
+            'ssh_port',
     ];
 
     /**
@@ -115,6 +120,9 @@ class Repositories extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'is_behind_firewall' => 'boolean',
+    'is_management_agent_available' => 'boolean',
+    'ssh_port' => 'integer',
     ];
 
     /**
@@ -187,4 +195,5 @@ class Repositories extends Model
             },
         );
     }
+
 }

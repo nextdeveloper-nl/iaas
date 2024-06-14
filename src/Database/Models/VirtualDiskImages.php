@@ -19,7 +19,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property string $uuid
  * @property string $name
  * @property integer $size
- * @property integer $physical_utilization
+ * @property integer $physical_utilisation
  * @property $available_operations
  * @property $current_operations
  * @property boolean $is_cdrom
@@ -33,6 +33,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property boolean $is_draft
+ * @property integer $iaas_repository_image_id
  */
 class VirtualDiskImages extends Model
 {
@@ -64,6 +66,8 @@ class VirtualDiskImages extends Model
             'device_number',
             'iam_account_id',
             'iam_user_id',
+            'is_draft',
+            'iaas_repository_image_id',
     ];
 
     /**
@@ -101,6 +105,8 @@ class VirtualDiskImages extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'is_draft' => 'boolean',
+    'iaas_repository_image_id' => 'integer',
     ];
 
     /**
@@ -162,6 +168,7 @@ class VirtualDiskImages extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -42,6 +42,11 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property integer $size
+ * @property integer $ram
+ * @property integer $cpu
+ * @property boolean $is_public
+ * @property integer $iaas_virtual_machine_id
  */
 class RepositoryImages extends Model
 {
@@ -80,11 +85,13 @@ class RepositoryImages extends Model
             'supported_virtualizations',
             'iaas_repository_id',
             'hash',
-        'ram',
-        'cpu',
-        'size',
             'iam_account_id',
             'iam_user_id',
+            'size',
+            'ram',
+            'cpu',
+            'is_public',
+            'iaas_virtual_machine_id',
     ];
 
     /**
@@ -128,10 +135,14 @@ class RepositoryImages extends Model
     'supported_virtualizations' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'iaas_repository_id' => 'integer',
     'hash' => 'string',
-        'size'  =>  'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'size' => 'integer',
+    'ram' => 'integer',
+    'cpu' => 'integer',
+    'is_public' => 'boolean',
+    'iaas_virtual_machine_id' => 'integer',
     ];
 
     /**
@@ -193,6 +204,7 @@ class RepositoryImages extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

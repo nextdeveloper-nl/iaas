@@ -68,6 +68,7 @@ trait IaasVirtualMachineTestTraits
                 'version'  =>  'a',
                 'domain_type'  =>  'a',
                 'status'  =>  'a',
+                'lock_password'  =>  'a',
                 'cpu'  =>  '1',
                 'ram'  =>  '1',
                     'last_metadata_request'  =>  now(),
@@ -530,6 +531,25 @@ trait IaasVirtualMachineTestTraits
             $request = new Request(
                 [
                 'status'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasVirtualMachineQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachine::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualmachine_event_lock_password_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'lock_password'  =>  'a'
                 ]
             );
 

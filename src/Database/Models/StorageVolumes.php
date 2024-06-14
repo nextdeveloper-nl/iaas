@@ -70,7 +70,6 @@ class StorageVolumes extends Model
             'hypervisor_data',
             'iaas_storage_pool_id',
             'iaas_storage_member_id',
-            'iaas_storage_pool_id',
             'is_alive',
             'tags',
             'iam_account_id',
@@ -177,6 +176,7 @@ class StorageVolumes extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

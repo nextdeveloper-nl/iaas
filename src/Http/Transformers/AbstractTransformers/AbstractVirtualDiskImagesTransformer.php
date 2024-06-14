@@ -58,13 +58,14 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
                                                             $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                                                            $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
                         
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
             'name'  =>  $model->name,
             'size'  =>  $model->size,
-            'physical_utilization'  =>  $model->physical_utilization,
+            'physical_utilisation'  =>  $model->physical_utilisation,
             'available_operations'  =>  $model->available_operations,
             'current_operations'  =>  $model->current_operations,
             'is_cdrom'  =>  $model->is_cdrom,
@@ -78,6 +79,8 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'is_draft'  =>  $model->is_draft,
+            'iaas_repository_image_id'  =>  $iaasRepositoryImageId ? $iaasRepositoryImageId->uuid : null,
             ]
         );
     }
@@ -166,6 +169,7 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

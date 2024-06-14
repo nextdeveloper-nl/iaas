@@ -338,6 +338,27 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('compute-pools')->group(
+            function () {
+                Route::get('/', 'ComputePools\ComputePoolsController@index');
+                Route::get('/actions', 'ComputePools\ComputePoolsController@getActions');
+
+                Route::get('{iaas_compute_pools}/tags ', 'ComputePools\ComputePoolsController@tags');
+                Route::post('{iaas_compute_pools}/tags ', 'ComputePools\ComputePoolsController@saveTags');
+                Route::get('{iaas_compute_pools}/addresses ', 'ComputePools\ComputePoolsController@addresses');
+                Route::post('{iaas_compute_pools}/addresses ', 'ComputePools\ComputePoolsController@saveAddresses');
+
+                Route::get('/{iaas_compute_pools}/{subObjects}', 'ComputePools\ComputePoolsController@relatedObjects');
+                Route::get('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@show');
+
+                Route::post('/', 'ComputePools\ComputePoolsController@store');
+                Route::post('/{iaas_compute_pools}/do/{action}', 'ComputePools\ComputePoolsController@doAction');
+
+                Route::patch('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@update');
+                Route::delete('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@destroy');
+            }
+        );
+
         Route::prefix('cloud-nodes')->group(
             function () {
                 Route::get('/', 'CloudNodes\CloudNodesController@index');
@@ -377,27 +398,6 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_datacenters}', 'Datacenters\DatacentersController@update');
                 Route::delete('/{iaas_datacenters}', 'Datacenters\DatacentersController@destroy');
-            }
-        );
-
-        Route::prefix('compute-pools')->group(
-            function () {
-                Route::get('/', 'ComputePools\ComputePoolsController@index');
-                Route::get('/actions', 'ComputePools\ComputePoolsController@getActions');
-
-                Route::get('{iaas_compute_pools}/tags ', 'ComputePools\ComputePoolsController@tags');
-                Route::post('{iaas_compute_pools}/tags ', 'ComputePools\ComputePoolsController@saveTags');
-                Route::get('{iaas_compute_pools}/addresses ', 'ComputePools\ComputePoolsController@addresses');
-                Route::post('{iaas_compute_pools}/addresses ', 'ComputePools\ComputePoolsController@saveAddresses');
-
-                Route::get('/{iaas_compute_pools}/{subObjects}', 'ComputePools\ComputePoolsController@relatedObjects');
-                Route::get('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@show');
-
-                Route::post('/', 'ComputePools\ComputePoolsController@store');
-                Route::post('/{iaas_compute_pools}/do/{action}', 'ComputePools\ComputePoolsController@doAction');
-
-                Route::patch('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@update');
-                Route::delete('/{iaas_compute_pools}', 'ComputePools\ComputePoolsController@destroy');
             }
         );
 
@@ -485,6 +485,27 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('storage-pools')->group(
+            function () {
+                Route::get('/', 'StoragePools\StoragePoolsController@index');
+                Route::get('/actions', 'StoragePools\StoragePoolsController@getActions');
+
+                Route::get('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@tags');
+                Route::post('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@saveTags');
+                Route::get('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@addresses');
+                Route::post('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@saveAddresses');
+
+                Route::get('/{iaas_storage_pools}/{subObjects}', 'StoragePools\StoragePoolsController@relatedObjects');
+                Route::get('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@show');
+
+                Route::post('/', 'StoragePools\StoragePoolsController@store');
+                Route::post('/{iaas_storage_pools}/do/{action}', 'StoragePools\StoragePoolsController@doAction');
+
+                Route::patch('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@update');
+                Route::delete('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@destroy');
+            }
+        );
+
         Route::prefix('network-member-devices')->group(
             function () {
                 Route::get('/', 'NetworkMemberDevices\NetworkMemberDevicesController@index');
@@ -566,27 +587,6 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_storage_member_devices}', 'StorageMemberDevices\StorageMemberDevicesController@update');
                 Route::delete('/{iaas_storage_member_devices}', 'StorageMemberDevices\StorageMemberDevicesController@destroy');
-            }
-        );
-
-        Route::prefix('storage-pools')->group(
-            function () {
-                Route::get('/', 'StoragePools\StoragePoolsController@index');
-                Route::get('/actions', 'StoragePools\StoragePoolsController@getActions');
-
-                Route::get('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@tags');
-                Route::post('{iaas_storage_pools}/tags ', 'StoragePools\StoragePoolsController@saveTags');
-                Route::get('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@addresses');
-                Route::post('{iaas_storage_pools}/addresses ', 'StoragePools\StoragePoolsController@saveAddresses');
-
-                Route::get('/{iaas_storage_pools}/{subObjects}', 'StoragePools\StoragePoolsController@relatedObjects');
-                Route::get('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@show');
-
-                Route::post('/', 'StoragePools\StoragePoolsController@store');
-                Route::post('/{iaas_storage_pools}/do/{action}', 'StoragePools\StoragePoolsController@doAction');
-
-                Route::patch('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@update');
-                Route::delete('/{iaas_storage_pools}', 'StoragePools\StoragePoolsController@destroy');
             }
         );
 
@@ -1387,8 +1387,49 @@ Route::prefix('iaas')->group(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 );
+
 
 
 

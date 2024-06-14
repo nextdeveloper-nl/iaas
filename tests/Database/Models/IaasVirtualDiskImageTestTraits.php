@@ -61,7 +61,7 @@ trait IaasVirtualDiskImageTestTraits
                 'name'  =>  'a',
                 'hypervisor_uuid'  =>  'a',
                 'size'  =>  '1',
-                'physical_utilization'  =>  '1',
+                'physical_utilisation'  =>  '1',
                 'device_number'  =>  '1',
                             ],
                 ['http_errors' => false]
@@ -402,12 +402,12 @@ trait IaasVirtualDiskImageTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualdiskimage_event_physical_utilization_filter()
+    public function test_iaasvirtualdiskimage_event_physical_utilisation_filter()
     {
         try {
             $request = new Request(
                 [
-                'physical_utilization'  =>  '1'
+                'physical_utilisation'  =>  '1'
                 ]
             );
 

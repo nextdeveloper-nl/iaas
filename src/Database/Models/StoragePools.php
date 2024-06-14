@@ -29,6 +29,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  * @property string $storage_pool_type
+ * @property integer $iaas_datacenter_id
  */
 class StoragePools extends Model
 {
@@ -55,8 +56,8 @@ class StoragePools extends Model
             'iam_user_id',
             'tags',
             'common_currency_id',
-        'iaas_datacenter_id',
             'storage_pool_type',
+            'iaas_datacenter_id',
     ];
 
     /**
@@ -88,6 +89,7 @@ class StoragePools extends Model
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
     'storage_pool_type' => 'string',
+    'iaas_datacenter_id' => 'integer',
     ];
 
     /**
@@ -149,6 +151,7 @@ class StoragePools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

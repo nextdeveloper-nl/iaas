@@ -81,6 +81,7 @@ class AbstractComputePoolsTransformer extends AbstractTransformer
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'pool_type'  =>  $model->pool_type,
             ]
         );
     }
@@ -169,6 +170,7 @@ class AbstractComputePoolsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

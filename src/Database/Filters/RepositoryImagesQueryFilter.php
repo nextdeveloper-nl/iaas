@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-            
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -83,6 +83,45 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('hash', 'like', '%' . $value . '%');
     }
 
+    public function size($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('size', $operator, $value);
+    }
+
+    public function ram($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('ram', $operator, $value);
+    }
+
+    public function cpu($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('cpu', $operator, $value);
+    }
+
     public function isActive()
     {
         return $this->builder->where('is_active', true);
@@ -106,6 +145,11 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     public function isLatest()
     {
         return $this->builder->where('is_latest', true);
+    }
+
+    public function isPublic()
+    {
+        return $this->builder->where('is_public', true);
     }
 
     public function createdAtStart($date)
@@ -165,7 +209,17 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function iaasVirtualMachineId($value)
+    {
+            $iaasVirtualMachine = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
+
+        if($iaasVirtualMachine) {
+            return $this->builder->where('iaas_virtual_machine_id', '=', $iaasVirtualMachine->id);
+        }
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -27,6 +27,10 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property $block_device_data
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property integer $iaas_storage_volume_id
+ * @property integer $iaas_storage_member_id
+ * @property integer $iaas_storage_pool_id
+ * @property integer $iaas_compute_member_id
  */
 class ComputeMemberStorageVolumes extends Model
 {
@@ -52,10 +56,10 @@ class ComputeMemberStorageVolumes extends Model
             'block_device_data',
             'iam_account_id',
             'iam_user_id',
-        'iaas_compute_member_id',
-        'iaas_storage_volume_id',
-        'iaas_storage_member_id',
-        'iaas_storage_pool_id'
+            'iaas_storage_volume_id',
+            'iaas_storage_member_id',
+            'iaas_storage_pool_id',
+            'iaas_compute_member_id',
     ];
 
     /**
@@ -87,6 +91,10 @@ class ComputeMemberStorageVolumes extends Model
     'name' => 'string',
     'description' => 'string',
     'block_device_data' => 'array',
+    'iaas_storage_volume_id' => 'integer',
+    'iaas_storage_member_id' => 'integer',
+    'iaas_storage_pool_id' => 'integer',
+    'iaas_compute_member_id' => 'integer',
     ];
 
     /**
@@ -148,6 +156,7 @@ class ComputeMemberStorageVolumes extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

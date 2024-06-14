@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+                    
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -41,7 +41,7 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('size', $operator, $value);
     }
 
-    public function physicalUtilization($value)
+    public function physicalUtilisation($value)
     {
         $operator = substr($value, 0, 1);
 
@@ -51,7 +51,7 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
             $value = substr($value, 1);
         }
 
-        return $this->builder->where('physical_utilization', $operator, $value);
+        return $this->builder->where('physical_utilisation', $operator, $value);
     }
 
     public function deviceNumber($value)
@@ -70,6 +70,11 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
     public function isCdrom()
     {
         return $this->builder->where('is_cdrom', true);
+    }
+
+    public function isDraft()
+    {
+        return $this->builder->where('is_draft', true);
     }
 
     public function createdAtStart($date)
@@ -138,7 +143,17 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function iaasRepositoryImageId($value)
+    {
+            $iaasRepositoryImage = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('uuid', $value)->first();
+
+        if($iaasRepositoryImage) {
+            return $this->builder->where('iaas_repository_image_id', '=', $iaasRepositoryImage->id);
+        }
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

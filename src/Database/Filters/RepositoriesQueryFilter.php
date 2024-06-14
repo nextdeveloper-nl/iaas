@@ -66,6 +66,19 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('docker_registry_port', $operator, $value);
     }
 
+    public function sshPort($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('ssh_port', $operator, $value);
+    }
+
     public function isActive()
     {
         return $this->builder->where('is_active', true);
@@ -89,6 +102,16 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     public function isDockerRegistry()
     {
         return $this->builder->where('is_docker_registry', true);
+    }
+
+    public function isBehindFirewall()
+    {
+        return $this->builder->where('is_behind_firewall', true);
+    }
+
+    public function isManagementAgentAvailable()
+    {
+        return $this->builder->where('is_management_agent_available', true);
     }
 
     public function createdAtStart($date)
@@ -140,6 +163,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

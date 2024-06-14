@@ -71,6 +71,9 @@ trait IaasRepositoryImageTestTraits
                 'extra'  =>  'a',
                 'cpu_type'  =>  'a',
                 'hash'  =>  'a',
+                'size'  =>  '1',
+                'ram'  =>  '1',
+                'cpu'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -587,6 +590,63 @@ trait IaasRepositoryImageTestTraits
             $request = new Request(
                 [
                 'hash'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasRepositoryImageQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasRepositoryImage::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasrepositoryimage_event_size_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'size'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasRepositoryImageQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasRepositoryImage::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasrepositoryimage_event_ram_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'ram'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasRepositoryImageQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasRepositoryImage::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasrepositoryimage_event_cpu_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'cpu'  =>  '1'
                 ]
             );
 
