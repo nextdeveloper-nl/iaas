@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use NextDeveloper\Commons\Database\Traits\Filterable;
+use NextDeveloper\Commons\Database\Traits\SSHable;
 use NextDeveloper\IAAS\Database\Observers\NetworkMembersObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * NetworkMembers model.
@@ -154,4 +156,16 @@ class NetworkMembers extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    use \NextDeveloper\Commons\Database\Traits\SSHable;
+    use \NextDeveloper\IAAS\Database\Traits\Agentable;
+
+    protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: function ($value) {
+                return encrypt($value);
+            },
+        );
+    }
 }

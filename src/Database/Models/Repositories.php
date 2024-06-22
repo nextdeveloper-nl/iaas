@@ -183,5 +183,15 @@ class Repositories extends Model
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-    use SSHable;
+    use \NextDeveloper\Commons\Database\Traits\SSHable;
+    use \NextDeveloper\IAAS\Database\Traits\Agentable;
+
+    protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: function ($value) {
+                return encrypt($value);
+            },
+        );
+    }
 }

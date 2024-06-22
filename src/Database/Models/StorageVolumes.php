@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Database\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ use NextDeveloper\IAAS\Database\Observers\StorageVolumesObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * StorageVolumes model.
@@ -178,5 +180,14 @@ class StorageVolumes extends Model
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-    use SSHable;
+    use SSHable, Agentable;
+
+    protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: function ($value) {
+                return encrypt($value);
+            },
+        );
+    }
 }
