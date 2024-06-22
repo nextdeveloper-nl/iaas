@@ -56,6 +56,25 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_storage_pools',
             'iaas_storage_volumes',
             'iaas_networks',
+            'iaas_virtual_machines',
+            'iaas_ansible_playbooks',
+            'iaas_ansible_roles',
+            'iaas_ansible_servers',
+            'iaas_ansible_system_playbooks',
+            'iaas_gateways',
+            'iaas_repositories',
+            'iaas_dhcp_servers',
+            'iaas_ip_addresses',
+            'iaas_ip_address_history',
+            'iaas_network_members',
+            'iaas_network_pools',
+            'iaas_storage_members',
+            'iaas_virtual_disk_images',
+            'iaas_virtual_network_cards',
+            'iaas_compute_member_devices',
+            'iaas_compute_member_events',
+            'iaas_compute_member_network_interfaces',
+            'iaas_compute_member_stats'
         ];
     }
 
