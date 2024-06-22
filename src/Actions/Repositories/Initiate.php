@@ -20,9 +20,9 @@ class Initiate extends AbstractAction
 
     public const PARAMS = [];
 
-    public function __construct(Repositories $repositories)
+    public function __construct(Repositories $repositories, $params = null)
     {
-        parent::__construct();
+        parent::__construct($params);
 
         $this->model = $repositories;
     }
@@ -39,8 +39,8 @@ class Initiate extends AbstractAction
 
         $this->setProgress(10, 'Syncing virtual machine images. This can take some time ...');
 
-        //(new SynchronizeIsos($this->model))->handle();
-        //new SynchronizeMachineImages($this->model))->handle();
+        (new SynchronizeIsos($this->model))->handle();
+        (new SynchronizeMachineImages($this->model))->handle();
 
         //  This feature will come later
         //  (new SynchronizeDockerImages($this->model))->handle();
