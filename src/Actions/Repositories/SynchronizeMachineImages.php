@@ -22,9 +22,9 @@ class SynchronizeMachineImages extends AbstractAction
 
     public function __construct(Repositories $repo)
     {
-        parent::__construct();
-
         $this->model = $repo;
+
+        parent::__construct();
     }
 
     public function handle()

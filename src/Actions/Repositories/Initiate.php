@@ -22,9 +22,9 @@ class Initiate extends AbstractAction
 
     public function __construct(Repositories $repositories, $params = null)
     {
-        parent::__construct($params);
-
         $this->model = $repositories;
+
+        parent::__construct($params);
     }
 
     public function handle()
