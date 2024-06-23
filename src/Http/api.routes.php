@@ -842,7 +842,69 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('repositories-perspective')->group(
+            function () {
+                Route::get('/', 'RepositoriesPerspective\RepositoriesPerspectiveController@index');
+                Route::get('/actions', 'RepositoriesPerspective\RepositoriesPerspectiveController@getActions');
+
+                Route::get('{iaas_repositories_perspective}/tags ', 'RepositoriesPerspective\RepositoriesPerspectiveController@tags');
+                Route::post('{iaas_repositories_perspective}/tags ', 'RepositoriesPerspective\RepositoriesPerspectiveController@saveTags');
+                Route::get('{iaas_repositories_perspective}/addresses ', 'RepositoriesPerspective\RepositoriesPerspectiveController@addresses');
+                Route::post('{iaas_repositories_perspective}/addresses ', 'RepositoriesPerspective\RepositoriesPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_repositories_perspective}/{subObjects}', 'RepositoriesPerspective\RepositoriesPerspectiveController@relatedObjects');
+                Route::get('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@show');
+
+                Route::post('/', 'RepositoriesPerspective\RepositoriesPerspectiveController@store');
+                Route::post('/{iaas_repositories_perspective}/do/{action}', 'RepositoriesPerspective\RepositoriesPerspectiveController@doAction');
+
+                Route::patch('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@update');
+                Route::delete('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@destroy');
+            }
+        );
+
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1469,6 +1531,7 @@ Route::prefix('iaas')->group(
 
     }
 );
+
 
 
 

@@ -10,6 +10,8 @@ use NextDeveloper\IAAS\Database\Observers\VirtualMachinesObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use \NextDeveloper\Commons\Database\Traits\SSHable;
+use \NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * VirtualMachines model.
@@ -232,8 +234,6 @@ class VirtualMachines extends Model
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-    use \NextDeveloper\Commons\Database\Traits\SSHable;
-    use \NextDeveloper\IAAS\Database\Traits\Agentable;
 
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
@@ -243,4 +243,5 @@ class VirtualMachines extends Model
             },
         );
     }
+
 }
