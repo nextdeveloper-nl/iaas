@@ -10,6 +10,8 @@ use NextDeveloper\IAAS\Database\Observers\AnsiblePlaybookExecutionsObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\SSHable;
+use NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * AnsiblePlaybookExecutions model.
@@ -43,6 +45,7 @@ class AnsiblePlaybookExecutions extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable;
     use SoftDeletes;
+    use SSHable, Agentable;
 
 
     public $timestamps = true;
@@ -176,5 +179,6 @@ class AnsiblePlaybookExecutions extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

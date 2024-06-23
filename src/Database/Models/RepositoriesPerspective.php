@@ -25,6 +25,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property string $repository_maintainer
  * @property integer $iso_image_count
  * @property integer $vm_image_count
+ * @property integer $iam_user_id
+ * @property integer $iam_account_id
  */
 class RepositoriesPerspective extends Model
 {
@@ -53,6 +55,8 @@ class RepositoriesPerspective extends Model
             'repository_maintainer',
             'iso_image_count',
             'vm_image_count',
+            'iam_user_id',
+            'iam_account_id',
     ];
 
     /**
@@ -143,4 +147,5 @@ class RepositoriesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

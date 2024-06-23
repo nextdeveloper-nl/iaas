@@ -10,6 +10,8 @@ use NextDeveloper\IAAS\Database\Observers\AnsibleServersObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\SSHable;
+use NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * AnsibleServers model.
@@ -43,6 +45,7 @@ class AnsibleServers extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable;
     use SoftDeletes;
+    use SSHable, Agentable;
 
 
     public $timestamps = true;
@@ -174,5 +177,6 @@ class AnsibleServers extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

@@ -11,8 +11,7 @@ use NextDeveloper\IAAS\Database\Observers\ComputeMembersObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
-use \NextDeveloper\Commons\Database\Traits\SSHable;
-use \NextDeveloper\IAAS\Database\Traits\Agentable;
+use NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * ComputeMembers model.
@@ -63,6 +62,7 @@ class ComputeMembers extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable;
     use SoftDeletes;
+    use SSHable, Agentable;
 
 
     public $timestamps = true;
@@ -240,5 +240,6 @@ class ComputeMembers extends Model
             },
         );
     }
+
 
 }

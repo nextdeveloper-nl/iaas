@@ -10,8 +10,6 @@ use NextDeveloper\IAAS\Database\Observers\VirtualMachinesObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
-use \NextDeveloper\Commons\Database\Traits\SSHable;
-use \NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * VirtualMachines model.
@@ -243,5 +241,6 @@ class VirtualMachines extends Model
             },
         );
     }
+
 
 }
