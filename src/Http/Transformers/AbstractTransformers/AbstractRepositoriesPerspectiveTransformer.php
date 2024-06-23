@@ -56,10 +56,10 @@ class AbstractRepositoriesPerspectiveTransformer extends AbstractTransformer
     {
                                                 $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                        
+
         return $this->buildPayload(
             [
-            'id'  =>  $model->id,
+            'id'  =>  $model->uuid,
             'name'  =>  $model->name,
             'description'  =>  $model->description,
             'ip_addr'  =>  $model->ip_addr,
