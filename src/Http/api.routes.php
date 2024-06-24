@@ -359,27 +359,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('cloud-nodes')->group(
-            function () {
-                Route::get('/', 'CloudNodes\CloudNodesController@index');
-                Route::get('/actions', 'CloudNodes\CloudNodesController@getActions');
-
-                Route::get('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@tags');
-                Route::post('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@saveTags');
-                Route::get('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@addresses');
-                Route::post('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@saveAddresses');
-
-                Route::get('/{iaas_cloud_nodes}/{subObjects}', 'CloudNodes\CloudNodesController@relatedObjects');
-                Route::get('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@show');
-
-                Route::post('/', 'CloudNodes\CloudNodesController@store');
-                Route::post('/{iaas_cloud_nodes}/do/{action}', 'CloudNodes\CloudNodesController@doAction');
-
-                Route::patch('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@update');
-                Route::delete('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@destroy');
-            }
-        );
-
         Route::prefix('datacenters')->group(
             function () {
                 Route::get('/', 'Datacenters\DatacentersController@index');
@@ -398,6 +377,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_datacenters}', 'Datacenters\DatacentersController@update');
                 Route::delete('/{iaas_datacenters}', 'Datacenters\DatacentersController@destroy');
+            }
+        );
+
+        Route::prefix('cloud-nodes')->group(
+            function () {
+                Route::get('/', 'CloudNodes\CloudNodesController@index');
+                Route::get('/actions', 'CloudNodes\CloudNodesController@getActions');
+
+                Route::get('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@tags');
+                Route::post('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@saveTags');
+                Route::get('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@addresses');
+                Route::post('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@saveAddresses');
+
+                Route::get('/{iaas_cloud_nodes}/{subObjects}', 'CloudNodes\CloudNodesController@relatedObjects');
+                Route::get('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@show');
+
+                Route::post('/', 'CloudNodes\CloudNodesController@store');
+                Route::post('/{iaas_cloud_nodes}/do/{action}', 'CloudNodes\CloudNodesController@doAction');
+
+                Route::patch('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@update');
+                Route::delete('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@destroy');
             }
         );
 
@@ -839,6 +839,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_repository_images}', 'RepositoryImages\RepositoryImagesController@update');
                 Route::delete('/{iaas_repository_images}', 'RepositoryImages\RepositoryImagesController@destroy');
+            }
+        );
+
+        Route::prefix('datacenters-perspective')->group(
+            function () {
+                Route::get('/', 'DatacentersPerspective\DatacentersPerspectiveController@index');
+                Route::get('/actions', 'DatacentersPerspective\DatacentersPerspectiveController@getActions');
+
+                Route::get('{iaas_datacenters_perspective}/tags ', 'DatacentersPerspective\DatacentersPerspectiveController@tags');
+                Route::post('{iaas_datacenters_perspective}/tags ', 'DatacentersPerspective\DatacentersPerspectiveController@saveTags');
+                Route::get('{iaas_datacenters_perspective}/addresses ', 'DatacentersPerspective\DatacentersPerspectiveController@addresses');
+                Route::post('{iaas_datacenters_perspective}/addresses ', 'DatacentersPerspective\DatacentersPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_datacenters_perspective}/{subObjects}', 'DatacentersPerspective\DatacentersPerspectiveController@relatedObjects');
+                Route::get('/{iaas_datacenters_perspective}', 'DatacentersPerspective\DatacentersPerspectiveController@show');
+
+                Route::post('/', 'DatacentersPerspective\DatacentersPerspectiveController@store');
+                Route::post('/{iaas_datacenters_perspective}/do/{action}', 'DatacentersPerspective\DatacentersPerspectiveController@doAction');
+
+                Route::patch('/{iaas_datacenters_perspective}', 'DatacentersPerspective\DatacentersPerspectiveController@update');
+                Route::delete('/{iaas_datacenters_perspective}', 'DatacentersPerspective\DatacentersPerspectiveController@destroy');
             }
         );
 
@@ -1570,8 +1591,51 @@ Route::prefix('iaas')->group(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 );
+
 
 
 

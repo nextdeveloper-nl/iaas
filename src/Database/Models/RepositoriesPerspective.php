@@ -14,6 +14,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * RepositoriesPerspective model.
  *
  * @package  NextDeveloper\IAAS\Database\Models
+ * @property integer $id
+ * @property string $uuid
  * @property string $name
  * @property string $description
  * @property $ip_addr
@@ -79,6 +81,7 @@ class RepositoriesPerspective extends Model
      @var array
      */
     protected $casts = [
+    'id' => 'integer',
     'name' => 'string',
     'description' => 'string',
     'is_active' => 'boolean',
@@ -147,5 +150,6 @@ class RepositoriesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

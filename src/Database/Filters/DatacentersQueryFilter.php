@@ -72,6 +72,11 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('cooling', 'like', '%' . $value . '%');
     }
+    
+    public function description($value)
+    {
+        return $this->builder->where('description', 'like', '%' . $value . '%');
+    }
 
     public function tierLevel($value)
     {
@@ -180,6 +185,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 }

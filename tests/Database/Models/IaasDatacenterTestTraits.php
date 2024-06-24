@@ -65,6 +65,7 @@ trait IaasDatacenterTestTraits
                 'power_source'  =>  'a',
                 'ups'  =>  'a',
                 'cooling'  =>  'a',
+                'description'  =>  'a',
                 'tier_level'  =>  '1',
                             ],
                 ['http_errors' => false]
@@ -468,6 +469,25 @@ trait IaasDatacenterTestTraits
             $request = new Request(
                 [
                 'cooling'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasDatacenterQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasDatacenter::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasdatacenter_event_description_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'description'  =>  'a'
                 ]
             );
 
