@@ -968,7 +968,145 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('virtual-mahines-perspective')->group(
+            function () {
+                Route::get('/', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@index');
+                Route::get('/actions', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@getActions');
+
+                Route::get('{iaas_virtual_mahines_perspective}/tags ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@tags');
+                Route::post('{iaas_virtual_mahines_perspective}/tags ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@saveTags');
+                Route::get('{iaas_virtual_mahines_perspective}/addresses ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@addresses');
+                Route::post('{iaas_virtual_mahines_perspective}/addresses ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_virtual_mahines_perspective}/{subObjects}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@relatedObjects');
+                Route::get('/{iaas_virtual_mahines_perspective}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@show');
+
+                Route::post('/', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@store');
+                Route::post('/{iaas_virtual_mahines_perspective}/do/{action}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@doAction');
+
+                Route::patch('/{iaas_virtual_mahines_perspective}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@update');
+                Route::delete('/{iaas_virtual_mahines_perspective}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('repository-images-perspective')->group(
+            function () {
+                Route::get('/', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@index');
+                Route::get('/actions', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@getActions');
+
+                Route::get('{irip}/tags ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@tags');
+                Route::post('{irip}/tags ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@saveTags');
+                Route::get('{irip}/addresses ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@addresses');
+                Route::post('{irip}/addresses ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@saveAddresses');
+
+                Route::get('/{irip}/{subObjects}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@relatedObjects');
+                Route::get('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@show');
+
+                Route::post('/', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@store');
+                Route::post('/{irip}/do/{action}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@doAction');
+
+                Route::patch('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@update');
+                Route::delete('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@destroy');
+            }
+        );
+
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1063,5 +1201,7 @@ Route::prefix('iaas')->group(
 
     }
 );
+
+
 
 

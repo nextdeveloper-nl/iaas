@@ -39,6 +39,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $network_pools_count
  * @property array $tags
  * @property string $datacenter_maintainer
+ * @property integer $iam_user_id
+ * @property integer $iam_account_id
  */
 class DatacentersPerspective extends Model
 {
@@ -79,6 +81,8 @@ class DatacentersPerspective extends Model
             'network_pools_count',
             'tags',
             'datacenter_maintainer',
+            'iam_user_id',
+            'iam_account_id',
     ];
 
     /**
@@ -183,6 +187,8 @@ class DatacentersPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 
