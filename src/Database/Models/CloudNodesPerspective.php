@@ -24,7 +24,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $compute_pool_count
  * @property integer $storage_pool_count
  * @property integer $network_pool_count
- * @property string $cloud_node_maintainer
+ * @property string $maintainer
+ * @property string $responsible
  * @property integer $iam_user_id
  * @property integer $iam_account_id
  */
@@ -52,7 +53,8 @@ class CloudNodesPerspective extends Model
             'compute_pool_count',
             'storage_pool_count',
             'network_pool_count',
-            'cloud_node_maintainer',
+            'maintainer',
+            'responsible',
             'iam_user_id',
             'iam_account_id',
     ];
@@ -86,7 +88,8 @@ class CloudNodesPerspective extends Model
     'compute_pool_count' => 'integer',
     'storage_pool_count' => 'integer',
     'network_pool_count' => 'integer',
-    'cloud_node_maintainer' => 'string',
+    'maintainer' => 'string',
+    'responsible' => 'string',
     ];
 
     /**
@@ -146,4 +149,6 @@ class CloudNodesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 }

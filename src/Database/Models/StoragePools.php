@@ -18,7 +18,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $id
  * @property string $uuid
  * @property $name
- * @property $gb_per_hour_price
+ * @property $price_pergb
  * @property boolean $is_active
  * @property integer $iaas_cloud_node_id
  * @property integer $iam_account_id
@@ -49,7 +49,7 @@ class StoragePools extends Model
 
     protected $fillable = [
             'name',
-            'gb_per_hour_price',
+            'price_pergb',
             'is_active',
             'iaas_cloud_node_id',
             'iam_account_id',
@@ -151,6 +151,8 @@ class StoragePools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

@@ -63,6 +63,8 @@ trait IaasComputePoolTestTraits
                 'virtualization'  =>  'a',
                 'provisioning_alg'  =>  'a',
                 'pool_type'  =>  'a',
+                'total_cpu'  =>  '1',
+                'total_ram'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -427,6 +429,44 @@ trait IaasComputePoolTestTraits
             $request = new Request(
                 [
                 'pool_type'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasComputePoolQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputepool_event_total_cpu_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'total_cpu'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasComputePoolQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputePool::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputepool_event_total_ram_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'total_ram'  =>  '1'
                 ]
             );
 

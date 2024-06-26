@@ -68,7 +68,8 @@ class AbstractCloudNodesPerspectiveTransformer extends AbstractTransformer
             'compute_pool_count'  =>  $model->compute_pool_count,
             'storage_pool_count'  =>  $model->storage_pool_count,
             'network_pool_count'  =>  $model->network_pool_count,
-            'cloud_node_maintainer'  =>  $model->cloud_node_maintainer,
+            'maintainer'  =>  $model->maintainer,
+            'responsible'  =>  $model->responsible,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             ]
@@ -159,4 +160,6 @@ class AbstractCloudNodesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 }

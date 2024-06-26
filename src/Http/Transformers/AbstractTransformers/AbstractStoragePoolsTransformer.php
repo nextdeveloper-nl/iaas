@@ -64,7 +64,7 @@ class AbstractStoragePoolsTransformer extends AbstractTransformer
             [
             'id'  =>  $model->uuid,
             'name'  =>  $model->name,
-            'gb_per_hour_price'  =>  $model->gb_per_hour_price,
+            'price_pergb'  =>  $model->price_pergb,
             'is_active'  =>  $model->is_active,
             'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
@@ -164,5 +164,7 @@ class AbstractStoragePoolsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 }

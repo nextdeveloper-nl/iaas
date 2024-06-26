@@ -63,6 +63,32 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('pool_type', 'like', '%' . $value . '%');
     }
 
+    public function totalCpu($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('total_cpu', $operator, $value);
+    }
+
+    public function totalRam($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('total_ram', $operator, $value);
+    }
+
     public function isActive($value)
     {
         if(!is_bool($value)) {
@@ -166,6 +192,8 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

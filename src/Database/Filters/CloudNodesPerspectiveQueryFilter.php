@@ -28,9 +28,14 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('datacenter_name', 'like', '%' . $value . '%');
     }
     
-    public function cloudNodeMaintainer($value)
+    public function maintainer($value)
     {
-        return $this->builder->where('cloud_node_maintainer', 'like', '%' . $value . '%');
+        return $this->builder->where('maintainer', 'like', '%' . $value . '%');
+    }
+    
+    public function responsible($value)
+    {
+        return $this->builder->where('responsible', 'like', '%' . $value . '%');
     }
 
     public function computePoolCount($value)
@@ -118,4 +123,6 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 }

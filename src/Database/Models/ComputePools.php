@@ -36,6 +36,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  * @property string $pool_type
+ * @property integer $total_cpu
+ * @property integer $total_ram
  */
 class ComputePools extends Model
 {
@@ -70,6 +72,8 @@ class ComputePools extends Model
             'price_pergb',
             'common_currency_id',
             'pool_type',
+            'total_cpu',
+            'total_ram',
     ];
 
     /**
@@ -109,6 +113,8 @@ class ComputePools extends Model
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
     'pool_type' => 'string',
+    'total_cpu' => 'integer',
+    'total_ram' => 'integer',
     ];
 
     /**
@@ -170,6 +176,8 @@ class ComputePools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 
