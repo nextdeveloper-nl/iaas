@@ -842,6 +842,48 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('virtual-machine-metrics')->group(
+            function () {
+                Route::get('/', 'VirtualMachineMetrics\VirtualMachineMetricsController@index');
+                Route::get('/actions', 'VirtualMachineMetrics\VirtualMachineMetricsController@getActions');
+
+                Route::get('{iaas_virtual_machine_metrics}/tags ', 'VirtualMachineMetrics\VirtualMachineMetricsController@tags');
+                Route::post('{iaas_virtual_machine_metrics}/tags ', 'VirtualMachineMetrics\VirtualMachineMetricsController@saveTags');
+                Route::get('{iaas_virtual_machine_metrics}/addresses ', 'VirtualMachineMetrics\VirtualMachineMetricsController@addresses');
+                Route::post('{iaas_virtual_machine_metrics}/addresses ', 'VirtualMachineMetrics\VirtualMachineMetricsController@saveAddresses');
+
+                Route::get('/{iaas_virtual_machine_metrics}/{subObjects}', 'VirtualMachineMetrics\VirtualMachineMetricsController@relatedObjects');
+                Route::get('/{iaas_virtual_machine_metrics}', 'VirtualMachineMetrics\VirtualMachineMetricsController@show');
+
+                Route::post('/', 'VirtualMachineMetrics\VirtualMachineMetricsController@store');
+                Route::post('/{iaas_virtual_machine_metrics}/do/{action}', 'VirtualMachineMetrics\VirtualMachineMetricsController@doAction');
+
+                Route::patch('/{iaas_virtual_machine_metrics}', 'VirtualMachineMetrics\VirtualMachineMetricsController@update');
+                Route::delete('/{iaas_virtual_machine_metrics}', 'VirtualMachineMetrics\VirtualMachineMetricsController@destroy');
+            }
+        );
+
+        Route::prefix('compute-member-metrics')->group(
+            function () {
+                Route::get('/', 'ComputeMemberMetrics\ComputeMemberMetricsController@index');
+                Route::get('/actions', 'ComputeMemberMetrics\ComputeMemberMetricsController@getActions');
+
+                Route::get('{iaas_compute_member_metrics}/tags ', 'ComputeMemberMetrics\ComputeMemberMetricsController@tags');
+                Route::post('{iaas_compute_member_metrics}/tags ', 'ComputeMemberMetrics\ComputeMemberMetricsController@saveTags');
+                Route::get('{iaas_compute_member_metrics}/addresses ', 'ComputeMemberMetrics\ComputeMemberMetricsController@addresses');
+                Route::post('{iaas_compute_member_metrics}/addresses ', 'ComputeMemberMetrics\ComputeMemberMetricsController@saveAddresses');
+
+                Route::get('/{iaas_compute_member_metrics}/{subObjects}', 'ComputeMemberMetrics\ComputeMemberMetricsController@relatedObjects');
+                Route::get('/{iaas_compute_member_metrics}', 'ComputeMemberMetrics\ComputeMemberMetricsController@show');
+
+                Route::post('/', 'ComputeMemberMetrics\ComputeMemberMetricsController@store');
+                Route::post('/{iaas_compute_member_metrics}/do/{action}', 'ComputeMemberMetrics\ComputeMemberMetricsController@doAction');
+
+                Route::patch('/{iaas_compute_member_metrics}', 'ComputeMemberMetrics\ComputeMemberMetricsController@update');
+                Route::delete('/{iaas_compute_member_metrics}', 'ComputeMemberMetrics\ComputeMemberMetricsController@destroy');
+            }
+        );
+
         Route::prefix('datacenters-perspective')->group(
             function () {
                 Route::get('/', 'DatacentersPerspective\DatacentersPerspectiveController@index');
@@ -1275,8 +1317,108 @@ Route::prefix('iaas')->group(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 );
+
+
 
 
 
