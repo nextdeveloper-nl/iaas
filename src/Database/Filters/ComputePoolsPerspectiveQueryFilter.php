@@ -195,4 +195,5 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

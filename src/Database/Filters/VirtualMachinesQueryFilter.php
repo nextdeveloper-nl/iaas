@@ -15,10 +15,11 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     /**
      * Filter by tags
      *
-     * @param $values
+     * @param  $values
      * @return Builder
      */
-    public function tags($values) {
+    public function tags($values)
+    {
         $tags = explode(',', $values);
 
         $search = '';
@@ -33,8 +34,8 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     }
 
     /**
-    * @var Builder
-    */
+     * @var Builder
+     */
     protected $builder;
     
     public function name($value)
@@ -97,7 +98,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         $operator = substr($value, 0, 1);
 
         if ($operator != '<' || $operator != '>') {
-           $operator = '=';
+            $operator = '=';
         } else {
             $value = substr($value, 1);
         }
@@ -110,7 +111,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         $operator = substr($value, 0, 1);
 
         if ($operator != '<' || $operator != '>') {
-           $operator = '=';
+            $operator = '=';
         } else {
             $value = substr($value, 1);
         }
@@ -120,90 +121,96 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function isWinrmEnabled($value)
     {
-        if(!is_bool($value))
+        if(!is_bool($value)) {
             $value = false;
+        }
 
         return $this->builder->where('is_winrm_enabled', $value);
     }
 
     public function isSnapshot($value)
     {
-        if(!is_bool($value))
+        if(!is_bool($value)) {
             $value = false;
+        }
 
         return $this->builder->where('is_snapshot', $value);
     }
 
     public function isLost($value)
     {
-        if(!is_bool($value))
+        if(!is_bool($value)) {
             $value = false;
+        }
 
         return $this->builder->where('is_lost', $value);
     }
 
     public function isLocked($value)
     {
-        if(!is_bool($value))
+        if(!is_bool($value)) {
             $value = false;
+        }
 
         return $this->builder->where('is_locked', $value);
     }
 
     public function isDraft($value)
     {
-        if(!is_bool($value))
+        if(!is_bool($value)) {
             $value = false;
+        }
 
         return $this->builder->where('is_draft', $value);
     }
 
     public function isTemplate($value)
     {
-        if(!is_bool($value))
+        if(!is_bool($value)) {
             $value = false;
+        }
 
         return $this->builder->where('is_template', $value);
     }
 
     public function lastMetadataRequestStart($date)
     {
-        return $this->builder->where( 'last_metadata_request', '>=', $date );
+        return $this->builder->where('last_metadata_request', '>=', $date);
     }
 
     public function lastMetadataRequestEnd($date)
     {
-        return $this->builder->where( 'last_metadata_request', '<=', $date );
+        return $this->builder->where('last_metadata_request', '<=', $date);
     }
 
     public function createdAtStart($date)
     {
-        return $this->builder->where( 'created_at', '>=', $date );
+        return $this->builder->where('created_at', '>=', $date);
     }
 
     public function createdAtEnd($date)
     {
-        return $this->builder->where( 'created_at', '<=', $date );
+        return $this->builder->where('created_at', '<=', $date);
     }
 
     public function updatedAtStart($date)
     {
-        return $this->builder->where( 'updated_at', '>=', $date );
+        return $this->builder->where('updated_at', '>=', $date);
     }
 
     public function updatedAtEnd($date)
     {
-        return $this->builder->where( 'updated_at', '<=', $date );
+        return $this->builder->where('updated_at', '<=', $date);
     }
 
     public function deletedAtStart($date)
     {
-        return $this->builder->where( 'deleted_at', '>=', $date );
+        return $this->builder->where('deleted_at', '>=', $date);
     }
 
     public function deletedAtEnd($date)
     {
-        return $this->builder->where( 'deleted_at', '<=', $date );
+        return $this->builder->where('deleted_at', '<=', $date);
     }
 
     public function iaasCloudNodeId($value)
@@ -213,7 +220,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         if($iaasCloudNode) {
             return $this->builder->where('iaas_cloud_node_id', '=', $iaasCloudNode->id);
         }
-        }
+    }
 
     public function iaasComputeMemberId($value)
     {
@@ -222,7 +229,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         if($iaasComputeMember) {
             return $this->builder->where('iaas_compute_member_id', '=', $iaasComputeMember->id);
         }
-        }
+    }
 
     public function iamAccountId($value)
     {
@@ -231,7 +238,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         if($iamAccount) {
             return $this->builder->where('iam_account_id', '=', $iamAccount->id);
         }
-        }
+    }
 
     public function iamUserId($value)
     {
@@ -240,7 +247,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         if($iamUser) {
             return $this->builder->where('iam_user_id', '=', $iamUser->id);
         }
-        }
+    }
 
     public function templateId($value)
     {
@@ -249,7 +256,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         if($template) {
             return $this->builder->where('template_id', '=', $template->id);
         }
-        }
+    }
 
     public function commonDomainId($value)
     {
@@ -258,7 +265,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         if($commonDomain) {
             return $this->builder->where('common_domain_id', '=', $commonDomain->id);
         }
-        }
+    }
 
     public function iaasRepositoryImageId($value)
     {
@@ -267,7 +274,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         if($iaasRepositoryImage) {
             return $this->builder->where('iaas_repository_image_id', '=', $iaasRepositoryImage->id);
         }
-        }
+    }
 
     public function iaasComputePoolId($value)
     {
@@ -276,9 +283,10 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         if($iaasComputePool) {
             return $this->builder->where('iaas_compute_pool_id', '=', $iaasComputePool->id);
         }
-        }
+    }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -590,7 +590,475 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('virtual-machines')->group(
+            function () {
+                Route::get('/', 'VirtualMachines\VirtualMachinesController@index');
+                Route::get('/actions', 'VirtualMachines\VirtualMachinesController@getActions');
+
+                Route::get('{iaas_virtual_machines}/tags ', 'VirtualMachines\VirtualMachinesController@tags');
+                Route::post('{iaas_virtual_machines}/tags ', 'VirtualMachines\VirtualMachinesController@saveTags');
+                Route::get('{iaas_virtual_machines}/addresses ', 'VirtualMachines\VirtualMachinesController@addresses');
+                Route::post('{iaas_virtual_machines}/addresses ', 'VirtualMachines\VirtualMachinesController@saveAddresses');
+
+                Route::get('/{iaas_virtual_machines}/{subObjects}', 'VirtualMachines\VirtualMachinesController@relatedObjects');
+                Route::get('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@show');
+
+                Route::post('/', 'VirtualMachines\VirtualMachinesController@store');
+                Route::post('/{iaas_virtual_machines}/do/{action}', 'VirtualMachines\VirtualMachinesController@doAction');
+
+                Route::patch('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@update');
+                Route::delete('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@destroy');
+            }
+        );
+
+        Route::prefix('ansible-playbook-executions')->group(
+            function () {
+                Route::get('/', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@index');
+                Route::get('/actions', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@getActions');
+
+                Route::get('{iaas_ansible_playbook_executions}/tags ', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@tags');
+                Route::post('{iaas_ansible_playbook_executions}/tags ', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@saveTags');
+                Route::get('{iaas_ansible_playbook_executions}/addresses ', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@addresses');
+                Route::post('{iaas_ansible_playbook_executions}/addresses ', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@saveAddresses');
+
+                Route::get('/{iaas_ansible_playbook_executions}/{subObjects}', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@relatedObjects');
+                Route::get('/{iaas_ansible_playbook_executions}', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@show');
+
+                Route::post('/', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@store');
+                Route::post('/{iaas_ansible_playbook_executions}/do/{action}', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@doAction');
+
+                Route::patch('/{iaas_ansible_playbook_executions}', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@update');
+                Route::delete('/{iaas_ansible_playbook_executions}', 'AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsController@destroy');
+            }
+        );
+
+        Route::prefix('ansible-playbooks')->group(
+            function () {
+                Route::get('/', 'AnsiblePlaybooks\AnsiblePlaybooksController@index');
+                Route::get('/actions', 'AnsiblePlaybooks\AnsiblePlaybooksController@getActions');
+
+                Route::get('{iaas_ansible_playbooks}/tags ', 'AnsiblePlaybooks\AnsiblePlaybooksController@tags');
+                Route::post('{iaas_ansible_playbooks}/tags ', 'AnsiblePlaybooks\AnsiblePlaybooksController@saveTags');
+                Route::get('{iaas_ansible_playbooks}/addresses ', 'AnsiblePlaybooks\AnsiblePlaybooksController@addresses');
+                Route::post('{iaas_ansible_playbooks}/addresses ', 'AnsiblePlaybooks\AnsiblePlaybooksController@saveAddresses');
+
+                Route::get('/{iaas_ansible_playbooks}/{subObjects}', 'AnsiblePlaybooks\AnsiblePlaybooksController@relatedObjects');
+                Route::get('/{iaas_ansible_playbooks}', 'AnsiblePlaybooks\AnsiblePlaybooksController@show');
+
+                Route::post('/', 'AnsiblePlaybooks\AnsiblePlaybooksController@store');
+                Route::post('/{iaas_ansible_playbooks}/do/{action}', 'AnsiblePlaybooks\AnsiblePlaybooksController@doAction');
+
+                Route::patch('/{iaas_ansible_playbooks}', 'AnsiblePlaybooks\AnsiblePlaybooksController@update');
+                Route::delete('/{iaas_ansible_playbooks}', 'AnsiblePlaybooks\AnsiblePlaybooksController@destroy');
+            }
+        );
+
+        Route::prefix('ansible-system-plays')->group(
+            function () {
+                Route::get('/', 'AnsibleSystemPlays\AnsibleSystemPlaysController@index');
+                Route::get('/actions', 'AnsibleSystemPlays\AnsibleSystemPlaysController@getActions');
+
+                Route::get('{iaas_ansible_system_plays}/tags ', 'AnsibleSystemPlays\AnsibleSystemPlaysController@tags');
+                Route::post('{iaas_ansible_system_plays}/tags ', 'AnsibleSystemPlays\AnsibleSystemPlaysController@saveTags');
+                Route::get('{iaas_ansible_system_plays}/addresses ', 'AnsibleSystemPlays\AnsibleSystemPlaysController@addresses');
+                Route::post('{iaas_ansible_system_plays}/addresses ', 'AnsibleSystemPlays\AnsibleSystemPlaysController@saveAddresses');
+
+                Route::get('/{iaas_ansible_system_plays}/{subObjects}', 'AnsibleSystemPlays\AnsibleSystemPlaysController@relatedObjects');
+                Route::get('/{iaas_ansible_system_plays}', 'AnsibleSystemPlays\AnsibleSystemPlaysController@show');
+
+                Route::post('/', 'AnsibleSystemPlays\AnsibleSystemPlaysController@store');
+                Route::post('/{iaas_ansible_system_plays}/do/{action}', 'AnsibleSystemPlays\AnsibleSystemPlaysController@doAction');
+
+                Route::patch('/{iaas_ansible_system_plays}', 'AnsibleSystemPlays\AnsibleSystemPlaysController@update');
+                Route::delete('/{iaas_ansible_system_plays}', 'AnsibleSystemPlays\AnsibleSystemPlaysController@destroy');
+            }
+        );
+
+        Route::prefix('ansible-system-playbooks')->group(
+            function () {
+                Route::get('/', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@index');
+                Route::get('/actions', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@getActions');
+
+                Route::get('{iaas_ansible_system_playbooks}/tags ', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@tags');
+                Route::post('{iaas_ansible_system_playbooks}/tags ', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@saveTags');
+                Route::get('{iaas_ansible_system_playbooks}/addresses ', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@addresses');
+                Route::post('{iaas_ansible_system_playbooks}/addresses ', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@saveAddresses');
+
+                Route::get('/{iaas_ansible_system_playbooks}/{subObjects}', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@relatedObjects');
+                Route::get('/{iaas_ansible_system_playbooks}', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@show');
+
+                Route::post('/', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@store');
+                Route::post('/{iaas_ansible_system_playbooks}/do/{action}', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@doAction');
+
+                Route::patch('/{iaas_ansible_system_playbooks}', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@update');
+                Route::delete('/{iaas_ansible_system_playbooks}', 'AnsibleSystemPlaybooks\AnsibleSystemPlaybooksController@destroy');
+            }
+        );
+
+        Route::prefix('gateways')->group(
+            function () {
+                Route::get('/', 'Gateways\GatewaysController@index');
+                Route::get('/actions', 'Gateways\GatewaysController@getActions');
+
+                Route::get('{iaas_gateways}/tags ', 'Gateways\GatewaysController@tags');
+                Route::post('{iaas_gateways}/tags ', 'Gateways\GatewaysController@saveTags');
+                Route::get('{iaas_gateways}/addresses ', 'Gateways\GatewaysController@addresses');
+                Route::post('{iaas_gateways}/addresses ', 'Gateways\GatewaysController@saveAddresses');
+
+                Route::get('/{iaas_gateways}/{subObjects}', 'Gateways\GatewaysController@relatedObjects');
+                Route::get('/{iaas_gateways}', 'Gateways\GatewaysController@show');
+
+                Route::post('/', 'Gateways\GatewaysController@store');
+                Route::post('/{iaas_gateways}/do/{action}', 'Gateways\GatewaysController@doAction');
+
+                Route::patch('/{iaas_gateways}', 'Gateways\GatewaysController@update');
+                Route::delete('/{iaas_gateways}', 'Gateways\GatewaysController@destroy');
+            }
+        );
+
+        Route::prefix('ansible-playbook-ansible-role')->group(
+            function () {
+                Route::get('/', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@index');
+                Route::get('/actions', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@getActions');
+
+                Route::get('{iapar}/tags ', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@tags');
+                Route::post('{iapar}/tags ', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@saveTags');
+                Route::get('{iapar}/addresses ', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@addresses');
+                Route::post('{iapar}/addresses ', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@saveAddresses');
+
+                Route::get('/{iapar}/{subObjects}', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@relatedObjects');
+                Route::get('/{iapar}', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@show');
+
+                Route::post('/', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@store');
+                Route::post('/{iapar}/do/{action}', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@doAction');
+
+                Route::patch('/{iapar}', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@update');
+                Route::delete('/{iapar}', 'AnsiblePlaybookAnsibleRole\AnsiblePlaybookAnsibleRoleController@destroy');
+            }
+        );
+
+        Route::prefix('ansible-system-playbook-executions')->group(
+            function () {
+                Route::get('/', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@index');
+                Route::get('/actions', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@getActions');
+
+                Route::get('{iaspe}/tags ', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@tags');
+                Route::post('{iaspe}/tags ', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@saveTags');
+                Route::get('{iaspe}/addresses ', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@addresses');
+                Route::post('{iaspe}/addresses ', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@saveAddresses');
+
+                Route::get('/{iaspe}/{subObjects}', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@relatedObjects');
+                Route::get('/{iaspe}', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@show');
+
+                Route::post('/', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@store');
+                Route::post('/{iaspe}/do/{action}', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@doAction');
+
+                Route::patch('/{iaspe}', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@update');
+                Route::delete('/{iaspe}', 'AnsibleSystemPlaybookExecutions\AnsibleSystemPlaybookExecutionsController@destroy');
+            }
+        );
+
+        Route::prefix('dhcp-servers')->group(
+            function () {
+                Route::get('/', 'DhcpServers\DhcpServersController@index');
+                Route::get('/actions', 'DhcpServers\DhcpServersController@getActions');
+
+                Route::get('{iaas_dhcp_servers}/tags ', 'DhcpServers\DhcpServersController@tags');
+                Route::post('{iaas_dhcp_servers}/tags ', 'DhcpServers\DhcpServersController@saveTags');
+                Route::get('{iaas_dhcp_servers}/addresses ', 'DhcpServers\DhcpServersController@addresses');
+                Route::post('{iaas_dhcp_servers}/addresses ', 'DhcpServers\DhcpServersController@saveAddresses');
+
+                Route::get('/{iaas_dhcp_servers}/{subObjects}', 'DhcpServers\DhcpServersController@relatedObjects');
+                Route::get('/{iaas_dhcp_servers}', 'DhcpServers\DhcpServersController@show');
+
+                Route::post('/', 'DhcpServers\DhcpServersController@store');
+                Route::post('/{iaas_dhcp_servers}/do/{action}', 'DhcpServers\DhcpServersController@doAction');
+
+                Route::patch('/{iaas_dhcp_servers}', 'DhcpServers\DhcpServersController@update');
+                Route::delete('/{iaas_dhcp_servers}', 'DhcpServers\DhcpServersController@destroy');
+            }
+        );
+
+        Route::prefix('ip-address-history')->group(
+            function () {
+                Route::get('/', 'IpAddressHistory\IpAddressHistoryController@index');
+                Route::get('/actions', 'IpAddressHistory\IpAddressHistoryController@getActions');
+
+                Route::get('{iaas_ip_address_history}/tags ', 'IpAddressHistory\IpAddressHistoryController@tags');
+                Route::post('{iaas_ip_address_history}/tags ', 'IpAddressHistory\IpAddressHistoryController@saveTags');
+                Route::get('{iaas_ip_address_history}/addresses ', 'IpAddressHistory\IpAddressHistoryController@addresses');
+                Route::post('{iaas_ip_address_history}/addresses ', 'IpAddressHistory\IpAddressHistoryController@saveAddresses');
+
+                Route::get('/{iaas_ip_address_history}/{subObjects}', 'IpAddressHistory\IpAddressHistoryController@relatedObjects');
+                Route::get('/{iaas_ip_address_history}', 'IpAddressHistory\IpAddressHistoryController@show');
+
+                Route::post('/', 'IpAddressHistory\IpAddressHistoryController@store');
+                Route::post('/{iaas_ip_address_history}/do/{action}', 'IpAddressHistory\IpAddressHistoryController@doAction');
+
+                Route::patch('/{iaas_ip_address_history}', 'IpAddressHistory\IpAddressHistoryController@update');
+                Route::delete('/{iaas_ip_address_history}', 'IpAddressHistory\IpAddressHistoryController@destroy');
+            }
+        );
+
+        Route::prefix('repositories')->group(
+            function () {
+                Route::get('/', 'Repositories\RepositoriesController@index');
+                Route::get('/actions', 'Repositories\RepositoriesController@getActions');
+
+                Route::get('{iaas_repositories}/tags ', 'Repositories\RepositoriesController@tags');
+                Route::post('{iaas_repositories}/tags ', 'Repositories\RepositoriesController@saveTags');
+                Route::get('{iaas_repositories}/addresses ', 'Repositories\RepositoriesController@addresses');
+                Route::post('{iaas_repositories}/addresses ', 'Repositories\RepositoriesController@saveAddresses');
+
+                Route::get('/{iaas_repositories}/{subObjects}', 'Repositories\RepositoriesController@relatedObjects');
+                Route::get('/{iaas_repositories}', 'Repositories\RepositoriesController@show');
+
+                Route::post('/', 'Repositories\RepositoriesController@store');
+                Route::post('/{iaas_repositories}/do/{action}', 'Repositories\RepositoriesController@doAction');
+
+                Route::patch('/{iaas_repositories}', 'Repositories\RepositoriesController@update');
+                Route::delete('/{iaas_repositories}', 'Repositories\RepositoriesController@destroy');
+            }
+        );
+
+        Route::prefix('repository-images')->group(
+            function () {
+                Route::get('/', 'RepositoryImages\RepositoryImagesController@index');
+                Route::get('/actions', 'RepositoryImages\RepositoryImagesController@getActions');
+
+                Route::get('{iaas_repository_images}/tags ', 'RepositoryImages\RepositoryImagesController@tags');
+                Route::post('{iaas_repository_images}/tags ', 'RepositoryImages\RepositoryImagesController@saveTags');
+                Route::get('{iaas_repository_images}/addresses ', 'RepositoryImages\RepositoryImagesController@addresses');
+                Route::post('{iaas_repository_images}/addresses ', 'RepositoryImages\RepositoryImagesController@saveAddresses');
+
+                Route::get('/{iaas_repository_images}/{subObjects}', 'RepositoryImages\RepositoryImagesController@relatedObjects');
+                Route::get('/{iaas_repository_images}', 'RepositoryImages\RepositoryImagesController@show');
+
+                Route::post('/', 'RepositoryImages\RepositoryImagesController@store');
+                Route::post('/{iaas_repository_images}/do/{action}', 'RepositoryImages\RepositoryImagesController@doAction');
+
+                Route::patch('/{iaas_repository_images}', 'RepositoryImages\RepositoryImagesController@update');
+                Route::delete('/{iaas_repository_images}', 'RepositoryImages\RepositoryImagesController@destroy');
+            }
+        );
+
+        Route::prefix('datacenters-perspective')->group(
+            function () {
+                Route::get('/', 'DatacentersPerspective\DatacentersPerspectiveController@index');
+                Route::get('/actions', 'DatacentersPerspective\DatacentersPerspectiveController@getActions');
+
+                Route::get('{iaas_datacenters_perspective}/tags ', 'DatacentersPerspective\DatacentersPerspectiveController@tags');
+                Route::post('{iaas_datacenters_perspective}/tags ', 'DatacentersPerspective\DatacentersPerspectiveController@saveTags');
+                Route::get('{iaas_datacenters_perspective}/addresses ', 'DatacentersPerspective\DatacentersPerspectiveController@addresses');
+                Route::post('{iaas_datacenters_perspective}/addresses ', 'DatacentersPerspective\DatacentersPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_datacenters_perspective}/{subObjects}', 'DatacentersPerspective\DatacentersPerspectiveController@relatedObjects');
+                Route::get('/{iaas_datacenters_perspective}', 'DatacentersPerspective\DatacentersPerspectiveController@show');
+
+                Route::post('/', 'DatacentersPerspective\DatacentersPerspectiveController@store');
+                Route::post('/{iaas_datacenters_perspective}/do/{action}', 'DatacentersPerspective\DatacentersPerspectiveController@doAction');
+
+                Route::patch('/{iaas_datacenters_perspective}', 'DatacentersPerspective\DatacentersPerspectiveController@update');
+                Route::delete('/{iaas_datacenters_perspective}', 'DatacentersPerspective\DatacentersPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('repositories-perspective')->group(
+            function () {
+                Route::get('/', 'RepositoriesPerspective\RepositoriesPerspectiveController@index');
+                Route::get('/actions', 'RepositoriesPerspective\RepositoriesPerspectiveController@getActions');
+
+                Route::get('{iaas_repositories_perspective}/tags ', 'RepositoriesPerspective\RepositoriesPerspectiveController@tags');
+                Route::post('{iaas_repositories_perspective}/tags ', 'RepositoriesPerspective\RepositoriesPerspectiveController@saveTags');
+                Route::get('{iaas_repositories_perspective}/addresses ', 'RepositoriesPerspective\RepositoriesPerspectiveController@addresses');
+                Route::post('{iaas_repositories_perspective}/addresses ', 'RepositoriesPerspective\RepositoriesPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_repositories_perspective}/{subObjects}', 'RepositoriesPerspective\RepositoriesPerspectiveController@relatedObjects');
+                Route::get('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@show');
+
+                Route::post('/', 'RepositoriesPerspective\RepositoriesPerspectiveController@store');
+                Route::post('/{iaas_repositories_perspective}/do/{action}', 'RepositoriesPerspective\RepositoriesPerspectiveController@doAction');
+
+                Route::patch('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@update');
+                Route::delete('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('cloud-nodes-perspective')->group(
+            function () {
+                Route::get('/', 'CloudNodesPerspective\CloudNodesPerspectiveController@index');
+                Route::get('/actions', 'CloudNodesPerspective\CloudNodesPerspectiveController@getActions');
+
+                Route::get('{iaas_cloud_nodes_perspective}/tags ', 'CloudNodesPerspective\CloudNodesPerspectiveController@tags');
+                Route::post('{iaas_cloud_nodes_perspective}/tags ', 'CloudNodesPerspective\CloudNodesPerspectiveController@saveTags');
+                Route::get('{iaas_cloud_nodes_perspective}/addresses ', 'CloudNodesPerspective\CloudNodesPerspectiveController@addresses');
+                Route::post('{iaas_cloud_nodes_perspective}/addresses ', 'CloudNodesPerspective\CloudNodesPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_cloud_nodes_perspective}/{subObjects}', 'CloudNodesPerspective\CloudNodesPerspectiveController@relatedObjects');
+                Route::get('/{iaas_cloud_nodes_perspective}', 'CloudNodesPerspective\CloudNodesPerspectiveController@show');
+
+                Route::post('/', 'CloudNodesPerspective\CloudNodesPerspectiveController@store');
+                Route::post('/{iaas_cloud_nodes_perspective}/do/{action}', 'CloudNodesPerspective\CloudNodesPerspectiveController@doAction');
+
+                Route::patch('/{iaas_cloud_nodes_perspective}', 'CloudNodesPerspective\CloudNodesPerspectiveController@update');
+                Route::delete('/{iaas_cloud_nodes_perspective}', 'CloudNodesPerspective\CloudNodesPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('storage-pools-perspective')->group(
+            function () {
+                Route::get('/', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@index');
+                Route::get('/actions', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@getActions');
+
+                Route::get('{iaas_storage_pools_perspective}/tags ', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@tags');
+                Route::post('{iaas_storage_pools_perspective}/tags ', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@saveTags');
+                Route::get('{iaas_storage_pools_perspective}/addresses ', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@addresses');
+                Route::post('{iaas_storage_pools_perspective}/addresses ', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_storage_pools_perspective}/{subObjects}', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@relatedObjects');
+                Route::get('/{iaas_storage_pools_perspective}', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@show');
+
+                Route::post('/', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@store');
+                Route::post('/{iaas_storage_pools_perspective}/do/{action}', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@doAction');
+
+                Route::patch('/{iaas_storage_pools_perspective}', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@update');
+                Route::delete('/{iaas_storage_pools_perspective}', 'StoragePoolsPerspective\StoragePoolsPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('compute-pools-perspective')->group(
+            function () {
+                Route::get('/', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@index');
+                Route::get('/actions', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@getActions');
+
+                Route::get('{iaas_compute_pools_perspective}/tags ', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@tags');
+                Route::post('{iaas_compute_pools_perspective}/tags ', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@saveTags');
+                Route::get('{iaas_compute_pools_perspective}/addresses ', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@addresses');
+                Route::post('{iaas_compute_pools_perspective}/addresses ', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_compute_pools_perspective}/{subObjects}', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@relatedObjects');
+                Route::get('/{iaas_compute_pools_perspective}', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@show');
+
+                Route::post('/', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@store');
+                Route::post('/{iaas_compute_pools_perspective}/do/{action}', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@doAction');
+
+                Route::patch('/{iaas_compute_pools_perspective}', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@update');
+                Route::delete('/{iaas_compute_pools_perspective}', 'ComputePoolsPerspective\ComputePoolsPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('network-pools-perspective')->group(
+            function () {
+                Route::get('/', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@index');
+                Route::get('/actions', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@getActions');
+
+                Route::get('{iaas_network_pools_perspective}/tags ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@tags');
+                Route::post('{iaas_network_pools_perspective}/tags ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@saveTags');
+                Route::get('{iaas_network_pools_perspective}/addresses ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@addresses');
+                Route::post('{iaas_network_pools_perspective}/addresses ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_network_pools_perspective}/{subObjects}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@relatedObjects');
+                Route::get('/{iaas_network_pools_perspective}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@show');
+
+                Route::post('/', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@store');
+                Route::post('/{iaas_network_pools_perspective}/do/{action}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@doAction');
+
+                Route::patch('/{iaas_network_pools_perspective}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@update');
+                Route::delete('/{iaas_network_pools_perspective}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('virtual-mahines-perspective')->group(
+            function () {
+                Route::get('/', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@index');
+                Route::get('/actions', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@getActions');
+
+                Route::get('{iaas_virtual_mahines_perspective}/tags ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@tags');
+                Route::post('{iaas_virtual_mahines_perspective}/tags ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@saveTags');
+                Route::get('{iaas_virtual_mahines_perspective}/addresses ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@addresses');
+                Route::post('{iaas_virtual_mahines_perspective}/addresses ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_virtual_mahines_perspective}/{subObjects}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@relatedObjects');
+                Route::get('/{iaas_virtual_mahines_perspective}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@show');
+
+                Route::post('/', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@store');
+                Route::post('/{iaas_virtual_mahines_perspective}/do/{action}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@doAction');
+
+                Route::patch('/{iaas_virtual_mahines_perspective}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@update');
+                Route::delete('/{iaas_virtual_mahines_perspective}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('repository-images-perspective')->group(
+            function () {
+                Route::get('/', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@index');
+                Route::get('/actions', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@getActions');
+
+                Route::get('{irip}/tags ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@tags');
+                Route::post('{irip}/tags ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@saveTags');
+                Route::get('{irip}/addresses ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@addresses');
+                Route::post('{irip}/addresses ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@saveAddresses');
+
+                Route::get('/{irip}/{subObjects}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@relatedObjects');
+                Route::get('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@show');
+
+                Route::post('/', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@store');
+                Route::post('/{irip}/do/{action}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@doAction');
+
+                Route::patch('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@update');
+                Route::delete('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@destroy');
+            }
+        );
+
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -809,6 +1277,7 @@ Route::prefix('iaas')->group(
 
     }
 );
+
 
 
 
