@@ -115,9 +115,11 @@ class AbstractNetworkMembersInterfacesService
 
         if(class_exists($class)) {
             $action = new $class($object, $params);
+            $actionId = $action->getActionId();
+
             dispatch($action);
 
-            return $action->getActionId();
+            return $actionId;
         }
 
         return null;
