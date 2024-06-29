@@ -267,10 +267,26 @@ physical interfaces and vlans of compute member');
         return $computeMember->fresh();
     }
 
+    public static function getListOfVirtualMachines(ComputeMembers $computeMember) : array
+    {
+        $command = 'xe vm-list';
+        $result = self::performCommand($command, $computeMember);
+        $vms = self::parseListResult($result[0]['output']);
+
+        return $vms;
+    }
+
+    public static function getVirtualMachineByUuid(ComputeMembers $computeMember, $uuid) : ?array
+    {
+        $command = 'xe vm-param-list uuid=' . $uuid;
+        $result = self::performCommand($command, $computeMember);
+        $vm = self::parseListResult($result[0]['output']);
+
+        return $vm;
+    }
+
     public static function updateVirtualMachines(ComputeMembers $computeMember) : ComputeMembers
     {
-
-
         return $computeMember->fresh();
     }
 
