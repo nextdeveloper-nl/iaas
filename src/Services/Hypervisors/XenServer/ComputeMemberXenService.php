@@ -13,6 +13,7 @@ use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotImportException;
 use NextDeveloper\IAAS\Helpers\NetworkCalculationHelper;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
@@ -283,6 +284,40 @@ physical interfaces and vlans of compute member');
         $vm = self::parseListResult($result[0]['output']);
 
         return $vm;
+    }
+
+    public static function renameVirtualMachine(ComputeMembers $computeMembers, VirtualMachines $vm) : bool
+    {
+        Log::info('[VirtualMachineService@rename] Renaming VM: ' . $vm->hypervisor_uuid);
+
+        $command = 'xe vm-param-set uuid=' . $vm->hypervisor_uuid . ' name-label="' . $vm->uuid . '"';
+        $result = self::performCommand($command, $computeMembers);
+        $result = self::parseListResult($result[0]['output']);
+
+        $vmParams = self::getVirtualMachineByUuid($computeMembers, $vm->hypervisor_uuid);
+
+        if($vmParams[0]['name-label'] == $vm->name)
+            return true;
+
+        return false;
+    }
+
+    public static function getVDIofVms(ComputeMembers $computeMembers, VirtualMachines $vm) : array
+    {
+        $command = 'xe vbd-list vm-uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMembers);
+        $vdis = self::parseListResult($result[0]['output']);
+
+        return $vdis;
+    }
+
+    public static function getVDIInfo(ComputeMembers $computeMembers, VirtualMachines $vm) : array
+    {
+        $command = 'xe vdi-param-list uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMembers);
+        $vdi = self::parseListResult($result[0]['output']);
+
+        return [];
     }
 
     public static function updateVirtualMachines(ComputeMembers $computeMember) : ComputeMembers

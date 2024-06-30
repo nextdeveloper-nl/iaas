@@ -143,6 +143,10 @@ class ImportVirtualMachine extends AbstractAction
             $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);
             $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
 
+            /**
+             * Burada sanki hata var, aşağıdaki $disk['uuid'] olmamalı. Tekrar kontrol et.
+             */
+
             $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
                 ->where('hypervisor_uuid', $disk['uuid'])
                 ->first();

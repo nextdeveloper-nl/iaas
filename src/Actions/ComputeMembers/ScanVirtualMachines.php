@@ -4,12 +4,18 @@ namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * This action will scan compute member and sync all findings
@@ -29,6 +35,13 @@ class ScanVirtualMachines extends AbstractAction
     {
         $this->setProgress(0, 'Initiate compute member started');
 
+        $this->scanXenVirtualMachines();
+
+        $this->setProgress(100, 'Compute member scanned and synced');
+    }
+
+    public function scanXenVirtualMachines()
+    {
         $virtualMachines = ComputeMemberXenService::getListOfVirtualMachines($this->model);
 
         $vmCount = count($virtualMachines);
@@ -62,10 +75,14 @@ class ScanVirtualMachines extends AbstractAction
             $computePool = ComputePools::withoutGlobalScopes()->where('id', $this->model->iaas_compute_pool_id)->first();
             $cloudNode  = CloudNodes::withoutGlobalScopes()->where('id', $computePool->iaas_cloud_node_id)->first();
 
+            /**
+             * If the virtual machine exists in the database, we will update it
+             */
+
             if($dbVm) {
                 Log::info('[ScanVirtualMachines] VM exists in database: ' . $vm['uuid']);
                 $dbVm->update([
-                    'name'          =>  $vmInfo['name-label'],
+                    //'name'          =>  $vmInfo['name-label'],
                     'domain_type'   =>  $vmInfo['hvm'] == 'false' ? 'pv' : 'hvm',
                     'cpu'           =>  $vmInfo['VCPUs-max'],
                     'ram'           =>  $vmInfo['memory-static-max'] / 1024 / 1024, //  this comes in bytes, conterting to MB,
@@ -80,11 +97,22 @@ class ScanVirtualMachines extends AbstractAction
                     'iaas_cloud_node_id'        =>  $cloudNode->id,
                     'iaas_compute_pool_id'      =>  $computePool->id
                 ]);
-                $dbVm->save();
+
+                $dbVm = $dbVm->fresh();
+
+                if(config('iaas.regulations.pci_dss.change_names')) {
+                    $isChanged = ComputeMemberXenService::renameVirtualMachine($this->model, $dbVm);
+
+                    if(!$isChanged) {
+                        Log::error('[ScanVirtualMachines] Error while renaming virtual machine: ' . $vm['uuid']);
+                        StateHelper::setState($this->model, 'host_change_rename_error', 'true');
+                    }
+                }
+
             } else {
                 Log::info('[ScanVirtualMachines] VM does not exist in database: ' . $vm['uuid']);
 
-                VirtualMachines::create([
+                $dbVm = VirtualMachines::create([
                     'name'          =>  $vmInfo['name-label'],
                     'domain_type'   =>  $vmInfo['hvm'] == 'false' ? 'pv' : 'hvm',
                     'cpu'           =>  $vmInfo['VCPUs-max'],
@@ -102,6 +130,70 @@ class ScanVirtualMachines extends AbstractAction
                     'iam_account_id'            =>  $this->model->iam_account_id,
                     'iam_user_id'               =>  $this->model->iam_user_id
                 ]);
+
+                if(config('iaas.regulations.pci_dss.change_names')) {
+                    $isChanged = ComputeMemberXenService::renameVirtualMachine($this->model, $dbVm);
+
+                    if(!$isChanged) {
+                        Log::error('[ScanVirtualMachines] Error while renaming virtual machine: ' . $vm['uuid']);
+                        StateHelper::setState($this->model, 'host_change_rename_error', 'true');
+                    }
+                }
+            }
+
+            /**
+             * Now we are scanning the VDI of the virtual machine
+             */
+
+            $vbds = VirtualMachinesXenService::getVmDisks($dbVm);
+
+            $this->setProgress(10 + ceil($i * $step), 'Found ' . count($vbds) . ' disks. 1 may be a cdrom. Scanning disks of virtual machine number: ' . $i);
+
+            foreach ($vbds as $vbd) {
+                if(array_key_exists('vdi-uuid', $vbd)) {
+                    $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($vbd['vdi-uuid'], $this->model);
+                }
+
+                $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($vbd['uuid'], $this->model);
+
+                //  We are taking CDROM if the vbd type is CDROM
+                if($vbdParams['type'] === 'CD') {
+                    $dbVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('is_cdrom', true)
+                        ->where('iaas_virtual_machine_id', $dbVm->id)
+                        ->first();
+                } else {
+                    $dbVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('hypervisor_uuid', $diskParams['uuid'])
+                        ->first();
+                }
+
+                //  We are taking the volume if the VDI is CDROM
+                if($vbdParams['type'] !== 'CD') {
+                    $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('hypervisor_uuid', $diskParams['sr-uuid'])
+                        ->first();
+                }
+
+                $data = [
+                    'name'                      =>  $vbdParams['type'] !== 'CD' ? 'Disk of: ' . $dbVm->name : 'CDROM',
+                    'size'                      =>  $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
+                    'physical_utilisation'      =>  $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
+                    'iaas_storage_volume_id'    =>  $vbdParams['type'] !== 'CD' ? $diskVolume->iaas_storage_volume_id : null,
+                    'iaas_virtual_machine_id'   =>  $dbVm->id,
+                    'device_number'             =>  $vbdParams['userdevice'],
+                    'is_cdrom'                  =>  $vbdParams['type'] === 'CD',
+                    'hypervisor_uuid'       =>  $vbdParams['vdi-uuid'],
+                    'hypervisor_data'       =>  $diskParams ?? [],
+                    'iam_account_id'        =>  $dbVm->iam_account_id,
+                    'iam_user_id'           =>  $dbVm->iam_user_id,
+                    'is_draft'              =>  false,
+                ];
+
+                if($dbVdi)
+                    $dbVdi->update($data);
+                else
+                    $dbVdi = VirtualDiskImages::create($data);
             }
         }
 
@@ -110,7 +202,5 @@ class ScanVirtualMachines extends AbstractAction
          */
 
         Events::fire('scanned:NextDeveloper\IAAS\ComputeMembers', $this->model);
-
-        $this->setProgress(100, 'Compute member scanned and synced');
     }
 }

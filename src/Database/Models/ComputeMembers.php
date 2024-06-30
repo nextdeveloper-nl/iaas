@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use NextDeveloper\Commons\Database\Traits\Filterable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\SSHable;
 use NextDeveloper\IAAS\Database\Observers\ComputeMembersObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
@@ -60,15 +61,13 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  */
 class ComputeMembers extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
     use SoftDeletes;
     use SSHable, Agentable;
-
 
     public $timestamps = true;
 
     protected $table = 'iaas_compute_members';
-
 
     /**
      @var array
@@ -240,16 +239,4 @@ class ComputeMembers extends Model
             },
         );
     }
-
-
-
-
-
-
-
-
-
-
-
-
 }
