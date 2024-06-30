@@ -296,7 +296,7 @@ physical interfaces and vlans of compute member');
 
         $vmParams = self::getVirtualMachineByUuid($computeMembers, $vm->hypervisor_uuid);
 
-        if($vmParams[0]['name-label'] == $vm->name)
+        if($vmParams[0]['name-label'] == $vm->uuid)
             return true;
 
         return false;

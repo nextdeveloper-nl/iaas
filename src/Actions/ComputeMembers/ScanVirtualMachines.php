@@ -150,6 +150,10 @@ class ScanVirtualMachines extends AbstractAction
             $this->setProgress(10 + ceil($i * $step), 'Found ' . count($vbds) . ' disks. 1 may be a cdrom. Scanning disks of virtual machine number: ' . $i);
 
             foreach ($vbds as $vbd) {
+                //  Sometimes we get null values, we are skipping them (I dont know why)
+                if($vbd == [])
+                    continue;
+
                 if(array_key_exists('vdi-uuid', $vbd)) {
                     $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($vbd['vdi-uuid'], $this->model);
                 }
