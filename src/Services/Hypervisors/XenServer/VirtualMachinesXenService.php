@@ -309,6 +309,42 @@ class VirtualMachinesXenService extends AbstractXenService
         return $list;
     }
 
+    public static function getVifs(VirtualMachines $vm) : array
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@getVmDisks] I am taking the' .
+                ' vifs of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vif-list vm-uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+        $list = self::parseListResult($result[0]['output']);
+
+        return $list;
+    }
+
+    public static function getVifParams(VirtualMachines $vm, $uuid)
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@getVmDisks] I am taking the' .
+                ' vif params of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vif-param-list uuid=' . $uuid;
+        $result = self::performCommand($command, $computeMember);
+        $list = self::parseListResult($result[0]['output']);
+
+        return $list;
+    }
+
     /**
      * Setting the CPU for this Virtual Machine
      *

@@ -87,6 +87,9 @@ class ComputeMemberXenService extends AbstractXenService
             ->where('iaas_compute_member_id', $computeMembers->id)
             ->first();
 
+        if(!$mgmtInterface)
+            dd($computeMembers);
+
         $data = $mgmtInterface->hypervisor_data;
 
         $computeMemberIp = $computeMembers->ip_addr;
@@ -129,6 +132,8 @@ physical interfaces and vlans of compute member');
                 'speed'         =>  $interfaceDetail['speed'],
                 'hypervisor_data'   =>  $interfaceDetail,
                 'hypervisor_uuid'   =>  $interfaceDetail['uuid'],
+                'network_uuid'      =>  $interfaceDetail['network-uuid'],
+                'network_name'      =>  $interfaceDetail['network-name-label'],
                 'iaas_compute_member_id'    =>  $computeMember->id,
                 'iam_account_id'    =>  $computeMember->iam_account_id,
                 'iam_user_id'       =>  $computeMember->iam_user_id
@@ -150,6 +155,7 @@ physical interfaces and vlans of compute member');
 
             $netInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
                 ->where('device', $interfaceDetail['device'])
+                ->where('vlan', $interfaceDetail['VLAN'])
                 ->where('iaas_compute_member_id', $computeMember->id)
                 ->first();
 

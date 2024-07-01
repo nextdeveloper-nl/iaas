@@ -2,19 +2,24 @@
 
 namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
+use GPBMetadata\Google\Api\Auth;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -47,6 +52,10 @@ class ScanVirtualMachines extends AbstractAction
         $vmCount = count($virtualMachines);
 
         $this->setProgress(10, 'Found ' . $vmCount . ' virtual machines, scanning one by one.');
+
+        $computePool = ComputePools::withoutGlobalScopes()
+            ->where('id', $this->model->iaas_compute_pool_id)
+            ->first();
 
         $step = $vmCount / 40;
 
@@ -199,11 +208,80 @@ class ScanVirtualMachines extends AbstractAction
                 else
                     $dbVdi = VirtualDiskImages::create($data);
             }
-        }
 
-        /**
-         * HERE WE WILL SCAN NETWORK CARDS AND DISKS TOO
-         */
+            /**
+             * HERE WE WILL SCAN NETWORK CARDS AND DISKS TOO
+             */
+
+            $this->setProgress(10 + ceil($i * $step), 'Scanning network ' .
+                'cards of virtual machines: ' . $i);
+
+            $vifs = VirtualMachinesXenService::getVifs($dbVm);
+
+            foreach ($vifs as $vif) {
+                if($vif == [])
+                    continue;
+
+                $vifParams = VirtualMachinesXenService::getVifParams($dbVm, $vif['uuid']);
+
+                if(array_key_exists(0, $vifParams))
+                    $vifParams = $vifParams[0];
+
+                $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('hypervisor_uuid', $vif['uuid'])
+                    ->first();
+
+                $connectedInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('network_uuid', $vifParams['network-uuid'])
+                    ->first();
+
+                if(!$connectedInterface) {
+                    //  Here we will add another trigger to scan all compute member network interfaces
+                    StateHelper::setState($this->model, 'needs_scan', true);
+
+                    Log::error('[ScanVirtualMachines] Cannot find the connected ' .
+                        'interface for the VIF: ' . $vif['uuid'] . '. This compute member ' .
+                        'should be scanned and synced immediately.');
+
+                    continue;
+                }
+
+                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('vlan', $connectedInterface->vlan)
+                    ->where('iaas_cloud_node_id', $computePool->iaas_cloud_node_id)
+                    ->first();
+
+                if(!$network) {
+                    //  Here we need to create another scan and create the related network
+                    StateHelper::setState($this->model, 'needs_scan', true);
+
+                    Log::error('[ScanVirtualMachines] Cannot find the connected ' .
+                        'interface for the VIF: ' . $vif['uuid'] . '. This compute member ' .
+                        'should be scanned and synced immediately.');
+
+                    continue;
+                }
+
+                $data = [
+                    'name'          =>  'eth' . $vifParams['device'],
+                    'device_number' => $vifParams['device'],
+                    'mac_addr'      => $vifParams['MAC'],
+                    'bandwidth_limit'   => '-1', //$vifParams['qos_algorithm_params']['kbps'],
+                    'iaas_network_id'       => $network->id,
+                    'hypervisor_uuid'   => $vif['uuid'],
+                    'hypervisor_data'   => $vif,
+                    'iam_account_id'    => $dbVm->iam_account_id,
+                    'iam_user_id'       => $dbVm->iam_user_id,
+                    'is_draft'          => false,
+                    'iaas_virtual_machine_id'   =>  $dbVm->id
+                ];
+
+                if($dbVif)
+                    $dbVif->update($data);
+                else
+                    VirtualNetworkCardsService::create($data);
+            }
+        }
 
         Events::fire('scanned:NextDeveloper\IAAS\ComputeMembers', $this->model);
     }
