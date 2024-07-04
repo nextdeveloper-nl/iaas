@@ -53,10 +53,6 @@ class ScanVirtualMachines extends AbstractAction
 
         $this->setProgress(10, 'Found ' . $vmCount . ' virtual machines, scanning one by one.');
 
-        $computePool = ComputePools::withoutGlobalScopes()
-            ->where('id', $this->model->iaas_compute_pool_id)
-            ->first();
-
         $step = $vmCount / 40;
 
         for($i = 0; $i < $vmCount; $i++) {
