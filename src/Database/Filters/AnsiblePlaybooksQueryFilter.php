@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-            
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,12 +17,12 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
     public function description($value)
     {
         return $this->builder->where('description', 'like', '%' . $value . '%');
@@ -96,7 +96,7 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
 
     public function ansibleServerId($value)
     {
-            $ansibleServer = \NextDeveloper\\Database\Models\AnsibleServers::where('uuid', $value)->first();
+            $ansibleServer = \NextDeveloper\IaaS\Database\Models\AnsibleServers::where('uuid', $value)->first();
 
         if($ansibleServer) {
             return $this->builder->where('ansible_server_id', '=', $ansibleServer->id);

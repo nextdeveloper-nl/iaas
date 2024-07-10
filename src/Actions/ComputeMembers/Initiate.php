@@ -27,6 +27,8 @@ class Initiate extends AbstractAction
     {
         $this->model = $computeMember;
 
+        $this->queue = 'iaas';
+
         parent::__construct();
     }
 

@@ -35,8 +35,7 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
     public function apply(Builder $builder, Model $model)
     {
         $builder->where([
-            'iam_account_id'    =>  UserHelper::currentAccount()->id,
-            'iam_user_id'       =>  UserHelper::me()->id
+            'iam_account_id'    =>  UserHelper::currentAccount()->id
         ]);
     }
 
@@ -63,6 +62,7 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_ansible_system_playbooks',
             'iaas_gateways',
             'iaas_repositories',
+            'iaas_repository_images',
             'iaas_dhcp_servers',
             'iaas_ip_addresses',
             'iaas_ip_address_history',
