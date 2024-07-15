@@ -12,6 +12,7 @@ use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\SSHable;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * StorageMembers model.
@@ -54,10 +55,9 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  */
 class StorageMembers extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
     use SoftDeletes;
     use SSHable, Agentable;
-
 
     public $timestamps = true;
 
@@ -225,6 +225,7 @@ class StorageMembers extends Model
             },
         );
     }
+
 
 
 

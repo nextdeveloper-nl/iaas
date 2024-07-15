@@ -9,6 +9,7 @@ use NextDeveloper\IAAS\Database\Observers\StoragePoolsPerspectiveObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * StoragePoolsPerspective model.
@@ -30,8 +31,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  */
 class StoragePoolsPerspective extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
-
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
 
     public $timestamps = false;
 
@@ -144,6 +144,7 @@ class StoragePoolsPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

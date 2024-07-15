@@ -9,6 +9,7 @@ use NextDeveloper\IAAS\Database\Observers\CloudNodesPerspectiveObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * CloudNodesPerspective model.
@@ -31,8 +32,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  */
 class CloudNodesPerspective extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
-
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
 
     public $timestamps = false;
 
@@ -149,6 +149,7 @@ class CloudNodesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

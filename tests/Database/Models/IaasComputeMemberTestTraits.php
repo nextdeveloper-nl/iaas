@@ -63,17 +63,17 @@ trait IaasComputeMemberTestTraits
                 'ssh_username'  =>  'a',
                 'ssh_password'  =>  'a',
                 'hypervisor_model'  =>  'a',
-                'ssh_port'  =>  '1',
                 'total_socket'  =>  '1',
                 'total_cpu'  =>  '1',
                 'total_ram'  =>  '1',
                 'used_cpu'  =>  '1',
                 'used_ram'  =>  '1',
-                'running_vm'  =>  '1',
-                'halted_vm'  =>  '1',
                 'total_vm'  =>  '1',
                 'max_overbooking_ratio'  =>  '1',
                 'benchmark_score'  =>  '1',
+                'ssh_port'  =>  '1',
+                'running_vm'  =>  '1',
+                'halted_vm'  =>  '1',
                     'uptime'  =>  now(),
                     'idle_time'  =>  now(),
                             ],
@@ -453,25 +453,6 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_ssh_port_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'ssh_port'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaascomputemember_event_total_socket_filter()
     {
         try {
@@ -567,44 +548,6 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaascomputemember_event_running_vm_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'running_vm'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaascomputemember_event_halted_vm_filter()
-    {
-        try {
-            $request = new Request(
-                [
-                'halted_vm'  =>  '1'
-                ]
-            );
-
-            $filter = new IaasComputeMemberQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaascomputemember_event_total_vm_filter()
     {
         try {
@@ -649,6 +592,63 @@ trait IaasComputeMemberTestTraits
             $request = new Request(
                 [
                 'benchmark_score'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_ssh_port_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'ssh_port'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_running_vm_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'running_vm'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_halted_vm_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'halted_vm'  =>  '1'
                 ]
             );
 

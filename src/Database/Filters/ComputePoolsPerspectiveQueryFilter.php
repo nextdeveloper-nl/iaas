@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-        
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -56,6 +56,16 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     public function currency($value)
     {
         return $this->builder->where('currency', 'like', '%' . $value . '%');
+    }
+    
+    public function datacenter($value)
+    {
+        return $this->builder->where('datacenter', 'like', '%' . $value . '%');
+    }
+    
+    public function cloudNode($value)
+    {
+        return $this->builder->where('cloud_node', 'like', '%' . $value . '%');
     }
     
     public function maintainer($value)
@@ -173,6 +183,24 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('is_active', $value);
     }
 
+    public function iaasDatacenterId($value)
+    {
+            $iaasDatacenter = \NextDeveloper\IAAS\Database\Models\Datacenters::where('uuid', $value)->first();
+
+        if($iaasDatacenter) {
+            return $this->builder->where('iaas_datacenter_id', '=', $iaasDatacenter->id);
+        }
+    }
+
+    public function iaasCloudNodeId($value)
+    {
+            $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
+
+        if($iaasCloudNode) {
+            return $this->builder->where('iaas_cloud_node_id', '=', $iaasCloudNode->id);
+        }
+    }
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -192,6 +220,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

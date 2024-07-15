@@ -15,7 +15,7 @@ class VirtualMachineMetricsCreateRequest extends AbstractFormRequest
         return [
             'iaas_virtual_machine_id' => 'required|exists:iaas_virtual_machines,uuid|uuid',
         'parameter' => 'nullable|string',
-        'value' => '',
+        'value' => 'numeric',
         'timestamp' => 'date',
         'source' => 'string',
         ];

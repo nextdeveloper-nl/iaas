@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Observers\NetworkPoolsObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * NetworkPools model.
@@ -17,7 +18,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @package  NextDeveloper\IAAS\Database\Models
  * @property integer $id
  * @property string $uuid
- * @property $name
+ * @property string $name
  * @property integer $vlan_start
  * @property integer $vlan_end
  * @property integer $vxlan_start
@@ -40,9 +41,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  */
 class NetworkPools extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
     use SoftDeletes;
-
 
     public $timestamps = true;
 
@@ -95,6 +95,7 @@ class NetworkPools extends Model
      */
     protected $casts = [
     'id' => 'integer',
+    'name' => 'string',
     'vlan_start' => 'integer',
     'vlan_end' => 'integer',
     'vxlan_start' => 'integer',
@@ -172,6 +173,7 @@ class NetworkPools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

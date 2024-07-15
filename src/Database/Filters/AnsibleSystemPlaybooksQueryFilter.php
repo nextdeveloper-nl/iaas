@@ -114,16 +114,17 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
         }
     }
 
-    public function ansibleServerId($value)
+    public function iaasAnsibleServerId($value)
     {
-            $ansibleServer = \NextDeveloper\\Database\Models\AnsibleServers::where('uuid', $value)->first();
+            $iaasAnsibleServer = \NextDeveloper\IAAS\Database\Models\AnsibleServers::where('uuid', $value)->first();
 
-        if($ansibleServer) {
-            return $this->builder->where('ansible_server_id', '=', $ansibleServer->id);
+        if($iaasAnsibleServer) {
+            return $this->builder->where('iaas_ansible_server_id', '=', $iaasAnsibleServer->id);
         }
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

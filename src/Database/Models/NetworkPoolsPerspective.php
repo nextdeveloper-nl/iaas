@@ -9,6 +9,7 @@ use NextDeveloper\IAAS\Database\Observers\NetworkPoolsPerspectiveObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * NetworkPoolsPerspective model.
@@ -16,7 +17,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @package  NextDeveloper\IAAS\Database\Models
  * @property integer $id
  * @property string $uuid
- * @property $name
+ * @property string $name
  * @property string $resource_validator
  * @property boolean $is_active
  * @property integer $vlan_start
@@ -37,8 +38,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  */
 class NetworkPoolsPerspective extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
-
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
 
     public $timestamps = false;
 
@@ -92,6 +92,7 @@ class NetworkPoolsPerspective extends Model
      */
     protected $casts = [
     'id' => 'integer',
+    'name' => 'string',
     'resource_validator' => 'string',
     'is_active' => 'boolean',
     'vlan_start' => 'integer',
@@ -165,6 +166,7 @@ class NetworkPoolsPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

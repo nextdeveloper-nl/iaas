@@ -23,6 +23,7 @@ class ComputeMemberNetworkInterfacesUpdateRequest extends AbstractFormRequest
         'hypervisor_data' => 'nullable',
         'iaas_compute_member_id' => 'nullable|exists:iaas_compute_members,uuid|uuid',
         'is_bridge' => 'boolean',
+        'network_name' => 'nullable|string',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

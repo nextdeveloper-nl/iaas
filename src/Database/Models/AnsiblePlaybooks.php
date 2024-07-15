@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Observers\AnsiblePlaybooksObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * AnsiblePlaybooks model.
@@ -23,16 +24,15 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property boolean $is_procedure
  * @property integer $iam_user_id
  * @property integer $iam_account_id
- * @property integer $ansible_server_id
+ * @property integer $iaas_ansible_server_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  */
 class AnsiblePlaybooks extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
     use SoftDeletes;
-
 
     public $timestamps = true;
 
@@ -51,7 +51,7 @@ class AnsiblePlaybooks extends Model
             'is_procedure',
             'iam_user_id',
             'iam_account_id',
-            'ansible_server_id',
+            'iaas_ansible_server_id',
     ];
 
     /**
@@ -79,7 +79,7 @@ class AnsiblePlaybooks extends Model
     'description' => 'string',
     'is_public' => 'boolean',
     'is_procedure' => 'boolean',
-    'ansible_server_id' => 'integer',
+    'iaas_ansible_server_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -143,7 +143,18 @@ class AnsiblePlaybooks extends Model
         }
     }
 
+    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
+    }
+    
+    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

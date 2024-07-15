@@ -56,7 +56,7 @@ class AbstractAnsibleSystemPlaybooksTransformer extends AbstractTransformer
     {
                                                 $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                                                            $ansibleServerId = \NextDeveloper\\Database\Models\AnsibleServers::where('id', $model->ansible_server_id)->first();
+                                                            $iaasAnsibleServerId = \NextDeveloper\IAAS\Database\Models\AnsibleServers::where('id', $model->iaas_ansible_server_id)->first();
                         
         return $this->buildPayload(
             [
@@ -71,7 +71,7 @@ class AbstractAnsibleSystemPlaybooksTransformer extends AbstractTransformer
             'is_procedure'  =>  $model->is_procedure,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
-            'ansible_server_id'  =>  $ansibleServerId ? $ansibleServerId->uuid : null,
+            'iaas_ansible_server_id'  =>  $iaasAnsibleServerId ? $iaasAnsibleServerId->uuid : null,
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
@@ -163,6 +163,7 @@ class AbstractAnsibleSystemPlaybooksTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

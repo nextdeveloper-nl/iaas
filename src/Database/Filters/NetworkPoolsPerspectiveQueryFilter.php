@@ -38,6 +38,11 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
      */
     protected $builder;
     
+    public function name($value)
+    {
+        return $this->builder->where('name', 'like', '%' . $value . '%');
+    }
+    
     public function resourceValidator($value)
     {
         return $this->builder->where('resource_validator', 'like', '%' . $value . '%');
@@ -166,6 +171,7 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

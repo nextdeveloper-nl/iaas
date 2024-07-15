@@ -9,6 +9,7 @@ use NextDeveloper\IAAS\Database\Observers\VirtualMahinesPerspectiveObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * VirtualMahinesPerspective model.
@@ -44,8 +45,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  */
 class VirtualMahinesPerspective extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
-
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
 
     public $timestamps = false;
 
@@ -188,6 +188,7 @@ class VirtualMahinesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

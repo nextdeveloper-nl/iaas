@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Observers\IpAddressesObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * IpAddresses model.
@@ -19,19 +20,18 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property string $uuid
  * @property $ip_addr
  * @property boolean $is_reserved
- * @property integer $iaas_network_id
- * @property integer $iaas_virtual_network_card_id
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property integer $iaas_network_id
+ * @property integer $iaas_virtual_network_card_id
  */
 class IpAddresses extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
     use SoftDeletes;
-
 
     public $timestamps = true;
 
@@ -46,10 +46,10 @@ class IpAddresses extends Model
     protected $fillable = [
             'ip_addr',
             'is_reserved',
-            'iaas_network_id',
-            'iaas_virtual_network_card_id',
             'iam_account_id',
             'iam_user_id',
+            'iaas_network_id',
+            'iaas_virtual_network_card_id',
     ];
 
     /**
@@ -74,11 +74,11 @@ class IpAddresses extends Model
     protected $casts = [
     'id' => 'integer',
     'is_reserved' => 'boolean',
-    'iaas_network_id' => 'integer',
-    'iaas_virtual_network_card_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'iaas_network_id' => 'integer',
+    'iaas_virtual_network_card_id' => 'integer',
     ];
 
     /**
@@ -140,6 +140,7 @@ class IpAddresses extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

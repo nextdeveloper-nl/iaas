@@ -12,6 +12,7 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * Repositories model.
@@ -45,10 +46,9 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  */
 class Repositories extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
     use SoftDeletes;
     use SSHable, Agentable;
-
 
     public $timestamps = true;
 
@@ -183,6 +183,16 @@ class Repositories extends Model
         }
     }
 
+    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
+    }
+    
+    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
@@ -193,6 +203,7 @@ class Repositories extends Model
             },
         );
     }
+
 
 
 

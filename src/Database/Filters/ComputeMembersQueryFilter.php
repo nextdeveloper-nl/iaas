@@ -63,19 +63,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('hypervisor_model', 'like', '%' . $value . '%');
     }
 
-    public function sshPort($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('ssh_port', $operator, $value);
-    }
-
     public function totalSocket($value)
     {
         $operator = substr($value, 0, 1);
@@ -141,32 +128,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_ram', $operator, $value);
     }
 
-    public function runningVm($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('running_vm', $operator, $value);
-    }
-
-    public function haltedVm($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('halted_vm', $operator, $value);
-    }
-
     public function totalVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -206,6 +167,45 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('benchmark_score', $operator, $value);
     }
 
+    public function sshPort($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('ssh_port', $operator, $value);
+    }
+
+    public function runningVm($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('running_vm', $operator, $value);
+    }
+
+    public function haltedVm($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('halted_vm', $operator, $value);
+    }
+
     public function isBehindFirewall($value)
     {
         if(!is_bool($value)) {
@@ -213,15 +213,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         }
 
         return $this->builder->where('is_behind_firewall', $value);
-    }
-
-    public function isManagementAgentAvailable($value)
-    {
-        if(!is_bool($value)) {
-            $value = false;
-        }
-
-        return $this->builder->where('is_management_agent_available', $value);
     }
 
     public function isInMaintenance($value)
@@ -240,6 +231,15 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         }
 
         return $this->builder->where('is_alive', $value);
+    }
+
+    public function isManagementAgentAvailable($value)
+    {
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_management_agent_available', $value);
     }
 
     public function uptimeStart($date)
@@ -320,6 +320,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

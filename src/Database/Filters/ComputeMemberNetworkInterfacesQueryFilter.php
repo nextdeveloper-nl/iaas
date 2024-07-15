@@ -27,6 +27,16 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('hypervisor_uuid', 'like', '%' . $value . '%');
     }
+    
+    public function networkUuid($value)
+    {
+        return $this->builder->where('network_uuid', 'like', '%' . $value . '%');
+    }
+    
+    public function networkName($value)
+    {
+        return $this->builder->where('network_name', 'like', '%' . $value . '%');
+    }
 
     public function vlan($value)
     {
@@ -148,6 +158,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Observers\VirtualDiskImagesObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * VirtualDiskImages model.
@@ -19,7 +20,6 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property string $uuid
  * @property string $name
  * @property integer $size
- * @property integer $physical_utilisation
  * @property $available_operations
  * @property $current_operations
  * @property boolean $is_cdrom
@@ -33,14 +33,14 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property integer $physical_utilisation
  * @property boolean $is_draft
  * @property integer $iaas_repository_image_id
  */
 class VirtualDiskImages extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
     use SoftDeletes;
-
 
     public $timestamps = true;
 
@@ -55,7 +55,6 @@ class VirtualDiskImages extends Model
     protected $fillable = [
             'name',
             'size',
-            'physical_utilisation',
             'available_operations',
             'current_operations',
             'is_cdrom',
@@ -66,6 +65,7 @@ class VirtualDiskImages extends Model
             'device_number',
             'iam_account_id',
             'iam_user_id',
+            'physical_utilisation',
             'is_draft',
             'iaas_repository_image_id',
     ];
@@ -93,7 +93,6 @@ class VirtualDiskImages extends Model
     'id' => 'integer',
     'name' => 'string',
     'size' => 'integer',
-    'physical_utilisation' => 'integer',
     'available_operations' => 'array',
     'current_operations' => 'array',
     'is_cdrom' => 'boolean',
@@ -105,6 +104,7 @@ class VirtualDiskImages extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'physical_utilisation' => 'integer',
     'is_draft' => 'boolean',
     'iaas_repository_image_id' => 'integer',
     ];
@@ -168,6 +168,7 @@ class VirtualDiskImages extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

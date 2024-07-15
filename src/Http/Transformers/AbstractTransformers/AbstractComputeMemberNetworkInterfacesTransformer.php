@@ -75,8 +75,10 @@ class AbstractComputeMemberNetworkInterfacesTransformer extends AbstractTransfor
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
-            'is_bridge'  =>  $model->is_bridge,
             'hypervisor_uuid'  =>  $model->hypervisor_uuid,
+            'is_bridge'  =>  $model->is_bridge,
+            'network_uuid'  =>  $model->network_uuid,
+            'network_name'  =>  $model->network_name,
             ]
         );
     }
@@ -165,6 +167,7 @@ class AbstractComputeMemberNetworkInterfacesTransformer extends AbstractTransfor
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

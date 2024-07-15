@@ -28,6 +28,19 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('source', 'like', '%' . $value . '%');
     }
 
+    public function value($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('value', $operator, $value);
+    }
+
     public function timestampStart($date)
     {
         return $this->builder->where('timestamp', '>=', $date);
@@ -78,4 +91,5 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

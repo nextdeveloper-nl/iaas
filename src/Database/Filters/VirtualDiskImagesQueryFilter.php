@@ -41,19 +41,6 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('size', $operator, $value);
     }
 
-    public function physicalUtilisation($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('physical_utilisation', $operator, $value);
-    }
-
     public function deviceNumber($value)
     {
         $operator = substr($value, 0, 1);
@@ -65,6 +52,19 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
         }
 
         return $this->builder->where('device_number', $operator, $value);
+    }
+
+    public function physicalUtilisation($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('physical_utilisation', $operator, $value);
     }
 
     public function isCdrom($value)
@@ -161,6 +161,7 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

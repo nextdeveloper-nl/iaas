@@ -60,6 +60,7 @@ trait IaasVirtualMachineMetricTestTraits
             'form_params'   =>  [
                 'parameter'  =>  'a',
                 'source'  =>  'a',
+                'value'  =>  '1',
                     'timestamp'  =>  now(),
                             ],
                 ['http_errors' => false]
@@ -368,6 +369,25 @@ trait IaasVirtualMachineMetricTestTraits
             $request = new Request(
                 [
                 'source'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasVirtualMachineMetricQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineMetric::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualmachinemetric_event_value_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'value'  =>  '1'
                 ]
             );
 

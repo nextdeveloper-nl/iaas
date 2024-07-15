@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Observers\ComputeMemberNetworkInterfacesObserver
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * ComputeMemberNetworkInterfaces model.
@@ -31,14 +32,15 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
- * @property boolean $is_bridge
  * @property string $hypervisor_uuid
+ * @property boolean $is_bridge
+ * @property string $network_uuid
+ * @property string $network_name
  */
 class ComputeMemberNetworkInterfaces extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
     use SoftDeletes;
-
 
     public $timestamps = true;
 
@@ -46,89 +48,91 @@ class ComputeMemberNetworkInterfaces extends Model
 
 
     /**
-     * @var array
+     @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-        'device',
-        'mac_addr',
-        'vlan',
-        'mtu',
-        'is_management',
-        'is_default',
-        'is_connected',
-        'hypervisor_data',
-        'iaas_compute_member_id',
-        'iam_account_id',
-        'iam_user_id',
-        'is_bridge',
-        'hypervisor_uuid',
-        'network_uuid',
-        'network_name'
+            'device',
+            'mac_addr',
+            'vlan',
+            'mtu',
+            'is_management',
+            'is_default',
+            'is_connected',
+            'hypervisor_data',
+            'iaas_compute_member_id',
+            'iam_account_id',
+            'iam_user_id',
+            'hypervisor_uuid',
+            'is_bridge',
+            'network_uuid',
+            'network_name',
     ];
 
     /**
-     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
+      Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     * We are casting fields to objects so that we can work on them better
+     We are casting fields to objects so that we can work on them better
      *
-     * @var array
+     @var array
      */
     protected $casts = [
-        'id' => 'integer',
-        'device' => 'string',
-        'vlan' => 'integer',
-        'mtu' => 'integer',
-        'is_management' => 'boolean',
-        'is_default' => 'boolean',
-        'is_connected' => 'boolean',
-        'hypervisor_data' => 'array',
-        'iaas_compute_member_id' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
-        'is_bridge' => 'boolean',
-        'hypervisor_uuid' => 'string',
+    'id' => 'integer',
+    'device' => 'string',
+    'vlan' => 'integer',
+    'mtu' => 'integer',
+    'is_management' => 'boolean',
+    'is_default' => 'boolean',
+    'is_connected' => 'boolean',
+    'hypervisor_data' => 'array',
+    'iaas_compute_member_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
+    'hypervisor_uuid' => 'string',
+    'is_bridge' => 'boolean',
+    'network_uuid' => 'string',
+    'network_name' => 'string',
     ];
 
     /**
-     * We are casting data fields.
+     We are casting data fields.
      *
-     * @var array
+     @var array
      */
     protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $with = [
 
     ];
 
     /**
-     * @var int
+     @var int
      */
     protected $perPage = 20;
 
     /**
-     * @return void
+     @return void
      */
     public static function boot()
     {
@@ -145,11 +149,9 @@ class ComputeMemberNetworkInterfaces extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_compute_member_network_interfaces');
 
-        if (!$modelScopes) {
-            $modelScopes = [];
+        if(!$modelScopes) { $modelScopes = [];
         }
-        if (!$globalScopes) {
-            $globalScopes = [];
+        if (!$globalScopes) { $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -157,14 +159,25 @@ class ComputeMemberNetworkInterfaces extends Model
             $modelScopes
         );
 
-        if ($scopes) {
+        if($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
         }
     }
 
+    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
+    }
+    
+    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 }

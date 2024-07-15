@@ -58,6 +58,7 @@ trait IaasNetworkPoolTestTraits
         $response = $this->http->request(
             'POST', '/iaas/iaasnetworkpool', [
             'form_params'   =>  [
+                'name'  =>  'a',
                 'provisioning_alg'  =>  'a',
                 'resource_validator'  =>  'a',
                 'vlan_start'  =>  '1',
@@ -339,6 +340,25 @@ trait IaasNetworkPoolTestTraits
             $model = \NextDeveloper\IAAS\Database\Models\IaasNetworkPool::first();
 
             event(new \NextDeveloper\IAAS\Events\IaasNetworkPool\IaasNetworkPoolRestoredEvent($model));
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasnetworkpool_event_name_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'name'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasNetworkPoolQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasNetworkPool::filter($filter)->first();
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }

@@ -18,8 +18,8 @@ class VirtualMachinesCreateRequest extends AbstractFormRequest
         'description' => 'nullable|string',
         'ram' => 'required|integer',
         'tags' => '',
-        'common_domain_id' => 'nullable|exists:common_domains,uuid|uuid',
         'iaas_repository_image_id' => 'nullable|exists:iaas_repository_images,uuid|uuid',
+        'common_domain_id' => 'nullable|exists:common_domains,uuid|uuid',
         'iaas_compute_pool_id' => 'exists:iaas_compute_pools,uuid|uuid',
         ];
     }

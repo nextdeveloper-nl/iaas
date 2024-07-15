@@ -13,7 +13,7 @@ class NetworkPoolsCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'name' => 'required',
+            'name' => 'required|string',
         'vlan_start' => 'integer',
         'vlan_end' => 'integer',
         'vxlan_start' => 'integer',

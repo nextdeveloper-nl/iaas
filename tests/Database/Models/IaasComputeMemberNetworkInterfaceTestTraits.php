@@ -60,6 +60,8 @@ trait IaasComputeMemberNetworkInterfaceTestTraits
             'form_params'   =>  [
                 'device'  =>  'a',
                 'hypervisor_uuid'  =>  'a',
+                'network_uuid'  =>  'a',
+                'network_name'  =>  'a',
                 'vlan'  =>  '1',
                 'mtu'  =>  '1',
                             ],
@@ -369,6 +371,44 @@ trait IaasComputeMemberNetworkInterfaceTestTraits
             $request = new Request(
                 [
                 'hypervisor_uuid'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasComputeMemberNetworkInterfaceQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMemberNetworkInterface::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemembernetworkinterface_event_network_uuid_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'network_uuid'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasComputeMemberNetworkInterfaceQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMemberNetworkInterface::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemembernetworkinterface_event_network_name_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'network_name'  =>  'a'
                 ]
             );
 

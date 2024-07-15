@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Observers\VirtualMachineMetricsObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
 
 /**
  * VirtualMachineMetrics model.
@@ -28,9 +29,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  */
 class VirtualMachineMetrics extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates;
     use SoftDeletes;
-
 
     public $timestamps = true;
 
@@ -73,6 +73,7 @@ class VirtualMachineMetrics extends Model
     'id' => 'integer',
     'iaas_virtual_machine_id' => 'integer',
     'parameter' => 'string',
+    'value' => 'double',
     'timestamp' => 'datetime',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
@@ -140,4 +141,5 @@ class VirtualMachineMetrics extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }
