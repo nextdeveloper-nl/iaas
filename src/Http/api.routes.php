@@ -1052,27 +1052,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('storage-members-perspective')->group(
-            function () {
-                Route::get('/', 'StorageMembersPerspective\StorageMembersPerspectiveController@index');
-                Route::get('/actions', 'StorageMembersPerspective\StorageMembersPerspectiveController@getActions');
-
-                Route::get('{iaas_storage_members_perspective}/tags ', 'StorageMembersPerspective\StorageMembersPerspectiveController@tags');
-                Route::post('{iaas_storage_members_perspective}/tags ', 'StorageMembersPerspective\StorageMembersPerspectiveController@saveTags');
-                Route::get('{iaas_storage_members_perspective}/addresses ', 'StorageMembersPerspective\StorageMembersPerspectiveController@addresses');
-                Route::post('{iaas_storage_members_perspective}/addresses ', 'StorageMembersPerspective\StorageMembersPerspectiveController@saveAddresses');
-
-                Route::get('/{iaas_storage_members_perspective}/{subObjects}', 'StorageMembersPerspective\StorageMembersPerspectiveController@relatedObjects');
-                Route::get('/{iaas_storage_members_perspective}', 'StorageMembersPerspective\StorageMembersPerspectiveController@show');
-
-                Route::post('/', 'StorageMembersPerspective\StorageMembersPerspectiveController@store');
-                Route::post('/{iaas_storage_members_perspective}/do/{action}', 'StorageMembersPerspective\StorageMembersPerspectiveController@doAction');
-
-                Route::patch('/{iaas_storage_members_perspective}', 'StorageMembersPerspective\StorageMembersPerspectiveController@update');
-                Route::delete('/{iaas_storage_members_perspective}', 'StorageMembersPerspective\StorageMembersPerspectiveController@destroy');
-            }
-        );
-
         Route::prefix('compute-members-perspective')->group(
             function () {
                 Route::get('/', 'ComputeMembersPerspective\ComputeMembersPerspectiveController@index');
@@ -1094,45 +1073,45 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('storage-volumes-perspective')->group(
+        Route::prefix('network-members-perspective')->group(
             function () {
-                Route::get('/', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@index');
-                Route::get('/actions', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@getActions');
+                Route::get('/', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@index');
+                Route::get('/actions', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@getActions');
 
-                Route::get('{iaas_storage_volumes_perspective}/tags ', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@tags');
-                Route::post('{iaas_storage_volumes_perspective}/tags ', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@saveTags');
-                Route::get('{iaas_storage_volumes_perspective}/addresses ', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@addresses');
-                Route::post('{iaas_storage_volumes_perspective}/addresses ', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@saveAddresses');
+                Route::get('{iaas_network_members_perspective}/tags ', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@tags');
+                Route::post('{iaas_network_members_perspective}/tags ', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@saveTags');
+                Route::get('{iaas_network_members_perspective}/addresses ', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@addresses');
+                Route::post('{iaas_network_members_perspective}/addresses ', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@saveAddresses');
 
-                Route::get('/{iaas_storage_volumes_perspective}/{subObjects}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@relatedObjects');
-                Route::get('/{iaas_storage_volumes_perspective}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@show');
+                Route::get('/{iaas_network_members_perspective}/{subObjects}', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@relatedObjects');
+                Route::get('/{iaas_network_members_perspective}', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@show');
 
-                Route::post('/', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@store');
-                Route::post('/{iaas_storage_volumes_perspective}/do/{action}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@doAction');
+                Route::post('/', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@store');
+                Route::post('/{iaas_network_members_perspective}/do/{action}', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@doAction');
 
-                Route::patch('/{iaas_storage_volumes_perspective}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@update');
-                Route::delete('/{iaas_storage_volumes_perspective}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@destroy');
+                Route::patch('/{iaas_network_members_perspective}', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@update');
+                Route::delete('/{iaas_network_members_perspective}', 'NetworkMembersPerspective\NetworkMembersPerspectiveController@destroy');
             }
         );
 
-        Route::prefix('network-pools-perspective')->group(
+        Route::prefix('storage-members-perspective')->group(
             function () {
-                Route::get('/', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@index');
-                Route::get('/actions', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@getActions');
+                Route::get('/', 'StorageMembersPerspective\StorageMembersPerspectiveController@index');
+                Route::get('/actions', 'StorageMembersPerspective\StorageMembersPerspectiveController@getActions');
 
-                Route::get('{iaas_network_pools_perspective}/tags ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@tags');
-                Route::post('{iaas_network_pools_perspective}/tags ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@saveTags');
-                Route::get('{iaas_network_pools_perspective}/addresses ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@addresses');
-                Route::post('{iaas_network_pools_perspective}/addresses ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@saveAddresses');
+                Route::get('{iaas_storage_members_perspective}/tags ', 'StorageMembersPerspective\StorageMembersPerspectiveController@tags');
+                Route::post('{iaas_storage_members_perspective}/tags ', 'StorageMembersPerspective\StorageMembersPerspectiveController@saveTags');
+                Route::get('{iaas_storage_members_perspective}/addresses ', 'StorageMembersPerspective\StorageMembersPerspectiveController@addresses');
+                Route::post('{iaas_storage_members_perspective}/addresses ', 'StorageMembersPerspective\StorageMembersPerspectiveController@saveAddresses');
 
-                Route::get('/{iaas_network_pools_perspective}/{subObjects}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@relatedObjects');
-                Route::get('/{iaas_network_pools_perspective}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@show');
+                Route::get('/{iaas_storage_members_perspective}/{subObjects}', 'StorageMembersPerspective\StorageMembersPerspectiveController@relatedObjects');
+                Route::get('/{iaas_storage_members_perspective}', 'StorageMembersPerspective\StorageMembersPerspectiveController@show');
 
-                Route::post('/', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@store');
-                Route::post('/{iaas_network_pools_perspective}/do/{action}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@doAction');
+                Route::post('/', 'StorageMembersPerspective\StorageMembersPerspectiveController@store');
+                Route::post('/{iaas_storage_members_perspective}/do/{action}', 'StorageMembersPerspective\StorageMembersPerspectiveController@doAction');
 
-                Route::patch('/{iaas_network_pools_perspective}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@update');
-                Route::delete('/{iaas_network_pools_perspective}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@destroy');
+                Route::patch('/{iaas_storage_members_perspective}', 'StorageMembersPerspective\StorageMembersPerspectiveController@update');
+                Route::delete('/{iaas_storage_members_perspective}', 'StorageMembersPerspective\StorageMembersPerspectiveController@destroy');
             }
         );
 
@@ -1157,6 +1136,27 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('network-pools-perspective')->group(
+            function () {
+                Route::get('/', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@index');
+                Route::get('/actions', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@getActions');
+
+                Route::get('{iaas_network_pools_perspective}/tags ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@tags');
+                Route::post('{iaas_network_pools_perspective}/tags ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@saveTags');
+                Route::get('{iaas_network_pools_perspective}/addresses ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@addresses');
+                Route::post('{iaas_network_pools_perspective}/addresses ', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_network_pools_perspective}/{subObjects}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@relatedObjects');
+                Route::get('/{iaas_network_pools_perspective}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@show');
+
+                Route::post('/', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@store');
+                Route::post('/{iaas_network_pools_perspective}/do/{action}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@doAction');
+
+                Route::patch('/{iaas_network_pools_perspective}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@update');
+                Route::delete('/{iaas_network_pools_perspective}', 'NetworkPoolsPerspective\NetworkPoolsPerspectiveController@destroy');
+            }
+        );
+
         Route::prefix('compute-member-storage-volumes-perspective')->group(
             function () {
                 Route::get('/', 'ComputeMemberStorageVolumesPerspective\ComputeMemberStorageVolumesPerspectiveController@index');
@@ -1175,6 +1175,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{icmsvp}', 'ComputeMemberStorageVolumesPerspective\ComputeMemberStorageVolumesPerspectiveController@update');
                 Route::delete('/{icmsvp}', 'ComputeMemberStorageVolumesPerspective\ComputeMemberStorageVolumesPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('storage-volumes-perspective')->group(
+            function () {
+                Route::get('/', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@index');
+                Route::get('/actions', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@getActions');
+
+                Route::get('{iaas_storage_volumes_perspective}/tags ', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@tags');
+                Route::post('{iaas_storage_volumes_perspective}/tags ', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@saveTags');
+                Route::get('{iaas_storage_volumes_perspective}/addresses ', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@addresses');
+                Route::post('{iaas_storage_volumes_perspective}/addresses ', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_storage_volumes_perspective}/{subObjects}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@relatedObjects');
+                Route::get('/{iaas_storage_volumes_perspective}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@show');
+
+                Route::post('/', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@store');
+                Route::post('/{iaas_storage_volumes_perspective}/do/{action}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@doAction');
+
+                Route::patch('/{iaas_storage_volumes_perspective}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@update');
+                Route::delete('/{iaas_storage_volumes_perspective}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@destroy');
             }
         );
 
@@ -1649,8 +1670,66 @@ Route::prefix('iaas')->group(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 );
+
 
 
 

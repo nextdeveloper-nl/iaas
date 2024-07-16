@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                    
+                        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,6 +37,11 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     {
         return $this->builder->where('storage_member_name', 'like', '%' . $value . '%');
     }
+    
+    public function computeMemberName($value)
+    {
+        return $this->builder->where('compute_member_name', 'like', '%' . $value . '%');
+    }
 
     public function iaasStorageVolumeId($value)
     {
@@ -65,6 +70,15 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
         }
     }
 
+    public function iaasComputeMemberId($value)
+    {
+            $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
+
+        if($iaasComputeMember) {
+            return $this->builder->where('iaas_compute_member_id', '=', $iaasComputeMember->id);
+        }
+    }
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -84,4 +98,5 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

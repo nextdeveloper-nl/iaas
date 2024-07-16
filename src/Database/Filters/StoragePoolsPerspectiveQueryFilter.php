@@ -98,4 +98,5 @@ class StoragePoolsPerspectiveQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

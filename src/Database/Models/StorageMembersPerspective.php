@@ -33,6 +33,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $iaas_storage_pool_id
  * @property string $maintainer
  * @property string $responsible
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
  */
 class StorageMembersPerspective extends Model
 {
@@ -65,6 +67,8 @@ class StorageMembersPerspective extends Model
             'iaas_storage_pool_id',
             'maintainer',
             'responsible',
+            'iam_account_id',
+            'iam_user_id',
     ];
 
     /**
@@ -162,4 +166,5 @@ class StorageMembersPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

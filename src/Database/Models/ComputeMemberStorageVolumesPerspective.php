@@ -25,6 +25,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $iaas_storage_pool_id
  * @property string $storage_member_name
  * @property integer $iaas_storage_mamber_id
+ * @property string $compute_member_name
+ * @property integer $iaas_compute_member_id
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  */
@@ -51,6 +53,8 @@ class ComputeMemberStorageVolumesPerspective extends Model
             'iaas_storage_pool_id',
             'storage_member_name',
             'iaas_storage_mamber_id',
+            'compute_member_name',
+            'iaas_compute_member_id',
             'iam_account_id',
             'iam_user_id',
     ];
@@ -83,6 +87,8 @@ class ComputeMemberStorageVolumesPerspective extends Model
     'iaas_storage_pool_id' => 'integer',
     'storage_member_name' => 'string',
     'iaas_storage_mamber_id' => 'integer',
+    'compute_member_name' => 'string',
+    'iaas_compute_member_id' => 'integer',
     ];
 
     /**
@@ -142,4 +148,5 @@ class ComputeMemberStorageVolumesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

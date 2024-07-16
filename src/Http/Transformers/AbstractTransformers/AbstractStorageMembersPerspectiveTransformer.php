@@ -55,6 +55,8 @@ class AbstractStorageMembersPerspectiveTransformer extends AbstractTransformer
     public function transform(StorageMembersPerspective $model)
     {
                                                 $iaasStoragePoolId = \NextDeveloper\IAAS\Database\Models\StoragePools::where('id', $model->iaas_storage_pool_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                         
         return $this->buildPayload(
             [
@@ -75,6 +77,8 @@ class AbstractStorageMembersPerspectiveTransformer extends AbstractTransformer
             'iaas_storage_pool_id'  =>  $iaasStoragePoolId ? $iaasStoragePoolId->uuid : null,
             'maintainer'  =>  $model->maintainer,
             'responsible'  =>  $model->responsible,
+            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             ]
         );
     }
@@ -163,4 +167,5 @@ class AbstractStorageMembersPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

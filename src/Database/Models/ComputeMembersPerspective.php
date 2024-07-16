@@ -42,6 +42,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property boolean $is_alive
  * @property string $compute_pool_name
  * @property integer $iaas_compute_pool_id
+ * @property string $maintainer
+ * @property string $responsible
  * @property array $tags
  * @property integer $iam_account_id
  * @property integer $iam_user_id
@@ -85,6 +87,8 @@ class ComputeMembersPerspective extends Model
             'is_alive',
             'compute_pool_name',
             'iaas_compute_pool_id',
+            'maintainer',
+            'responsible',
             'tags',
             'iam_account_id',
             'iam_user_id',
@@ -133,6 +137,8 @@ class ComputeMembersPerspective extends Model
     'is_alive' => 'boolean',
     'compute_pool_name' => 'string',
     'iaas_compute_pool_id' => 'integer',
+    'maintainer' => 'string',
+    'responsible' => 'string',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     ];
 
@@ -194,4 +200,5 @@ class ComputeMembersPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

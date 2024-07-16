@@ -171,4 +171,5 @@ class AbstractComputeMemberDevicesTransformer extends AbstractTransformer
 
 
 
+
 }

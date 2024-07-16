@@ -57,6 +57,7 @@ class AbstractComputeMemberStorageVolumesPerspectiveTransformer extends Abstract
                                                 $iaasStorageVolumeId = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('id', $model->iaas_storage_volume_id)->first();
                                                             $iaasStoragePoolId = \NextDeveloper\IAAS\Database\Models\StoragePools::where('id', $model->iaas_storage_pool_id)->first();
                                                             $iaasStorageMamberId = \NextDeveloper\IAAS\Database\Models\StorageMambers::where('id', $model->iaas_storage_mamber_id)->first();
+                                                            $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                         
@@ -71,6 +72,8 @@ class AbstractComputeMemberStorageVolumesPerspectiveTransformer extends Abstract
             'iaas_storage_pool_id'  =>  $iaasStoragePoolId ? $iaasStoragePoolId->uuid : null,
             'storage_member_name'  =>  $model->storage_member_name,
             'iaas_storage_mamber_id'  =>  $iaasStorageMamberId ? $iaasStorageMamberId->uuid : null,
+            'compute_member_name'  =>  $model->compute_member_name,
+            'iaas_compute_member_id'  =>  $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             ]
@@ -161,4 +164,5 @@ class AbstractComputeMemberStorageVolumesPerspectiveTransformer extends Abstract
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }
