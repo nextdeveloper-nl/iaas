@@ -73,6 +73,9 @@ class AbstractRepositoriesPerspectiveTransformer extends AbstractTransformer
             'vm_image_count'  =>  $model->vm_image_count,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
@@ -161,6 +164,8 @@ class AbstractRepositoriesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

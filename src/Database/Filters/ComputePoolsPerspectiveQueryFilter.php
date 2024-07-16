@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -56,16 +56,6 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     public function currency($value)
     {
         return $this->builder->where('currency', 'like', '%' . $value . '%');
-    }
-    
-    public function datacenter($value)
-    {
-        return $this->builder->where('datacenter', 'like', '%' . $value . '%');
-    }
-    
-    public function cloudNode($value)
-    {
-        return $this->builder->where('cloud_node', 'like', '%' . $value . '%');
     }
     
     public function maintainer($value)
@@ -183,22 +173,34 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('is_active', $value);
     }
 
-    public function iaasDatacenterId($value)
+    public function createdAtStart($date)
     {
-            $iaasDatacenter = \NextDeveloper\IAAS\Database\Models\Datacenters::where('uuid', $value)->first();
-
-        if($iaasDatacenter) {
-            return $this->builder->where('iaas_datacenter_id', '=', $iaasDatacenter->id);
-        }
+        return $this->builder->where('created_at', '>=', $date);
     }
 
-    public function iaasCloudNodeId($value)
+    public function createdAtEnd($date)
     {
-            $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
+        return $this->builder->where('created_at', '<=', $date);
+    }
 
-        if($iaasCloudNode) {
-            return $this->builder->where('iaas_cloud_node_id', '=', $iaasCloudNode->id);
-        }
+    public function updatedAtStart($date)
+    {
+        return $this->builder->where('updated_at', '>=', $date);
+    }
+
+    public function updatedAtEnd($date)
+    {
+        return $this->builder->where('updated_at', '<=', $date);
+    }
+
+    public function deletedAtStart($date)
+    {
+        return $this->builder->where('deleted_at', '>=', $date);
+    }
+
+    public function deletedAtEnd($date)
+    {
+        return $this->builder->where('deleted_at', '<=', $date);
     }
 
     public function iamAccountId($value)
@@ -220,6 +222,8 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

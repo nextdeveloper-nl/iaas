@@ -10,6 +10,7 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\HasStates;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * RepositoryImagesPerspective model.
@@ -31,12 +32,16 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property string $repository_name
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class RepositoryImagesPerspective extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use SoftDeletes;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $table = 'iaas_repository_images_perspective';
 
@@ -96,6 +101,9 @@ class RepositoryImagesPerspective extends Model
     'is_docker_image' => 'boolean',
     'iaas_repository_id' => 'integer',
     'repository_name' => 'string',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -104,7 +112,9 @@ class RepositoryImagesPerspective extends Model
      @var array
      */
     protected $dates = [
-
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
@@ -155,6 +165,8 @@ class RepositoryImagesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

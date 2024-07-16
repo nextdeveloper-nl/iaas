@@ -54,9 +54,7 @@ class AbstractComputePoolsPerspectiveTransformer extends AbstractTransformer
      */
     public function transform(ComputePoolsPerspective $model)
     {
-                                                $iaasDatacenterId = \NextDeveloper\IAAS\Database\Models\Datacenters::where('id', $model->iaas_datacenter_id)->first();
-                                                            $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
-                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                         
         return $this->buildPayload(
@@ -75,16 +73,15 @@ class AbstractComputePoolsPerspectiveTransformer extends AbstractTransformer
             'total_vm_in_pool'  =>  $model->total_vm_in_pool,
             'running_ram_in_pool'  =>  $model->running_ram_in_pool,
             'halted_ram_in_pool'  =>  $model->halted_ram_in_pool,
-            'datacenter'  =>  $model->datacenter,
-            'iaas_datacenter_id'  =>  $iaasDatacenterId ? $iaasDatacenterId->uuid : null,
-            'cloud_node'  =>  $model->cloud_node,
-            'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
             'maintainer'  =>  $model->maintainer,
             'responsible'  =>  $model->responsible,
             'tags'  =>  $model->tags,
             'pool_type'  =>  $model->pool_type,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
@@ -173,6 +170,8 @@ class AbstractComputePoolsPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

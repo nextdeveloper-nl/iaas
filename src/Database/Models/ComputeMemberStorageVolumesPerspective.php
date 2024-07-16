@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Observers\ComputeMemberStorageVolumesPerspective
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * ComputeMemberStorageVolumesPerspective model.
@@ -29,12 +30,16 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $iaas_compute_member_id
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class ComputeMemberStorageVolumesPerspective extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use SoftDeletes;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $table = 'iaas_compute_member_storage_volumes_perspective';
 
@@ -89,6 +94,9 @@ class ComputeMemberStorageVolumesPerspective extends Model
     'iaas_storage_mamber_id' => 'integer',
     'compute_member_name' => 'string',
     'iaas_compute_member_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -97,7 +105,9 @@ class ComputeMemberStorageVolumesPerspective extends Model
      @var array
      */
     protected $dates = [
-
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
@@ -148,5 +158,7 @@ class ComputeMemberStorageVolumesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 }

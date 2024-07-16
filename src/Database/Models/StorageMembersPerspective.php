@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Observers\StorageMembersPerspectiveObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * StorageMembersPerspective model.
@@ -35,12 +36,16 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property string $responsible
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class StorageMembersPerspective extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use SoftDeletes;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $table = 'iaas_storage_members_perspective';
 
@@ -107,6 +112,9 @@ class StorageMembersPerspective extends Model
     'iaas_storage_pool_id' => 'integer',
     'maintainer' => 'string',
     'responsible' => 'string',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -116,6 +124,9 @@ class StorageMembersPerspective extends Model
      */
     protected $dates = [
     'uptime',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
@@ -166,5 +177,7 @@ class StorageMembersPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 }

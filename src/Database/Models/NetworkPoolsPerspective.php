@@ -10,6 +10,7 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\HasStates;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * NetworkPoolsPerspective model.
@@ -35,12 +36,16 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property array $tags
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class NetworkPoolsPerspective extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use SoftDeletes;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $table = 'iaas_network_pools_perspective';
 
@@ -107,6 +112,9 @@ class NetworkPoolsPerspective extends Model
     'maintainer' => 'string',
     'responsible' => 'string',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -115,7 +123,9 @@ class NetworkPoolsPerspective extends Model
      @var array
      */
     protected $dates = [
-
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
@@ -166,6 +176,8 @@ class NetworkPoolsPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

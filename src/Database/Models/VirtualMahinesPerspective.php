@@ -10,6 +10,7 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\HasStates;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * VirtualMahinesPerspective model.
@@ -42,12 +43,16 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property string $responsible
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class VirtualMahinesPerspective extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use SoftDeletes;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $table = 'iaas_virtual_mahines_perspective';
 
@@ -129,6 +134,9 @@ class VirtualMahinesPerspective extends Model
     'is_draft' => 'boolean',
     'maintainer' => 'string',
     'responsible' => 'string',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -138,6 +146,9 @@ class VirtualMahinesPerspective extends Model
      */
     protected $dates = [
     'last_metadata_request',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
@@ -188,6 +199,8 @@ class VirtualMahinesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 
