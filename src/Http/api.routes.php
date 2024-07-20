@@ -1073,6 +1073,27 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('virtual-machines-perspective')->group(
+            function () {
+                Route::get('/', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@index');
+                Route::get('/actions', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@getActions');
+
+                Route::get('{ivmp}/tags ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@tags');
+                Route::post('{ivmp}/tags ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@saveTags');
+                Route::get('{ivmp}/addresses ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@addresses');
+                Route::post('{ivmp}/addresses ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@saveAddresses');
+
+                Route::get('/{ivmp}/{subObjects}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@relatedObjects');
+                Route::get('/{ivmp}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@show');
+
+                Route::post('/', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@store');
+                Route::post('/{ivmp}/do/{action}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@doAction');
+
+                Route::patch('/{ivmp}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@update');
+                Route::delete('/{ivmp}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@destroy');
+            }
+        );
+
         Route::prefix('networks-perspective')->group(
             function () {
                 Route::get('/', 'NetworksPerspective\NetworksPerspectiveController@index');
@@ -1154,27 +1175,6 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_storage_volumes_perspective}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@update');
                 Route::delete('/{iaas_storage_volumes_perspective}', 'StorageVolumesPerspective\StorageVolumesPerspectiveController@destroy');
-            }
-        );
-
-        Route::prefix('virtual-mahines-perspective')->group(
-            function () {
-                Route::get('/', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@index');
-                Route::get('/actions', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@getActions');
-
-                Route::get('{iaas_virtual_mahines_perspective}/tags ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@tags');
-                Route::post('{iaas_virtual_mahines_perspective}/tags ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@saveTags');
-                Route::get('{iaas_virtual_mahines_perspective}/addresses ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@addresses');
-                Route::post('{iaas_virtual_mahines_perspective}/addresses ', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@saveAddresses');
-
-                Route::get('/{iaas_virtual_mahines_perspective}/{subObjects}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@relatedObjects');
-                Route::get('/{iaas_virtual_mahines_perspective}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@show');
-
-                Route::post('/', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@store');
-                Route::post('/{iaas_virtual_mahines_perspective}/do/{action}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@doAction');
-
-                Route::patch('/{iaas_virtual_mahines_perspective}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@update');
-                Route::delete('/{iaas_virtual_mahines_perspective}', 'VirtualMahinesPerspective\VirtualMahinesPerspectiveController@destroy');
             }
         );
 
@@ -1921,8 +1921,126 @@ Route::prefix('iaas')->group(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 );
+
+
 
 
 

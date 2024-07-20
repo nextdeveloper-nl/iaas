@@ -1,35 +1,35 @@
 <?php
 
-namespace NextDeveloper\IAAS\Http\Controllers\VirtualMahinesPerspective;
+namespace NextDeveloper\IAAS\Http\Controllers\VirtualMachinesPerspective;
 
 use Illuminate\Http\Request;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\VirtualMahinesPerspective\VirtualMahinesPerspectiveUpdateRequest;
-use NextDeveloper\IAAS\Database\Filters\VirtualMahinesPerspectiveQueryFilter;
-use NextDeveloper\IAAS\Database\Models\VirtualMahinesPerspective;
-use NextDeveloper\IAAS\Services\VirtualMahinesPerspectiveService;
-use NextDeveloper\IAAS\Http\Requests\VirtualMahinesPerspective\VirtualMahinesPerspectiveCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
-class VirtualMahinesPerspectiveController extends AbstractController
+use NextDeveloper\IAAS\Http\Requests\VirtualMachinesPerspective\VirtualMachinesPerspectiveUpdateRequest;
+use NextDeveloper\IAAS\Database\Filters\VirtualMachinesPerspectiveQueryFilter;
+use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
+use NextDeveloper\IAAS\Services\VirtualMachinesPerspectiveService;
+use NextDeveloper\IAAS\Http\Requests\VirtualMachinesPerspective\VirtualMachinesPerspectiveCreateRequest;
+use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+class VirtualMachinesPerspectiveController extends AbstractController
 {
-    private $model = VirtualMahinesPerspective::class;
+    private $model = VirtualMachinesPerspective::class;
 
-    use Tags;
-    use Addresses;
+    use TagsTrait;
+    use AddressesTrait;
     /**
-     * This method returns the list of virtualmahinesperspectives.
+     * This method returns the list of virtualmachinesperspectives.
      *
      * optional http params:
      * - paginate: If you set paginate parameter, the result will be returned paginated.
      *
-     * @param  VirtualMahinesPerspectiveQueryFilter $filter  An object that builds search query
-     * @param  Request                              $request Laravel request object, this holds all data about request. Automatically populated.
+     * @param  VirtualMachinesPerspectiveQueryFilter $filter  An object that builds search query
+     * @param  Request                               $request Laravel request object, this holds all data about request. Automatically populated.
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(VirtualMahinesPerspectiveQueryFilter $filter, Request $request)
+    public function index(VirtualMachinesPerspectiveQueryFilter $filter, Request $request)
     {
-        $data = VirtualMahinesPerspectiveService::get($filter, $request->all());
+        $data = VirtualMachinesPerspectiveService::get($filter, $request->all());
 
         return ResponsableFactory::makeResponse($this, $data);
     }
@@ -41,7 +41,7 @@ class VirtualMahinesPerspectiveController extends AbstractController
      */
     public function getActions()
     {
-        $data = VirtualMahinesPerspectiveService::getActions();
+        $data = VirtualMachinesPerspectiveService::getActions();
 
         return ResponsableFactory::makeResponse($this, $data);
     }
@@ -55,7 +55,7 @@ class VirtualMahinesPerspectiveController extends AbstractController
      */
     public function doAction($objectId, $action)
     {
-        $actionId = VirtualMahinesPerspectiveService::doAction($objectId, $action, request()->all());
+        $actionId = VirtualMachinesPerspectiveService::doAction($objectId, $action, request()->all());
 
         return $this->withArray(
             [
@@ -67,7 +67,7 @@ class VirtualMahinesPerspectiveController extends AbstractController
     /**
      * This method receives ID for the related model and returns the item to the client.
      *
-     * @param  $virtualMahinesPerspectiveId
+     * @param  $virtualMachinesPerspectiveId
      * @return mixed|null
      * @throws \Laravel\Octane\Exceptions\DdException
      */
@@ -75,7 +75,7 @@ class VirtualMahinesPerspectiveController extends AbstractController
     {
         //  Here we are not using Laravel Route Model Binding. Please check routeBinding.md file
         //  in NextDeveloper Platform Project
-        $model = VirtualMahinesPerspectiveService::getByRef($ref);
+        $model = VirtualMachinesPerspectiveService::getByRef($ref);
 
         return ResponsableFactory::makeResponse($this, $model);
     }
@@ -92,19 +92,19 @@ class VirtualMahinesPerspectiveController extends AbstractController
      */
     public function relatedObjects($ref, $subObject)
     {
-        $objects = VirtualMahinesPerspectiveService::relatedObjects($ref, $subObject);
+        $objects = VirtualMachinesPerspectiveService::relatedObjects($ref, $subObject);
 
         return ResponsableFactory::makeResponse($this, $objects);
     }
 
     /**
-     * This method created VirtualMahinesPerspective object on database.
+     * This method created VirtualMachinesPerspective object on database.
      *
-     * @param  VirtualMahinesPerspectiveCreateRequest $request
+     * @param  VirtualMachinesPerspectiveCreateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
-    public function store(VirtualMahinesPerspectiveCreateRequest $request)
+    public function store(VirtualMachinesPerspectiveCreateRequest $request)
     {
         if($request->has('validateOnly') && $request->get('validateOnly') == true) {
             return [
@@ -112,20 +112,20 @@ class VirtualMahinesPerspectiveController extends AbstractController
             ];
         }
 
-        $model = VirtualMahinesPerspectiveService::create($request->validated());
+        $model = VirtualMachinesPerspectiveService::create($request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
     }
 
     /**
-     * This method updates VirtualMahinesPerspective object on database.
+     * This method updates VirtualMachinesPerspective object on database.
      *
-     * @param  $virtualMahinesPerspectiveId
-     * @param  VirtualMahinesPerspectiveUpdateRequest $request
+     * @param  $virtualMachinesPerspectiveId
+     * @param  VirtualMachinesPerspectiveUpdateRequest $request
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
-    public function update($virtualMahinesPerspectiveId, VirtualMahinesPerspectiveUpdateRequest $request)
+    public function update($virtualMachinesPerspectiveId, VirtualMachinesPerspectiveUpdateRequest $request)
     {
         if($request->has('validateOnly') && $request->get('validateOnly') == true) {
             return [
@@ -133,21 +133,21 @@ class VirtualMahinesPerspectiveController extends AbstractController
             ];
         }
 
-        $model = VirtualMahinesPerspectiveService::update($virtualMahinesPerspectiveId, $request->validated());
+        $model = VirtualMachinesPerspectiveService::update($virtualMachinesPerspectiveId, $request->validated());
 
         return ResponsableFactory::makeResponse($this, $model);
     }
 
     /**
-     * This method updates VirtualMahinesPerspective object on database.
+     * This method updates VirtualMachinesPerspective object on database.
      *
-     * @param  $virtualMahinesPerspectiveId
+     * @param  $virtualMachinesPerspectiveId
      * @return mixed|null
      * @throws \NextDeveloper\Commons\Exceptions\CannotCreateModelException
      */
-    public function destroy($virtualMahinesPerspectiveId)
+    public function destroy($virtualMachinesPerspectiveId)
     {
-        $model = VirtualMahinesPerspectiveService::delete($virtualMahinesPerspectiveId);
+        $model = VirtualMachinesPerspectiveService::delete($virtualMachinesPerspectiveId);
 
         return $this->noContent();
     }
