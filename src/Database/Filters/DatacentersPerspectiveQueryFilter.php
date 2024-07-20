@@ -92,6 +92,16 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('datacenter_maintainer', 'like', '%' . $value . '%');
     }
+    
+    public function maintainer($value)
+    {
+        return $this->builder->where('maintainer', 'like', '%' . $value . '%');
+    }
+    
+    public function responsible($value)
+    {
+        return $this->builder->where('responsible', 'like', '%' . $value . '%');
+    }
 
     public function tierLevel($value)
     {
@@ -243,6 +253,7 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -41,6 +41,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property integer $network_pools_count
  * @property array $tags
  * @property string $datacenter_maintainer
+ * @property string $maintainer
+ * @property string $responsible
  * @property integer $iam_user_id
  * @property integer $iam_account_id
  * @property \Carbon\Carbon $created_at
@@ -86,6 +88,8 @@ class DatacentersPerspective extends Model
             'network_pools_count',
             'tags',
             'datacenter_maintainer',
+            'maintainer',
+            'responsible',
             'iam_user_id',
             'iam_account_id',
     ];
@@ -133,6 +137,8 @@ class DatacentersPerspective extends Model
     'network_pools_count' => 'integer',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'datacenter_maintainer' => 'string',
+    'maintainer' => 'string',
+    'responsible' => 'string',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -197,6 +203,7 @@ class DatacentersPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

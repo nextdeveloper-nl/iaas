@@ -74,6 +74,8 @@ class AbstractComputeMemberStorageVolumesPerspectiveTransformer extends Abstract
             'iaas_storage_mamber_id'  =>  $iaasStorageMamberId ? $iaasStorageMamberId->uuid : null,
             'compute_member_name'  =>  $model->compute_member_name,
             'iaas_compute_member_id'  =>  $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
+            'maintainer'  =>  $model->maintainer,
+            'responsible'  =>  $model->responsible,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'created_at'  =>  $model->created_at,
@@ -167,6 +169,7 @@ class AbstractComputeMemberStorageVolumesPerspectiveTransformer extends Abstract
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

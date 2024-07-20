@@ -83,6 +83,8 @@ class AbstractDatacentersPerspectiveTransformer extends AbstractTransformer
             'network_pools_count'  =>  $model->network_pools_count,
             'tags'  =>  $model->tags,
             'datacenter_maintainer'  =>  $model->datacenter_maintainer,
+            'maintainer'  =>  $model->maintainer,
+            'responsible'  =>  $model->responsible,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'created_at'  =>  $model->created_at,
@@ -176,6 +178,7 @@ class AbstractDatacentersPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
