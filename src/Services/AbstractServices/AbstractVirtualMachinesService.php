@@ -110,7 +110,10 @@ class AbstractVirtualMachinesService
     {
         $object = VirtualMachines::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\VirtualMachines')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {
@@ -190,7 +193,7 @@ class AbstractVirtualMachinesService
                 $data['iam_account_id']
             );
         }
-            
+
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
@@ -200,7 +203,7 @@ class AbstractVirtualMachinesService
                 $data['iam_user_id']
             );
         }
-                    
+
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
@@ -228,7 +231,7 @@ class AbstractVirtualMachinesService
                 $data['iaas_compute_pool_id']
             );
         }
-                        
+
         try {
             $model = VirtualMachines::create($data);
         } catch(\Exception $e) {
@@ -324,7 +327,7 @@ class AbstractVirtualMachinesService
                 $data['iaas_compute_pool_id']
             );
         }
-    
+
         Events::fire('updating:NextDeveloper\IAAS\VirtualMachines', $model);
 
         try {

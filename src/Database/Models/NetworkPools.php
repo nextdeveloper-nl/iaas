@@ -172,7 +172,43 @@ class NetworkPools extends Model
         }
     }
 
+    public function networkPoolStats() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPoolStats::class);
+    }
+
+    public function networks() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Networks::class);
+    }
+
+    public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
+    }
+    
+    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
+    }
+    
+    public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
+    }
+    
+    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
+    }
+    
+    public function networkMembers() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMembers::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

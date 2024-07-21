@@ -158,7 +158,38 @@ class CloudNodes extends Model
         }
     }
 
+    public function networks() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Networks::class);
+    }
+
+    public function networkPools() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
+    }
+
+    public function computePools() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
+    }
+
+    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
+    }
+
+    public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
+    }
+    
+    public function storagePools() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $description
  * @property string $volume_name
  * @property integer $iaas_storage_volume_id
- * @property $storage_pool_name
+ * @property string $storage_pool_name
  * @property integer $iaas_storage_pool_id
  * @property string $storage_member_name
  * @property integer $iaas_storage_mamber_id
@@ -93,6 +93,7 @@ class ComputeMemberStorageVolumesPerspective extends Model
     'description' => 'string',
     'volume_name' => 'string',
     'iaas_storage_volume_id' => 'integer',
+    'storage_pool_name' => 'string',
     'iaas_storage_pool_id' => 'integer',
     'storage_member_name' => 'string',
     'iaas_storage_mamber_id' => 'integer',
@@ -164,6 +165,7 @@ class ComputeMemberStorageVolumesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

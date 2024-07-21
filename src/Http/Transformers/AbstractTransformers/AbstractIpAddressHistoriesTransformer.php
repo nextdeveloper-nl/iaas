@@ -56,6 +56,7 @@ class AbstractIpAddressHistoriesTransformer extends AbstractTransformer
     {
                                                 $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                                                            $iaasIpAddressesId = \NextDeveloper\IAAS\Database\Models\IpAddresses::where('id', $model->iaas_ip_addresses_id)->first();
                         
         return $this->buildPayload(
             [
@@ -69,6 +70,7 @@ class AbstractIpAddressHistoriesTransformer extends AbstractTransformer
             'deleted_at'  =>  $model->deleted_at,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'iaas_ip_addresses_id'  =>  $iaasIpAddressesId ? $iaasIpAddressesId->uuid : null,
             ]
         );
     }
@@ -157,6 +159,7 @@ class AbstractIpAddressHistoriesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -28,6 +28,11 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('disk_physical_type', 'like', '%' . $value . '%');
     }
     
+    public function storagePool($value)
+    {
+        return $this->builder->where('storage_pool', 'like', '%' . $value . '%');
+    }
+    
     public function storageMember($value)
     {
         return $this->builder->where('storage_member', 'like', '%' . $value . '%');
@@ -176,6 +181,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

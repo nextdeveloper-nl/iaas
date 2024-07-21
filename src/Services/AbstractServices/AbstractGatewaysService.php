@@ -110,7 +110,10 @@ class AbstractGatewaysService
     {
         $object = Gateways::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\Gateways')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {

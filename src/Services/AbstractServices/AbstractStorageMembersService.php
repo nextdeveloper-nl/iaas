@@ -110,7 +110,10 @@ class AbstractStorageMembersService
     {
         $object = StorageMembers::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\StorageMembers')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {

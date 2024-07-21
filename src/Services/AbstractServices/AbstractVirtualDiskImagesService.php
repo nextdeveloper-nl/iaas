@@ -110,7 +110,10 @@ class AbstractVirtualDiskImagesService
     {
         $object = VirtualDiskImages::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\VirtualDiskImages')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {
@@ -210,6 +213,12 @@ class AbstractVirtualDiskImagesService
                 $data['iaas_repository_image_id']
             );
         }
+        if (array_key_exists('iaas_storage_pool_id', $data)) {
+            $data['iaas_storage_pool_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\StoragePools',
+                $data['iaas_storage_pool_id']
+            );
+        }
                         
         try {
             $model = VirtualDiskImages::create($data);
@@ -286,6 +295,12 @@ class AbstractVirtualDiskImagesService
             $data['iaas_repository_image_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\RepositoryImages',
                 $data['iaas_repository_image_id']
+            );
+        }
+        if (array_key_exists('iaas_storage_pool_id', $data)) {
+            $data['iaas_storage_pool_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\StoragePools',
+                $data['iaas_storage_pool_id']
             );
         }
     

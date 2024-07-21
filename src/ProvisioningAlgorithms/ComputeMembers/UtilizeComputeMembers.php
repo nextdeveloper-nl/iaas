@@ -31,7 +31,12 @@ class UtilizeComputeMembers extends AbstractComputeMemberAlgorithm
             ->get();
 
         foreach ($computeMembers as $computeMember) {
-            if(($computeMember->total_ram - $computeMember->used_ram) >= $ram) {
+            if(
+                ($computeMember->total_ram * 1024)
+                - ($computeMember->used_ram * 1024)
+                >= $ram
+            )
+                {
                 return $computeMember;
             }
         }

@@ -110,7 +110,10 @@ class AbstractComputeMemberDevicesService
     {
         $object = ComputeMemberDevices::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\ComputeMemberDevices')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {

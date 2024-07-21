@@ -68,13 +68,22 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
             'management_data'  =>  $model->management_data,
             'features'  =>  $model->features,
             'is_behind_firewall'  =>  $model->is_behind_firewall,
+            'is_management_agent_available'  =>  $model->is_management_agent_available,
+            'ssh_username'  =>  $model->ssh_username,
+            'ssh_password'  =>  $model->ssh_password,
+            'ssh_port'  =>  $model->ssh_port,
             'hypervisor_uuid'  =>  $model->hypervisor_uuid,
             'hypervisor_data'  =>  $model->hypervisor_data,
+            'hypervisor_model'  =>  $model->hypervisor_model,
+            'has_warning'  =>  $model->has_warning,
+            'has_error'  =>  $model->has_error,
             'total_socket'  =>  $model->total_socket,
             'total_cpu'  =>  $model->total_cpu,
             'total_ram'  =>  $model->total_ram,
             'used_cpu'  =>  $model->used_cpu,
             'used_ram'  =>  $model->used_ram,
+            'running_vm'  =>  $model->running_vm,
+            'halted_vm'  =>  $model->halted_vm,
             'total_vm'  =>  $model->total_vm,
             'max_overbooking_ratio'  =>  $model->max_overbooking_ratio,
             'cpu_info'  =>  $model->cpu_info,
@@ -90,15 +99,6 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
-            'is_management_agent_available'  =>  $model->is_management_agent_available,
-            'ssh_username'  =>  $model->ssh_username,
-            'ssh_password'  =>  $model->ssh_password,
-            'ssh_port'  =>  $model->ssh_port,
-            'hypervisor_model'  =>  $model->hypervisor_model,
-            'has_warning'  =>  $model->has_warning,
-            'has_error'  =>  $model->has_error,
-            'running_vm'  =>  $model->running_vm,
-            'halted_vm'  =>  $model->halted_vm,
             ]
         );
     }
@@ -187,6 +187,7 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

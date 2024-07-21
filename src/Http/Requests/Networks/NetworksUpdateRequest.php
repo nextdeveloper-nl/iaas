@@ -15,6 +15,7 @@ class NetworksUpdateRequest extends AbstractFormRequest
         return [
             'name' => 'nullable|string',
         'is_public' => 'boolean',
+        'speed_limit' => 'integer',
         'ip_addr' => 'nullable',
         'ip_addr_range_start' => 'nullable',
         'ip_addr_range_end' => 'nullable',
@@ -22,7 +23,6 @@ class NetworksUpdateRequest extends AbstractFormRequest
         'common_domain_id' => 'nullable|exists:common_domains,uuid|uuid',
         'iaas_dhcp_server_id' => 'nullable|exists:iaas_dhcp_servers,uuid|uuid',
         'iaas_gateway_id' => 'nullable|exists:iaas_gateways,uuid|uuid',
-        'speed_limit' => 'integer',
         'iaas_network_pool_id' => 'nullable|exists:iaas_network_pools,uuid|uuid',
         'iaas_cloud_node_id' => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
         ];

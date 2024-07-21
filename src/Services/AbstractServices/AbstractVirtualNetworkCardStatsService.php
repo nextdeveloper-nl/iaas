@@ -110,7 +110,10 @@ class AbstractVirtualNetworkCardStatsService
     {
         $object = VirtualNetworkCardStats::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\VirtualNetworkCardStats')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {
@@ -172,7 +175,13 @@ class AbstractVirtualNetworkCardStatsService
      */
     public static function create(array $data)
     {
-        
+        if (array_key_exists('iaas_virtual_network_card_id', $data)) {
+            $data['iaas_virtual_network_card_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards',
+                $data['iaas_virtual_network_card_id']
+            );
+        }
+                        
         try {
             $model = VirtualNetworkCardStats::create($data);
         } catch(\Exception $e) {
@@ -220,7 +229,13 @@ class AbstractVirtualNetworkCardStatsService
             );
         }
 
-        
+        if (array_key_exists('iaas_virtual_network_card_id', $data)) {
+            $data['iaas_virtual_network_card_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards',
+                $data['iaas_virtual_network_card_id']
+            );
+        }
+    
         Events::fire('updating:NextDeveloper\IAAS\VirtualNetworkCardStats', $model);
 
         try {

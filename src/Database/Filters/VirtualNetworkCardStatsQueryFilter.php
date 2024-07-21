@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+    
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -74,7 +74,17 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('deleted_at', '<=', $date);
     }
 
+    public function iaasVirtualNetworkCardId($value)
+    {
+            $iaasVirtualNetworkCard = \NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::where('uuid', $value)->first();
+
+        if($iaasVirtualNetworkCard) {
+            return $this->builder->where('iaas_virtual_network_card_id', '=', $iaasVirtualNetworkCard->id);
+        }
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

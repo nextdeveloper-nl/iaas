@@ -10,22 +10,22 @@ use NextDeveloper\IAM\Helpers\UserHelper;
 use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\Commons\Database\Models\AvailableActions;
-use NextDeveloper\IAAS\Database\Models\AccountsStats;
-use NextDeveloper\IAAS\Database\Filters\AccountsStatsQueryFilter;
+use NextDeveloper\IAAS\Database\Models\AccountStats;
+use NextDeveloper\IAAS\Database\Filters\AccountStatsQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
 
 /**
- * This class is responsible from managing the data for AccountsStats
+ * This class is responsible from managing the data for AccountStats
  *
- * Class AccountsStatsService.
+ * Class AccountStatsService.
  *
  * @package NextDeveloper\IAAS\Database\Models
  */
-class AbstractAccountsStatsService
+class AbstractAccountStatsService
 {
-    public static function get(AccountsStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(AccountStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 
@@ -38,7 +38,7 @@ class AbstractAccountsStatsService
         * Please let me know if you have any other idea about this; baris.bulut@nextdeveloper.com
         */
         if($filter == null) {
-            $filter = new AccountsStatsQueryFilter($request);
+            $filter = new AccountStatsQueryFilter($request);
         }
 
         $perPage = config('commons.pagination.per_page');
@@ -59,7 +59,7 @@ class AbstractAccountsStatsService
             $filter->orderBy($params['orderBy']);
         }
 
-        $model = AccountsStats::filter($filter);
+        $model = AccountStats::filter($filter);
 
         if($enablePaginate) {
             //  We are using this because we have been experiencing huge security problem when we use the paginate method.
@@ -77,7 +77,7 @@ class AbstractAccountsStatsService
 
     public static function getAll()
     {
-        return AccountsStats::all();
+        return AccountStats::all();
     }
 
     /**
@@ -86,14 +86,14 @@ class AbstractAccountsStatsService
      * @param  $ref
      * @return mixed
      */
-    public static function getByRef($ref) : ?AccountsStats
+    public static function getByRef($ref) : ?AccountStats
     {
-        return AccountsStats::findByRef($ref);
+        return AccountStats::findByRef($ref);
     }
 
     public static function getActions()
     {
-        $model = AccountsStats::class;
+        $model = AccountStats::class;
 
         $model = Str::remove('Database\\Models\\', $model);
 
@@ -108,9 +108,12 @@ class AbstractAccountsStatsService
      */
     public static function doAction($objectId, $action, ...$params)
     {
-        $object = AccountsStats::where('uuid', $objectId)->first();
+        $object = AccountStats::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\AccountStats')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {
@@ -129,11 +132,11 @@ class AbstractAccountsStatsService
      * This method returns the model by lookint at its id
      *
      * @param  $id
-     * @return AccountsStats|null
+     * @return AccountStats|null
      */
-    public static function getById($id) : ?AccountsStats
+    public static function getById($id) : ?AccountStats
     {
-        return AccountsStats::where('id', $id)->first();
+        return AccountStats::where('id', $id)->first();
     }
 
     /**
@@ -147,7 +150,7 @@ class AbstractAccountsStatsService
     public static function relatedObjects($uuid, $object)
     {
         try {
-            $obj = AccountsStats::where('uuid', $uuid)->first();
+            $obj = AccountStats::where('uuid', $uuid)->first();
 
             if(!$obj) {
                 throw new ModelNotFoundException('Cannot find the related model');
@@ -184,12 +187,12 @@ class AbstractAccountsStatsService
         }
                         
         try {
-            $model = AccountsStats::create($data);
+            $model = AccountStats::create($data);
         } catch(\Exception $e) {
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\AccountsStats', $model);
+        Events::fire('created:NextDeveloper\IAAS\AccountStats', $model);
 
         return $model->fresh();
     }
@@ -198,9 +201,9 @@ class AbstractAccountsStatsService
      * This function expects the ID inside the object.
      *
      * @param  array $data
-     * @return AccountsStats
+     * @return AccountStats
      */
-    public static function updateRaw(array $data) : ?AccountsStats
+    public static function updateRaw(array $data) : ?AccountStats
     {
         if(array_key_exists('id', $data)) {
             return self::update($data['id'], $data);
@@ -221,7 +224,7 @@ class AbstractAccountsStatsService
      */
     public static function update($id, array $data)
     {
-        $model = AccountsStats::where('uuid', $id)->first();
+        $model = AccountStats::where('uuid', $id)->first();
 
         if(!$model) {
             throw new NotAllowedException(
@@ -237,7 +240,7 @@ class AbstractAccountsStatsService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\AccountsStats', $model);
+        Events::fire('updating:NextDeveloper\IAAS\AccountStats', $model);
 
         try {
             $isUpdated = $model->update($data);
@@ -246,7 +249,7 @@ class AbstractAccountsStatsService
             throw $e;
         }
 
-        Events::fire('updated:NextDeveloper\IAAS\AccountsStats', $model);
+        Events::fire('updated:NextDeveloper\IAAS\AccountStats', $model);
 
         return $model->fresh();
     }
@@ -263,7 +266,7 @@ class AbstractAccountsStatsService
      */
     public static function delete($id)
     {
-        $model = AccountsStats::where('uuid', $id)->first();
+        $model = AccountStats::where('uuid', $id)->first();
 
         if(!$model) {
             throw new NotAllowedException(
@@ -272,7 +275,7 @@ class AbstractAccountsStatsService
             );
         }
 
-        Events::fire('deleted:NextDeveloper\IAAS\AccountsStats', $model);
+        Events::fire('deleted:NextDeveloper\IAAS\AccountStats', $model);
 
         try {
             $model = $model->delete();

@@ -27,6 +27,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $deleted_at
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property integer $iaas_ip_addresses_id
  */
 class IpAddressHistories extends Model
 {
@@ -50,6 +51,7 @@ class IpAddressHistories extends Model
             'is_update',
             'iam_account_id',
             'iam_user_id',
+            'iaas_ip_addresses_id',
     ];
 
     /**
@@ -80,6 +82,7 @@ class IpAddressHistories extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'iaas_ip_addresses_id' => 'integer',
     ];
 
     /**
@@ -150,7 +153,13 @@ class IpAddressHistories extends Model
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
     
+    public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

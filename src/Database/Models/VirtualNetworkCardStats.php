@@ -23,6 +23,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property integer $iaas_virtual_network_card_id
  */
 class VirtualNetworkCardStats extends Model
 {
@@ -42,6 +43,7 @@ class VirtualNetworkCardStats extends Model
     protected $fillable = [
             'used_tx',
             'used_rx',
+            'iaas_virtual_network_card_id',
     ];
 
     /**
@@ -70,6 +72,7 @@ class VirtualNetworkCardStats extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'iaas_virtual_network_card_id' => 'integer',
     ];
 
     /**
@@ -130,7 +133,13 @@ class VirtualNetworkCardStats extends Model
         }
     }
 
+    public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -25,6 +25,7 @@ class AnsibleSystemPlaybookExecutionsUpdateRequest extends AbstractFormRequest
         'result_skipped' => 'integer',
         'result_rescued' => 'integer',
         'result_ignored' => 'integer',
+        'iaas_ansible_system_playbook_id' => 'nullable|exists:iaas_ansible_system_playbooks,uuid|uuid',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

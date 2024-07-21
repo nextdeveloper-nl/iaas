@@ -29,6 +29,7 @@ class AnsiblePlaybookExecutionsCreateRequest extends AbstractFormRequest
         'result_skipped' => 'integer',
         'result_rescued' => 'integer',
         'result_ignored' => 'integer',
+        'iaas_ansible_playbook_id' => 'required|exists:iaas_ansible_playbooks,uuid|uuid',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

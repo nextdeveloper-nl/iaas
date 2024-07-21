@@ -18,7 +18,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @package  NextDeveloper\IAAS\Database\Models
  * @property integer $id
  * @property string $uuid
- * @property $name
+ * @property string $name
  * @property $price_pergb
  * @property boolean $is_active
  * @property integer $iaas_cloud_node_id
@@ -81,6 +81,7 @@ class StoragePools extends Model
      */
     protected $casts = [
     'id' => 'integer',
+    'name' => 'string',
     'is_active' => 'boolean',
     'iaas_cloud_node_id' => 'integer',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
@@ -150,7 +151,33 @@ class StoragePools extends Model
         }
     }
 
+    public function computeMemberStorageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes::class);
+    }
+
+    public function storageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
+    }
+
+    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
+    }
+
+    public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
+    }
+
+    public function storageMembers() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageMembers::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

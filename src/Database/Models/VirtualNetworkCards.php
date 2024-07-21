@@ -154,7 +154,28 @@ class VirtualNetworkCards extends Model
         }
     }
 
+    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
+    }
+    
+    public function networks() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
+    }
+    
+    public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);
+    }
+
+    public function virtualNetworkCardStats() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCardStats::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

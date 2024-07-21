@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-            
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -186,7 +186,17 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function iaasAnsibleSystemPlaybookId($value)
+    {
+            $iaasAnsibleSystemPlaybook = \NextDeveloper\IAAS\Database\Models\AnsibleSystemPlaybooks::where('uuid', $value)->first();
+
+        if($iaasAnsibleSystemPlaybook) {
+            return $this->builder->where('iaas_ansible_system_playbook_id', '=', $iaasAnsibleSystemPlaybook->id);
+        }
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

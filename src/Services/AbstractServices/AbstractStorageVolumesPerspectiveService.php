@@ -110,7 +110,10 @@ class AbstractStorageVolumesPerspectiveService
     {
         $object = StorageVolumesPerspective::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\StorageVolumesPerspective')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {
@@ -184,7 +187,27 @@ class AbstractStorageVolumesPerspectiveService
                 $data['iaas_storage_member_id']
             );
         }
-                        
+        if (array_key_exists('iam_account_id', $data)) {
+            $data['iam_account_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAM\Database\Models\Accounts',
+                $data['iam_account_id']
+            );
+        }
+            
+        if(!array_key_exists('iam_account_id', $data)) {
+            $data['iam_account_id'] = UserHelper::currentAccount()->id;
+        }
+        if (array_key_exists('iam_user_id', $data)) {
+            $data['iam_user_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAM\Database\Models\Users',
+                $data['iam_user_id']
+            );
+        }
+                    
+        if(!array_key_exists('iam_user_id', $data)) {
+            $data['iam_user_id']    = UserHelper::me()->id;
+        }
+            
         try {
             $model = StorageVolumesPerspective::create($data);
         } catch(\Exception $e) {
@@ -242,6 +265,18 @@ class AbstractStorageVolumesPerspectiveService
             $data['iaas_storage_member_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\StorageMembers',
                 $data['iaas_storage_member_id']
+            );
+        }
+        if (array_key_exists('iam_account_id', $data)) {
+            $data['iam_account_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAM\Database\Models\Accounts',
+                $data['iam_account_id']
+            );
+        }
+        if (array_key_exists('iam_user_id', $data)) {
+            $data['iam_user_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAM\Database\Models\Users',
+                $data['iam_user_id']
             );
         }
     

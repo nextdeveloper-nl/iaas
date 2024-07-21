@@ -110,7 +110,10 @@ class AbstractIpAddressHistoriesService
     {
         $object = IpAddressHistories::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\IpAddressHistories')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {
@@ -192,7 +195,13 @@ class AbstractIpAddressHistoriesService
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
-            
+        if (array_key_exists('iaas_ip_addresses_id', $data)) {
+            $data['iaas_ip_addresses_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\IpAddresses',
+                $data['iaas_ip_addresses_id']
+            );
+        }
+                        
         try {
             $model = IpAddressHistories::create($data);
         } catch(\Exception $e) {
@@ -250,6 +259,12 @@ class AbstractIpAddressHistoriesService
             $data['iam_user_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Users',
                 $data['iam_user_id']
+            );
+        }
+        if (array_key_exists('iaas_ip_addresses_id', $data)) {
+            $data['iaas_ip_addresses_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\IpAddresses',
+                $data['iaas_ip_addresses_id']
             );
         }
     

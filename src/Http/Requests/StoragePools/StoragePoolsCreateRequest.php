@@ -13,7 +13,7 @@ class StoragePoolsCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'name' => 'required',
+            'name' => 'required|string',
         'price_pergb' => '',
         'is_active' => 'boolean',
         'iaas_cloud_node_id' => 'required|exists:iaas_cloud_nodes,uuid|uuid',

@@ -110,7 +110,10 @@ class AbstractAnsiblePlaybookExecutionsService
     {
         $object = AnsiblePlaybookExecutions::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\AnsiblePlaybookExecutions')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {
@@ -198,7 +201,13 @@ class AbstractAnsiblePlaybookExecutionsService
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
-            
+        if (array_key_exists('iaas_ansible_playbook_id', $data)) {
+            $data['iaas_ansible_playbook_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\AnsiblePlaybooks',
+                $data['iaas_ansible_playbook_id']
+            );
+        }
+                        
         try {
             $model = AnsiblePlaybookExecutions::create($data);
         } catch(\Exception $e) {
@@ -262,6 +271,12 @@ class AbstractAnsiblePlaybookExecutionsService
             $data['iam_user_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Users',
                 $data['iam_user_id']
+            );
+        }
+        if (array_key_exists('iaas_ansible_playbook_id', $data)) {
+            $data['iaas_ansible_playbook_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\AnsiblePlaybooks',
+                $data['iaas_ansible_playbook_id']
             );
         }
     

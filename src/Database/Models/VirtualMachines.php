@@ -46,16 +46,16 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property integer $iaas_compute_member_id
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property integer $template_id
  * @property array $tags
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
- * @property integer $iaas_repository_image_id
- * @property integer $template_id
  * @property boolean $is_draft
  * @property integer $common_domain_id
  * @property string $lock_password
  * @property boolean $is_template
+ * @property integer $iaas_repository_image_id
  * @property integer $iaas_compute_pool_id
  */
 class VirtualMachines extends Model
@@ -102,13 +102,13 @@ class VirtualMachines extends Model
             'iaas_compute_member_id',
             'iam_account_id',
             'iam_user_id',
-            'tags',
-            'iaas_repository_image_id',
             'template_id',
+            'tags',
             'is_draft',
             'common_domain_id',
             'lock_password',
             'is_template',
+            'iaas_repository_image_id',
             'iaas_compute_pool_id',
     ];
 
@@ -158,16 +158,16 @@ class VirtualMachines extends Model
     'hypervisor_data' => 'array',
     'iaas_cloud_node_id' => 'integer',
     'iaas_compute_member_id' => 'integer',
+    'template_id' => 'integer',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
-    'iaas_repository_image_id' => 'integer',
-    'template_id' => 'integer',
     'is_draft' => 'boolean',
     'common_domain_id' => 'integer',
     'lock_password' => 'string',
     'is_template' => 'boolean',
+    'iaas_repository_image_id' => 'integer',
     'iaas_compute_pool_id' => 'integer',
     ];
 
@@ -230,6 +230,46 @@ class VirtualMachines extends Model
         }
     }
 
+    public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
+    }
+
+    public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
+    }
+
+    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
+    }
+
+    public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
+    }
+
+    public function computeMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
+    }
+
+    public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
+    }
+
+    public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
+    }
+
+    public function virtualMachineMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 
@@ -241,6 +281,7 @@ class VirtualMachines extends Model
             },
         );
     }
+
 
 
 

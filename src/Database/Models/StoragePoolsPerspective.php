@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @package  NextDeveloper\IAAS\Database\Models
  * @property integer $id
  * @property string $uuid
- * @property $name
+ * @property string $name
  * @property $price_pergb
  * @property boolean $is_active
  * @property string $currency
@@ -83,6 +83,7 @@ class StoragePoolsPerspective extends Model
      */
     protected $casts = [
     'id' => 'integer',
+    'name' => 'string',
     'is_active' => 'boolean',
     'currency' => 'string',
     'datacenter' => 'string',
@@ -154,6 +155,7 @@ class StoragePoolsPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

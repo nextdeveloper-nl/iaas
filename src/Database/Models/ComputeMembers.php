@@ -27,13 +27,22 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  * @property $management_data
  * @property $features
  * @property boolean $is_behind_firewall
+ * @property boolean $is_management_agent_available
+ * @property string $ssh_username
+ * @property string $ssh_password
+ * @property integer $ssh_port
  * @property string $hypervisor_uuid
  * @property $hypervisor_data
+ * @property string $hypervisor_model
+ * @property boolean $has_warning
+ * @property boolean $has_error
  * @property integer $total_socket
  * @property integer $total_cpu
  * @property integer $total_ram
  * @property integer $used_cpu
  * @property integer $used_ram
+ * @property integer $running_vm
+ * @property integer $halted_vm
  * @property integer $total_vm
  * @property integer $max_overbooking_ratio
  * @property $cpu_info
@@ -49,15 +58,6 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
- * @property boolean $is_management_agent_available
- * @property string $ssh_username
- * @property string $ssh_password
- * @property integer $ssh_port
- * @property string $hypervisor_model
- * @property boolean $has_warning
- * @property boolean $has_error
- * @property integer $running_vm
- * @property integer $halted_vm
  */
 class ComputeMembers extends Model
 {
@@ -83,13 +83,22 @@ class ComputeMembers extends Model
             'management_data',
             'features',
             'is_behind_firewall',
+            'is_management_agent_available',
+            'ssh_username',
+            'ssh_password',
+            'ssh_port',
             'hypervisor_uuid',
             'hypervisor_data',
+            'hypervisor_model',
+            'has_warning',
+            'has_error',
             'total_socket',
             'total_cpu',
             'total_ram',
             'used_cpu',
             'used_ram',
+            'running_vm',
+            'halted_vm',
             'total_vm',
             'max_overbooking_ratio',
             'cpu_info',
@@ -102,15 +111,6 @@ class ComputeMembers extends Model
             'iam_account_id',
             'iam_user_id',
             'tags',
-            'is_management_agent_available',
-            'ssh_username',
-            'ssh_password',
-            'ssh_port',
-            'hypervisor_model',
-            'has_warning',
-            'has_error',
-            'running_vm',
-            'halted_vm',
     ];
 
     /**
@@ -139,12 +139,21 @@ class ComputeMembers extends Model
     'management_data' => 'array',
     'features' => 'array',
     'is_behind_firewall' => 'boolean',
+    'is_management_agent_available' => 'boolean',
+    'ssh_username' => 'string',
+    'ssh_password' => 'string',
+    'ssh_port' => 'integer',
     'hypervisor_data' => 'array',
+    'hypervisor_model' => 'string',
+    'has_warning' => 'boolean',
+    'has_error' => 'boolean',
     'total_socket' => 'integer',
     'total_cpu' => 'integer',
     'total_ram' => 'integer',
     'used_cpu' => 'integer',
     'used_ram' => 'integer',
+    'running_vm' => 'integer',
+    'halted_vm' => 'integer',
     'total_vm' => 'integer',
     'max_overbooking_ratio' => 'integer',
     'cpu_info' => 'array',
@@ -158,15 +167,6 @@ class ComputeMembers extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
-    'is_management_agent_available' => 'boolean',
-    'ssh_username' => 'string',
-    'ssh_password' => 'string',
-    'ssh_port' => 'integer',
-    'hypervisor_model' => 'string',
-    'has_warning' => 'boolean',
-    'has_error' => 'boolean',
-    'running_vm' => 'integer',
-    'halted_vm' => 'integer',
     ];
 
     /**
@@ -229,6 +229,46 @@ class ComputeMembers extends Model
         }
     }
 
+    public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
+    }
+    
+    public function computeMemberStats() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStats::class);
+    }
+
+    public function computeMemberStorageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes::class);
+    }
+
+    public function computeMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberDevices::class);
+    }
+
+    public function computeMemberEvents() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberEvents::class);
+    }
+
+    public function computeMemberNetworkInterfaces() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces::class);
+    }
+
+    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
+    }
+
+    public function computeMemberMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberMetrics::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 
@@ -240,6 +280,7 @@ class ComputeMembers extends Model
             },
         );
     }
+
 
 
 

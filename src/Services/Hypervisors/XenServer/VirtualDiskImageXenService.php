@@ -21,6 +21,17 @@ use PlusClouds\IAAS\Services\XenServer\XenServerService;
 
 class VirtualDiskImageXenService extends AbstractXenService
 {
+    public static function resize($uuid, $computeMember, $size) : array
+    {
+        logger()->info('[VirtualDiskImageService@resize] Resizing the disk with ' .
+            'hypervisor_uuid: ' . $uuid);
+
+        $command = 'xe vdi-resize uuid='. $uuid . ' disk-size=' . $size;
+        $result = self::performCommand($command, $computeMember);
+
+        return self::parseResult($result[0]['output']);
+    }
+
     public static function getDiskImageParametersByUuid($uuid, $computeMember) : array
     {
         $command = 'xe vdi-param-list uuid=' . $uuid;

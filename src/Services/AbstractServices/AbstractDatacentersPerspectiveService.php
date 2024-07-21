@@ -110,7 +110,10 @@ class AbstractDatacentersPerspectiveService
     {
         $object = DatacentersPerspective::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\DatacentersPerspective')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {

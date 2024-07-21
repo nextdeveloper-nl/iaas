@@ -110,7 +110,10 @@ class AbstractNetworkMemberDevicesService
     {
         $object = NetworkMemberDevices::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\NetworkMemberDevices')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {

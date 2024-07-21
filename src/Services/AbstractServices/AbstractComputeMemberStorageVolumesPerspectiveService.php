@@ -110,7 +110,10 @@ class AbstractComputeMemberStorageVolumesPerspectiveService
     {
         $object = ComputeMemberStorageVolumesPerspective::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumesPerspective')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {
@@ -188,6 +191,12 @@ class AbstractComputeMemberStorageVolumesPerspectiveService
             $data['iaas_storage_mamber_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\StorageMambers',
                 $data['iaas_storage_mamber_id']
+            );
+        }
+        if (array_key_exists('iaas_compute_member_id', $data)) {
+            $data['iaas_compute_member_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\ComputeMembers',
+                $data['iaas_compute_member_id']
             );
         }
         if (array_key_exists('iam_account_id', $data)) {
@@ -274,6 +283,12 @@ class AbstractComputeMemberStorageVolumesPerspectiveService
             $data['iaas_storage_mamber_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\StorageMambers',
                 $data['iaas_storage_mamber_id']
+            );
+        }
+        if (array_key_exists('iaas_compute_member_id', $data)) {
+            $data['iaas_compute_member_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\ComputeMembers',
+                $data['iaas_compute_member_id']
             );
         }
         if (array_key_exists('iam_account_id', $data)) {

@@ -41,6 +41,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property integer $iaas_ansible_playbook_id
  */
 class AnsiblePlaybookExecutions extends Model
 {
@@ -77,6 +78,7 @@ class AnsiblePlaybookExecutions extends Model
             'result_ignored',
             'iam_account_id',
             'iam_user_id',
+            'iaas_ansible_playbook_id',
     ];
 
     /**
@@ -117,6 +119,7 @@ class AnsiblePlaybookExecutions extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'iaas_ansible_playbook_id' => 'integer',
     ];
 
     /**
@@ -188,7 +191,13 @@ class AnsiblePlaybookExecutions extends Model
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
     
+    public function ansiblePlaybooks() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\AnsiblePlaybooks::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

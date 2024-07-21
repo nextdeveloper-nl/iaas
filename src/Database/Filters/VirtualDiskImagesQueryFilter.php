@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                    
+                        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -41,19 +41,6 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('size', $operator, $value);
     }
 
-    public function deviceNumber($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('device_number', $operator, $value);
-    }
-
     public function physicalUtilisation($value)
     {
         $operator = substr($value, 0, 1);
@@ -65,6 +52,19 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
         }
 
         return $this->builder->where('physical_utilisation', $operator, $value);
+    }
+
+    public function deviceNumber($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('device_number', $operator, $value);
     }
 
     public function isCdrom($value)
@@ -160,7 +160,17 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function iaasStoragePoolId($value)
+    {
+            $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
+
+        if($iaasStoragePool) {
+            return $this->builder->where('iaas_storage_pool_id', '=', $iaasStoragePool->id);
+        }
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

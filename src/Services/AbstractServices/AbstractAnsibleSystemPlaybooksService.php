@@ -110,7 +110,10 @@ class AbstractAnsibleSystemPlaybooksService
     {
         $object = AnsibleSystemPlaybooks::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\AnsibleSystemPlaybooks')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {
@@ -192,10 +195,10 @@ class AbstractAnsibleSystemPlaybooksService
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
-        if (array_key_exists('ansible_server_id', $data)) {
-            $data['ansible_server_id'] = DatabaseHelper::uuidToId(
-                '\NextDeveloper\\Database\Models\AnsibleServers',
-                $data['ansible_server_id']
+        if (array_key_exists('iaas_ansible_server_id', $data)) {
+            $data['iaas_ansible_server_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\AnsibleServers',
+                $data['iaas_ansible_server_id']
             );
         }
                         
@@ -258,10 +261,10 @@ class AbstractAnsibleSystemPlaybooksService
                 $data['iam_account_id']
             );
         }
-        if (array_key_exists('ansible_server_id', $data)) {
-            $data['ansible_server_id'] = DatabaseHelper::uuidToId(
-                '\NextDeveloper\\Database\Models\AnsibleServers',
-                $data['ansible_server_id']
+        if (array_key_exists('iaas_ansible_server_id', $data)) {
+            $data['iaas_ansible_server_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\AnsibleServers',
+                $data['iaas_ansible_server_id']
             );
         }
     

@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property boolean $is_storage
  * @property boolean $is_repo
  * @property boolean $is_cdrom
- * @property $storage_pool
+ * @property string $storage_pool
  * @property integer $iaas_storage_pool_id
  * @property string $storage_member
  * @property integer $iaas_storage_member_id
@@ -101,6 +101,7 @@ class StorageVolumesPerspective extends Model
     'is_storage' => 'boolean',
     'is_repo' => 'boolean',
     'is_cdrom' => 'boolean',
+    'storage_pool' => 'string',
     'iaas_storage_pool_id' => 'integer',
     'storage_member' => 'string',
     'iaas_storage_member_id' => 'integer',
@@ -170,6 +171,7 @@ class StorageVolumesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

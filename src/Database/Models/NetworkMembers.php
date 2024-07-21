@@ -156,6 +156,11 @@ class NetworkMembers extends Model
         }
     }
 
+    public function networkMembersInterfaces() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces::class);
+    }
+
     public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
@@ -166,6 +171,16 @@ class NetworkMembers extends Model
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
     
+    public function networkPools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
+    }
+    
+    public function networkMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMemberDevices::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 
@@ -177,6 +192,7 @@ class NetworkMembers extends Model
             },
         );
     }
+
 
 
 

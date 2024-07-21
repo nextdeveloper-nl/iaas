@@ -30,7 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Carbon\Carbon $uptime
  * @property boolean $is_maintenance
  * @property boolean $is_alive
- * @property $storage_pool
+ * @property string $storage_pool
  * @property integer $iaas_storage_pool_id
  * @property string $maintainer
  * @property string $responsible
@@ -109,6 +109,7 @@ class StorageMembersPerspective extends Model
     'uptime' => 'datetime',
     'is_maintenance' => 'boolean',
     'is_alive' => 'boolean',
+    'storage_pool' => 'string',
     'iaas_storage_pool_id' => 'integer',
     'maintainer' => 'string',
     'responsible' => 'string',
@@ -177,6 +178,7 @@ class StorageMembersPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

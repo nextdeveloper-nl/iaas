@@ -38,6 +38,11 @@ class StoragePoolsPerspectiveQueryFilter extends AbstractQueryFilter
      */
     protected $builder;
     
+    public function name($value)
+    {
+        return $this->builder->where('name', 'like', '%' . $value . '%');
+    }
+    
     public function currency($value)
     {
         return $this->builder->where('currency', 'like', '%' . $value . '%');
@@ -121,6 +126,7 @@ class StoragePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

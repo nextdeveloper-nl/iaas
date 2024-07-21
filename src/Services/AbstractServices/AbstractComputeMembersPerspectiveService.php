@@ -110,7 +110,10 @@ class AbstractComputeMembersPerspectiveService
     {
         $object = ComputeMembersPerspective::where('uuid', $objectId)->first();
 
-        $action = AvailableActions::where('name', $action)->first();
+        $action = AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\Database\Models\ComputeMembersPerspective')
+            ->first();
+
         $class = $action->class;
 
         if(class_exists($class)) {

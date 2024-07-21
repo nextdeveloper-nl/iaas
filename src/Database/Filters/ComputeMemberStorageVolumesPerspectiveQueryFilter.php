@@ -33,6 +33,11 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
         return $this->builder->where('volume_name', 'like', '%' . $value . '%');
     }
     
+    public function storagePoolName($value)
+    {
+        return $this->builder->where('storage_pool_name', 'like', '%' . $value . '%');
+    }
+    
     public function storageMemberName($value)
     {
         return $this->builder->where('storage_member_name', 'like', '%' . $value . '%');
@@ -138,6 +143,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
