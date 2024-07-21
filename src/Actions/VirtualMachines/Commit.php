@@ -53,7 +53,7 @@ class Commit extends AbstractAction
         $vm = $this->model;
 
         if (!$vm->is_draft && $vm->status != 'pending-update') {
-            $this->setProgress(100, 'Virtual machine is not in draft state');
+            $this->setProgress(100, 'Virtual machine is not in draft or pending update state');
             return;
         }
 
@@ -65,10 +65,31 @@ class Commit extends AbstractAction
                 'skipping to disk configuration');
         }
 
-        //  Here we will setup the disks
-        $this->setupDisks(20);
+        $this->setupDisks(40);
+
+        $this->setupNetworking(70);
+
+        $vm->update([
+            'status' => 'halted',
+        ]);
 
         $this->setProgress(100, 'Virtual machine initiated');
+    }
+
+    private function setupNetworking($step)
+    {
+
+    }
+
+    private function setupDisks($step)
+    {
+        $computePool = ComputePools::where('id', $this->model->iaas_compute_pool_id)->first();
+
+        switch ($computePool->virtualization) {
+            case 'xenserver-8.2':
+                $uuid = $this->setupXenDisks($step);
+                break;
+        }
     }
 
     private function importVirtualMachine($step)
@@ -167,60 +188,22 @@ class Commit extends AbstractAction
         Events::listen('imported:NextDeveloper\IAAS\VirtualMachines', $vm);
         Events::listen('imported-virtual-machine:NextDeveloper\IAAS\ComputeMembers', $computeMember);
 
-//        $this->setProgress($step + 7, 'Updating virtual machine CPU');
-//
-//        VirtualMachinesXenService::setCPUCore($vm, $vm->cpu);
-//
-//        $this->setProgress($step + 8, 'Updating virtual machine RAM');
-//        VirtualMachinesXenService::setRam($vm, $vm->ram / 1024);
-//
-//        $this->setProgress($step + 9, 'Updating virtual machine RAM');
-//        $disks = VirtualMachinesXenService::getVmDisks($vm);
-//
-//        $this->setProgress($step + 8, 'Updating virtual machine disks/cdroms');
-//
-//        foreach ($disks as $disk) {
-//            $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);
-//            $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
-//
-//            /**
-//             * Burada sanki hata var, aşağıdaki $disk['uuid'] olmamalı. Tekrar kontrol et.
-//             */
-//
-//            $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-//                ->where('hypervisor_uuid', $disk['uuid'])
-//                ->first();
-//
-//            $data = [
-//                'name'                      =>  $vbdParams['type'] !== 'CD' ? 'Disk of: ' . $vm->name : 'CDROM',
-//                'size'                      =>  $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
-//                'physical_utilisation'      =>  $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
-//                'iaas_storage_volume_id'    =>  $vbdParams['type'] !== 'CD' ?? $diskVolume->iaas_storage_volume_id,
-//                'iaas_virtual_machine_id'   =>  $vm->id,
-//                'device_number'             =>  $vbdParams['userdevice'],
-//                'is_cdrom'                  =>  $vbdParams['type'] === 'CD',
-//                'hypervisor_uuid'       =>  $vbdParams['vdi-uuid'],
-//                'hypervisor_data'       =>  $disk,
-//                'iam_account_id'        =>  $vm->iam_account_id,
-//                'iam_user_id'           =>  $vm->iam_user_id,
-//                'is_draft'              =>  false,
-//            ];
-//
-//            VirtualDiskImages::create($data);
-//        }
-
         $this->setProgress($step + 9, 'Unmounting repository from compute member');
         $result = ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
+
+        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
 
         return true;
     }
 
-    private function setupDisks($step = 0)
+    private function setupXenDisks($step = 0)
     {
         $vm = $this->model;
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
+
+        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
 
         $diskConfig = VirtualDiskImages::where('iaas_virtual_machine_id', $vm->id)->orderBy('id', 'asc')->get();
 
@@ -229,7 +212,7 @@ class Commit extends AbstractAction
         //  Check if imported VM has a disk already
         $disks = VirtualMachinesXenService::getVmDisks($vm);
 
-        dump($diskConfig);
+        $this->setProgress($step + 3, 'Syncing the disks we have.');
 
         if (!$diskConfig) {
             //  Here this means that we dont have any disk config, so we will directly sync what we have.
@@ -244,6 +227,7 @@ class Commit extends AbstractAction
             foreach ($diskConfig as $config) {
                 //  If the userdevice and device_number are equal, we will sync this disk.
                 if ($connectionParams['userdevice'] == $config['device_number']) {
+                    $this->setProgress($step + 5, 'Syncing the disks we have.');
                     $this->syncDisk($config, $disk);
                     $syncedDisks[] = $disk['uuid'];
                 }
@@ -252,9 +236,23 @@ class Commit extends AbstractAction
 
         $unsyncedDisks = [];
 
-        //  We will find non-synced disks here and then add them to database.
+        $this->setProgress($step + 5, 'Finding the disks/cdroms we dont want on VM.');
 
-        dd($syncedDisks);
+        foreach ($disks as $disk) {
+            if (!in_array($disk['uuid'], $syncedDisks)) {
+                $unsyncedDisks[] = $disk;
+            }
+        }
+
+        $this->setProgress($step + 5, 'Removing unwanted disks/cdroms.');
+
+        foreach ($unsyncedDisks as $disk) {
+            if($disk['vdi-uuid'] === '<not in database>') {
+                VirtualDiskImageXenService::destroyCdrom($vm->uuid, $computeMember);
+            } else {
+                VirtualDiskImageXenService::destroyDisk($disk['vdi-uuid'], $computeMember);
+            }
+        }
     }
 
     private function syncDisk($config, $disk) {
@@ -267,17 +265,26 @@ class Commit extends AbstractAction
 
         //  We are making the resize first because we need to get the disk parameters after the resize.
         //  And from there we will understand if the disk is resized or not.
-        VirtualDiskImageXenService::resize($disk['vdi-uuid'], $computeMember, $config->size);
+
+        $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
+
+        //  If this is not a CDROM
+        if($vbdParams['type'] != 'CD') {
+            VirtualDiskImageXenService::resize($disk['vdi-uuid'], $computeMember, $config->size);
+            $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
+        }
 
         $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);
-        $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
 
         $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('hypervisor_uuid', $disk['uuid'])
             ->first();
 
-        if($config->size != $diskParams['virtual-size']) {
-            StateHelper::setState($config, 'disk_cannot_resized', 'Disk cannot resized. Current size is: ' . $diskParams['virtual-size'], 'warn');
+        if($vbdParams['type'] != 'CD') {
+            //  This means that this is not a CDROM. If this is a cdrom we don't need to check the size.
+            if($config->size != $diskParams['virtual-size']) {
+                StateHelper::setState($config, 'disk_cannot_resized', 'Disk cannot resized. Current size is: ' . $diskParams['virtual-size'], 'warn');
+            }
         }
 
         $data = [
@@ -296,43 +303,5 @@ class Commit extends AbstractAction
         ];
 
         $config->update($data);
-    }
-
-    private function syncDisks($disks)
-    {
-        $vm = $this->model;
-        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', $vm->iaas_compute_member_id)
-            ->first();
-
-        foreach ($disks as $disk) {
-            $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);
-            $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
-
-            /**
-             * Burada sanki hata var, aşağıdaki $disk['uuid'] olmamalı. Tekrar kontrol et.
-             */
-
-            $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-                ->where('hypervisor_uuid', $disk['uuid'])
-                ->first();
-
-            $data = [
-                'name' => $vbdParams['type'] !== 'CD' ? 'Disk of: ' . $vm->name : 'CDROM',
-                'size' => $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
-                'physical_utilisation' => $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
-                'iaas_storage_volume_id' => $vbdParams['type'] !== 'CD' ?? $diskVolume->iaas_storage_volume_id,
-                'iaas_virtual_machine_id' => $vm->id,
-                'device_number' => $vbdParams['userdevice'],
-                'is_cdrom' => $vbdParams['type'] === 'CD',
-                'hypervisor_uuid' => $vbdParams['vdi-uuid'],
-                'hypervisor_data' => $disk,
-                'iam_account_id' => $vm->iam_account_id,
-                'iam_user_id' => $vm->iam_user_id,
-                'is_draft' => false,
-            ];
-
-            VirtualDiskImages::create($data);
-        }
     }
 }

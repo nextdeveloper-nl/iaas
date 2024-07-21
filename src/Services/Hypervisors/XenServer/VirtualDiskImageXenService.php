@@ -2,25 +2,47 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
-use NextDeveloper\IAAS\Database\Models\ComputePools;
-use NextDeveloper\IAAS\Database\Models\Networks;
-use NextDeveloper\IAAS\Database\Models\StorageMembers;
-use NextDeveloper\IAAS\Database\Models\StoragePools;
-use NextDeveloper\IAAS\Database\Models\StorageVolumes;
-use NextDeveloper\IAAS\Services\ComputeMembersService;
-use NextDeveloper\IAAS\Services\StorageMembersService;
-use NextDeveloper\IAAS\Services\StoragePoolsService;
-use NextDeveloper\IAAS\Services\StorageVolumesService;
-use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use PlusClouds\IAAS\Services\XenServer\XenServerService;
 
 class VirtualDiskImageXenService extends AbstractXenService
 {
+    public static function destroyCdrom($vmName, $computeMember) {
+        logger()->info('[VirtualDiskImageService@destroyCdrom] Destroying the cdrom with ' .
+            'vmName: ' . $vmName);
+
+        $command = 'xe vm-cd-eject vm=' . $vmName;
+        $result = self::performCommand($command, $computeMember);
+
+        $command = 'xe vm-cd-remove vm=' . $vmName . ' cd-name=\<EMPTY\>';
+        $result = self::performCommand($command, $computeMember);
+
+        logger()->info('[VirtualDiskImageService@destroyCdrom] Returned result as: ' . $result[0]['output']);
+
+        return self::parseResult($result[0]['output']);
+    }
+
+    public static function ejectCdrom($uuid, $computeMember)
+    {
+        logger()->info('[VirtualDiskImageService@ejectCdrom] Ejecting the cdrom with ' .
+            'hypervisor_uuid: ' . $uuid);
+
+        $command = 'xe vm-cd-eject uuid=' . $uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        return self::parseResult($result[0]['output']);
+    }
+
+    public static function destroyDisk($uuid, $computeMember)
+    {
+        logger()->info('[VirtualDiskImageService@destroyDisk] Destroying the disk with ' .
+            'hypervisor_uuid: ' . $uuid);
+
+        $command = 'xe vdi-destroy uuid=' . $uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        return self::parseResult($result[0]['output']);
+    }
+
     public static function resize($uuid, $computeMember, $size) : array
     {
         logger()->info('[VirtualDiskImageService@resize] Resizing the disk with ' .
