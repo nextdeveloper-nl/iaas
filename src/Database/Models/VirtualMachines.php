@@ -232,7 +232,7 @@ class VirtualMachines extends Model
 
     public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class, 'iaas_virtual_machine_id');
     }
 
     public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -281,6 +281,11 @@ class VirtualMachines extends Model
             },
         );
     }
+
+
+
+
+
 
 
 

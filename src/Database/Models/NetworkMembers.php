@@ -63,6 +63,7 @@ class NetworkMembers extends Model
             'ssh_port',
             'local_ip_addr',
             'is_behind_firewall',
+            'switch_type'
     ];
 
     /**
@@ -165,17 +166,17 @@ class NetworkMembers extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-    
+
     public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
-    
+
     public function networkPools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
     }
-    
+
     public function networkMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMemberDevices::class);
@@ -192,6 +193,11 @@ class NetworkMembers extends Model
             },
         );
     }
+
+
+
+
+
 
 
 

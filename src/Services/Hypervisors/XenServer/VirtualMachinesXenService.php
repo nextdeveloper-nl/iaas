@@ -345,6 +345,39 @@ class VirtualMachinesXenService extends AbstractXenService
         return $list;
     }
 
+    public static function createVif(VirtualMachines $vm, $networkUuid, $device)
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@createVif] I am creating the' .
+                ' vif from network (' . $networkUuid . ') for the VM (' . $vm->name. '/' . $vm->uuid . ')');
+
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        $command = 'xe vif-create vm-uuid=' . $vm->hypervisor_uuid . ' device=' . $device . ' ' .
+            'network-uuid=' . $networkUuid;
+        $result = self::performCommand($command, $computeMember);
+
+        return $result[0]['output'];
+    }
+
+    public static function destroyVif(VirtualMachines $vm, $uuid)
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@destroyVif] I am destroying the' .
+                ' vif (' . $uuid . ') of the VM (' . $vm->name. '/' . $vm->uuid . ')');
+
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        $command = 'xe vif-destroy uuid=' . $uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        return true;
+    }
+
     /**
      * Setting the CPU for this Virtual Machine
      *

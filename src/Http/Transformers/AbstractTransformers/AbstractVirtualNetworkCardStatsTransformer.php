@@ -171,4 +171,9 @@ class AbstractVirtualNetworkCardStatsTransformer extends AbstractTransformer
 
 
 
+
+
+
+
+
 }

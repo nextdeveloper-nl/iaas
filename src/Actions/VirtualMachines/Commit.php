@@ -6,9 +6,11 @@ use GPBMetadata\Google\Api\Auth;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StorageMembers;
@@ -65,7 +67,8 @@ class Commit extends AbstractAction
                 'skipping to disk configuration');
         }
 
-        $this->setupDisks(40);
+//
+//        $this->setupDisks(40);
 
         $this->setupNetworking(70);
 
@@ -78,7 +81,98 @@ class Commit extends AbstractAction
 
     private function setupNetworking($step)
     {
+        $computePool = ComputePools::where('id', $this->model->iaas_compute_pool_id)->first();
 
+        switch ($computePool->virtualization) {
+            case 'xenserver-8.2':
+                $uuid = $this->setupXenNetworking($step);
+                break;
+        }
+    }
+
+    private function setupXenNetworking($step)
+    {
+        $vm = $this->model;
+
+        $netConfig = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
+
+        $vifs = VirtualMachinesXenService::getVifs($vm);
+
+        $syncedVifs = [];
+
+        foreach ($vifs as $vif) {
+            if(!count($vif))
+                continue;
+
+            foreach ($netConfig as $config) {
+                if($config->device_number == $vif['device']) {
+                    $this->syncXenVif($vif, $config);
+
+                    $syncedVifs[] = $vif['uuid'];
+                }
+            }
+        }
+
+        foreach ($vifs as $vif) {
+            if(!count($vif))
+                continue;
+
+            if(!in_array($vif['uuid'], $syncedVifs)) {
+                VirtualMachinesXenService::destroyVif($vm, $vif['uuid']);
+            }
+        }
+
+        $netConfig = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
+
+        foreach ($netConfig as $config) {
+            if($config->hypervisor_uuid == null) {
+                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('id', $config->iaas_network_id)
+                    ->first();
+
+                $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('vlan', $network->vlan)
+                    ->first();
+
+                $result = VirtualMachinesXenService::createVif($vm, $cmni->network_uuid, $config->device_number);
+
+                $params = VirtualMachinesXenService::getVifParams($vm, $result);
+
+                $vif = $params[0];
+
+                $config->update([
+                    'hypervisor_uuid'   => $vif['uuid'],
+                    'hypervisor_data'   => $vif,
+                    'mac_addr'          => $vif['MAC'],
+                    'iaas_network_id'   =>  $network ? $network->id : null,
+                    'bandwitdh_limit'   =>  -1,
+                    'is_draft'          =>  false
+                ]);
+            }
+        }
+    }
+
+    private function syncXenVif($vif, $config) {
+        $params = VirtualMachinesXenService::getVifParams($this->model, $vif['uuid']);
+
+        $vif = $params[0];
+
+        $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('network_uuid', $vif['network-uuid'])
+            ->first();
+
+        $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->where('vlan', $cmni->vlan)
+            ->first();
+
+        $config->update([
+            'hypervisor_uuid'   => $vif['uuid'],
+            'hypervisor_data'   => $vif,
+            'mac_addr'          => $vif['MAC'],
+            'iaas_network_id'   =>  $network ? $network->id : null,
+            'bandwitdh_limit'   =>  -1,
+            'is_draft'          =>  false
+        ]);
     }
 
     private function setupDisks($step)

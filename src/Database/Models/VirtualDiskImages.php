@@ -70,7 +70,6 @@ class VirtualDiskImages extends Model
             'is_draft',
             'iaas_repository_image_id',
             'iaas_storage_pool_id',
-            'device'
     ];
 
     /**
@@ -172,6 +171,11 @@ class VirtualDiskImages extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 
