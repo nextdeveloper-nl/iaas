@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Services\Switches;
 
 use Illuminate\Support\Str;
+use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -111,9 +112,12 @@ class DellS6100 extends AbstractSwitches
 
         $config = $switch->performSSHCommand('show running-config interface ' . $interface->name);
 
-        dump($config);
-        dump($config[0]);
-        dump($config[0]['output']);
+        if(!$config) {
+            StateHelper::setState($interface, 'configuration', 'Failed to get configuration', StateHelper::STATE_ERROR);
+            StateHelper::setState($switch, 'configuration', 'Failed to get configuration', StateHelper::STATE_ERROR);
+
+            return '[NEED-REFRESH-CANNOT-GET-CONFIG]';
+        }
 
         $lines = $config[0]['output'];
         $lines = explode(PHP_EOL, $lines);

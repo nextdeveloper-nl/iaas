@@ -96,18 +96,23 @@ class Initiate extends AbstractAction
         }
     }
 
+    /**
+     * @param $start
+     * @param $end
+     * @return void
+     */
     private function updateInterfaceConfigurations($start, $end)
     {
+        /**
+         * @todo: We need to convert this section to a buld ssh command version. Because switch most of the time dont
+         * return us a response or not accepting new connections.
+         */
         $interfaces = NetworkMembersInterfaces::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_network_member_id', $this->model->id)
-            //->where('name', 'tenGigabitEthernet 1/1/13/2')
+            ->where('name', 'tenGigabitEthernet 1/1/13/2')
             ->get();
 
         $step = $end - $start;
-
-//        dump(DellS6100::getInterfaceConfiguration($interfaces[0]));
-//
-//        dd($interfaces);
 
         for($i = 0; $i < count($interfaces); $i++) {
             $this->setProgress($start + ceil($i * $step / count($interfaces)), 'Updating Interface configuration ' . $interfaces[$i]['name']);
