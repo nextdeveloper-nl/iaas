@@ -125,4 +125,40 @@ class DellS6100 extends AbstractSwitches
 
         return implode(PHP_EOL, $lines);
     }
+
+    public static function getArp(NetworkMembers $nm, NetworkMembersInterfaces $interface)
+    {
+        $command = 'show arp interface ' . $interface->name;
+        $result = self::execute($nm, $command);
+
+        if(!$result)
+            return null;
+
+        $output = $result[0]['output'];
+
+        $lines = explode("\n", $output);
+
+        $arp = [];
+
+        foreach ($lines as $line) {
+            if(Str::contains($line, 'Internet')) {
+                $exploded = explode(' ', $line);
+                foreach ($exploded as $key => $value) {
+                    if($value == '') {
+                        unset($exploded[$key]);
+                    }
+                }
+
+                //  Here we reorder the array
+                $exploded = array_values($exploded);
+
+                $arp[] = [
+                    'ip'    =>  $exploded[1],
+                    'mac'   =>  $exploded[3]
+                ];
+            }
+        }
+
+        return $arp;
+    }
 }

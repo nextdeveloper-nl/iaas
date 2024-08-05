@@ -7,7 +7,9 @@ use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces;
+use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Models\Networks;
+use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\Switches\DellS6100;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -37,8 +39,8 @@ class Initiate extends AbstractAction
 
         $this->setProgress(1, 'Updating Interfaces');
 
-        //$this->updateInterfaces(1, 50);
-        $this->updateInterfaceConfigurations(50, 99);
+        $this->updateInterfaces(1, 50);
+        //$this->updateInterfaceConfigurations(50, 99);
 
         Events::fire('initiated:NextDeveloper\IAAS\NetworkMembers', $this->model);
 
@@ -79,6 +81,22 @@ class Initiate extends AbstractAction
                     ->where('vlan', $vlan)
                     ->where('iaas_network_pool_id', $this->model->iaas_network_pool_id)
                     ->first();
+
+                if(!$network) {
+                    $networkPool = NetworkPools::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('id', $this->model->iaas_network_pool_id)
+                        ->first();
+
+                    $network = NetworksService::create([
+                        'name'                =>  'VLAN ' . $vlan,
+                        'vlan'                =>  $vlan,
+                        'vxlan'               =>    0,
+                        'iaas_network_pool_id'  =>  $this->model->iaas_network_pool_id,
+                        'iaas_cloud_node_id'    =>  $networkPool->iaas_cloud_node_id,
+                        'iam_account_id'        =>  $networkPool->iam_account_id,
+                        'iam_user_id'           =>  $networkPool->iam_user_id
+                    ]);
+                }
             }
 
             if($interface) {
@@ -109,7 +127,7 @@ class Initiate extends AbstractAction
          */
         $interfaces = NetworkMembersInterfaces::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_network_member_id', $this->model->id)
-            ->where('name', 'tenGigabitEthernet 1/1/13/2')
+            //->where('name', 'tenGigabitEthernet 1/1/13/2')
             ->get();
 
         $step = $end - $start;
