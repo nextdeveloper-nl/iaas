@@ -218,4 +218,5 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

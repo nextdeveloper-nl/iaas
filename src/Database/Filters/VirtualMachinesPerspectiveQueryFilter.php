@@ -279,4 +279,5 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

@@ -75,6 +75,7 @@ class AbstractNetworkMembersTransformer extends AbstractTransformer
             'ssh_port'  =>  $model->ssh_port,
             'local_ip_addr'  =>  $model->local_ip_addr,
             'is_behind_firewall'  =>  $model->is_behind_firewall,
+            'switch_type'  =>  $model->switch_type,
             ]
         );
     }
@@ -163,6 +164,7 @@ class AbstractNetworkMembersTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

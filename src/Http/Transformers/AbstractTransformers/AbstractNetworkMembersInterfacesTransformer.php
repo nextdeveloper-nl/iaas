@@ -55,6 +55,7 @@ class AbstractNetworkMembersInterfacesTransformer extends AbstractTransformer
     public function transform(NetworkMembersInterfaces $model)
     {
                                                 $iaasNetworkMemberId = \NextDeveloper\IAAS\Database\Models\NetworkMembers::where('id', $model->iaas_network_member_id)->first();
+                                                            $iaasNetworkId = \NextDeveloper\IAAS\Database\Models\Networks::where('id', $model->iaas_network_id)->first();
                         
         return $this->buildPayload(
             [
@@ -66,6 +67,9 @@ class AbstractNetworkMembersInterfacesTransformer extends AbstractTransformer
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'is_up'  =>  $model->is_up,
+            'iaas_network_id'  =>  $iaasNetworkId ? $iaasNetworkId->uuid : null,
+            'is_shutdown'  =>  $model->is_shutdown,
             ]
         );
     }
@@ -154,6 +158,7 @@ class AbstractNetworkMembersInterfacesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

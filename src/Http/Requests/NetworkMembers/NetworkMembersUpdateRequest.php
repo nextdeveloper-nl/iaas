@@ -22,6 +22,7 @@ class NetworkMembersUpdateRequest extends AbstractFormRequest
         'ssh_port' => 'integer',
         'local_ip_addr' => 'nullable',
         'is_behind_firewall' => 'boolean',
+        'switch_type' => 'nullable|string',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

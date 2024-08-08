@@ -52,6 +52,11 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('ssh_password', 'like', '%' . $value . '%');
     }
+    
+    public function switchType($value)
+    {
+        return $this->builder->where('switch_type', 'like', '%' . $value . '%');
+    }
 
     public function sshPort($value)
     {
@@ -133,6 +138,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

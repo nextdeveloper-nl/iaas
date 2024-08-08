@@ -25,6 +25,9 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property boolean $is_up
+ * @property integer $iaas_network_id
+ * @property boolean $is_shutdown
  */
 class NetworkMembersInterfaces extends Model
 {
@@ -37,76 +40,77 @@ class NetworkMembersInterfaces extends Model
 
 
     /**
-     * @var array
+     @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-        'name',
-        'ip_addr',
-        'configuration',
-        'iaas_network_member_id',
-        'iaas_network_id',
-        'is_up',
-        'is_shutdown'
+            'name',
+            'ip_addr',
+            'configuration',
+            'iaas_network_member_id',
+            'is_up',
+            'iaas_network_id',
+            'is_shutdown',
     ];
 
     /**
-     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
+      Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     * We are casting fields to objects so that we can work on them better
+     We are casting fields to objects so that we can work on them better
      *
-     * @var array
+     @var array
      */
     protected $casts = [
-        'id' => 'integer',
-        'name' => 'string',
-        'configuration' => 'string',
-        'iaas_network_member_id' => 'integer',
-        'is_up' =>  'boolean',
-        'is_shutdown'   =>  'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+    'id' => 'integer',
+    'name' => 'string',
+    'configuration' => 'string',
+    'iaas_network_member_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
+    'is_up' => 'boolean',
+    'iaas_network_id' => 'integer',
+    'is_shutdown' => 'boolean',
     ];
 
     /**
-     * We are casting data fields.
+     We are casting data fields.
      *
-     * @var array
+     @var array
      */
     protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $with = [
 
     ];
 
     /**
-     * @var int
+     @var int
      */
     protected $perPage = 20;
 
     /**
-     * @return void
+     @return void
      */
     public static function boot()
     {
@@ -123,11 +127,9 @@ class NetworkMembersInterfaces extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_network_members_interfaces');
 
-        if (!$modelScopes) {
-            $modelScopes = [];
+        if(!$modelScopes) { $modelScopes = [];
         }
-        if (!$globalScopes) {
-            $globalScopes = [];
+        if (!$globalScopes) { $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -135,19 +137,20 @@ class NetworkMembersInterfaces extends Model
             $modelScopes
         );
 
-        if ($scopes) {
+        if($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
         }
     }
 
-    public function networkMembers(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function networkMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkMembers::class);
     }
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 }

@@ -34,6 +34,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property integer $ssh_port
  * @property $local_ip_addr
  * @property boolean $is_behind_firewall
+ * @property string $switch_type
  */
 class NetworkMembers extends Model
 {
@@ -63,7 +64,7 @@ class NetworkMembers extends Model
             'ssh_port',
             'local_ip_addr',
             'is_behind_firewall',
-            'switch_type'
+            'switch_type',
     ];
 
     /**
@@ -97,6 +98,7 @@ class NetworkMembers extends Model
     'deleted_at' => 'datetime',
     'ssh_port' => 'integer',
     'is_behind_firewall' => 'boolean',
+    'switch_type' => 'string',
     ];
 
     /**
@@ -162,26 +164,26 @@ class NetworkMembers extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces::class);
     }
 
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
-    }
-
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-
-    public function networkPools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
-    }
-
     public function networkMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMemberDevices::class);
     }
 
+    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
+    }
+    
+    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
+    }
+    
+    public function networkPools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 
@@ -193,6 +195,7 @@ class NetworkMembers extends Model
             },
         );
     }
+
 
 
 

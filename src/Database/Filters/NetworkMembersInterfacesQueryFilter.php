@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-    
+        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -26,6 +26,24 @@ class NetworkMembersInterfacesQueryFilter extends AbstractQueryFilter
     public function configuration($value)
     {
         return $this->builder->where('configuration', 'like', '%' . $value . '%');
+    }
+
+    public function isUp($value)
+    {
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_up', $value);
+    }
+
+    public function isShutdown($value)
+    {
+        if(!is_bool($value)) {
+            $value = false;
+        }
+
+        return $this->builder->where('is_shutdown', $value);
     }
 
     public function createdAtStart($date)
@@ -67,7 +85,17 @@ class NetworkMembersInterfacesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function iaasNetworkId($value)
+    {
+            $iaasNetwork = \NextDeveloper\IAAS\Database\Models\Networks::where('uuid', $value)->first();
+
+        if($iaasNetwork) {
+            return $this->builder->where('iaas_network_id', '=', $iaasNetwork->id);
+        }
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
