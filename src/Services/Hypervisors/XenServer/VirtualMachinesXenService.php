@@ -139,6 +139,45 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
+    public static function takeSnapshot(VirtualMachines $vm, $name = null) : bool
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@shutdown] I am taking snapshot of the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        if(!$name)
+            $name = 'ss-' . $vm->uuid;
+
+        $command = 'xe vm-snapshot vm=' . $vm->uuid . ' new-name-label=' . $name;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return true;
+    }
+
+    public static function convertSnapshotToVm(VirtualMachines $vm, $name) : bool
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@shutdown] I am finding snapshots of the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-snapshot vm=' . $vm->uuid . ' new-name-label=ss-' . $vm->uuid;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        return true;
+    }
+
     public static function fixName(VirtualMachines $vm) : bool
     {
         if(StateHelper::getState($vm, 'name') == 'fixed')

@@ -4,6 +4,8 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
 /**
  * This action converts the virtual machine into a template
@@ -18,14 +20,20 @@ class Backup extends AbstractAction
 
     public function __construct(VirtualMachines $vm)
     {
-        trigger_error('This action is not yet implemented', E_USER_ERROR);
-
         $this->model = $vm;
+
+        parent::__construct();
     }
 
     public function handle()
     {
         $this->setProgress(0, 'Initiate virtual machine started');
+
+        $this->setProgress(10, 'Taking the snapshot of the virtual machine');
+
+        VirtualMachinesXenService::takeSnapshot($this->model);
+
+        VirtualMachinesXenService::convertSnapshotToVm($this->model, $name);
 
         $this->model->status = 'initiated';
         $this->model->save();

@@ -70,10 +70,13 @@ class ComputePools extends Model
             'iam_user_id',
             'tags',
             'price_pergb',
+        'price_pergb_month',
             'common_currency_id',
             'pool_type',
             'total_cpu',
             'total_ram',
+        'code_name',
+        'disk_ram_ratio'
     ];
 
     /**
@@ -184,12 +187,12 @@ class ComputePools extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
     }
-    
+
     public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
     }
-    
+
     public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);

@@ -62,7 +62,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
                                                             $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
                                                             $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
                                                             $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -105,6 +105,8 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'is_template'  =>  $model->is_template,
             'iaas_repository_image_id'  =>  $iaasRepositoryImageId ? $iaasRepositoryImageId->uuid : null,
             'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
+                'auto_backup_interval'  =>  $model->auto_backup_interval,
+                'auto_backup_time'  =>  $model->auto_backup_time
             ]
         );
     }

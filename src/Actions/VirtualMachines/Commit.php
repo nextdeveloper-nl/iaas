@@ -46,6 +46,8 @@ class Commit extends AbstractAction
     public function __construct(VirtualMachines $vm)
     {
         $this->model = $vm;
+
+        parent::__construct();
     }
 
     public function handle()
@@ -67,8 +69,8 @@ class Commit extends AbstractAction
                 'skipping to disk configuration');
         }
 
-//
-//        $this->setupDisks(40);
+
+        //$this->setupDisks(40);
 
         $this->setupNetworking(70);
 
