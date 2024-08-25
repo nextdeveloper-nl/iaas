@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualNetworkCardsService;
@@ -21,7 +22,12 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
     public static function create($data)
     {
         if(array_key_exists('iaas_virtual_machine_id', $data)) {
-            $vm = VirtualMachines::where('uuid', $data['iaas_virtual_machine_id'])->first();
+            $vm = null;
+
+            if(Str::isUuid($data['iaas_virtual_machine_id']))
+                $vm = VirtualMachines::where('uuid', $data['iaas_virtual_machine_id'])->first();
+            else
+                $vm = VirtualMachines::where('id', $data['iaas_virtual_machine_id'])->first();
 
             $vm->update([
                 'status'    =>  'pending-update'

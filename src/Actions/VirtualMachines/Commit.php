@@ -43,6 +43,8 @@ class Commit extends AbstractAction
 
     private $networkConfiguration;
 
+    private $computePool;
+
     public function __construct(VirtualMachines $vm)
     {
         $this->model = $vm;
@@ -61,6 +63,10 @@ class Commit extends AbstractAction
             return;
         }
 
+        $this->computePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_pool_id)
+            ->first();
+
         //  Here we will import the virtual machine
         if (!$vm->hypervisor_uuid) {
             $this->importVirtualMachine(10);
@@ -69,8 +75,11 @@ class Commit extends AbstractAction
                 'skipping to disk configuration');
         }
 
+        //  We need to update CPU and RAM
+        $this->setProgress(20, 'Setting CPU and RAM');
+        $this->setCpuRam();
 
-        //$this->setupDisks(40);
+        $this->setupDisks(40);
 
         $this->setupNetworking(70);
 
@@ -81,11 +90,19 @@ class Commit extends AbstractAction
         $this->setProgress(100, 'Virtual machine initiated');
     }
 
+    private function setCpuRam()
+    {
+        switch ($this->computePool->virtualization) {
+            case 'xenserver-8.2':
+                VirtualMachinesXenService::setCPUCore($this->model, $this->model->cpu);
+                VirtualMachinesXenService::setRam($this->model, $this->model->ram);
+                break;
+        }
+    }
+
     private function setupNetworking($step)
     {
-        $computePool = ComputePools::where('id', $this->model->iaas_compute_pool_id)->first();
-
-        switch ($computePool->virtualization) {
+        switch ($this->computePool->virtualization) {
             case 'xenserver-8.2':
                 $uuid = $this->setupXenNetworking($step);
                 break;
@@ -312,7 +329,7 @@ class Commit extends AbstractAction
 
         if (!$diskConfig) {
             //  Here this means that we dont have any disk config, so we will directly sync what we have.
-            $this->syncDisks($step);
+            //$this->syncDisks($step);
         }
 
         $syncedDisks = [];

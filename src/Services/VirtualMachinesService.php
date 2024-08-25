@@ -23,12 +23,12 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         // Modifying the data before creating the record
         $data['cpu']    =   $data['ram'] / 2;
 
-        if($data['ram'] > 16) {
-            $data['cpu']    =   8;
+        if($data['ram'] > 32) {
+            $data['cpu']    =   16;
         }
 
-        //  Multiplying ram by 1024 to convert it to MB
-        if($data['ram'] < 1024)
+        //  So with this setup, we set our maximum available ram to 2048 GB
+        if($data['ram'] < 2048)
             $data['ram']    =   $data['ram'] * 1024;
 
         //  Finging and attaching cloud node id

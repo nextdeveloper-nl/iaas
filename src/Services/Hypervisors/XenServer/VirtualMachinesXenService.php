@@ -479,7 +479,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         //  Converting GB to Bytes
-        $ramBytes = $ram * 1024 * 1024 * 1024;
+        $ramBytes = $ram * 1024 * 1024;
 
         //  Setting RAM
         $command = 'xe vm-memory-limits-set static-min=' . $ramBytes;

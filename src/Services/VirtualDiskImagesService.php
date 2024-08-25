@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Commons\Services\StatesService;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
@@ -28,10 +29,17 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
 
     public static function create($data) {
         if(array_key_exists('size', $data)) {
-            $data['size'] = $data['size'] * 1024 * 1024 * 1024;
+            if($data['size'] <= 2000)
+                $data['size'] = $data['size'] * 1024 * 1024 * 1024;
         }
 
-        $vm = VirtualMachines::where('uuid', $data['iaas_virtual_machine_id'])->first();
+        $vm = null;
+
+        if(Str::isUuid($data['iaas_virtual_machine_id']))
+            $vm = VirtualMachines::where('uuid', $data['iaas_virtual_machine_id'])->first();
+        else
+            $vm = VirtualMachines::where('id', $data['iaas_virtual_machine_id'])->first();
+
         $computePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_pool_id)
             ->first();
@@ -51,7 +59,7 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
                 'I can create this disk.', '1');
         }
 
-        if($computePool->pool_type != 'one' && $isRootDisk) {
+        if($computePool->pool_type != 'one' && $isRootDisk && !array_key_exists('iaas_storage_pool_id', $data)) {
             throw new CannotCreateRootDisk('I cannot create root disk for this server because this is not a ' .
                 'one pool type. You need to select a storage pool like SSD Storage, SAS Storage or ' .
                 'NVMe Storage pool, ' .

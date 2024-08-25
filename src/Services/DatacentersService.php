@@ -9,6 +9,7 @@ use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Database\Models\Countries;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Datacenters;
+use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractDatacentersService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -23,6 +24,20 @@ class DatacentersService extends AbstractDatacentersService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    public static function getStoragePoolsPricingTable(Datacenters $datacenters)
+    {
+        $priceList = [];
+
+        $storagePools = StoragePools::where('iaas_datacenter_id', $datacenters->id)
+            ->get();
+
+        foreach ($storagePools as $pool) {
+            $priceList[] = StoragePoolsService::getStoragePoolPricing($pool);
+        }
+
+        return $priceList;
+    }
 
     public static function getComputePoolPricing(Datacenters $datacenters = null)
     {

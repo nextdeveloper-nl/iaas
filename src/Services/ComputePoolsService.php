@@ -37,7 +37,7 @@ class ComputePoolsService extends AbstractComputePoolsService
         for($gb = 1; $gb < $computeMembers->free_ram; $gb = $gb * 2){
             $cpu = 2;
 
-            if($gb > 2 && $gb < 32)
+            if($gb > 2 && $gb <= 32)
                 $cpu = $gb / 2;
 
             if($gb >= 32)
@@ -45,9 +45,9 @@ class ComputePoolsService extends AbstractComputePoolsService
 
             $priceTable[] = [
                 'name'  =>  $computePool->code_name . ' ' . $gb,
-                'ram'   =>  $gb . ' GB',
-                'cpu'   =>  $cpu . ' vCPU',
-                'disk'  =>  $computePool->disk_ram_ratio * $gb . ' GB Disk',
+                'ram'   =>  $gb,
+                'cpu'   =>  $cpu,
+                'disk'  =>  $computePool->disk_ram_ratio * $gb,
                 'monthly'   =>  $computePool->price_pergb_month * $gb . ' ' . $currency->code,
                 'hourly'    =>  $computePool->price_pergb * $gb . ' ' . $currency->code
             ];
