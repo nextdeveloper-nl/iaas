@@ -21,7 +21,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     public static function create(array $data)
     {
         // Modifying the data before creating the record
-        $data['cpu']    =   $data['ram'] / 2;
+        if($data['ram'] > 2)
+            $data['cpu']    =   $data['ram'] / 2;
+        else
+            $data['cpu']    =   2;
 
         if($data['ram'] > 32) {
             $data['cpu']    =   16;

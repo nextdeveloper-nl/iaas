@@ -45,6 +45,8 @@ class Commit extends AbstractAction
 
     private $computePool;
 
+    public $timeout = 3600;
+
     public function __construct(VirtualMachines $vm)
     {
         $this->model = $vm;
