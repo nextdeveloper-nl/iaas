@@ -18,8 +18,10 @@ class Scan extends AbstractAction
         trigger_error('This action is not yet implemented', E_USER_ERROR);
 
         $this->model = $datacenters;
-        parent::__construct();
-        $this->action = $this->getAction();
+
+        $this->queue = 'iaas';
+
+        parent::__construct($params);
     }
 
     public function handle()

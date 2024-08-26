@@ -35,6 +35,8 @@ class Export extends AbstractAction
     {
         $this->model = $vm;
 
+        $this->queue = 'iaas';
+
         parent::__construct($params);
 
         $this->repository = Repositories::where('uuid', $params['iaas_repository_id'])->first();

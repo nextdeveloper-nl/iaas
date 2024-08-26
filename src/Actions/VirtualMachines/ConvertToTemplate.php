@@ -41,6 +41,8 @@ class ConvertToTemplate extends AbstractAction
     {
         $this->model = $vm;
 
+        $this->queue = 'iaas';
+
         $params = $params[0];
 
         parent::__construct($params);

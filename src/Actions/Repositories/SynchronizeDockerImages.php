@@ -21,6 +21,8 @@ class SynchronizeDockerImages extends AbstractAction
     {
         parent::__construct();
 
+        $this->queue = 'iaas';
+
         $this->model = $repo;
     }
 

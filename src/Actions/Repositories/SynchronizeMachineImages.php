@@ -24,6 +24,8 @@ class SynchronizeMachineImages extends AbstractAction
     {
         $this->model = $repo;
 
+        $this->queue = 'iaas';
+
         parent::__construct();
     }
 

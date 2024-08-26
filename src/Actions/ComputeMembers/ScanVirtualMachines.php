@@ -34,6 +34,10 @@ class ScanVirtualMachines extends AbstractAction
     public function __construct(ComputeMembers $computeMember)
     {
         $this->model = $computeMember;
+
+        $this->queue = 'iaas';
+
+        parent::__construct();
     }
 
     public function handle()

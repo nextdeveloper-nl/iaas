@@ -29,12 +29,14 @@ class UnmountVmRepo extends AbstractAction
 
     public function __construct(ComputeMembers $computeMember, array $params)
     {
-        parent::__construct($params);
+        $this->queue = 'iaas';
 
         $this->model = $computeMember;
         $this->repo = Repositories::withoutGlobalScope(AuthorizationScope::class)
             ->where('uuid', $params['iaas_repository_id'])
             ->first();
+
+        parent::__construct($params);
     }
 
     public function handle()

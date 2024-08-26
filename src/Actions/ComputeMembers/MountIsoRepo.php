@@ -34,6 +34,8 @@ class MountIsoRepo extends AbstractAction
         if(array_key_exists(0, $params))
             $params = $params[0];
 
+        $this->queue = 'iaas';
+
         $this->model = $computeMember;
         $this->repo = Repositories::withoutGlobalScope(AuthorizationScope::class)
             ->where('uuid', $params['iaas_repository_id'])

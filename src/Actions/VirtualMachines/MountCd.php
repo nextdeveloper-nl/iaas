@@ -35,6 +35,8 @@ class MountCd extends AbstractAction
         if(array_key_exists(0, $params))
             $params = $params[0];
 
+        $this->queue = 'iaas';
+
         $this->model = $vm;
 
         parent::__construct($params);

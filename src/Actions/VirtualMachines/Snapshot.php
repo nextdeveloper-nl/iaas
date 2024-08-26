@@ -21,6 +21,10 @@ class Snapshot extends AbstractAction
         trigger_error('This action is not yet implemented', E_USER_ERROR);
 
         $this->model = $vm;
+
+        $this->queue = 'iaas';
+
+        parent::__construct();
     }
 
     public function handle()

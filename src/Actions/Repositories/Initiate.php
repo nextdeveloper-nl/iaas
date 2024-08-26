@@ -24,6 +24,8 @@ class Initiate extends AbstractAction
     {
         $this->model = $repositories;
 
+        $this->queue = 'iaas';
+
         parent::__construct($params);
     }
 

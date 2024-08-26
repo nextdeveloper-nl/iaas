@@ -45,6 +45,9 @@ class Initiate extends AbstractAction
     public function __construct(Datacenters $datacenters)
     {
         $this->model = $datacenters;
+
+        $this->queue = 'iaas';
+
         parent::__construct();
     }
 

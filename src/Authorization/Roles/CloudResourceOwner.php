@@ -58,6 +58,8 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
     public function allowedOperations() :array
     {
         return [
+            'iaas_accounts:read',
+
             'iaas_datacenters:read',
             'iaas_cloud_nodes:read',
             'iaas_compute_members:read',
@@ -73,10 +75,27 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             'iaas_virtual_machines:create',
             'iaas_virtual_machines:update',
             'iaas_virtual_machines:delete',
+            'iaas_virtual_disk_images:read',
+            'iaas_virtual_disk_images:create',
+            'iaas_virtual_disk_images:update',
+            'iaas_virtual_disk_images:delete',
+            'iaas_virtual_network_cards:read',
+            'iaas_virtual_network_cards:create',
+            'iaas_virtual_network_cards:update',
+            'iaas_virtual_network_cards:delete',
             'iaas_virtual_machine_backups:read',
             'iaas_virtual_machine_backups:create',
             'iaas_virtual_machine_backups:update',
             'iaas_virtual_machine_backups:delete',
+
+            'iaas_ip_gateways:read',
+            'iaas_ip_gateways:create',
+            'iaas_ip_gateways:update',
+            'iaas_ip_gateways:delete',
+            'iaas_ip_addresses:read',
+            'iaas_ip_addresses:create',
+            'iaas_ip_addresses:update',
+            'iaas_ip_addresses:delete',
         ];
     }
 

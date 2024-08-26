@@ -56,8 +56,6 @@ class ImportVirtualMachine extends AbstractAction
         if(array_key_exists(0, $params))
             $params = $params[0];
 
-        parent::__construct($params);
-
         $this->model = $pool;
         $this->computePool = $pool;
 
@@ -69,6 +67,10 @@ class ImportVirtualMachine extends AbstractAction
             throw new AlreadyImportedVirtualMachine('According to our database this VM is' .
                 ' already imported. If you think' .
                 ' this is a mistake, please contact support.');
+
+        $this->queue = 'iaas';
+
+        parent::__construct($params);
     }
 
     public function handle()

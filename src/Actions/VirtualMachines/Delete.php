@@ -20,6 +20,8 @@ class Delete extends AbstractAction
     {
         trigger_error('This action is not yet implemented', E_USER_ERROR);
 
+        $this->queue = 'iaas';
+
         $this->model = $vm;
     }
 

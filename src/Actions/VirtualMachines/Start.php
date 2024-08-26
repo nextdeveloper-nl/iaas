@@ -23,6 +23,10 @@ class Start extends AbstractAction
     public function __construct(VirtualMachines $vm)
     {
         $this->model = $vm;
+
+        $this->queue = 'iaas';
+
+        parent::__construct();
     }
 
     public function handle()

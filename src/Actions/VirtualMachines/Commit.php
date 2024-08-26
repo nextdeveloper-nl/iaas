@@ -49,6 +49,8 @@ class Commit extends AbstractAction
     {
         $this->model = $vm;
 
+        $this->queue = 'iaas';
+
         parent::__construct();
     }
 
