@@ -239,13 +239,13 @@ class Commit extends AbstractAction
         if ($computePool->pool_type == 'one') {
             $this->setProgress($step + 3, 'Since the pool type is "one" we will be deploying this server to a local storage.');
 
-            $storageMember = StorageMembers::withoutGlobalScope(AuthorizationScope::class)
-                ->where('local_ip_addr', $computeMember->local_ip_addr)
+            $computeMemberStorageVolumes = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_compute_member_id', $computeMember->id)
+                ->where('is_local_storage', true)
                 ->first();
 
-            $storageVolume = StorageVolumes::where('iaas_storage_member_id', $storageMember->id)
-                ->where('is_storage', true)
-                ->where('is_alive', true)
+            $storageVolume = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $computeMemberStorageVolumes->iaas_storage_volume_id)
                 ->first();
         } else {
             $this->setProgress($step + 3, 'Since the pool type is "star" we will be deploying this server to an ssd or nvme storage.');
@@ -268,6 +268,13 @@ class Commit extends AbstractAction
 
             $storageVolume = (new UtilizeStorageVolumes($storagePool))->calculate($computeMember, 20);
         }
+
+        //  Here I am putting this as control because if the pool type is one and we dont have a storage volume then we have a problem
+        if(!$storageVolume && $computePool->pool_type == 'one')
+            throw new \Exception('We have a configuration error on compute pool, or there is a problem with ' .
+                'the sync. I cannot find the volume that I should find, because this is a One type pool and there' .
+                ' should be an on-board volume in hypervisor. Also there can be another reasons, which are maybe ' .
+                'the storage volume is set to be not alive, which means we can be doomed! OR it is not set a sstorage');
 
         switch ($computePool->virtualization) {
             case 'xenserver-8.2':

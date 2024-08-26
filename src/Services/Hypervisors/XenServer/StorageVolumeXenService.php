@@ -32,7 +32,7 @@ class StorageVolumeXenService extends AbstractXenService
             $blockDeviceData = $blockDeviceData[0];
 
         $storageMember = StorageMembers::withoutGlobalScope(AuthorizationScope::class)
-            ->where('local_ip_addr', $blockDeviceData['device-config']['server'])
+            ->where('local_ip_addr', trim($blockDeviceData['device-config']['server']))
             ->first();
 
         if(!$storageMember)
@@ -48,6 +48,7 @@ class StorageVolumeXenService extends AbstractXenService
             'name'              =>  $storageVolume->name,
             'iam_account_id'    =>  $storageVolume->iam_account_id,
             'iam_user_id'       =>  $storageVolume->iam_user_id,
+            'hypervisor_uuid'   =>  $storageVolume->hypervisor_uuid,
             'total_hdd'         =>  ceil($hypervisorData['physical-size'] / 1000 / 1000 / 1000),
             'used_hdd'          =>  ceil($hypervisorData['physical-utilisation'] / 1000 / 1000 / 1000),
             'virtual_allocation' =>  ceil($hypervisorData['virtual-allocation'] / 1000 / 1000 / 1000),

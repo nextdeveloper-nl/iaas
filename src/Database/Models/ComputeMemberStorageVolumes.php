@@ -44,84 +44,85 @@ class ComputeMemberStorageVolumes extends Model
 
 
     /**
-     @var array
+     * @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-            'hypervisor_uuid',
-            'hypervisor_data',
-            'name',
-            'description',
-            'block_device_data',
-            'iam_account_id',
-            'iam_user_id',
-            'iaas_storage_volume_id',
-            'iaas_storage_member_id',
-            'iaas_storage_pool_id',
-            'iaas_compute_member_id',
+        'hypervisor_uuid',
+        'hypervisor_data',
+        'name',
+        'description',
+        'block_device_data',
+        'iam_account_id',
+        'iam_user_id',
+        'iaas_storage_volume_id',
+        'iaas_storage_member_id',
+        'iaas_storage_pool_id',
+        'iaas_compute_member_id',
+        'is_local_storage'
     ];
 
     /**
-      Here we have the fulltext fields. We can use these for fulltext search if enabled.
+     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     We are casting fields to objects so that we can work on them better
+     * We are casting fields to objects so that we can work on them better
      *
-     @var array
+     * @var array
      */
     protected $casts = [
-    'id' => 'integer',
-    'hypervisor_uuid' => 'string',
-    'hypervisor_data' => 'array',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
-    'name' => 'string',
-    'description' => 'string',
-    'block_device_data' => 'array',
-    'iaas_storage_volume_id' => 'integer',
-    'iaas_storage_member_id' => 'integer',
-    'iaas_storage_pool_id' => 'integer',
-    'iaas_compute_member_id' => 'integer',
+        'id' => 'integer',
+        'hypervisor_uuid' => 'string',
+        'hypervisor_data' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'name' => 'string',
+        'description' => 'string',
+        'block_device_data' => 'array',
+        'iaas_storage_volume_id' => 'integer',
+        'iaas_storage_member_id' => 'integer',
+        'iaas_storage_pool_id' => 'integer',
+        'iaas_compute_member_id' => 'integer',
     ];
 
     /**
-     We are casting data fields.
+     * We are casting data fields.
      *
-     @var array
+     * @var array
      */
     protected $dates = [
-    'created_at',
-    'updated_at',
-    'deleted_at',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $with = [
 
     ];
 
     /**
-     @var int
+     * @var int
      */
     protected $perPage = 20;
 
     /**
-     @return void
+     * @return void
      */
     public static function boot()
     {
@@ -138,9 +139,11 @@ class ComputeMemberStorageVolumes extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_compute_member_storage_volumes');
 
-        if(!$modelScopes) { $modelScopes = [];
+        if (!$modelScopes) {
+            $modelScopes = [];
         }
-        if (!$globalScopes) { $globalScopes = [];
+        if (!$globalScopes) {
+            $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -148,59 +151,34 @@ class ComputeMemberStorageVolumes extends Model
             $modelScopes
         );
 
-        if($scopes) {
+        if ($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
         }
     }
 
-    public function storageVolumes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function storageVolumes(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
     }
-    
-    public function storageMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function storageMembers(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\StorageMembers::class);
     }
-    
-    public function storagePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function storagePools(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
     }
-    
-    public function computeMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function computeMembers(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

@@ -32,8 +32,8 @@ class StorageMemberXenService extends AbstractXenService
         $storageMember = StorageMembersService::create([
             'name'  => 'Storage Member with IP: ' . $volume->block_device_data['device-config']['server'],
             'hostname'  =>  'unknown',
-            'ip_addr'   =>  $volume->block_device_data['device-config']['server'],
-            'local_ip_addr' =>  $volume->block_device_data['device-config']['server'],
+            'ip_addr'   =>  trim($volume->block_device_data['device-config']['server']),
+            'local_ip_addr' =>  trim($volume->block_device_data['device-config']['server']),
             'iam_account_id'    =>  $volume->iam_account_id,
             'iam_user_id'       =>  $volume->iam_user_id
         ]);

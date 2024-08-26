@@ -111,7 +111,7 @@ class AbstractComputeMembersService
         $object = ComputeMembers::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\ComputeMembers')
+            ->where('input', 'NextDeveloper\IAAS\ComputeMembers')
             ->first();
 
         $class = $action->class;
@@ -187,7 +187,7 @@ class AbstractComputeMembersService
                 $data['iam_account_id']
             );
         }
-            
+
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
@@ -197,11 +197,11 @@ class AbstractComputeMembersService
                 $data['iam_user_id']
             );
         }
-                    
+
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
-            
+
         try {
             $model = ComputeMembers::create($data);
         } catch(\Exception $e) {
@@ -267,7 +267,7 @@ class AbstractComputeMembersService
                 $data['iam_user_id']
             );
         }
-    
+
         Events::fire('updating:NextDeveloper\IAAS\ComputeMembers', $model);
 
         try {

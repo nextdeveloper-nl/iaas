@@ -370,6 +370,8 @@ physical interfaces and vlans of compute member');
             $storageVolume->update($data);
         }
 
+        //  Here we are updating the shared storage member. If we dont have a record about the shared storage member
+        //  then we will create one here.
         StorageVolumeXenService::updateSharedStorage($storageVolume);
 
         return $storageVolume;
@@ -442,7 +444,8 @@ physical interfaces and vlans of compute member');
             'block_device_data' =>  $pbdParams,
             'iam_user_id'       =>  $computeMember->iam_user_id,
             'iam_account_id'    =>  $computeMember->iam_account_id,
-            'iaas_compute_member_id'    =>  $computeMember->id
+            'iaas_compute_member_id'    =>  $computeMember->id,
+            'is_local_storage'  =>  true,
         ];
 
         if(!$storageVolume) {
