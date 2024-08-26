@@ -21,7 +21,7 @@ class Sync extends AbstractAction
         trigger_error('This action is not yet implemented', E_USER_ERROR);
 
         $this->model = $vm;
-    }
+
 
     public function handle()
     {

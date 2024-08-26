@@ -240,7 +240,7 @@ class Commit extends AbstractAction
             $this->setProgress($step + 3, 'Since the pool type is "one" we will be deploying this server to a local storage.');
 
             $storageMember = StorageMembers::withoutGlobalScope(AuthorizationScope::class)
-                ->where('ip_addr', $computeMember->ip_addr)
+                ->where('local_ip_addr', $computeMember->local_ip_addr)
                 ->first();
 
             $storageVolume = StorageVolumes::where('iaas_storage_member_id', $storageMember->id)
