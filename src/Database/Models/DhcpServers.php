@@ -97,6 +97,7 @@ class DhcpServers extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'server_type'   =>  'string'
     ];
 
     /**

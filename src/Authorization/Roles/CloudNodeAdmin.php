@@ -81,6 +81,18 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_compute_member_network_interfaces:create',
             'iaas_compute_member_network_interfaces:update',
             'iaas_compute_member_network_interfaces:delete',
+            'iaas_network_members_interfaces:read',
+            'iaas_network_members_interfaces:create',
+            'iaas_network_members_interfaces:update',
+            'iaas_network_members_interfaces:delete',
+            'iaas_ip_addresses:read',
+            'iaas_ip_addresses:create',
+            'iaas_ip_addresses:update',
+            'iaas_ip_addresses:delete',
+            'iaas_dhcp_servers:read',
+            'iaas_dhcp_servers:create',
+            'iaas_dhcp_servers:update',
+            'iaas_dhcp_servers:delete',
         ];
     }
 

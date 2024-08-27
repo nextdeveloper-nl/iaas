@@ -4,23 +4,22 @@ namespace NextDeveloper\IAAS\Actions\VirtualNetworkCards;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 
 /**
  * This action converts the virtual machine into a template
  */
-class Sync extends AbstractAction
+class AddRandomIpV4 extends AbstractAction
 {
     public const EVENTS = [
-        'syncing:NextDeveloper\IAAS\VirtualNetworkCards',
-        'synced:NextDeveloper\IAAS\VirtualNetworkCards',
-        'sync-failed:NextDeveloper\IAAS\VirtualNetworkCards'
+        'adding-random-ip:NextDeveloper\IAAS\VirtualNetworkCards',
+        'added-random-ip:NextDeveloper\IAAS\VirtualNetworkCards',
+        'failed-adding-random-ip:NextDeveloper\IAAS\VirtualNetworkCards'
     ];
 
-    public function __construct(VirtualMachines $vm)
+    public function __construct(VirtualNetworkCards $vnc)
     {
-        trigger_error('This action is not yet implemented', E_USER_ERROR);
-
-        $this->model = $vm;
+        $this->model = $vnc;
 
         parent::__construct();
     }

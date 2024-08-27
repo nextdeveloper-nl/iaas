@@ -3,9 +3,13 @@
 namespace NextDeveloper\IAAS\Http\Transformers;
 
 use Illuminate\Support\Facades\Cache;
+use League\Fractal\ParamBag;
 use NextDeveloper\Commons\Common\Cache\CacheHelper;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
+use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMachinesPerspectiveTransformer;
 
 /**
@@ -15,6 +19,13 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMac
  */
 class VirtualMachinesPerspectiveTransformer extends AbstractVirtualMachinesPerspectiveTransformer
 {
+    public function __construct(ParamBag $paramBag = null)
+    {
+        $this->addInclude('virtualNetworkCards');
+        $this->addInclude('virtualDiskImages');
+
+        return parent::__construct($paramBag);
+    }
 
     /**
      * @param VirtualMachinesPerspective $model
@@ -39,5 +50,21 @@ class VirtualMachinesPerspectiveTransformer extends AbstractVirtualMachinesPersp
         );
 
         return $transformed;
+    }
+
+    public function includeVirtualNetworkCards(VirtualMachinesPerspective $model)
+    {
+        $vnc = VirtualNetworkCards::where('iaas_virtual_machine_id', $model->id)
+            ->get();
+
+        return $this->collection($vnc, app(VirtualNetworkCardsTransformer::class));
+    }
+
+    public function includeVirtualDiskImages(VirtualMachinesPerspective $model)
+    {
+        $vdi = VirtualDiskImages::where('iaas_virtual_machine_id', $model->id)
+            ->get();
+
+        return $this->collection($vdi, app(VirtualDiskImagesTransformer::class));
     }
 }

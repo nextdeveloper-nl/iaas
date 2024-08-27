@@ -111,7 +111,7 @@ class AbstractNetworkMembersInterfacesService
         $object = NetworkMembersInterfaces::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces')
+            ->where('input', 'NextDeveloper\IAAS\NetworkMembersInterfaces')
             ->first();
 
         $class = $action->class;
@@ -181,7 +181,7 @@ class AbstractNetworkMembersInterfacesService
                 $data['iaas_network_member_id']
             );
         }
-                        
+
         try {
             $model = NetworkMembersInterfaces::create($data);
         } catch(\Exception $e) {
@@ -235,7 +235,7 @@ class AbstractNetworkMembersInterfacesService
                 $data['iaas_network_member_id']
             );
         }
-    
+
         Events::fire('updating:NextDeveloper\IAAS\NetworkMembersInterfaces', $model);
 
         try {

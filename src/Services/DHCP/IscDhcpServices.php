@@ -54,7 +54,8 @@ class IscDhcpServices
                     ->where('id', $ip->iaas_virtual_network_card_id)
                     ->first();
 
-                $config .= 'host ' . md5($vnc->uuid . $ip->uuid) . ' { hardware ethernet ' . $vnc->mac_addr . '; fixed-address ' . $ip->ip_addr . '; }' . PHP_EOL;
+                if($vnc)
+                    $config .= 'host ' . md5($vnc->uuid . $ip->uuid) . ' { hardware ethernet ' . $vnc->mac_addr . '; fixed-address ' . $ip->ip_addr . '; }' . PHP_EOL;
             }
         }
 

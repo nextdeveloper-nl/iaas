@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Http\Transformers;
 
 use Illuminate\Support\Facades\Cache;
+use League\Fractal\ParamBag;
 use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
@@ -15,7 +16,12 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMac
  */
 class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
 {
+    public function __construct(ParamBag $paramBag = null)
+    {
+        $this->addInclude('virtualNetworkCards');
 
+        parent($paramBag);
+    }
     /**
      * @param VirtualMachines $model
      *
@@ -28,7 +34,7 @@ class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
         );
 
         if($transformed) {
-            return $transformed;
+            //return $transformed;
         }
 
         $transformed = parent::transform($model);
@@ -42,5 +48,10 @@ class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
         );
 
         return $transformed;
+    }
+
+    public function includeVirtualNetworkCards(VirtualMachines $model)
+    {
+
     }
 }

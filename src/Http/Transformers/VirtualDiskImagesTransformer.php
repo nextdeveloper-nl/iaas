@@ -33,6 +33,8 @@ class VirtualDiskImagesTransformer extends AbstractVirtualDiskImagesTransformer
 
         $transformed = parent::transform($model);
 
+        unset($transformed['hypervisor_data']);
+
         Cache::set(
             CacheHelper::getKey('VirtualDiskImages', $model->uuid, 'Transformed'),
             $transformed
