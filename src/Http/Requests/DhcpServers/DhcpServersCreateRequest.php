@@ -14,7 +14,7 @@ class DhcpServersCreateRequest extends AbstractFormRequest
     {
         return [
             'name' => 'required|string',
-        'iaas_virtual_machine_id' => 'required|exists:iaas_virtual_machines,uuid|uuid',
+        'iaas_virtual_machine_id' => 'exists:iaas_virtual_machines,uuid|uuid',
         'dhcp_data' => 'nullable',
         'is_public' => 'boolean',
         'ssh_username' => 'nullable|string',

@@ -39,8 +39,13 @@ class Initiate extends AbstractAction
 
         $this->setProgress(1, 'Updating Interfaces');
 
-        $this->updateInterfaces(1, 50);
-        //$this->updateInterfaceConfigurations(50, 99);
+        try {
+            $this->updateInterfaces(1, 50);
+            $this->updateInterfaceConfigurations(50, 99);
+        } catch (\Exception $exception) {
+            $this->setFinishedWithError($exception->getMessage());
+            throw $exception;
+        }
 
         Events::fire('initiated:NextDeveloper\IAAS\NetworkMembers', $this->model);
 

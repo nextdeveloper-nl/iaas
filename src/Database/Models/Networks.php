@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Database\Models;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
+use NextDeveloper\Commons\Database\Casts\CIDR;
 use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\IAAS\Database\Observers\NetworksObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
@@ -117,6 +118,8 @@ class Networks extends Model
     'is_dmz' => 'boolean',
     'speed_limit' => 'integer',
     'mtu' => 'integer',
+    'dns_nameservers' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'cidr' => CIDR::class,
     'common_domain_id' => 'integer',
     'iaas_dhcp_server_id' => 'integer',
     'iaas_gateway_id' => 'integer',
@@ -189,27 +192,27 @@ class Networks extends Model
     {
         return $this->belongsTo(\NextDeveloper\Commons\Database\Models\Domains::class);
     }
-    
+
     public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
     }
-    
+
     public function gateways() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Gateways::class);
     }
-    
+
     public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
     }
-    
+
     public function networkPools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
     }
-    
+
     public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
