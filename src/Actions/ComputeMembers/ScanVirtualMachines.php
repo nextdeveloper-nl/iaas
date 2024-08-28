@@ -110,7 +110,8 @@ class ScanVirtualMachines extends AbstractAction
                 $dbVm = $dbVm->fresh();
 
                 if(config('iaas.regulations.pci_dss.change_names')) {
-                    $isChanged = ComputeMemberXenService::renameVirtualMachine($this->model, $dbVm);
+                    //$isChanged = ComputeMemberXenService::renameVirtualMachine($this->model, $dbVm);
+                    $isChanged = false;
 
                     if(!$isChanged) {
                         Log::error('[ScanVirtualMachines] Error while renaming virtual machine: ' . $vm['uuid']);
@@ -141,7 +142,8 @@ class ScanVirtualMachines extends AbstractAction
                 ]);
 
                 if(config('iaas.regulations.pci_dss.change_names')) {
-                    $isChanged = ComputeMemberXenService::renameVirtualMachine($this->model, $dbVm);
+                    //$isChanged = ComputeMemberXenService::renameVirtualMachine($this->model, $dbVm);
+                    $isChanged = false;
 
                     if(!$isChanged) {
                         Log::error('[ScanVirtualMachines] Error while renaming virtual machine: ' . $vm['uuid']);
