@@ -144,6 +144,7 @@ class VirtualMachinesPerspective extends Model
         'total_disk_size' => 'integer',
         'network' => 'string',
         'ip_addr' => 'string',
+        'states'    =>  'json',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',

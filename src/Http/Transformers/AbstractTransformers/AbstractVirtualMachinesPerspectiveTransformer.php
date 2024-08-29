@@ -95,6 +95,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
                 'total_disk_size' => $model->total_disk_size,
                 'network' => $model->network,
                 'ip_addr' => $model->ip_addr,
+                'states'    =>  $model->states,
                 'created_at' => $model->created_at,
                 'updated_at' => $model->updated_at,
                 'deleted_at' => $model->deleted_at,
