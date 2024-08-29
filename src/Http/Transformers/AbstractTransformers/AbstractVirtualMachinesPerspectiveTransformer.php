@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Http\Transformers\AbstractTransformers;
 
+use League\Fractal\ParamBag;
 use NextDeveloper\Commons\Database\Models\Addresses;
 use NextDeveloper\Commons\Database\Models\Comments;
 use NextDeveloper\Commons\Database\Models\Meta;
@@ -31,6 +32,10 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
  */
 class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
 {
+    public function __construct(ParamBag $paramBag = null)
+    {
+        parent::__construct($paramBag);
+    }
 
     /**
      * @var array

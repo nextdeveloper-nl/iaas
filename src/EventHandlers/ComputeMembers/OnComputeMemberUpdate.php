@@ -6,16 +6,19 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
- * Class IaasComputeMembersUpdatingEvent
+ * Class IaasVirtualMachinesCreatedEvent
  * @package PlusClouds\Account\Handlers\Events
  */
-class IaasComputeMembersUpdatingEvent implements ShouldQueue
+class OnComputeMemberUpdate implements ShouldQueue
 {
     use InteractsWithQueue;
 
     public function handle($event)
     {
-
+//        $event->model;
+        /**
+         * You will take statistics information from compute member object and save it to
+         * compute member stats
+         */
     }
-    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }
