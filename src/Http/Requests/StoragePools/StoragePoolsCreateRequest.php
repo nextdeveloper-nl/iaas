@@ -20,6 +20,7 @@ class StoragePoolsCreateRequest extends AbstractFormRequest
         'tags' => '',
         'common_currency_id' => 'nullable|exists:common_currencies,uuid|uuid',
         'iaas_datacenter_id' => 'nullable|exists:iaas_datacenters,uuid|uuid',
+        'price_pergb_month' => 'nullable',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

@@ -57,6 +57,11 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('backup_type', 'like', '%' . $value . '%');
     }
+    
+    public function status($value)
+    {
+        return $this->builder->where('status', 'like', '%' . $value . '%');
+    }
 
     public function size($value)
     {
@@ -175,4 +180,5 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

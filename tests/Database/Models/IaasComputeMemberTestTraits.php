@@ -74,6 +74,7 @@ trait IaasComputeMemberTestTraits
                 'total_vm'  =>  '1',
                 'max_overbooking_ratio'  =>  '1',
                 'benchmark_score'  =>  '1',
+                'free_ram'  =>  '1',
                     'uptime'  =>  now(),
                     'idle_time'  =>  now(),
                             ],
@@ -649,6 +650,25 @@ trait IaasComputeMemberTestTraits
             $request = new Request(
                 [
                 'benchmark_score'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_free_ram_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'free_ram'  =>  '1'
                 ]
             );
 

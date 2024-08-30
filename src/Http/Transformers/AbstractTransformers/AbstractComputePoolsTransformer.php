@@ -84,6 +84,9 @@ class AbstractComputePoolsTransformer extends AbstractTransformer
             'pool_type'  =>  $model->pool_type,
             'total_cpu'  =>  $model->total_cpu,
             'total_ram'  =>  $model->total_ram,
+            'price_pergb_month'  =>  $model->price_pergb_month,
+            'disk_ram_ratio'  =>  $model->disk_ram_ratio,
+            'code_name'  =>  $model->code_name,
             ]
         );
     }
@@ -172,6 +175,7 @@ class AbstractComputePoolsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

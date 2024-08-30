@@ -13,6 +13,13 @@ class OnComputeMemberUpdate implements ShouldQueue
 {
     use InteractsWithQueue;
 
+    private $model;
+
+    public function __construct($model)
+    {
+        $this->model = $model;
+    }
+
     public function handle($event)
     {
 //        $event->model;

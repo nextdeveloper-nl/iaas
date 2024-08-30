@@ -39,6 +39,9 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property string $pool_type
  * @property integer $total_cpu
  * @property integer $total_ram
+ * @property $price_pergb_month
+ * @property $disk_ram_ratio
+ * @property string $code_name
  */
 class ComputePools extends Model
 {
@@ -70,13 +73,13 @@ class ComputePools extends Model
             'iam_user_id',
             'tags',
             'price_pergb',
-        'price_pergb_month',
             'common_currency_id',
             'pool_type',
             'total_cpu',
             'total_ram',
-        'code_name',
-        'disk_ram_ratio'
+            'price_pergb_month',
+            'disk_ram_ratio',
+            'code_name',
     ];
 
     /**
@@ -118,6 +121,7 @@ class ComputePools extends Model
     'pool_type' => 'string',
     'total_cpu' => 'integer',
     'total_ram' => 'integer',
+    'code_name' => 'string',
     ];
 
     /**
@@ -187,18 +191,19 @@ class ComputePools extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
     }
-
+    
     public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
     }
-
+    
     public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

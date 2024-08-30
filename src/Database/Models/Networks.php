@@ -45,6 +45,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property $cidr
  */
 class Networks extends Model
 {
@@ -85,6 +86,7 @@ class Networks extends Model
             'iaas_cloud_node_id',
             'iam_account_id',
             'iam_user_id',
+            'cidr',
     ];
 
     /**
@@ -118,8 +120,6 @@ class Networks extends Model
     'is_dmz' => 'boolean',
     'speed_limit' => 'integer',
     'mtu' => 'integer',
-    'dns_nameservers' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
-    'cidr' => CIDR::class,
     'common_domain_id' => 'integer',
     'iaas_dhcp_server_id' => 'integer',
     'iaas_gateway_id' => 'integer',
@@ -188,36 +188,36 @@ class Networks extends Model
         }
     }
 
-    public function domains() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\Commons\Database\Models\Domains::class);
-    }
-
-    public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
-    }
-
-    public function gateways() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Gateways::class);
-    }
-
-    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
-    }
-
-    public function networkPools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
-    }
-
     public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
     }
 
+    public function domains() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\Commons\Database\Models\Domains::class);
+    }
+    
+    public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
+    }
+    
+    public function gateways() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Gateways::class);
+    }
+    
+    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
+    }
+    
+    public function networkPools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
+    }
+    
     public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);
@@ -229,6 +229,7 @@ class Networks extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -32,10 +32,6 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
  */
 class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
 {
-    public function __construct(ParamBag $paramBag = null)
-    {
-        parent::__construct($paramBag);
-    }
 
     /**
      * @var array
@@ -59,51 +55,51 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
      */
     public function transform(VirtualMachinesPerspective $model)
     {
-        $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
-        $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
-        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-
+                                                $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
+                                                            $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                        
         return $this->buildPayload(
             [
-                'id' => $model->uuid,
-                'name' => $model->name,
-                'description' => $model->description,
-                'hostname' => $model->hostname,
-                'username' => $model->username,
-                'os' => $model->os,
-                'distro' => $model->distro,
-                'version' => $model->version,
-                'domain_type' => $model->domain_type,
-                'status' => $model->status,
-                'cpu' => $model->cpu,
-                'ram' => $model->ram,
-                'last_metadata_request' => $model->last_metadata_request,
-                'iaas_cloud_node_id' => $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
-                'cloud_node' => $model->cloud_node,
-                'common_domain_id' => $commonDomainId ? $commonDomainId->uuid : null,
-                'domain' => $model->domain,
-                'disk_count' => $model->disk_count,
-                'network_card_count' => $model->network_card_count,
-                'has_warnings' => $model->has_warnings,
-                'has_errors' => $model->has_errors,
-                'tags' => $model->tags,
-                'is_template' => $model->is_template,
-                'is_draft' => $model->is_draft,
-                'maintainer' => $model->maintainer,
-                'responsible' => $model->responsible,
-                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
-                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
-                'auto_backup_interval' => $model->auto_backup_interval,
-                'auto_backup_time' => $model->auto_backup_time,
-                'number_of_disks' => $model->number_of_disks,
-                'total_disk_size' => $model->total_disk_size,
-                'network' => $model->network,
-                'ip_addr' => $model->ip_addr,
-                'states'    =>  $model->states,
-                'created_at' => $model->created_at,
-                'updated_at' => $model->updated_at,
-                'deleted_at' => $model->deleted_at,
+            'id'  =>  $model->uuid,
+            'name'  =>  $model->name,
+            'description'  =>  $model->description,
+            'hostname'  =>  $model->hostname,
+            'username'  =>  $model->username,
+            'os'  =>  $model->os,
+            'distro'  =>  $model->distro,
+            'version'  =>  $model->version,
+            'domain_type'  =>  $model->domain_type,
+            'status'  =>  $model->status,
+            'cpu'  =>  $model->cpu,
+            'ram'  =>  $model->ram,
+            'last_metadata_request'  =>  $model->last_metadata_request,
+            'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
+            'cloud_node'  =>  $model->cloud_node,
+            'common_domain_id'  =>  $commonDomainId ? $commonDomainId->uuid : null,
+            'domain'  =>  $model->domain,
+            'disk_count'  =>  $model->disk_count,
+            'network_card_count'  =>  $model->network_card_count,
+            'has_warnings'  =>  $model->has_warnings,
+            'has_errors'  =>  $model->has_errors,
+            'number_of_disks'  =>  $model->number_of_disks,
+            'total_disk_size'  =>  $model->total_disk_size,
+            'network'  =>  $model->network,
+            'ip_addr'  =>  $model->ip_addr,
+            'states'  =>  $model->states,
+            'tags'  =>  $model->tags,
+            'is_template'  =>  $model->is_template,
+            'is_draft'  =>  $model->is_draft,
+            'auto_backup_interval'  =>  $model->auto_backup_interval,
+            'auto_backup_time'  =>  $model->auto_backup_time,
+            'maintainer'  =>  $model->maintainer,
+            'responsible'  =>  $model->responsible,
+            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
@@ -192,6 +188,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 }

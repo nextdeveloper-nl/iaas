@@ -31,6 +31,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property integer $vm_image_count
  * @property integer $iam_user_id
  * @property integer $iam_account_id
+ * @property $states
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
@@ -64,6 +65,7 @@ class RepositoriesPerspective extends Model
             'vm_image_count',
             'iam_user_id',
             'iam_account_id',
+            'states',
     ];
 
     /**
@@ -96,6 +98,7 @@ class RepositoriesPerspective extends Model
     'repository_maintainer' => 'string',
     'iso_image_count' => 'integer',
     'vm_image_count' => 'integer',
+    'states' => 'array',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -160,6 +163,7 @@ class RepositoriesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

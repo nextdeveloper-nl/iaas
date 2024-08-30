@@ -69,18 +69,16 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
 
     public function isCdrom($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_cdrom', $value);
     }
 
     public function isDraft($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_draft', $value);
     }
@@ -170,6 +168,7 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

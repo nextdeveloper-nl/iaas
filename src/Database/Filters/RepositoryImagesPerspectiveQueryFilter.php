@@ -45,45 +45,40 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isLatest($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_latest', $value);
     }
 
     public function isIso($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_iso', $value);
     }
 
     public function isPublic($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_public', $value);
     }
 
     public function isVirtualMachineImage($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_virtual_machine_image', $value);
     }
 
     public function isDockerImage($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_docker_image', $value);
     }
@@ -146,6 +141,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

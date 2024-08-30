@@ -82,36 +82,32 @@ class NetworksQueryFilter extends AbstractQueryFilter
 
     public function isPublic($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_public', $value);
     }
 
     public function isVpn($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_vpn', $value);
     }
 
     public function isManagement($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_management', $value);
     }
 
     public function isDmz($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_dmz', $value);
     }
@@ -210,6 +206,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

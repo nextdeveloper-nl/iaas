@@ -71,4 +71,11 @@ class ComputeMembersService extends AbstractComputeMembersService
 
         return $networkPool;
     }
+
+    public static function updateStats()
+    {
+        /**
+         * Here you will insert current resource information to stats table.
+         */
+    }
 }

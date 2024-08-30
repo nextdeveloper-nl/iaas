@@ -63,6 +63,7 @@ trait IaasDhcpServerTestTraits
                 'ssh_password'  =>  'a',
                 'api_token'  =>  'a',
                 'api_url'  =>  'a',
+                'server_type'  =>  'a',
                             ],
                 ['http_errors' => false]
             ]
@@ -427,6 +428,25 @@ trait IaasDhcpServerTestTraits
             $request = new Request(
                 [
                 'api_url'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasDhcpServerQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasDhcpServer::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasdhcpserver_event_server_type_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'server_type'  =>  'a'
                 ]
             );
 

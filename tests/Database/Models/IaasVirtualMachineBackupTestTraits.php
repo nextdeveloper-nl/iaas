@@ -66,6 +66,7 @@ trait IaasVirtualMachineBackupTestTraits
                 'password'  =>  'a',
                 'hash'  =>  'a',
                 'backup_type'  =>  'a',
+                'status'  =>  'a',
                 'size'  =>  '1',
                 'ram'  =>  '1',
                 'cpu'  =>  '1',
@@ -492,6 +493,25 @@ trait IaasVirtualMachineBackupTestTraits
             $request = new Request(
                 [
                 'backup_type'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasVirtualMachineBackupQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineBackup::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualmachinebackup_event_status_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'status'  =>  'a'
                 ]
             );
 

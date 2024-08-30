@@ -89,27 +89,24 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isStorage($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_storage', $value);
     }
 
     public function isRepo($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_repo', $value);
     }
 
     public function isCdrom($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_cdrom', $value);
     }
@@ -181,6 +178,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

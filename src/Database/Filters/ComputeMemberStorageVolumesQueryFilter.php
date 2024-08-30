@@ -33,6 +33,14 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('description', 'like', '%' . $value . '%');
     }
 
+    public function isLocalStorage($value)
+    {
+
+
+
+        return $this->builder->where('is_local_storage', $value);
+    }
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -118,6 +126,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

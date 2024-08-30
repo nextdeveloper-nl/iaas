@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+                                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,60 +37,70 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-
+    
     public function username($value)
     {
         return $this->builder->where('username', 'like', '%' . $value . '%');
     }
-
+    
     public function password($value)
     {
         return $this->builder->where('password', 'like', '%' . $value . '%');
     }
-
+    
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'like', '%' . $value . '%');
     }
-
+    
     public function description($value)
     {
         return $this->builder->where('description', 'like', '%' . $value . '%');
     }
-
+    
     public function os($value)
     {
         return $this->builder->where('os', 'like', '%' . $value . '%');
     }
-
+    
     public function distro($value)
     {
         return $this->builder->where('distro', 'like', '%' . $value . '%');
     }
-
+    
     public function version($value)
     {
         return $this->builder->where('version', 'like', '%' . $value . '%');
     }
-
+    
     public function domainType($value)
     {
         return $this->builder->where('domain_type', 'like', '%' . $value . '%');
     }
-
+    
     public function status($value)
     {
         return $this->builder->where('status', 'like', '%' . $value . '%');
     }
-
+    
     public function lockPassword($value)
     {
         return $this->builder->where('lock_password', 'like', '%' . $value . '%');
+    }
+    
+    public function autoBackupInterval($value)
+    {
+        return $this->builder->where('auto_backup_interval', 'like', '%' . $value . '%');
+    }
+    
+    public function autoBackupTime($value)
+    {
+        return $this->builder->where('auto_backup_time', 'like', '%' . $value . '%');
     }
 
     public function cpu($value)
@@ -121,54 +131,48 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function isWinrmEnabled($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_winrm_enabled', $value);
     }
 
     public function isSnapshot($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_snapshot', $value);
     }
 
     public function isLost($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_lost', $value);
     }
 
     public function isLocked($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_locked', $value);
     }
 
     public function isDraft($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_draft', $value);
     }
 
     public function isTemplate($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_template', $value);
     }
@@ -286,6 +290,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -21,6 +21,7 @@ class ComputeMemberStorageVolumesCreateRequest extends AbstractFormRequest
         'iaas_storage_member_id' => 'nullable|exists:iaas_storage_members,uuid|uuid',
         'iaas_storage_pool_id' => 'nullable|exists:iaas_storage_pools,uuid|uuid',
         'iaas_compute_member_id' => 'nullable|exists:iaas_compute_members,uuid|uuid',
+        'is_local_storage' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

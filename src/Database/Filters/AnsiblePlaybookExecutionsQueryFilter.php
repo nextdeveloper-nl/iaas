@@ -139,9 +139,8 @@ class AnsiblePlaybookExecutionsQueryFilter extends AbstractQueryFilter
 
     public function isExternalMachine($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_external_machine', $value);
     }
@@ -223,6 +222,7 @@ class AnsiblePlaybookExecutionsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -107,27 +107,24 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
 
     public function isVlanAvailable($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_vlan_available', $value);
     }
 
     public function isVxlanAvailable($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_vxlan_available', $value);
     }
 
     public function isActive($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_active', $value);
     }
@@ -208,6 +205,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

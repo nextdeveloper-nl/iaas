@@ -13,12 +13,10 @@ class ComputeMembersCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'name' => 'nullable|string',
+            'name' => 'required|string',
         'hostname' => 'nullable|string',
         'ip_addr' => 'nullable',
         'local_ip_addr' => 'nullable',
-        'management_data' => 'nullable',
-        'features' => 'nullable',
         'is_behind_firewall' => 'boolean',
         'ssh_username' => 'nullable|string',
         'ssh_password' => 'nullable|string',

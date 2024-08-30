@@ -32,6 +32,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $total_ram
  * @property integer $used_cpu
  * @property integer $used_ram
+ * @property integer $free_cpu
  * @property integer $running_vm
  * @property integer $halted_vm
  * @property integer $total_vm
@@ -44,6 +45,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $iaas_compute_pool_id
  * @property string $maintainer
  * @property string $responsible
+ * @property $states
  * @property array $tags
  * @property integer $iam_account_id
  * @property integer $iam_user_id
@@ -77,6 +79,7 @@ class ComputeMembersPerspective extends Model
             'total_ram',
             'used_cpu',
             'used_ram',
+            'free_cpu',
             'running_vm',
             'halted_vm',
             'total_vm',
@@ -89,6 +92,7 @@ class ComputeMembersPerspective extends Model
             'iaas_compute_pool_id',
             'maintainer',
             'responsible',
+            'states',
             'tags',
             'iam_account_id',
             'iam_user_id',
@@ -127,6 +131,7 @@ class ComputeMembersPerspective extends Model
     'total_ram' => 'integer',
     'used_cpu' => 'integer',
     'used_ram' => 'integer',
+    'free_cpu' => 'integer',
     'running_vm' => 'integer',
     'halted_vm' => 'integer',
     'total_vm' => 'integer',
@@ -139,6 +144,7 @@ class ComputeMembersPerspective extends Model
     'iaas_compute_pool_id' => 'integer',
     'maintainer' => 'string',
     'responsible' => 'string',
+    'states' => 'array',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     ];
 
@@ -200,6 +206,7 @@ class ComputeMembersPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

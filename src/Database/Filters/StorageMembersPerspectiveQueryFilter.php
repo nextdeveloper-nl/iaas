@@ -81,27 +81,24 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isHealthy($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_healthy', $value);
     }
 
     public function isMaintenance($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_maintenance', $value);
     }
 
     public function isAlive($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_alive', $value);
     }
@@ -174,6 +171,7 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

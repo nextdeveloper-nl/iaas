@@ -15,7 +15,6 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\NetworkMemberXenService;
  */
 class Initiate extends AbstractAction
 {
-
     public const EVENTS = [
         'initiated:NextDeveloper\IAAS\ComputeMembers',
         'created:NextDeveloper\IAAS\StorageMembers',
@@ -26,6 +25,11 @@ class Initiate extends AbstractAction
     {
         $this->model = $computeMember;
 
+        $this->action->update([
+            'iam_user_id'       =>  $computeMember->iam_user_id,
+            'iam_account_id'    =>  $computeMember->iam_account_id
+        ]);
+
         $this->queue = 'iaas';
 
         parent::__construct();
@@ -33,8 +37,6 @@ class Initiate extends AbstractAction
 
     public function handle()
     {
-        $this->setUserAsThisActionOwner();
-
         $this->setProgress(0, 'Initiate compute member started');
 
         $hypervisorModel = HypervisorService::getHypervisor($this->model);
