@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                    
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,32 +37,32 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
     public function resourceValidator($value)
     {
         return $this->builder->where('resource_validator', 'like', '%' . $value . '%');
     }
-    
+
     public function virtualization($value)
     {
         return $this->builder->where('virtualization', 'like', '%' . $value . '%');
     }
-    
+
     public function provisioningAlg($value)
     {
         return $this->builder->where('provisioning_alg', 'like', '%' . $value . '%');
     }
-    
+
     public function poolType($value)
     {
         return $this->builder->where('pool_type', 'like', '%' . $value . '%');
     }
-    
+
     public function codeName($value)
     {
         return $this->builder->where('code_name', 'like', '%' . $value . '%');
@@ -96,25 +96,16 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
 
     public function isActive($value)
     {
-
-
-
         return $this->builder->where('is_active', $value);
     }
 
     public function isAlive($value)
     {
-
-
-
         return $this->builder->where('is_alive', $value);
     }
 
     public function isPublic($value)
     {
-
-
-
         return $this->builder->where('is_public', $value);
     }
 
