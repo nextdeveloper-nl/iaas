@@ -170,36 +170,32 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isPublic($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_public', $value);
     }
 
     public function isActive($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_active', $value);
     }
 
     public function isInMaintenance($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_in_maintenance', $value);
     }
 
     public function isCarrierNeutral($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_carrier_neutral', $value);
     }
@@ -253,6 +249,7 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -56,6 +56,8 @@ class AbstractNetworkMembersInterfacesTransformer extends AbstractTransformer
     {
                                                 $iaasNetworkMemberId = \NextDeveloper\IAAS\Database\Models\NetworkMembers::where('id', $model->iaas_network_member_id)->first();
                                                             $iaasNetworkId = \NextDeveloper\IAAS\Database\Models\Networks::where('id', $model->iaas_network_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                         
         return $this->buildPayload(
             [
@@ -70,6 +72,8 @@ class AbstractNetworkMembersInterfacesTransformer extends AbstractTransformer
             'is_up'  =>  $model->is_up,
             'iaas_network_id'  =>  $iaasNetworkId ? $iaasNetworkId->uuid : null,
             'is_shutdown'  =>  $model->is_shutdown,
+            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             ]
         );
     }
@@ -158,6 +162,7 @@ class AbstractNetworkMembersInterfacesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

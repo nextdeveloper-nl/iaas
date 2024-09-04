@@ -28,6 +28,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property boolean $is_up
  * @property integer $iaas_network_id
  * @property boolean $is_shutdown
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
  */
 class NetworkMembersInterfaces extends Model
 {
@@ -52,6 +54,8 @@ class NetworkMembersInterfaces extends Model
             'is_up',
             'iaas_network_id',
             'is_shutdown',
+            'iam_account_id',
+            'iam_user_id',
     ];
 
     /**
@@ -150,6 +154,7 @@ class NetworkMembersInterfaces extends Model
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

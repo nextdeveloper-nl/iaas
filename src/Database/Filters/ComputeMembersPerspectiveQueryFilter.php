@@ -151,6 +151,19 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_ram', $operator, $value);
     }
 
+    public function freeCpu($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('free_cpu', $operator, $value);
+    }
+
     public function runningVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -205,18 +218,16 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isInMaintenance($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_in_maintenance', $value);
     }
 
     public function isAlive($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_alive', $value);
     }
@@ -269,6 +280,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

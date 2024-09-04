@@ -27,6 +27,9 @@ class ComputePoolsUpdateRequest extends AbstractFormRequest
         'price_pergb' => '',
         'common_currency_id' => 'nullable|exists:common_currencies,uuid|uuid',
         'pool_type' => 'string',
+        'price_pergb_month' => 'nullable',
+        'disk_ram_ratio' => '',
+        'code_name' => 'string',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

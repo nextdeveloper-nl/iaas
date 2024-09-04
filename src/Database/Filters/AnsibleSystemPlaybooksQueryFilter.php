@@ -50,18 +50,16 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
 
     public function isPublic($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_public', $value);
     }
 
     public function isProcedure($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_procedure', $value);
     }
@@ -124,6 +122,7 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

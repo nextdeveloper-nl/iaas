@@ -166,9 +166,8 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isActive($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_active', $value);
     }
@@ -222,6 +221,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

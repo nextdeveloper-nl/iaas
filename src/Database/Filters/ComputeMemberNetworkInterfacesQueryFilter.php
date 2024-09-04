@@ -66,36 +66,32 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
 
     public function isManagement($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_management', $value);
     }
 
     public function isDefault($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_default', $value);
     }
 
     public function isConnected($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_connected', $value);
     }
 
     public function isBridge($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_bridge', $value);
     }
@@ -158,6 +154,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

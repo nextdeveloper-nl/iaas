@@ -31,6 +31,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $deleted_at
  * @property string $storage_pool_type
  * @property integer $iaas_datacenter_id
+ * @property $price_pergb_month
  */
 class StoragePools extends Model
 {
@@ -58,6 +59,7 @@ class StoragePools extends Model
             'common_currency_id',
             'storage_pool_type',
             'iaas_datacenter_id',
+            'price_pergb_month',
     ];
 
     /**
@@ -177,6 +179,7 @@ class StoragePools extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

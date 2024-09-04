@@ -78,6 +78,7 @@ class AbstractComputeMemberStorageVolumesTransformer extends AbstractTransformer
             'iaas_storage_member_id'  =>  $iaasStorageMemberId ? $iaasStorageMemberId->uuid : null,
             'iaas_storage_pool_id'  =>  $iaasStoragePoolId ? $iaasStoragePoolId->uuid : null,
             'iaas_compute_member_id'  =>  $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
+            'is_local_storage'  =>  $model->is_local_storage,
             ]
         );
     }
@@ -166,6 +167,7 @@ class AbstractComputeMemberStorageVolumesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

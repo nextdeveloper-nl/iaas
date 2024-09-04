@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,67 +37,82 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-
+    
     public function description($value)
     {
         return $this->builder->where('description', 'like', '%' . $value . '%');
     }
-
+    
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'like', '%' . $value . '%');
     }
-
+    
     public function username($value)
     {
         return $this->builder->where('username', 'like', '%' . $value . '%');
     }
-
+    
     public function os($value)
     {
         return $this->builder->where('os', 'like', '%' . $value . '%');
     }
-
+    
     public function distro($value)
     {
         return $this->builder->where('distro', 'like', '%' . $value . '%');
     }
-
+    
     public function version($value)
     {
         return $this->builder->where('version', 'like', '%' . $value . '%');
     }
-
+    
     public function domainType($value)
     {
         return $this->builder->where('domain_type', 'like', '%' . $value . '%');
     }
-
+    
     public function status($value)
     {
         return $this->builder->where('status', 'like', '%' . $value . '%');
     }
-
+    
     public function cloudNode($value)
     {
         return $this->builder->where('cloud_node', 'like', '%' . $value . '%');
     }
-
+    
     public function domain($value)
     {
         return $this->builder->where('domain', 'like', '%' . $value . '%');
     }
-
+    
+    public function network($value)
+    {
+        return $this->builder->where('network', 'like', '%' . $value . '%');
+    }
+    
+    public function autoBackupInterval($value)
+    {
+        return $this->builder->where('auto_backup_interval', 'like', '%' . $value . '%');
+    }
+    
+    public function autoBackupTime($value)
+    {
+        return $this->builder->where('auto_backup_time', 'like', '%' . $value . '%');
+    }
+    
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'like', '%' . $value . '%');
     }
-
+    
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'like', '%' . $value . '%');
@@ -181,13 +196,45 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('has_errors', $operator, $value);
     }
 
+    public function numberOfDisks($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('number_of_disks', $operator, $value);
+    }
+
+    public function totalDiskSize($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('total_disk_size', $operator, $value);
+    }
+
     public function isTemplate($value)
     {
+
+
+
         return $this->builder->where('is_template', $value);
     }
 
     public function isDraft($value)
     {
+
+
+
         return $this->builder->where('is_draft', $value);
     }
 
@@ -268,6 +315,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

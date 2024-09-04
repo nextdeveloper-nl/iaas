@@ -21,7 +21,7 @@ use NextDeveloper\IAAS\Services\StatService;
 class OnComputeMemberUpdate implements ShouldQueue
 {
     use InteractsWithQueue;
-
+  
     /**
      * The compute member model instance.
      *

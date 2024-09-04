@@ -206,38 +206,47 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('benchmark_score', $operator, $value);
     }
 
+    public function freeRam($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('free_ram', $operator, $value);
+    }
+
     public function isBehindFirewall($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_behind_firewall', $value);
     }
 
     public function isManagementAgentAvailable($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_management_agent_available', $value);
     }
 
     public function isInMaintenance($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_in_maintenance', $value);
     }
 
     public function isAlive($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_alive', $value);
     }
@@ -320,6 +329,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

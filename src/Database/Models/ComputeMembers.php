@@ -58,6 +58,7 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property integer $free_ram
  */
 class ComputeMembers extends Model
 {
@@ -111,6 +112,7 @@ class ComputeMembers extends Model
             'iam_account_id',
             'iam_user_id',
             'tags',
+            'free_ram',
     ];
 
     /**
@@ -152,7 +154,6 @@ class ComputeMembers extends Model
     'total_ram' => 'integer',
     'used_cpu' => 'integer',
     'used_ram' => 'integer',
-        'free_ram'  =>  'integer',
     'running_vm' => 'integer',
     'halted_vm' => 'integer',
     'total_vm' => 'integer',
@@ -168,6 +169,7 @@ class ComputeMembers extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'free_ram' => 'integer',
     ];
 
     /**
@@ -234,7 +236,7 @@ class ComputeMembers extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
     }
-
+    
     public function computeMemberStats() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStats::class);
@@ -281,6 +283,7 @@ class ComputeMembers extends Model
             },
         );
     }
+
 
 
 

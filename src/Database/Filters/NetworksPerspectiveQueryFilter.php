@@ -61,18 +61,16 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isDmz($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_dmz', $value);
     }
 
     public function isPublic($value)
     {
-        if(!is_bool($value)) {
-            $value = false;
-        }
+
+
 
         return $this->builder->where('is_public', $value);
     }
@@ -126,6 +124,7 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

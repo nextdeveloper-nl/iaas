@@ -64,7 +64,6 @@ class AbstractDhcpServersTransformer extends AbstractTransformer
             'name'  =>  $model->name,
             'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
             'dhcp_data'  =>  $model->dhcp_data,
-            'is_public'  =>  $model->is_public,
             'ssh_username'  =>  $model->ssh_username,
             'ssh_password'  =>  $model->ssh_password,
             'ip_addr'  =>  $model->ip_addr,
@@ -75,6 +74,7 @@ class AbstractDhcpServersTransformer extends AbstractTransformer
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'server_type'  =>  $model->server_type,
             ]
         );
     }
@@ -163,6 +163,7 @@ class AbstractDhcpServersTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

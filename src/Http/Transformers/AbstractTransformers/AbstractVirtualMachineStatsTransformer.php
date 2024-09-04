@@ -20,16 +20,16 @@ use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
 use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
 use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
 use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
-use NextDeveloper\IAAS\Database\Models\VirtualMahinesPerspective;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineStats;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
- * Class VirtualMahinesPerspectiveTransformer. This class is being used to manipulate the data we are serving to the customer
+ * Class VirtualMachineStatsTransformer. This class is being used to manipulate the data we are serving to the customer
  *
  * @package NextDeveloper\IAAS\Http\Transformers
  */
-class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
+class AbstractVirtualMachineStatsTransformer extends AbstractTransformer
 {
 
     /**
@@ -48,45 +48,20 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
     ];
 
     /**
-     * @param VirtualMahinesPerspective $model
+     * @param VirtualMachineStats $model
      *
      * @return array
      */
-    public function transform(VirtualMahinesPerspective $model)
+    public function transform(VirtualMachineStats $model)
     {
-                                                $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
-                                                            $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
-                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                                                $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
                         
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
-            'name'  =>  $model->name,
-            'description'  =>  $model->description,
-            'hostname'  =>  $model->hostname,
-            'username'  =>  $model->username,
-            'os'  =>  $model->os,
-            'distro'  =>  $model->distro,
-            'version'  =>  $model->version,
-            'domain_type'  =>  $model->domain_type,
-            'status'  =>  $model->status,
+            'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
             'cpu'  =>  $model->cpu,
             'ram'  =>  $model->ram,
-            'last_metadata_request'  =>  $model->last_metadata_request,
-            'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
-            'cloud_node'  =>  $model->cloud_node,
-            'common_domain_id'  =>  $commonDomainId ? $commonDomainId->uuid : null,
-            'domain'  =>  $model->domain,
-            'disk_count'  =>  $model->disk_count,
-            'network_card_count'  =>  $model->network_card_count,
-            'tags'  =>  $model->tags,
-            'is_template'  =>  $model->is_template,
-            'is_draft'  =>  $model->is_draft,
-            'maintainer'  =>  $model->maintainer,
-            'responsible'  =>  $model->responsible,
-            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
-            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
@@ -94,7 +69,7 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         );
     }
 
-    public function includeStates(VirtualMahinesPerspective $model)
+    public function includeStates(VirtualMachineStats $model)
     {
         $states = States::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -103,7 +78,7 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($states, new StatesTransformer());
     }
 
-    public function includeActions(VirtualMahinesPerspective $model)
+    public function includeActions(VirtualMachineStats $model)
     {
         $input = get_class($model);
         $input = str_replace('\\Database\\Models', '', $input);
@@ -115,7 +90,7 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($actions, new AvailableActionsTransformer());
     }
 
-    public function includeMedia(VirtualMahinesPerspective $model)
+    public function includeMedia(VirtualMachineStats $model)
     {
         $media = Media::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -124,7 +99,7 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($media, new MediaTransformer());
     }
 
-    public function includeSocialMedia(VirtualMahinesPerspective $model)
+    public function includeSocialMedia(VirtualMachineStats $model)
     {
         $socialMedia = SocialMedia::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -133,7 +108,7 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($socialMedia, new SocialMediaTransformer());
     }
 
-    public function includeComments(VirtualMahinesPerspective $model)
+    public function includeComments(VirtualMachineStats $model)
     {
         $comments = Comments::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -142,7 +117,7 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($comments, new CommentsTransformer());
     }
 
-    public function includeVotes(VirtualMahinesPerspective $model)
+    public function includeVotes(VirtualMachineStats $model)
     {
         $votes = Votes::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -151,7 +126,7 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($votes, new VotesTransformer());
     }
 
-    public function includeMeta(VirtualMahinesPerspective $model)
+    public function includeMeta(VirtualMachineStats $model)
     {
         $meta = Meta::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -160,7 +135,7 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($meta, new MetaTransformer());
     }
 
-    public function includePhoneNumbers(VirtualMahinesPerspective $model)
+    public function includePhoneNumbers(VirtualMachineStats $model)
     {
         $phoneNumbers = PhoneNumbers::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -169,7 +144,7 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($phoneNumbers, new PhoneNumbersTransformer());
     }
 
-    public function includeAddresses(VirtualMahinesPerspective $model)
+    public function includeAddresses(VirtualMachineStats $model)
     {
         $addresses = Addresses::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -178,15 +153,4 @@ class AbstractVirtualMahinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
 }

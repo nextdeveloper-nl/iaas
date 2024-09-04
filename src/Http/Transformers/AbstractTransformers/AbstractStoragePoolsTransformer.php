@@ -76,6 +76,7 @@ class AbstractStoragePoolsTransformer extends AbstractTransformer
             'deleted_at'  =>  $model->deleted_at,
             'storage_pool_type'  =>  $model->storage_pool_type,
             'iaas_datacenter_id'  =>  $iaasDatacenterId ? $iaasDatacenterId->uuid : null,
+            'price_pergb_month'  =>  $model->price_pergb_month,
             ]
         );
     }
@@ -164,6 +165,7 @@ class AbstractStoragePoolsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -178,14 +178,14 @@ class StorageVolumes extends Model
         }
     }
 
-    public function computeMemberStorageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes::class);
-    }
-
     public function storageVolumeStats() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumeStats::class);
+    }
+
+    public function computeMemberStorageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes::class);
     }
 
     public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -220,6 +220,7 @@ class StorageVolumes extends Model
             },
         );
     }
+
 
 
 
