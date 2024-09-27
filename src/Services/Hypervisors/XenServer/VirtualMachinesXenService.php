@@ -327,6 +327,10 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
+        //  This means that we dont have the compute member. So we return false.
+        if(!$computeMember)
+            return false;
+
         if(config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@getVmParameters] I am taking the' .
                 ' parameters of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .

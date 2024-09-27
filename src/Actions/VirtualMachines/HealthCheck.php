@@ -37,9 +37,9 @@ class HealthCheck extends AbstractAction
         $this->setProgress(0, 'Initiate virtual machine started');
 
         $this->setProgress(0, 'Marking the server as checking health');
-        $this->model->update([
-            'status'    =>  'checking-health'
-        ]);
+
+        $this->model->status = 'checking-health';
+        $this->model->saveQuietly();
 
         $this->setProgress(0, 'Checking if the virtual machine is alive');
         $isVmThere = VirtualMachinesXenService::checkIfVmIsThere($this->model);
@@ -66,9 +66,8 @@ class HealthCheck extends AbstractAction
 
         $this->setProgress(75, 'Marking the server power state as: ' . $vmParams['power-state']);
 
-        $this->model->update([
-            'status'    =>  $vmParams['power-state']
-        ]);
+        $this->model->status = 'checking-health';
+        $this->model->saveQuietly();
 
         $this->setProgress(100, 'Virtual machine initiated');
     }

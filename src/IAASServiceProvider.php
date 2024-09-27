@@ -119,7 +119,8 @@ class IAASServiceProvider extends AbstractServiceProvider {
     protected function registerCommands() {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \NextDeveloper\IAAS\Console\Commands\StartHealthCheck::class
+                \NextDeveloper\IAAS\Console\Commands\StartHealthCheck::class,
+                \NextDeveloper\IAAS\Console\Commands\RemoveDraftServers::class
             ]);
         }
     }
