@@ -20,7 +20,7 @@ class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
     {
         $this->addInclude('virtualNetworkCards');
 
-        parent($paramBag);
+        parent::__construct($paramBag);
     }
     /**
      * @param VirtualMachines $model
