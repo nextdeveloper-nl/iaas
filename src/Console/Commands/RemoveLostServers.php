@@ -3,6 +3,7 @@ namespace NextDeveloper\IAAS\Console\Commands;
 
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
@@ -10,11 +11,11 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
-class StartHealthCheck extends Command {
+class RemoveLostServers extends Command {
     /**
      * @var string
      */
-    protected $signature = 'leo:vm-health-check';
+    protected $signature = 'leo:vm-remove-lost';
 
     /**
      * @var string
@@ -27,25 +28,25 @@ class StartHealthCheck extends Command {
      * @return void
      */
     public function handle() {
-        $this->line('Starting for routine health check.');
-        Log::info(__METHOD__ . 'Starting for routine health check.');
+        $this->line('Starting for routine garbage collection.');
+        Log::info(__METHOD__ . 'Starting for routine garbage collection.');
 
         $vms = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
-            ->where('is_draft', false)
+            ->where('is_lost', 'true')
+            ->whereNull('deleted_at')
             ->get();
 
         foreach ($vms as $vm) {
-            Log::info(__METHOD__ . ' | Started health check for VM: ' . $vm->uuid);
+            $isOld = Carbon::now()->subMinutes(15)->greaterThan($vm->created_at);
 
-            //  We are setting this because we want this action to be able run all the times!!!!
-            UserHelper::setUserById($vm->iam_user_id);
-            UserHelper::setCurrentAccountById($vm->iam_account_id);
+            if(!$isOld)
+                continue;
 
-            $job = new HealthCheck($vm);
-            $id = $job->getActionId();
+            Log::info(__METHOD__ . ' Removing the lost VM from the list: ' . $vm->name);
 
-            dispatch($job)->onQueue('iaas-health-check');
+            $vm->deleted_at = now();
+            $vm->saveQuietly();
         }
     }
 }

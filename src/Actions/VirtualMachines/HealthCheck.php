@@ -49,12 +49,14 @@ class HealthCheck extends AbstractAction
 
         if(!$isVmThere) {
             //  This means that the VM is not there. Lets check if its already dead or not;
-            if(!$this->model->is_lost) {
-                //  Oops the VM is lost! We should mark it as lost
-                $this->model->update([
-                    'is_lost' => true
-                ]);
-            }
+
+            //  Oops the VM is lost! We should mark it as lost
+            $this->model->is_lost = true;
+            $this->model->status = 'lost';
+            $this->model->deleted_at = now();
+            $this->model->saveQuietly();
+
+            Log::info(__METHOD__ . ' | Marked VM as lost: ' . $this->model->name);
 
             Events::fire('vm-is-lost:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
@@ -66,7 +68,7 @@ class HealthCheck extends AbstractAction
 
         $this->setProgress(75, 'Marking the server power state as: ' . $vmParams['power-state']);
 
-        $this->model->status = 'checking-health';
+        $this->model->status = $vmParams['power-state'];
         $this->model->saveQuietly();
 
         $this->setProgress(100, 'Virtual machine initiated');
