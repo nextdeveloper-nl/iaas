@@ -33,12 +33,39 @@ class Start extends AbstractAction
     {
         $this->setProgress(0, 'Initiate virtual machine started');
 
+        if($this->model->is_lost) {
+            $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
+            return;
+        }
+
+        if($this->model->deleted_at != null) {
+            $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
         Events::fire('starting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         (new Fix($this->model))->handle();
 
         $vm = VirtualMachinesXenService::start($this->model);
         $vmParams = VirtualMachinesXenService::getVmParameters($vm);
+
+        if(!array_key_exists('power_state', $vmParams)) {
+            //  The VM must not be available to be honest. So we should make a health check here.
+            $this->model->update([
+                'status'    =>  'checking-health'
+            ]);
+
+            $job = new HealthCheck($this->model);
+            $id = $job->getActionId();
+
+            dispatch($job)->onQueue('iaas');
+
+            $this->setProgress(100, 'Checking the health of the VM. ' .
+                'We suspect something is happening to it.');
+
+            return $id;
+        }
 
         if(config('leo.debug.iaas.compute_members'))
             Log::error('[Start@handle] I am starting the' .

@@ -32,10 +32,48 @@ class ForceShutdown extends AbstractAction
     {
         $this->setProgress(0, 'Initiate virtual machine hard shutdown');
 
+        if($this->model->is_lost) {
+            $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
+            return;
+        }
+
+        if($this->model->deleted_at != null) {
+            $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
+        //  Checking if the VM is lost;
+        if($this->model->is_lost) {
+            $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
+            return;
+        }
+
+        if($this->model->deleted_at != null) {
+            $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
         Events::fire('unplugging:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         $vm = VirtualMachinesXenService::forceShutdown($this->model);
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+
+        if(!array_key_exists('power_state', $vmParams)) {
+            //  The VM must not be available to be honest. So we should make a health check here.
+            $this->model->update([
+                'status'    =>  'checking-health'
+            ]);
+
+            $job = new HealthCheck($this->model);
+            $id = $job->getActionId();
+
+            dispatch($job)->onQueue('iaas');
+
+            $this->setProgress(100, 'Checking the health of the VM. ' .
+                'We suspect something is happening to it.');
+
+            return $id;
+        }
 
         if($vmParams['power-state'] != 'halted') {
             $this->setProgress(100, 'Virtual machine failed to hard shutdown');

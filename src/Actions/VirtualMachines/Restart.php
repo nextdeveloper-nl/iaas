@@ -32,6 +32,16 @@ class Restart extends AbstractAction
     {
         $this->setProgress(0, 'Restarting the virtual machine');
 
+        if($this->model->is_lost) {
+            $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
+            return;
+        }
+
+        if($this->model->deleted_at != null) {
+            $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
         (new Fix($this->model))->handle();
 
         Events::fire('restarting:NextDeveloper\IAAS\VirtualMachines', $this->model);

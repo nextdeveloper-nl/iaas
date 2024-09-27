@@ -2,8 +2,11 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 
 /**
  * This action converts the virtual machine into a template
@@ -18,13 +21,12 @@ class HealthCheck extends AbstractAction
         'running:NextDeveloper\IAAS\VirtualMachines',
         'paused:NextDeveloper\IAAS\VirtualMachines',
         'resumed:NextDeveloper\IAAS\VirtualMachines',
-        'health-check-failed:NextDeveloper\IAAS\VirtualMachines'
+        'health-check-failed:NextDeveloper\IAAS\VirtualMachines',
+        'vm-is-lost:NextDeveloper\IAAS\VirtualMachines'
     ];
 
     public function __construct(VirtualMachines $vm)
     {
-        trigger_error('This action is not yet implemented', E_USER_ERROR);
-
         $this->queue = 'iaas-health-check';
 
         $this->model = $vm;
@@ -34,8 +36,39 @@ class HealthCheck extends AbstractAction
     {
         $this->setProgress(0, 'Initiate virtual machine started');
 
-        $this->model->status = 'initiated';
-        $this->model->save();
+        $this->setProgress(0, 'Marking the server as checking health');
+        $this->model->update([
+            'status'    =>  'checking-health'
+        ]);
+
+        $this->setProgress(0, 'Checking if the virtual machine is alive');
+        $isVmThere = VirtualMachinesXenService::checkIfVmIsThere($this->model);
+
+        Log::info(__METHOD__ . ' | We checked if VM (' . $this->model->uuid
+            . ' exists, and the result is: ' . ($isVmThere ? 'TRUE' : 'FALSE'));
+
+        if(!$isVmThere) {
+            //  This means that the VM is not there. Lets check if its already dead or not;
+            if(!$this->model->is_lost) {
+                //  Oops the VM is lost! We should mark it as lost
+                $this->model->update([
+                    'is_lost' => true
+                ]);
+            }
+
+            Events::fire('vm-is-lost:NextDeveloper\IAAS\VirtualMachines', $this->model);
+
+            $this->setProgress(100, 'Virtual machine marked as lost.');
+            return;
+        }
+
+        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+
+        $this->setProgress(75, 'Marking the server power state as: ' . $vmParams['power-state']);
+
+        $this->model->update([
+            'status'    =>  $vmParams['power-state']
+        ]);
 
         $this->setProgress(100, 'Virtual machine initiated');
     }

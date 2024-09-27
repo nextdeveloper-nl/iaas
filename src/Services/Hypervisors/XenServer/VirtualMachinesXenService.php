@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
@@ -160,7 +161,7 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function convertSnapshotToVm(VirtualMachines $vm, $name) : bool
+    public static function convertSnapshotToVm(VirtualMachines $vm, $name = null) : bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
@@ -171,7 +172,10 @@ class VirtualMachinesXenService extends AbstractXenService
                 ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
-        $command = 'xe vm-snapshot vm=' . $vm->uuid . ' new-name-label=ss-' . $vm->uuid;
+        if(!$name)
+            $name = 'Converted ' . $vm->name;
+
+        $command = 'xe vm-snapshot vm=' . $vm->uuid . ' new-name-label="' . $name . '"';
         $result = self::performCommand($command, $computeMember);
         $result = $result[0]['output'];
 
@@ -315,6 +319,26 @@ class VirtualMachinesXenService extends AbstractXenService
         $result = self::performCommand($command, $computeMember);
 
         return self::parseResult($result[0]['output']);
+    }
+
+    public static function checkIfVmIsThere(VirtualMachines $vm): bool
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@getVmParameters] I am taking the' .
+                ' parameters of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-param-list uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        if(Str::contains($result[0]['error'], 'The uuid you supplied was invalid'))
+            return false;
+
+        return true;
     }
 
     public static function getVmParametersByUuid(ComputeMembers $computeMember, $vmUuid) : array

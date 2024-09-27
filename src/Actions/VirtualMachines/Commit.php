@@ -60,6 +60,16 @@ class Commit extends AbstractAction
     {
         $this->setProgress(0, 'Committing virtual machine...');
 
+        if($this->model->is_lost) {
+            $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
+            return;
+        }
+
+        if($this->model->deleted_at != null) {
+            $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
         $vm = $this->model;
 
         if (!$vm->is_draft && $vm->status != 'pending-update') {

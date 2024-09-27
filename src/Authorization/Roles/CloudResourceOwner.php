@@ -32,6 +32,13 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
      */
     public function apply(Builder $builder, Model $model)
     {
+        if(
+            $model->getTable() == 'iaas_compute_pools' ||
+            $model->getTable() == 'iaas_compute_pools_perspective'
+        ) {
+            $builder->where('iam_account_id', UserHelper::currentAccount()->id)
+                ->orWhere('is_public', true);
+        }
         /**
          * Here user will be able to list all models, because by default, sales manager can see everybody.
          */

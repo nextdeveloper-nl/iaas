@@ -29,6 +29,16 @@ class Delete extends AbstractAction
     {
         $this->setProgress(0, 'Initiate virtual machine started');
 
+        if($this->model->is_lost) {
+            $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
+            return;
+        }
+
+        if($this->model->deleted_at != null) {
+            $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
         $this->model->status = 'initiated';
         $this->model->save();
 

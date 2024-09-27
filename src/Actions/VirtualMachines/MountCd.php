@@ -48,6 +48,16 @@ class MountCd extends AbstractAction
     {
         $this->setProgress(0, 'Mounting CD to virtual machine');
 
+        if($this->model->is_lost) {
+            $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
+            return;
+        }
+
+        if($this->model->deleted_at != null) {
+            $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
         Events::fire('mounting-cd:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         $this->setProgress(30, 'Mounting ISO library if its not mounted');

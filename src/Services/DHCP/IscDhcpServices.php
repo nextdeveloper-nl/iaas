@@ -24,7 +24,6 @@ class IscDhcpServices
         $config .= 'max-lease-time 172850;' . PHP_EOL;
         $config .= 'authoritative;' . PHP_EOL;
         $config .= 'log-facility local7;' . PHP_EOL;
-        $config .= 'include "/etc/dhcp/mac.conf";' . PHP_EOL;
         $config .= PHP_EOL;
 
         $networks = Networks::withoutGlobalScope(AuthorizationScope::class)

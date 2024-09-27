@@ -32,6 +32,16 @@ class Pause extends AbstractAction
     {
         $this->setProgress(0, 'Initiate virtual machine started');
 
+        if($this->model->is_lost) {
+            $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
+            return;
+        }
+
+        if($this->model->deleted_at != null) {
+            $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
         (new Fix($this->model))->handle();
 
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
