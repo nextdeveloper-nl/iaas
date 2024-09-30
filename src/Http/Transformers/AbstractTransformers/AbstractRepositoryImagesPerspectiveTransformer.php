@@ -57,11 +57,12 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
                                                 $iaasRepositoryId = \NextDeveloper\IAAS\Database\Models\Repositories::where('id', $model->iaas_repository_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
             'image'  =>  $model->image,
+            'name'  =>  $model->name,
             'os'  =>  $model->os,
             'distro'  =>  $model->distro,
             'version'  =>  $model->version,
