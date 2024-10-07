@@ -2,8 +2,11 @@
 
 namespace NextDeveloper\IAAS\EventHandlers\ComputeMembers;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStats;
@@ -20,8 +23,8 @@ use NextDeveloper\IAAS\Services\StatService;
  */
 class OnComputeMemberUpdate implements ShouldQueue
 {
-    use InteractsWithQueue;
-  
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     /**
      * The compute member model instance.
      *

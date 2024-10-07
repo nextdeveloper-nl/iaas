@@ -25,11 +25,6 @@ class Initiate extends AbstractAction
     {
         $this->model = $computeMember;
 
-        $this->action->update([
-            'iam_user_id'       =>  $computeMember->iam_user_id,
-            'iam_account_id'    =>  $computeMember->iam_account_id
-        ]);
-
         $this->queue = 'iaas';
 
         parent::__construct();
