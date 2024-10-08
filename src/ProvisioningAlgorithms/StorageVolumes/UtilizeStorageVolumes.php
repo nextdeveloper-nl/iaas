@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes;
 
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
@@ -25,6 +26,8 @@ class UtilizeStorageVolumes extends AbstractStorageVolumeAlgorithm
      */
     public function calculate(ComputeMembers $member, $size) : ? StorageVolumes
     {
+        Log::info(__METHOD__ . ' | Calculating the volume needed for the compute member: ' . $member->name);
+
         /**
          * We need to find the perfect storage volume for this compute member. We will try to find the most busy
          * one first.
@@ -37,6 +40,8 @@ class UtilizeStorageVolumes extends AbstractStorageVolumeAlgorithm
             ->where('iaas_storage_pool_id', $this->storagePools->id)
             ->pluck('iaas_storage_volume_id');
 
+        Log::info(__METHOD__ . ' | Found volumes mounted: ', $storageVolumesMounted);
+
         /**
          * We didnt check the disk size here. We need to check the disk size here.
          */
@@ -44,6 +49,8 @@ class UtilizeStorageVolumes extends AbstractStorageVolumeAlgorithm
         $storageVolumes = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->whereIn('id', $storageVolumesMounted)
             ->first();
+
+        Log::info(__METHOD__ . ' | Volume we select: ', $storageVolumes);
 
         return $storageVolumes;
     }
