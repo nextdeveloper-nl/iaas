@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
@@ -21,6 +22,7 @@ use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
 use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class ComputeMemberXenService extends AbstractXenService
@@ -500,6 +502,34 @@ physical interfaces and vlans of compute member');
         return ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('hypervisor_uuid', $uuid)
             ->first();
+    }
+
+    public static function mountDefaultBackupRepository(ComputeMembers $computeMember) : array {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Starting to mount default backup repo ' .
+                'of compute member: ' . $computeMember->name);
+
+        $computeMemberPath = '/mnt/plusclouds-backup-repo';
+        $createDirectoryCommand = 'mkdir -p ' . $computeMemberPath;
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Creating the directory with command; ' .
+                $createDirectoryCommand);
+
+        $result = self::performCommand($createDirectoryCommand, $computeMember);
+        $result = $result[0]['output'];
+
+        $cloudNode = ComputeMembersService::getCloudNode($computeMember);
+
+        $mountRepoCommand = 'mount -t nfs ' . $cloudNode->default_backup_path . ' /mnt/plusclouds-backup-repo';
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Mounting the default backup ' .
+                'repo with command: ' . $mountRepoCommand);
+
+        $result = self::performCommand($mountRepoCommand, $computeMember);
+
+        return $result[0];
     }
 
     public static function mountVmRepository(ComputeMembers $computeMember, Repositories $repo) : bool

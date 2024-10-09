@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use GPBMetadata\Google\Api\Auth;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Helpers\MetaHelper;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
@@ -24,7 +25,9 @@ use NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes\UtilizeStorageVolum
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\IpAddressesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\Intelligence\Services\IpsService;
 
 /**
  * This action converts a draft virtual machine to a live virtual machine. This action should be triggered when the
@@ -97,6 +100,8 @@ class Commit extends AbstractAction
 
         $this->setupNetworking(70);
 
+        $this->setupIp(80);
+
         $vm->update([
             'status' => 'halted',
         ]);
@@ -111,6 +116,25 @@ class Commit extends AbstractAction
                 VirtualMachinesXenService::setCPUCore($this->model, $this->model->cpu);
                 VirtualMachinesXenService::setRam($this->model, $this->model->ram);
                 break;
+        }
+    }
+
+    private function setupIp($step)
+    {
+        $vifs = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $this->model->id)
+            ->get();
+
+        foreach ($vifs as $vif) {
+            $addIp = MetaHelper::get($vif, 'auto_add_ip_v4');
+
+            if($addIp) {
+                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_network_id', $vif->iaas_network_id)
+                    ->first();
+
+                $randomIp = IpAddressesService::getRandomAvailableIp($network);
+            }
         }
     }
 
@@ -163,8 +187,11 @@ class Commit extends AbstractAction
                     ->where('id', $config->iaas_network_id)
                     ->first();
 
+                $vm = $this->model->fresh();
+
                 $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
                     ->where('vlan', $network->vlan)
+                    ->where('iaas_compute_member_id', $vm->iaas_compute_member_id)
                     ->first();
 
                 $result = VirtualMachinesXenService::createVif($vm, $cmni->network_uuid, $config->device_number);
@@ -301,6 +328,7 @@ class Commit extends AbstractAction
     {
         $this->setProgress($step + 4, 'Mounting repository to compute member');
         ComputeMemberXenService::mountVmRepository($computeMember, $repo);
+
         $this->setProgress($step + 5, 'Importing virtual machine image');
         $uuid = ComputeMemberXenService::importVirtualMachine($computeMember, $volume, $image);
 

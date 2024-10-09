@@ -2,10 +2,17 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\VirtualMachineBackupsService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action converts the virtual machine into a template
@@ -31,6 +38,8 @@ class Backup extends AbstractAction
     {
         $this->setProgress(0, 'Initiate virtual machine started');
 
+        $backupStarts = Carbon::now();
+
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
             return;
@@ -43,13 +52,128 @@ class Backup extends AbstractAction
 
         $this->setProgress(10, 'Taking the snapshot of the virtual machine');
 
-        VirtualMachinesXenService::takeSnapshot($this->model);
+        $snapshot = VirtualMachinesXenService::takeSnapshot($this->model);
 
-        VirtualMachinesXenService::convertSnapshotToVm($this->model);
+        if($snapshot['error']) {
+            //  There is an error
+            dd($snapshot);
+        }
 
-        $this->model->status = 'initiated';
-        $this->model->save();
+        $uuid = $snapshot['output'];
 
-        $this->setProgress(100, 'Virtual machine initiated');
+        Log::info('[' . __METHOD__ . '] Taken the snapshot. The uuid of snapshot: ' . $uuid);
+
+        $this->setProgress(10, 'Snapshot is taken, creating the snapshot object.');
+
+        $snapshot = VirtualMachinesService::create([
+            'name'  =>  'Snapshot of ' . $this->model->name,
+            'hypervisor_uuid'   =>  $uuid,
+            'is_snapshot'   =>  true,
+            'is_draft'  =>  false,
+            'os'    =>  $this->model->os,
+            'distro'    =>  $this->model->distro,
+            'version'   =>  $this->model->version,
+            'status'    =>  'halted',
+            'cpu'   =>  $this->model->cpu,
+            'ram'   =>  $this->model->ram,
+            'auto_backup_interval'  =>  'none',
+            'auto_backup_time'  =>  'none',
+            'iaas_compute_pool_id'  =>  $this->model->iaas_compute_pool_id,
+            'iaas_compute_member_id'    =>  $this->model->iaas_compute_member_id,
+            'iaas_cloud_node_id'  =>  $this->model->iaas_cloud_node_id
+        ]);
+
+        $this->setProgress(10, 'Fixing the name of the snapshot.');
+
+        VirtualMachinesXenService::fixName($snapshot);
+
+        $this->setProgress(10, 'Converting Snapshot to VM.');
+
+        $convertResult = VirtualMachinesXenService::convertSnapshotToVm($snapshot);
+
+        $this->setProgress(10, 'Cloning the VM.');
+
+        $clonedVm = VirtualMachinesXenService::cloneVm($snapshot);
+        $clonedVm = $clonedVm['output'];
+
+        $this->setProgress(10, 'Deleting the snapshot.');
+
+        //  Now we can delete the snapshot.
+        $destroyResult = VirtualMachinesXenService::destroyVm($snapshot);
+        $snapshot->delete();
+
+        Log::info('[' . __METHOD__ . '] VM is cloned, the new uuid is: ' . $clonedVm);
+
+        $clonedVm = VirtualMachinesService::create([
+            'name'  =>  'Clone of ' . $this->model->name,
+            'hypervisor_uuid'   =>  $clonedVm,
+            'is_snapshot'   =>  true,
+            'is_draft'  =>  false,
+            'os'    =>  $this->model->os,
+            'distro'    =>  $this->model->distro,
+            'version'   =>  $this->model->version,
+            'status'    =>  'halted',
+            'cpu'   =>  $this->model->cpu,
+            'ram'   =>  $this->model->ram,
+            'auto_backup_interval'  =>  'none',
+            'auto_backup_time'  =>  'none',
+            'iaas_compute_pool_id'  =>  $this->model->iaas_compute_pool_id,
+            'iaas_compute_member_id'    =>  $this->model->iaas_compute_member_id,
+            'iaas_cloud_node_id'  =>  $this->model->iaas_cloud_node_id
+        ]);
+
+        $this->setProgress(10, 'Fixing the cloned vm name.');
+
+        VirtualMachinesXenService::fixName($clonedVm);
+
+        $computeMember = VirtualMachinesService::getComputeMember($clonedVm);
+
+        $this->setProgress(10, 'Mounting default backup repository.');
+
+        ComputeMemberXenService::mountDefaultBackupRepository($computeMember);
+
+        $this->setProgress(10, 'Removing all the VIFs of cloned VM.');
+
+        $vifs = VirtualMachinesXenService::getVifs($clonedVm);
+
+        foreach ($vifs as $vif) {
+            VirtualMachinesXenService::destroyVif($clonedVm, $vif['uuid']);
+        }
+
+        $this->setProgress(10, 'Exporting to the default backup repository.');
+
+        $backupResult = VirtualMachinesXenService::exportToDefaultBackupRepository($clonedVm);
+
+        $backupEnds = Carbon::now();
+        $backupDiff = $backupEnds->diffInSeconds($backupStarts);
+
+        $vmBackup = VirtualMachineBackupsService::create([
+            'name'  =>  'Backup of ' . $this->model->name,
+            'path'  =>  $backupResult['path'],
+            'filename'  =>  $backupResult['filename'],
+            'username'  =>  $this->model->username,
+            'password'  =>  $this->model->password,
+            'size'      =>  0,
+            'ram'       =>  $this->model->ram,
+            'cpu'       =>  $this->model->cpu,
+            'hash'      =>  0,
+            'status'    =>  'backed-up',
+            'backup_starts' =>  $backupStarts->timestamp,
+            'backup_ends'   =>  $backupEnds->timestamp,
+            'backup-type'   =>  'full-backup',
+            'iaas_virtual_machine_id'   =>  $this->model->id,
+            'iam_account_id'    =>  UserHelper::currentAccount()->id,
+            'iam_user_id'   =>  UserHelper::currentUser()->id
+        ]);
+
+        $this->setProgress(10, 'VM exported. It took: ' . $backupDiff . ' seconds.');
+
+        Events::fire('backed-up:NextDeveloper\IAAS\VirtualMachines', $this->model);
+
+        VirtualMachinesXenService::destroyVm($clonedVm);
+
+        $clonedVm->delete();
+
+        $this->setProgress(100, 'Virtual machine backup finished');
     }
 }

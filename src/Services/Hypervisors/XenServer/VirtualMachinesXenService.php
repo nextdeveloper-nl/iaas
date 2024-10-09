@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
@@ -10,6 +11,7 @@ use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class VirtualMachinesXenService extends AbstractXenService
@@ -140,7 +142,7 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function takeSnapshot(VirtualMachines $vm, $name = null) : bool
+    public static function takeSnapshot(VirtualMachines $vm, $name = null) : array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
@@ -156,30 +158,62 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-snapshot vm=' . $vm->uuid . ' new-name-label=' . $name;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
 
-        return true;
+        return $result[0];
     }
 
-    public static function convertSnapshotToVm(VirtualMachines $vm, $name = null) : bool
+    public static function convertSnapshotToVm(VirtualMachines $vm, $name = null) : array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
         if(config('leo.debug.iaas.compute_members'))
-            Log::error('[VirtualMachinesXenService@shutdown] I am finding snapshots of the' .
+            Log::error('[' . __METHOD__ . '] I am finding snapshots of the' .
                 ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         if(!$name)
             $name = 'Converted ' . $vm->name;
 
-        $command = 'xe vm-snapshot vm=' . $vm->uuid . ' new-name-label="' . $name . '"';
+        $command = 'xe snapshot-param-set is-a-template=false uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
 
-        return true;
+        return $result[0];
+    }
+
+    public static function destroyVm(VirtualMachines $vm) : array
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[VirtualMachinesXenService@cloneVm] I am deleting the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-destroy uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        return $result[0];
+    }
+
+    public static function cloneVm(VirtualMachines $vm) : array
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[VirtualMachinesXenService@cloneVm] I am cloning the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-clone vm=' . $vm->uuid . ' new-name-label=cloned-' . $vm->uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        return $result[0];
     }
 
     public static function fixName(VirtualMachines $vm) : bool
@@ -188,7 +222,7 @@ class VirtualMachinesXenService extends AbstractXenService
             return true;
 
         if(config('leo.debug.iaas.compute_members'))
-            Log::error('[VirtualMachinesXenService@fixName] I am fixing the' .
+            Log::info('[VirtualMachinesXenService@fixName] I am fixing the' .
                 ' name of the VM (' . $vm->name. '/' . $vm->uuid . ')');
 
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
@@ -281,6 +315,29 @@ class VirtualMachinesXenService extends AbstractXenService
         ]);
 
         return true;
+    }
+
+    public static function exportToDefaultBackupRepository(VirtualMachines $vm) : array
+    {
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        $backupName = $vm->uuid . '.' . (new Carbon($vm->created_at))->timestamp . '.backup';
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@export] I am exporting the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') to default repo under name ' .
+                $backupName . '.backup from compute member' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
+            'filename=/mnt/plusclouds-backup-repo/' . $backupName;
+
+        $result = self::performCommand($command, $computeMember);
+
+        $result[0]['filename'] = $backupName;
+        $result[0]['path']  =   'default-backup-repo://' . $backupName;
+
+        return $result[0];
     }
 
     public static function export(VirtualMachines $vm, Repositories $repo) : string
@@ -424,7 +481,10 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vif-create vm-uuid=' . $vm->hypervisor_uuid . ' device=' . $device . ' ' .
             'network-uuid=' . $networkUuid;
+
         $result = self::performCommand($command, $computeMember);
+
+        Log::info('[' . __METHOD__ . '] The result of creating the VIF is: ' . print_r($result, true));
 
         return $result[0]['output'];
     }

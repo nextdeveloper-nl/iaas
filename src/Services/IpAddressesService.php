@@ -18,9 +18,11 @@ class IpAddressesService extends AbstractIpAddressesService
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-    public static function getRandomAvailableIp(Networks $network)
+    public static function getRandomAvailableIp(Networks $network) : string
     {
         $subnet = $network->cidr;
+        dump($subnet);
+
         $subnetCalculator = new SubnetCalculator($subnet[0], $subnet[1]);
 
         dd($subnetCalculator);

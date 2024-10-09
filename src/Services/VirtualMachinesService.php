@@ -2,9 +2,13 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
+use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * This class is responsible from managing the data for VirtualMachines
@@ -36,12 +40,25 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
         //  Finging and attaching cloud node id
         if(array_key_exists('iaas_compute_pool_id', $data)) {
-            $computePool = ComputePools::where('uuid', $data['iaas_compute_pool_id'])->first();
-            $cloudNode = CloudNodes::where('id', $computePool->iaas_cloud_node_id)->first();
+            $computePool = null;
 
+            if(Str::isUuid($data['iaas_compute_pool_id'])) {
+                $computePool = ComputePools::where('uuid', $data['iaas_compute_pool_id'])->first();
+            } else {
+                $computePool = ComputePools::where('id', $data['iaas_compute_pool_id'])->first();
+            }
+
+            $cloudNode = CloudNodes::where('id', $computePool->iaas_cloud_node_id)->first();
             $data['iaas_cloud_node_id'] = $cloudNode->id;
         }
 
         return parent::create($data);
+    }
+
+    public static function getComputeMember(VirtualMachines $vm)
+    {
+        return ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
     }
 }
