@@ -59,7 +59,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
                                                             $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -89,6 +89,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'ip_addr'  =>  $model->ip_addr,
             'states'  =>  $model->states,
             'tags'  =>  $model->tags,
+            'is_snapshot'   =>  $model->is_snapshot,
             'is_template'  =>  $model->is_template,
             'is_draft'  =>  $model->is_draft,
             'auto_backup_interval'  =>  $model->auto_backup_interval,

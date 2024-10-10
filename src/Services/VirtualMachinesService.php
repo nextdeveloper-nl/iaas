@@ -61,4 +61,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
     }
+
+    public static function getPasswordById($id)
+    {
+        $vm = VirtualMachines::where('uuid', $id)->first();
+
+        return decrypt($vm->password);
+    }
 }
