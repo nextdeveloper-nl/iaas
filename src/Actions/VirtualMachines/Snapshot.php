@@ -54,6 +54,7 @@ class Snapshot extends AbstractAction
         $uuid = $snapshot['output'];
 
         $snapshot = VirtualMachinesService::create([
+            'snapshot_of_virtual_machine'   =>  $this->model->id,
             'name'  =>  'Snapshot of ' . $this->model->name,
             'hypervisor_uuid'   =>  $uuid,
             'is_snapshot'   =>  true,
