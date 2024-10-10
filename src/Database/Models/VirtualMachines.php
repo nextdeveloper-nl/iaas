@@ -71,138 +71,139 @@ class VirtualMachines extends Model
 
 
     /**
-     @var array
+     * @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-            'name',
-            'username',
-            'password',
-            'hostname',
-            'description',
-            'os',
-            'distro',
-            'version',
-            'domain_type',
-            'status',
-            'cpu',
-            'ram',
-            'is_winrm_enabled',
-            'available_operations',
-            'current_operations',
-            'blocked_operations',
-            'console_data',
-            'is_snapshot',
-            'is_lost',
-            'is_locked',
-            'last_metadata_request',
-            'features',
-            'hypervisor_uuid',
-            'hypervisor_data',
-            'iaas_cloud_node_id',
-            'iaas_compute_member_id',
-            'iam_account_id',
-            'iam_user_id',
-            'template_id',
-            'tags',
-            'is_draft',
-            'common_domain_id',
-            'lock_password',
-            'is_template',
-            'iaas_repository_image_id',
-            'iaas_compute_pool_id',
-            'auto_backup_interval',
-            'auto_backup_time',
+        'name',
+        'username',
+        'password',
+        'hostname',
+        'description',
+        'os',
+        'distro',
+        'version',
+        'domain_type',
+        'status',
+        'cpu',
+        'ram',
+        'is_winrm_enabled',
+        'available_operations',
+        'current_operations',
+        'blocked_operations',
+        'console_data',
+        'is_snapshot',
+        'is_lost',
+        'is_locked',
+        'last_metadata_request',
+        'features',
+        'hypervisor_uuid',
+        'hypervisor_data',
+        'iaas_cloud_node_id',
+        'iaas_compute_member_id',
+        'iam_account_id',
+        'iam_user_id',
+        'template_id',
+        'tags',
+        'is_draft',
+        'common_domain_id',
+        'lock_password',
+        'is_template',
+        'iaas_repository_image_id',
+        'iaas_compute_pool_id',
+        'auto_backup_interval',
+        'auto_backup_time',
+        'snapshot_of_virtual_machine'
     ];
 
     /**
-      Here we have the fulltext fields. We can use these for fulltext search if enabled.
+     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     We are casting fields to objects so that we can work on them better
+     * We are casting fields to objects so that we can work on them better
      *
-     @var array
+     * @var array
      */
     protected $casts = [
-    'id' => 'integer',
-    'name' => 'string',
-    'username' => 'string',
-    'password' => 'string',
-    'hostname' => 'string',
-    'description' => 'string',
-    'os' => 'string',
-    'distro' => 'string',
-    'version' => 'string',
-    'domain_type' => 'string',
-    'status' => 'string',
-    'cpu' => 'integer',
-    'ram' => 'integer',
-    'is_winrm_enabled' => 'boolean',
-    'available_operations' => 'array',
-    'current_operations' => 'array',
-    'blocked_operations' => 'array',
-    'console_data' => 'array',
-    'is_snapshot' => 'boolean',
-    'is_lost' => 'boolean',
-    'is_locked' => 'boolean',
-    'last_metadata_request' => 'datetime',
-    'features' => 'array',
-    'hypervisor_data' => 'array',
-    'iaas_cloud_node_id' => 'integer',
-    'iaas_compute_member_id' => 'integer',
-    'template_id' => 'integer',
-    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
-    'is_draft' => 'boolean',
-    'common_domain_id' => 'integer',
-    'lock_password' => 'string',
-    'is_template' => 'boolean',
-    'iaas_repository_image_id' => 'integer',
-    'iaas_compute_pool_id' => 'integer',
-    'auto_backup_interval' => 'string',
-    'auto_backup_time' => 'string',
+        'id' => 'integer',
+        'name' => 'string',
+        'username' => 'string',
+        'password' => 'string',
+        'hostname' => 'string',
+        'description' => 'string',
+        'os' => 'string',
+        'distro' => 'string',
+        'version' => 'string',
+        'domain_type' => 'string',
+        'status' => 'string',
+        'cpu' => 'integer',
+        'ram' => 'integer',
+        'is_winrm_enabled' => 'boolean',
+        'available_operations' => 'array',
+        'current_operations' => 'array',
+        'blocked_operations' => 'array',
+        'console_data' => 'array',
+        'is_snapshot' => 'boolean',
+        'is_lost' => 'boolean',
+        'is_locked' => 'boolean',
+        'last_metadata_request' => 'datetime',
+        'features' => 'array',
+        'hypervisor_data' => 'array',
+        'iaas_cloud_node_id' => 'integer',
+        'iaas_compute_member_id' => 'integer',
+        'template_id' => 'integer',
+        'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'is_draft' => 'boolean',
+        'common_domain_id' => 'integer',
+        'lock_password' => 'string',
+        'is_template' => 'boolean',
+        'iaas_repository_image_id' => 'integer',
+        'iaas_compute_pool_id' => 'integer',
+        'auto_backup_interval' => 'string',
+        'auto_backup_time' => 'string',
     ];
 
     /**
-     We are casting data fields.
+     * We are casting data fields.
      *
-     @var array
+     * @var array
      */
     protected $dates = [
-    'last_metadata_request',
-    'created_at',
-    'updated_at',
-    'deleted_at',
+        'last_metadata_request',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $with = [
 
     ];
 
     /**
-     @var int
+     * @var int
      */
     protected $perPage = 20;
 
     /**
-     @return void
+     * @return void
      */
     public static function boot()
     {
@@ -219,9 +220,11 @@ class VirtualMachines extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_virtual_machines');
 
-        if(!$modelScopes) { $modelScopes = [];
+        if (!$modelScopes) {
+            $modelScopes = [];
         }
-        if (!$globalScopes) { $globalScopes = [];
+        if (!$globalScopes) {
+            $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -229,49 +232,49 @@ class VirtualMachines extends Model
             $modelScopes
         );
 
-        if($scopes) {
+        if ($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
         }
     }
 
-    public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function virtualNetworkCards(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
     }
 
-    public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function repositoryImages(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
     }
-    
-    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function cloudNodes(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
     }
-    
-    public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function computePools(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
     }
-    
-    public function computeMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function computeMembers(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
     }
-    
-    public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
+
+    public function gateways(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
     }
 
-    public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function dhcpServers(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
     }
 
-    public function virtualMachineMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function virtualMachineMetrics(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class);
     }
@@ -287,7 +290,6 @@ class VirtualMachines extends Model
             },
         );
     }
-
 
 
 }

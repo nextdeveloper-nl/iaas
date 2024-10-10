@@ -139,49 +139,31 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function isWinrmEnabled($value)
     {
-
-
-
         return $this->builder->where('is_winrm_enabled', $value);
     }
 
     public function isSnapshot($value)
     {
-
-
-
         return $this->builder->where('is_snapshot', $value);
     }
 
     public function isLost($value)
     {
-
-
-
         return $this->builder->where('is_lost', $value);
     }
 
     public function isLocked($value)
     {
-
-
-
         return $this->builder->where('is_locked', $value);
     }
 
     public function isDraft($value)
     {
-
-
-
         return $this->builder->where('is_draft', $value);
     }
 
     public function isTemplate($value)
     {
-
-
-
         return $this->builder->where('is_template', $value);
     }
 

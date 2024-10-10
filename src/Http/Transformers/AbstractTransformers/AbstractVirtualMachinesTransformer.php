@@ -107,6 +107,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
                 'iaas_compute_pool_id' => $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
                 'auto_backup_interval' => $model->auto_backup_interval,
                 'auto_backup_time' => $model->auto_backup_time,
+                'snapshot_of_virtual_machine'   =>  $model->snapshot_of_virtual_machine
             ]
         );
     }
