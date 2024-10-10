@@ -39,6 +39,10 @@ class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
 
         $transformed = parent::transform($model);
 
+        $vm = VirtualMachines::where('id', $transformed['snapshot_of_virtual_machine'])->first();
+
+        if($vm) $transformed['snapshot_of_virtual_machine'] = $vm->uuid;
+
         unset($transformed['hypervisor_uuid']);
         unset($transformed['hypervisor_data']);
 
