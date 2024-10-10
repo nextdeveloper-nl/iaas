@@ -108,7 +108,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     {
         $vm = VirtualMachines::where('uuid', $value)->first();
 
-        return $this->builder->where('id', $vm->snapshot_of_virtual_machine);
+        return $this->builder->where('snapshot_of_virtual_machine',  $vm->id);
     }
 
     public function cpu($value)
