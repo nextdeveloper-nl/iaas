@@ -2,6 +2,9 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use App\Helpers\Http\ResponseHelper;
+use GPBMetadata\Google\Api\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -66,6 +69,17 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     {
         $vm = VirtualMachines::where('uuid', $id)->first();
 
-        return decrypt($vm->password);
+        try {
+            $password = decrypt($vm->password);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            if($e->getMessage() == 'The payload is invalid.') {
+                Log::error(__METHOD__ . ' | We got the payload is invalid error. Maybe the password is not ' .
+                    'encrpyted for the customer. That is why I am returning the raw password');
+
+                return ResponseHelper::status($vm->password);
+            }
+        }
+
+        return ResponseHelper::status($password);
     }
 }
