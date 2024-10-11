@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
@@ -24,6 +25,7 @@ use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use ParagonIE\Sodium\Core\Poly1305\State;
 
 class ComputeMemberXenService extends AbstractXenService
 {
@@ -148,8 +150,27 @@ physical interfaces and vlans of compute member');
             Log::info('[ComputeMemberService@updateInterfaceInformation] ' . $interfaceDetail['IP'] . '/' . NetworkCalculationHelper::mask2cidr($interfaceDetail['netmask']));
 
             if($data['is_management']) {
+                $netCidr = NetworkCalculationHelper::mask2cidr($interfaceDetail['netmask']);
+                $localIp= $interfaceDetail['IP'];
+
+                if(intval($netCidr) != $netCidr) {
+                    Log::error(__METHOD__ . ' | There is a serious network error. The netmask value most probably wrong.');
+                    StateHelper::setState(
+                        $computeMember,
+                        'netconf_netmask_problem',
+                        'has_errors',
+                        StateHelper::STATE_ERROR,
+                        'Most probably network configuration is wrong. Please make sure that the ' .
+                        'network config is correct! Because the netmask operation is not an integer. ' .
+                        'Therefore I assume that netmask value is wrong. I am fixing it in the database, ' .
+                        'but it should be something else. Please re-run this action after you fix this problem.'
+                    );
+
+                    $netCidr = intval($netCidr);
+                }
+
                 $computeMember->update([
-                    'local_ip_addr' =>  $interfaceDetail['IP'] . '/' . NetworkCalculationHelper::mask2cidr($interfaceDetail['netmask'])
+                    'local_ip_addr' =>  $localIp . '/' . $netCidr
                 ]);
 
                 $computeMember = $computeMember->fresh();
