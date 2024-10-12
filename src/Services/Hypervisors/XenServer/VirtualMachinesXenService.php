@@ -156,6 +156,10 @@ class VirtualMachinesXenService extends AbstractXenService
         if(!$name)
             $name = 'ss-' . $vm->uuid;
 
+        /*
+         * Take the virtual machine name from hypervisor and then use that name in take snapshot command
+         */
+
         $command = 'xe vm-snapshot vm=' . $vm->uuid . ' new-name-label=' . $name;
         $result = self::performCommand($command, $computeMember);
 
