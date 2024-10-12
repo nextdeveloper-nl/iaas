@@ -188,6 +188,11 @@ class ScanVirtualMachines extends AbstractAction
                     $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
                         ->where('hypervisor_uuid', $diskParams['sr-uuid'])
                         ->first();
+
+                    if(!$diskVolume) {
+                        //  This means that there is a volume but we cannot find it. We need to make sync of this Volume
+
+                    }
                 }
 
                 $data = [
