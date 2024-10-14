@@ -6,6 +6,7 @@ use Exceptions\MustHaveNIN;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\CRM\Database\Models\AccountManagers;
 use NextDeveloper\IAAS\Authorization\Rules\ServiceAvailability\TurkishMustHaveNIN;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
@@ -39,10 +40,16 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             $builder->where('iam_account_id', UserHelper::currentAccount()->id)
                 ->orWhere('is_public', true);
         }
+
+        $isPublicExists = DatabaseHelper::isColumnExists($model->getTable(), 'is_public');
+
         /**
          * Here user will be able to list all models, because by default, sales manager can see everybody.
          */
         $builder->where('iam_account_id', UserHelper::currentAccount()->id);
+
+        if($isPublicExists)
+            $builder->orWhere('is_public', true);
     }
 
     public function checkPrivileges(Users $users = null)

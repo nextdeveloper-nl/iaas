@@ -7,6 +7,7 @@ use NextDeveloper\Commons\Database\Models\Currencies;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractComputePoolsService;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * This class is responsible from managing the data for ComputePools
@@ -21,7 +22,8 @@ class ComputePoolsService extends AbstractComputePoolsService
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
     public static function getPricingTable(ComputePools $computePool) : array {
-        $computeMembers = ComputeMembers::where('iaas_compute_pool_id', $computePool->id)
+        $computeMembers = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_compute_pool_id', $computePool->id)
             ->orderBy('free_ram', 'desc')
             ->first();
 

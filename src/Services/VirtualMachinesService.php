@@ -51,7 +51,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 $computePool = ComputePools::where('id', $data['iaas_compute_pool_id'])->first();
             }
 
-            $cloudNode = CloudNodes::where('id', $computePool->iaas_cloud_node_id)->first();
+            $cloudNode = CloudNodes::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $computePool->iaas_cloud_node_id)
+                ->first();
+
             $data['iaas_cloud_node_id'] = $cloudNode->id;
         }
 

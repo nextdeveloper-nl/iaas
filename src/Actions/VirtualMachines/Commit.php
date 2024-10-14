@@ -252,7 +252,9 @@ class Commit extends AbstractAction
         //  So we can initiate the virtual machine here
         $vm = $this->model;
 
-        $machineImage = RepositoryImages::where('id', $vm->iaas_repository_image_id)->first();
+        $machineImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_repository_image_id)
+            ->first();
 
         $repositoryServer = Repositories::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $machineImage->iaas_repository_id)
