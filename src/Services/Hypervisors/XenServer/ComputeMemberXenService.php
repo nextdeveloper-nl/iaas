@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
+use NextDeveloper\IAAS\Exceptions\SynchronizationException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
@@ -17,15 +18,14 @@ use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotImportException;
+use NextDeveloper\IAAS\Exceptions\NetworkNotInPoolException;
 use NextDeveloper\IAAS\Helpers\NetworkCalculationHelper;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
 use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
-use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use ParagonIE\Sodium\Core\Poly1305\State;
 
 class ComputeMemberXenService extends AbstractXenService
 {
@@ -511,11 +511,80 @@ physical interfaces and vlans of compute member');
         return $storageVolume->fresh();
     }
 
-    public static function createNetwork(Networks $network, ComputeMembers $computeMember) : ComputeMembers
-    {
-        Log::info('[NetworkService@createNetworkOnComputeMember] Creating network : ' . $network->name
-            . ' on compute member: ' . $computeMember->name);
+    public static function getNetworkInterfaceFromVlan(ComputeMembers $computeMember, $vlan) : ComputeMemberNetworkInterfaces {
+        $interface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('vlan', $vlan)
+            ->where('iaas_compute_member_id', $computeMember->id)
+            ->first();
 
+        /**
+         * If we have interface but not in database this means that we didnt make the sync properly. We need to
+         * do the sync again.
+         */
+        if(!$interface) {
+            self::updateInterfaceInformation($computeMember);
+
+            $interface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                ->where('vlan', $vlan)
+                ->where('iaas_compute_member_id', $computeMember->id)
+                ->first();
+
+            if(!$interface) {
+                /**
+                 *  This means that we still dont have the Interface, then there
+                 * should be a serious problem that we need to take a look at.
+                 */
+                Log::error(__METHOD__ . ' | I cannot find the related Network Interface even ' .
+                    'though I am sure that it is created and resyned again!!!');
+
+                throw new SynchronizationException('I cannot find the related Network Interface even ' .
+                    'though I am sure that it is created and resyned again!!!');
+            }
+
+            return $interface;
+        }
+
+        return $interface;
+    }
+
+    public static function createNetwork(ComputeMembers $computeMember, Networks $network) : ComputeMemberNetworkInterfaces
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[NetworkService@createNetworkOnComputeMember] Creating network : ' . $network->name
+                . ' on compute member: ' . $computeMember->name);
+
+        $isNetworkExists = self::isNetworkExists($computeMember, $network);
+
+        if($isNetworkExists) {
+            return self::getNetworkInterfaceFromVlan($computeMember, $network->vlan);
+        }
+
+        $defaultPIF = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('is_default', true)
+            ->where('iaas_compute_member_id', $computeMember->id)
+            ->first();
+
+        if(!$defaultPIF) {
+            Log::error(__METHOD__ . ' | Cannot find the default interface on the compute member. Maybe' .
+                ' we dont have ?');
+
+            throw new NetworkNotInPoolException('Cannot find the default interface on the compute member. ' .
+                'Maybe we dont have ?');
+        }
+
+        //  If we are here this means that we could not find the interface, now we need to create
+        $command = 'xe network-create name-label=' . $network->name;
+        $result = self::performCommand($command, $computeMember);
+        $result = $result[0]['output'];
+
+        $command = 'xe vlan-create network-uuid=' . $result . ' pif-uuid=' . $defaultPIF->hypervisor_uuid . ' vlan=' . $network->vlan;
+        $result = self::performCommand($command, $computeMember);
+
+        $result = $result[0]['output'];
+
+        self::updateInterfaceInformation($computeMember);
+
+        return self::getNetworkInterfaceFromVlan($computeMember, $network->vlan);
     }
 
     public static function getStorageVolumeByHypervisorUuid($uuid) : ? ComputeMemberStorageVolumes
@@ -707,6 +776,19 @@ physical interfaces and vlans of compute member');
         }
 
         return false;
+    }
+
+    public static function isNetworkExists(ComputeMembers $computeMember, Networks $network) : bool {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info(__METHOD__ . ' | Checking if the network exstis: ' .
+                $network->name . ' in the compute member: ' . $computeMember->name);
+
+        $srList = self::performCommand('xe pif-list VLAN=' . $network->vlan, $computeMember);
+
+        if($srList[0]['output'] == '')
+            return false;
+
+        return true;
     }
 
     public static function performCommand($command, ComputeMembers $computeMember) : ?array

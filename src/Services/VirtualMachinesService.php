@@ -61,10 +61,27 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         return parent::create($data);
     }
 
-    public static function getComputeMember(VirtualMachines $vm)
+    public static function getComputeMember(VirtualMachines $vm) : ?ComputeMembers
     {
         return ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+    }
+
+    public static function getComputePool(VirtualMachines $vm) : ?ComputePools
+    {
+        $computeMember = self::getComputeMember($vm);
+
+        return ComputePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $computeMember->iaas_compute_pool_id)
+            ->first();
+    }
+
+    public static function getCloudPool($vm) {
+        $computePool = self::getComputePool($vm);
+
+        return CloudNodes::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $computePool->iaas_cloud_node_id)
             ->first();
     }
 
@@ -84,5 +101,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         return ResponseHelper::status($password);
+    }
+
+    public static function updateVirtualNetworkCards(VirtualMachines $vm)
+    {
+
     }
 }

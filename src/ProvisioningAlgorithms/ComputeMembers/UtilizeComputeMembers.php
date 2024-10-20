@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers;
 
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Exceptions\NotEnoughResourcesException;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -27,6 +28,7 @@ class UtilizeComputeMembers extends AbstractComputeMemberAlgorithm
          * That is why I will revisit here.
          */
         $computeMembers = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_compute_pool_id', $this->computePool->id)
             ->orderBy('used_ram', 'desc')
             ->get();
 

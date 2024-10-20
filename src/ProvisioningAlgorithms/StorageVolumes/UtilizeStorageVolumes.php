@@ -37,10 +37,10 @@ class UtilizeStorageVolumes extends AbstractStorageVolumeAlgorithm
          */
         $storageVolumesMounted = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_compute_member_id', $member->id)
-            ->where('iaas_storage_pool_id', $this->storagePools->id)
+//            ->where('iaas_storage_pool_id', $this->storagePools->id)
             ->pluck('iaas_storage_volume_id');
 
-        Log::info(__METHOD__ . ' | Found volumes mounted: ', $storageVolumesMounted);
+        Log::info(__METHOD__ . ' | Found volumes mounted: ' . print_r($storageVolumesMounted, true));
 
         /**
          * We didn't check the disk size here. We need to check the disk size here.

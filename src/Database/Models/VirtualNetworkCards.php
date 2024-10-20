@@ -60,6 +60,7 @@ class VirtualNetworkCards extends Model
             'iam_account_id',
             'iam_user_id',
             'is_draft',
+        'state'
     ];
 
     /**
@@ -158,12 +159,12 @@ class VirtualNetworkCards extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
-    
+
     public function networks() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
     }
-    
+
     public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);

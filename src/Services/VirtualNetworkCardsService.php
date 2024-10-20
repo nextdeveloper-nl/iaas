@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Services;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualNetworkCardsService;
@@ -22,6 +23,8 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
 
     public static function create($data)
     {
+        $vm = null;
+
         if(!array_key_exists('iaas_virtual_machine_id', $data)) {
             Log::error(__METHOD__ . ' | I have a network card creation request without a VM id. ' .
                 'I cannot allow that. Sorry.');
@@ -30,8 +33,6 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
         }
 
         if(array_key_exists('iaas_virtual_machine_id', $data)) {
-            $vm = null;
-
             if(Str::isUuid($data['iaas_virtual_machine_id']))
                 $vm = VirtualMachines::where('uuid', $data['iaas_virtual_machine_id'])->first();
             else
@@ -70,5 +71,9 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
         }
 
         $vif = parent::create($data);
+
+        dispatch(new Attach($vif));
+
+        return $vif;
     }
 }

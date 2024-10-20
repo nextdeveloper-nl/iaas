@@ -276,7 +276,7 @@ class ScanVirtualMachines extends AbstractAction
                     'bandwidth_limit'   => '-1', //$vifParams['qos_algorithm_params']['kbps'],
                     'iaas_network_id'       => $network->id,
                     'hypervisor_uuid'   => $vif['uuid'],
-                    'hypervisor_data'   => $vif,
+                    'hypervisor_data'   => $vifParams,
                     'iam_account_id'    => $dbVm->iam_account_id,
                     'iam_user_id'       => $dbVm->iam_user_id,
                     'is_draft'          => false,
