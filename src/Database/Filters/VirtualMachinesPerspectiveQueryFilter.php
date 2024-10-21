@@ -238,6 +238,30 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('is_draft', $value);
     }
 
+    public function isLost($value)
+    {
+
+
+
+        return $this->builder->where('is_lost', $value);
+    }
+
+    public function isLocked($value)
+    {
+
+
+
+        return $this->builder->where('is_locked', $value);
+    }
+
+    public function isSnapshot($value)
+    {
+
+
+
+        return $this->builder->where('is_snapshot', $value);
+    }
+
     public function lastMetadataRequestStart($date)
     {
         return $this->builder->where('last_metadata_request', '>=', $date);
@@ -315,6 +339,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

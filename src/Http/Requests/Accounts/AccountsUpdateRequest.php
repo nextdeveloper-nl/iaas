@@ -13,7 +13,7 @@ class AccountsUpdateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            
+            'is_service_enabled' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

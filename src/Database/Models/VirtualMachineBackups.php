@@ -28,8 +28,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property integer $ram
  * @property integer $cpu
  * @property string $hash
- * @property \Carbon\Carbon $backup_window_start
- * @property \Carbon\Carbon $backup_window_end
+ * @property \Carbon\Carbon $backup_starts
+ * @property \Carbon\Carbon $backup_ends
  * @property string $backup_type
  * @property integer $iaas_virtual_machine_id
  * @property integer $iam_account_id
@@ -65,8 +65,8 @@ class VirtualMachineBackups extends Model
             'ram',
             'cpu',
             'hash',
-            'backup_window_start',
-            'backup_window_end',
+            'backup_starts',
+            'backup_ends',
             'backup_type',
             'iaas_virtual_machine_id',
             'iam_account_id',
@@ -105,8 +105,8 @@ class VirtualMachineBackups extends Model
     'ram' => 'integer',
     'cpu' => 'integer',
     'hash' => 'string',
-    'backup_window_start' => 'datetime',
-    'backup_window_end' => 'datetime',
+    'backup_starts' => 'datetime',
+    'backup_ends' => 'datetime',
     'backup_type' => 'string',
     'iaas_virtual_machine_id' => 'integer',
     'created_at' => 'datetime',
@@ -121,8 +121,8 @@ class VirtualMachineBackups extends Model
      @var array
      */
     protected $dates = [
-    'backup_window_start',
-    'backup_window_end',
+    'backup_starts',
+    'backup_ends',
     'created_at',
     'updated_at',
     'deleted_at',
@@ -176,5 +176,6 @@ class VirtualMachineBackups extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

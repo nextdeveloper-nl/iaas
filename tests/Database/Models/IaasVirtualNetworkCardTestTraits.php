@@ -60,6 +60,7 @@ trait IaasVirtualNetworkCardTestTraits
             'form_params'   =>  [
                 'name'  =>  'a',
                 'hypervisor_uuid'  =>  'a',
+                'status'  =>  'a',
                 'bandwidth_limit'  =>  '1',
                 'device_number'  =>  '1',
                             ],
@@ -369,6 +370,25 @@ trait IaasVirtualNetworkCardTestTraits
             $request = new Request(
                 [
                 'hypervisor_uuid'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasVirtualNetworkCardQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualNetworkCard::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualnetworkcard_event_status_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'status'  =>  'a'
                 ]
             );
 

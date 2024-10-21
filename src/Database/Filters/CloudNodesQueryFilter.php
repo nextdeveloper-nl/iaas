@@ -47,6 +47,11 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('slug', 'like', '%' . $value . '%');
     }
+    
+    public function defaultBackupPath($value)
+    {
+        return $this->builder->where('default_backup_path', 'like', '%' . $value . '%');
+    }
 
     public function position($value)
     {
@@ -159,6 +164,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

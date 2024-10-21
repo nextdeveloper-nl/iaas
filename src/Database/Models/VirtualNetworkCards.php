@@ -32,6 +32,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  * @property boolean $is_draft
+ * @property string $status
  */
 class VirtualNetworkCards extends Model
 {
@@ -60,7 +61,7 @@ class VirtualNetworkCards extends Model
             'iam_account_id',
             'iam_user_id',
             'is_draft',
-        'state'
+            'status',
     ];
 
     /**
@@ -95,6 +96,7 @@ class VirtualNetworkCards extends Model
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
     'is_draft' => 'boolean',
+    'status' => 'string',
     ];
 
     /**
@@ -159,12 +161,12 @@ class VirtualNetworkCards extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
-
+    
     public function networks() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
     }
-
+    
     public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);
@@ -176,6 +178,7 @@ class VirtualNetworkCards extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

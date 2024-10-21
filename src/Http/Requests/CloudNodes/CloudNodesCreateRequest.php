@@ -23,6 +23,7 @@ class CloudNodesCreateRequest extends AbstractFormRequest
         'position' => 'nullable|integer',
         'iaas_datacenter_id' => 'required|exists:iaas_datacenters,uuid|uuid',
         'tags' => '',
+        'default_backup_path' => 'nullable|string',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

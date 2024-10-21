@@ -33,6 +33,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property string $default_backup_path
  */
 class CloudNodes extends Model
 {
@@ -62,6 +63,7 @@ class CloudNodes extends Model
             'iam_account_id',
             'iam_user_id',
             'tags',
+            'default_backup_path',
     ];
 
     /**
@@ -98,6 +100,7 @@ class CloudNodes extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'default_backup_path' => 'string',
     ];
 
     /**
@@ -189,6 +192,7 @@ class CloudNodes extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

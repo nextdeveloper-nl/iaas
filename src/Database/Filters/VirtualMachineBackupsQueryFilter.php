@@ -102,24 +102,24 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
-    public function backupWindowStartStart($date)
+    public function backupStartsStart($date)
     {
-        return $this->builder->where('backup_window_start', '>=', $date);
+        return $this->builder->where('backup_starts', '>=', $date);
     }
 
-    public function backupWindowStartEnd($date)
+    public function backupStartsEnd($date)
     {
-        return $this->builder->where('backup_window_start', '<=', $date);
+        return $this->builder->where('backup_starts', '<=', $date);
     }
 
-    public function backupWindowEndStart($date)
+    public function backupEndsStart($date)
     {
-        return $this->builder->where('backup_window_end', '>=', $date);
+        return $this->builder->where('backup_ends', '>=', $date);
     }
 
-    public function backupWindowEndEnd($date)
+    public function backupEndsEnd($date)
     {
-        return $this->builder->where('backup_window_end', '<=', $date);
+        return $this->builder->where('backup_ends', '<=', $date);
     }
 
     public function createdAtStart($date)
@@ -180,5 +180,6 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

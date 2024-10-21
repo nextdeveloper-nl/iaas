@@ -190,4 +190,5 @@ class ComputeMemberDevices extends Model
 
 
 
+
 }

@@ -60,6 +60,7 @@ trait IaasCloudNodeTestTraits
             'form_params'   =>  [
                 'name'  =>  'a',
                 'slug'  =>  'a',
+                'default_backup_path'  =>  'a',
                 'position'  =>  '1',
                             ],
                 ['http_errors' => false]
@@ -368,6 +369,25 @@ trait IaasCloudNodeTestTraits
             $request = new Request(
                 [
                 'slug'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasCloudNodeQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasCloudNode::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascloudnode_event_default_backup_path_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'default_backup_path'  =>  'a'
                 ]
             );
 

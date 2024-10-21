@@ -15,8 +15,8 @@ class VirtualMachineBackupsUpdateRequest extends AbstractFormRequest
         return [
             'name' => 'nullable|string',
         'description' => 'nullable|string',
-        'backup_window_start' => 'nullable|date',
-        'backup_window_end' => 'nullable|date',
+        'backup_starts' => 'date',
+        'backup_ends' => 'nullable|date',
         'backup_type' => 'string',
         'iaas_virtual_machine_id' => 'nullable|exists:iaas_virtual_machines,uuid|uuid',
         'status' => 'string',

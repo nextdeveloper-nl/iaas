@@ -27,6 +27,11 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('hypervisor_uuid', 'like', '%' . $value . '%');
     }
+    
+    public function status($value)
+    {
+        return $this->builder->where('status', 'like', '%' . $value . '%');
+    }
 
     public function bandwidthLimit($value)
     {
@@ -129,6 +134,7 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

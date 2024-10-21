@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property integer $id
  * @property string $uuid
  * @property string $image
+ * @property string $name
  * @property string $os
  * @property string $distro
  * @property string $version
@@ -53,6 +54,7 @@ class RepositoryImagesPerspective extends Model
 
     protected $fillable = [
             'image',
+            'name',
             'os',
             'distro',
             'version',
@@ -90,6 +92,7 @@ class RepositoryImagesPerspective extends Model
     protected $casts = [
     'id' => 'integer',
     'image' => 'string',
+    'name' => 'string',
     'os' => 'string',
     'distro' => 'string',
     'version' => 'string',
@@ -165,6 +168,7 @@ class RepositoryImagesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

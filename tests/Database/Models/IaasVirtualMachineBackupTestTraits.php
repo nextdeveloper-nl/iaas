@@ -70,8 +70,8 @@ trait IaasVirtualMachineBackupTestTraits
                 'size'  =>  '1',
                 'ram'  =>  '1',
                 'cpu'  =>  '1',
-                    'backup_window_start'  =>  now(),
-                    'backup_window_end'  =>  now(),
+                    'backup_starts'  =>  now(),
+                    'backup_ends'  =>  now(),
                             ],
                 ['http_errors' => false]
             ]
@@ -582,12 +582,12 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_window_start_filter_start()
+    public function test_iaasvirtualmachinebackup_event_backup_starts_filter_start()
     {
         try {
             $request = new Request(
                 [
-                'backup_window_startStart'  =>  now()
+                'backup_startsStart'  =>  now()
                 ]
             );
 
@@ -601,12 +601,12 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_window_end_filter_start()
+    public function test_iaasvirtualmachinebackup_event_backup_ends_filter_start()
     {
         try {
             $request = new Request(
                 [
-                'backup_window_endStart'  =>  now()
+                'backup_endsStart'  =>  now()
                 ]
             );
 
@@ -677,12 +677,12 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_window_start_filter_end()
+    public function test_iaasvirtualmachinebackup_event_backup_starts_filter_end()
     {
         try {
             $request = new Request(
                 [
-                'backup_window_startEnd'  =>  now()
+                'backup_startsEnd'  =>  now()
                 ]
             );
 
@@ -696,12 +696,12 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_window_end_filter_end()
+    public function test_iaasvirtualmachinebackup_event_backup_ends_filter_end()
     {
         try {
             $request = new Request(
                 [
-                'backup_window_endEnd'  =>  now()
+                'backup_endsEnd'  =>  now()
                 ]
             );
 
@@ -772,13 +772,13 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_window_start_filter_start_and_end()
+    public function test_iaasvirtualmachinebackup_event_backup_starts_filter_start_and_end()
     {
         try {
             $request = new Request(
                 [
-                'backup_window_startStart'  =>  now(),
-                'backup_window_startEnd'  =>  now()
+                'backup_startsStart'  =>  now(),
+                'backup_startsEnd'  =>  now()
                 ]
             );
 
@@ -792,13 +792,13 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_window_end_filter_start_and_end()
+    public function test_iaasvirtualmachinebackup_event_backup_ends_filter_start_and_end()
     {
         try {
             $request = new Request(
                 [
-                'backup_window_endStart'  =>  now(),
-                'backup_window_endEnd'  =>  now()
+                'backup_endsStart'  =>  now(),
+                'backup_endsEnd'  =>  now()
                 ]
             );
 

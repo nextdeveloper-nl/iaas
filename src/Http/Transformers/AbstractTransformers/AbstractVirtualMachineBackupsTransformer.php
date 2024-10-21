@@ -71,8 +71,8 @@ class AbstractVirtualMachineBackupsTransformer extends AbstractTransformer
             'ram'  =>  $model->ram,
             'cpu'  =>  $model->cpu,
             'hash'  =>  $model->hash,
-            'backup_window_start'  =>  $model->backup_window_start,
-            'backup_window_end'  =>  $model->backup_window_end,
+            'backup_starts'  =>  $model->backup_starts,
+            'backup_ends'  =>  $model->backup_ends,
             'backup_type'  =>  $model->backup_type,
             'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
@@ -169,5 +169,6 @@ class AbstractVirtualMachineBackupsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

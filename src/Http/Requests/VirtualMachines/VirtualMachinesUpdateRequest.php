@@ -23,6 +23,7 @@ class VirtualMachinesUpdateRequest extends AbstractFormRequest
         'iaas_compute_pool_id' => 'exists:iaas_compute_pools,uuid|uuid',
         'auto_backup_interval' => 'string',
         'auto_backup_time' => 'string',
+        'snapshot_of_virtual_machine' => 'nullable|integer',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

@@ -23,6 +23,11 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('image', 'like', '%' . $value . '%');
     }
     
+    public function name($value)
+    {
+        return $this->builder->where('name', 'like', '%' . $value . '%');
+    }
+    
     public function os($value)
     {
         return $this->builder->where('os', 'like', '%' . $value . '%');
@@ -141,6 +146,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

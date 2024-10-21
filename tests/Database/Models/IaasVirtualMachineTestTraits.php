@@ -73,6 +73,7 @@ trait IaasVirtualMachineTestTraits
                 'auto_backup_time'  =>  'a',
                 'cpu'  =>  '1',
                 'ram'  =>  '1',
+                'snapshot_of_virtual_machine'  =>  '1',
                     'last_metadata_request'  =>  now(),
                             ],
                 ['http_errors' => false]
@@ -628,6 +629,25 @@ trait IaasVirtualMachineTestTraits
             $request = new Request(
                 [
                 'ram'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasVirtualMachineQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachine::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualmachine_event_snapshot_of_virtual_machine_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'snapshot_of_virtual_machine'  =>  '1'
                 ]
             );
 

@@ -46,6 +46,9 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property array $tags
  * @property boolean $is_template
  * @property boolean $is_draft
+ * @property boolean $is_lost
+ * @property boolean $is_locked
+ * @property boolean $is_snapshot
  * @property string $auto_backup_interval
  * @property string $auto_backup_time
  * @property string $maintainer
@@ -100,6 +103,9 @@ class VirtualMachinesPerspective extends Model
             'tags',
             'is_template',
             'is_draft',
+            'is_lost',
+            'is_locked',
+            'is_snapshot',
             'auto_backup_interval',
             'auto_backup_time',
             'maintainer',
@@ -156,6 +162,9 @@ class VirtualMachinesPerspective extends Model
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'is_template' => 'boolean',
     'is_draft' => 'boolean',
+    'is_lost' => 'boolean',
+    'is_locked' => 'boolean',
+    'is_snapshot' => 'boolean',
     'auto_backup_interval' => 'string',
     'auto_backup_time' => 'string',
     'maintainer' => 'string',
@@ -225,6 +234,7 @@ class VirtualMachinesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
