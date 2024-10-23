@@ -22,28 +22,36 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('body', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function hash($value)
     {
         return $this->builder->where('hash', 'like', '%' . $value . '%');
     }
 
+    
     public function isCreate($value)
     {
-
-
-
         return $this->builder->where('is_create', $value);
     }
 
+        //  This is an alias function of isCreate
+    public function is_create($value)
+    {
+        return $this->isCreate($value);
+    }
+     
     public function isUpdate($value)
     {
-
-
-
         return $this->builder->where('is_update', $value);
     }
 
+        //  This is an alias function of isUpdate
+    public function is_update($value)
+    {
+        return $this->isUpdate($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -52,6 +60,18 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
     public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
     }
 
     public function updatedAtStart($date)
@@ -64,6 +84,18 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('updated_at', '<=', $date);
     }
 
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
     public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
@@ -72,6 +104,18 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iamAccountId($value)
@@ -83,6 +127,7 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -92,6 +137,7 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iaasIpAddressesId($value)
     {
             $iaasIpAddresses = \NextDeveloper\IAAS\Database\Models\IpAddresses::where('uuid', $value)->first();
@@ -101,7 +147,18 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasIpAddresses
+    public function iaas_ip_addresses_id($value)
+    {
+        return $this->iaasIpAddresses($value);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 

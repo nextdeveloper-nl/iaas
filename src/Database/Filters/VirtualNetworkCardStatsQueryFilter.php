@@ -31,6 +31,12 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_tx', $operator, $value);
     }
 
+        //  This is an alias function of usedTx
+    public function used_tx($value)
+    {
+        return $this->usedTx($value);
+    }
+    
     public function usedRx($value)
     {
         $operator = substr($value, 0, 1);
@@ -44,6 +50,12 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_rx', $operator, $value);
     }
 
+        //  This is an alias function of usedRx
+    public function used_rx($value)
+    {
+        return $this->usedRx($value);
+    }
+    
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -52,6 +64,18 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
     public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
     }
 
     public function updatedAtStart($date)
@@ -64,6 +88,18 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('updated_at', '<=', $date);
     }
 
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
     public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
@@ -72,6 +108,18 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iaasVirtualNetworkCardId($value)
@@ -83,7 +131,18 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasVirtualNetworkCard
+    public function iaas_virtual_network_card_id($value)
+    {
+        return $this->iaasVirtualNetworkCard($value);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 

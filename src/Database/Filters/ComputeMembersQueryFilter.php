@@ -42,27 +42,47 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function sshUsername($value)
     {
         return $this->builder->where('ssh_username', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of sshUsername
+    public function ssh_username($value)
+    {
+        return $this->sshUsername($value);
+    }
+        
     public function sshPassword($value)
     {
         return $this->builder->where('ssh_password', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of sshPassword
+    public function ssh_password($value)
+    {
+        return $this->sshPassword($value);
+    }
+        
     public function hypervisorModel($value)
     {
         return $this->builder->where('hypervisor_model', 'like', '%' . $value . '%');
     }
 
+        //  This is an alias function of hypervisorModel
+    public function hypervisor_model($value)
+    {
+        return $this->hypervisorModel($value);
+    }
+    
     public function sshPort($value)
     {
         $operator = substr($value, 0, 1);
@@ -76,6 +96,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ssh_port', $operator, $value);
     }
 
+        //  This is an alias function of sshPort
+    public function ssh_port($value)
+    {
+        return $this->sshPort($value);
+    }
+    
     public function totalSocket($value)
     {
         $operator = substr($value, 0, 1);
@@ -89,6 +115,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_socket', $operator, $value);
     }
 
+        //  This is an alias function of totalSocket
+    public function total_socket($value)
+    {
+        return $this->totalSocket($value);
+    }
+    
     public function totalCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -102,6 +134,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_cpu', $operator, $value);
     }
 
+        //  This is an alias function of totalCpu
+    public function total_cpu($value)
+    {
+        return $this->totalCpu($value);
+    }
+    
     public function totalRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -115,6 +153,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_ram', $operator, $value);
     }
 
+        //  This is an alias function of totalRam
+    public function total_ram($value)
+    {
+        return $this->totalRam($value);
+    }
+    
     public function usedCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -128,6 +172,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_cpu', $operator, $value);
     }
 
+        //  This is an alias function of usedCpu
+    public function used_cpu($value)
+    {
+        return $this->usedCpu($value);
+    }
+    
     public function usedRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -141,6 +191,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_ram', $operator, $value);
     }
 
+        //  This is an alias function of usedRam
+    public function used_ram($value)
+    {
+        return $this->usedRam($value);
+    }
+    
     public function runningVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -154,6 +210,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('running_vm', $operator, $value);
     }
 
+        //  This is an alias function of runningVm
+    public function running_vm($value)
+    {
+        return $this->runningVm($value);
+    }
+    
     public function haltedVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -167,6 +229,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('halted_vm', $operator, $value);
     }
 
+        //  This is an alias function of haltedVm
+    public function halted_vm($value)
+    {
+        return $this->haltedVm($value);
+    }
+    
     public function totalVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -180,6 +248,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_vm', $operator, $value);
     }
 
+        //  This is an alias function of totalVm
+    public function total_vm($value)
+    {
+        return $this->totalVm($value);
+    }
+    
     public function maxOverbookingRatio($value)
     {
         $operator = substr($value, 0, 1);
@@ -193,6 +267,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('max_overbooking_ratio', $operator, $value);
     }
 
+        //  This is an alias function of maxOverbookingRatio
+    public function max_overbooking_ratio($value)
+    {
+        return $this->maxOverbookingRatio($value);
+    }
+    
     public function benchmarkScore($value)
     {
         $operator = substr($value, 0, 1);
@@ -206,6 +286,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('benchmark_score', $operator, $value);
     }
 
+        //  This is an alias function of benchmarkScore
+    public function benchmark_score($value)
+    {
+        return $this->benchmarkScore($value);
+    }
+    
     public function freeRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -219,38 +305,56 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('free_ram', $operator, $value);
     }
 
+        //  This is an alias function of freeRam
+    public function free_ram($value)
+    {
+        return $this->freeRam($value);
+    }
+    
     public function isBehindFirewall($value)
     {
-
-
-
         return $this->builder->where('is_behind_firewall', $value);
     }
 
+        //  This is an alias function of isBehindFirewall
+    public function is_behind_firewall($value)
+    {
+        return $this->isBehindFirewall($value);
+    }
+     
     public function isManagementAgentAvailable($value)
     {
-
-
-
         return $this->builder->where('is_management_agent_available', $value);
     }
 
+        //  This is an alias function of isManagementAgentAvailable
+    public function is_management_agent_available($value)
+    {
+        return $this->isManagementAgentAvailable($value);
+    }
+     
     public function isInMaintenance($value)
     {
-
-
-
         return $this->builder->where('is_in_maintenance', $value);
     }
 
+        //  This is an alias function of isInMaintenance
+    public function is_in_maintenance($value)
+    {
+        return $this->isInMaintenance($value);
+    }
+     
     public function isAlive($value)
     {
-
-
-
         return $this->builder->where('is_alive', $value);
     }
 
+        //  This is an alias function of isAlive
+    public function is_alive($value)
+    {
+        return $this->isAlive($value);
+    }
+     
     public function uptimeStart($date)
     {
         return $this->builder->where('uptime', '>=', $date);
@@ -259,6 +363,18 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     public function uptimeEnd($date)
     {
         return $this->builder->where('uptime', '<=', $date);
+    }
+
+    //  This is an alias function of uptime
+    public function uptime_start($value)
+    {
+        return $this->uptimeStart($value);
+    }
+
+    //  This is an alias function of uptime
+    public function uptime_end($value)
+    {
+        return $this->uptimeEnd($value);
     }
 
     public function idleTimeStart($date)
@@ -271,6 +387,18 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('idle_time', '<=', $date);
     }
 
+    //  This is an alias function of idleTime
+    public function idle_time_start($value)
+    {
+        return $this->idleTimeStart($value);
+    }
+
+    //  This is an alias function of idleTime
+    public function idle_time_end($value)
+    {
+        return $this->idleTimeEnd($value);
+    }
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -279,6 +407,18 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
     }
 
     public function updatedAtStart($date)
@@ -291,6 +431,18 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->builder->where('updated_at', '<=', $date);
     }
 
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
     public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
@@ -299,6 +451,18 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iaasComputePoolId($value)
@@ -310,6 +474,12 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasComputePool
+    public function iaas_compute_pool_id($value)
+    {
+        return $this->iaasComputePool($value);
+    }
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -319,6 +489,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -328,7 +499,13 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 

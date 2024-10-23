@@ -42,17 +42,25 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function slug($value)
     {
         return $this->builder->where('slug', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function defaultBackupPath($value)
     {
         return $this->builder->where('default_backup_path', 'like', '%' . $value . '%');
     }
 
+        //  This is an alias function of defaultBackupPath
+    public function default_backup_path($value)
+    {
+        return $this->defaultBackupPath($value);
+    }
+    
     public function position($value)
     {
         $operator = substr($value, 0, 1);
@@ -66,46 +74,62 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('position', $operator, $value);
     }
 
+    
     public function isActive($value)
     {
-
-
-
         return $this->builder->where('is_active', $value);
     }
 
+        //  This is an alias function of isActive
+    public function is_active($value)
+    {
+        return $this->isActive($value);
+    }
+     
     public function isPublic($value)
     {
-
-
-
         return $this->builder->where('is_public', $value);
     }
 
+        //  This is an alias function of isPublic
+    public function is_public($value)
+    {
+        return $this->isPublic($value);
+    }
+     
     public function isEdge($value)
     {
-
-
-
         return $this->builder->where('is_edge', $value);
     }
 
+        //  This is an alias function of isEdge
+    public function is_edge($value)
+    {
+        return $this->isEdge($value);
+    }
+     
     public function isAlive($value)
     {
-
-
-
         return $this->builder->where('is_alive', $value);
     }
 
+        //  This is an alias function of isAlive
+    public function is_alive($value)
+    {
+        return $this->isAlive($value);
+    }
+     
     public function isInMaintenance($value)
     {
-
-
-
         return $this->builder->where('is_in_maintenance', $value);
     }
 
+        //  This is an alias function of isInMaintenance
+    public function is_in_maintenance($value)
+    {
+        return $this->isInMaintenance($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -114,6 +138,18 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
     }
 
     public function updatedAtStart($date)
@@ -126,6 +162,18 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('updated_at', '<=', $date);
     }
 
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
     public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
@@ -134,6 +182,18 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iaasDatacenterId($value)
@@ -145,6 +205,12 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasDatacenter
+    public function iaas_datacenter_id($value)
+    {
+        return $this->iaasDatacenter($value);
+    }
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -154,6 +220,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -163,7 +230,13 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 

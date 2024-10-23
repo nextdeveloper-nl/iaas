@@ -22,25 +22,41 @@ class ComputeMemberDevicesQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function deviceIdentification($value)
     {
         return $this->builder->where('device_identification', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of deviceIdentification
+    public function device_identification($value)
+    {
+        return $this->deviceIdentification($value);
+    }
+        
     public function deviceType($value)
     {
         return $this->builder->where('device_type', 'like', '%' . $value . '%');
     }
 
+        //  This is an alias function of deviceType
+    public function device_type($value)
+    {
+        return $this->deviceType($value);
+    }
+    
     public function isHealthy($value)
     {
-
-
-
         return $this->builder->where('is_healthy', $value);
     }
 
+        //  This is an alias function of isHealthy
+    public function is_healthy($value)
+    {
+        return $this->isHealthy($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -49,6 +65,18 @@ class ComputeMemberDevicesQueryFilter extends AbstractQueryFilter
     public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
     }
 
     public function updatedAtStart($date)
@@ -61,6 +89,18 @@ class ComputeMemberDevicesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('updated_at', '<=', $date);
     }
 
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
     public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
@@ -69,6 +109,18 @@ class ComputeMemberDevicesQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iaasComputeMemberId($value)
@@ -80,6 +132,12 @@ class ComputeMemberDevicesQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasComputeMember
+    public function iaas_compute_member_id($value)
+    {
+        return $this->iaasComputeMember($value);
+    }
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -89,6 +147,7 @@ class ComputeMemberDevicesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -98,7 +157,13 @@ class ComputeMemberDevicesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 

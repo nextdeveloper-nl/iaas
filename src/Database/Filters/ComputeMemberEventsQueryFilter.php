@@ -22,25 +22,31 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('source', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function type($value)
     {
         return $this->builder->where('type', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function event($value)
     {
         return $this->builder->where('event', 'like', '%' . $value . '%');
     }
 
+    
     public function isExecuted($value)
     {
-
-
-
         return $this->builder->where('is_executed', $value);
     }
 
+        //  This is an alias function of isExecuted
+    public function is_executed($value)
+    {
+        return $this->isExecuted($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -49,6 +55,18 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
     public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
     }
 
     public function updatedAtStart($date)
@@ -61,6 +79,18 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('updated_at', '<=', $date);
     }
 
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
     public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
@@ -69,6 +99,18 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iaasComputeMemberId($value)
@@ -80,6 +122,12 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasComputeMember
+    public function iaas_compute_member_id($value)
+    {
+        return $this->iaasComputeMember($value);
+    }
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -89,6 +137,7 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -98,7 +147,13 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 

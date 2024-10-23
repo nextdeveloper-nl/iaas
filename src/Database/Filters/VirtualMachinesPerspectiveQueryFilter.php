@@ -42,82 +42,118 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function description($value)
     {
         return $this->builder->where('description', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function username($value)
     {
         return $this->builder->where('username', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function os($value)
     {
         return $this->builder->where('os', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function distro($value)
     {
         return $this->builder->where('distro', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function version($value)
     {
         return $this->builder->where('version', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function domainType($value)
     {
         return $this->builder->where('domain_type', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of domainType
+    public function domain_type($value)
+    {
+        return $this->domainType($value);
+    }
+        
     public function status($value)
     {
         return $this->builder->where('status', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function cloudNode($value)
     {
         return $this->builder->where('cloud_node', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of cloudNode
+    public function cloud_node($value)
+    {
+        return $this->cloudNode($value);
+    }
+        
     public function domain($value)
     {
         return $this->builder->where('domain', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function network($value)
     {
         return $this->builder->where('network', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function autoBackupInterval($value)
     {
         return $this->builder->where('auto_backup_interval', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of autoBackupInterval
+    public function auto_backup_interval($value)
+    {
+        return $this->autoBackupInterval($value);
+    }
+        
     public function autoBackupTime($value)
     {
         return $this->builder->where('auto_backup_time', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of autoBackupTime
+    public function auto_backup_time($value)
+    {
+        return $this->autoBackupTime($value);
+    }
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'like', '%' . $value . '%');
     }
 
+    
     public function cpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -131,6 +167,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
+    
     public function ram($value)
     {
         $operator = substr($value, 0, 1);
@@ -144,6 +181,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
+    
     public function diskCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -157,6 +195,12 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('disk_count', $operator, $value);
     }
 
+        //  This is an alias function of diskCount
+    public function disk_count($value)
+    {
+        return $this->diskCount($value);
+    }
+    
     public function networkCardCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -170,6 +214,12 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('network_card_count', $operator, $value);
     }
 
+        //  This is an alias function of networkCardCount
+    public function network_card_count($value)
+    {
+        return $this->networkCardCount($value);
+    }
+    
     public function hasWarnings($value)
     {
         $operator = substr($value, 0, 1);
@@ -183,6 +233,12 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('has_warnings', $operator, $value);
     }
 
+        //  This is an alias function of hasWarnings
+    public function has_warnings($value)
+    {
+        return $this->hasWarnings($value);
+    }
+    
     public function hasErrors($value)
     {
         $operator = substr($value, 0, 1);
@@ -196,6 +252,12 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('has_errors', $operator, $value);
     }
 
+        //  This is an alias function of hasErrors
+    public function has_errors($value)
+    {
+        return $this->hasErrors($value);
+    }
+    
     public function numberOfDisks($value)
     {
         $operator = substr($value, 0, 1);
@@ -209,6 +271,12 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('number_of_disks', $operator, $value);
     }
 
+        //  This is an alias function of numberOfDisks
+    public function number_of_disks($value)
+    {
+        return $this->numberOfDisks($value);
+    }
+    
     public function totalDiskSize($value)
     {
         $operator = substr($value, 0, 1);
@@ -222,46 +290,67 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_disk_size', $operator, $value);
     }
 
+        //  This is an alias function of totalDiskSize
+    public function total_disk_size($value)
+    {
+        return $this->totalDiskSize($value);
+    }
+    
     public function isTemplate($value)
     {
-
-
-
         return $this->builder->where('is_template', $value);
     }
 
+        //  This is an alias function of isTemplate
+    public function is_template($value)
+    {
+        return $this->isTemplate($value);
+    }
+     
     public function isDraft($value)
     {
-
-
-
         return $this->builder->where('is_draft', $value);
     }
 
+        //  This is an alias function of isDraft
+    public function is_draft($value)
+    {
+        return $this->isDraft($value);
+    }
+     
     public function isLost($value)
     {
-
-
-
         return $this->builder->where('is_lost', $value);
     }
 
+        //  This is an alias function of isLost
+    public function is_lost($value)
+    {
+        return $this->isLost($value);
+    }
+     
     public function isLocked($value)
     {
-
-
-
         return $this->builder->where('is_locked', $value);
     }
 
+        //  This is an alias function of isLocked
+    public function is_locked($value)
+    {
+        return $this->isLocked($value);
+    }
+     
     public function isSnapshot($value)
     {
-
-
-
         return $this->builder->where('is_snapshot', $value);
     }
 
+        //  This is an alias function of isSnapshot
+    public function is_snapshot($value)
+    {
+        return $this->isSnapshot($value);
+    }
+     
     public function lastMetadataRequestStart($date)
     {
         return $this->builder->where('last_metadata_request', '>=', $date);
@@ -270,6 +359,18 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     public function lastMetadataRequestEnd($date)
     {
         return $this->builder->where('last_metadata_request', '<=', $date);
+    }
+
+    //  This is an alias function of lastMetadataRequest
+    public function last_metadata_request_start($value)
+    {
+        return $this->lastMetadataRequestStart($value);
+    }
+
+    //  This is an alias function of lastMetadataRequest
+    public function last_metadata_request_end($value)
+    {
+        return $this->lastMetadataRequestEnd($value);
     }
 
     public function createdAtStart($date)
@@ -282,6 +383,18 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('created_at', '<=', $date);
     }
 
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
+    }
+
     public function updatedAtStart($date)
     {
         return $this->builder->where('updated_at', '>=', $date);
@@ -290,6 +403,18 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     public function updatedAtEnd($date)
     {
         return $this->builder->where('updated_at', '<=', $date);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
     }
 
     public function deletedAtStart($date)
@@ -302,6 +427,18 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('deleted_at', '<=', $date);
     }
 
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
+    }
+
     public function iaasCloudNodeId($value)
     {
             $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
@@ -311,6 +448,12 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasCloudNode
+    public function iaas_cloud_node_id($value)
+    {
+        return $this->iaasCloudNode($value);
+    }
+    
     public function commonDomainId($value)
     {
             $commonDomain = \NextDeveloper\Commons\Database\Models\Domains::where('uuid', $value)->first();
@@ -320,6 +463,12 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of commonDomain
+    public function common_domain_id($value)
+    {
+        return $this->commonDomain($value);
+    }
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -329,6 +478,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -338,7 +488,12 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 
 
 

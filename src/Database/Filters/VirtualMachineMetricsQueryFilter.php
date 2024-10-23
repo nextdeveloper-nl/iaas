@@ -22,12 +22,14 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('parameter', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function source($value)
     {
         return $this->builder->where('source', 'like', '%' . $value . '%');
     }
 
+    
     public function value($value)
     {
         $operator = substr($value, 0, 1);
@@ -41,6 +43,7 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('value', $operator, $value);
     }
 
+    
     public function timestampStart($date)
     {
         return $this->builder->where('timestamp', '>=', $date);
@@ -49,6 +52,18 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
     public function timestampEnd($date)
     {
         return $this->builder->where('timestamp', '<=', $date);
+    }
+
+    //  This is an alias function of timestamp
+    public function timestamp_start($value)
+    {
+        return $this->timestampStart($value);
+    }
+
+    //  This is an alias function of timestamp
+    public function timestamp_end($value)
+    {
+        return $this->timestampEnd($value);
     }
 
     public function createdAtStart($date)
@@ -61,6 +76,18 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('created_at', '<=', $date);
     }
 
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
+    }
+
     public function updatedAtStart($date)
     {
         return $this->builder->where('updated_at', '>=', $date);
@@ -69,6 +96,18 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
     public function updatedAtEnd($date)
     {
         return $this->builder->where('updated_at', '<=', $date);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
     }
 
     public function deletedAtStart($date)
@@ -81,6 +120,18 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('deleted_at', '<=', $date);
     }
 
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
+    }
+
     public function iaasVirtualMachineId($value)
     {
             $iaasVirtualMachine = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
@@ -90,7 +141,18 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasVirtualMachine
+    public function iaas_virtual_machine_id($value)
+    {
+        return $this->iaasVirtualMachine($value);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 

@@ -22,37 +22,59 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function ipAddr($value)
     {
         return $this->builder->where('ip_addr', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of ipAddr
+    public function ip_addr($value)
+    {
+        return $this->ipAddr($value);
+    }
+        
     public function localIpAddr($value)
     {
         return $this->builder->where('local_ip_addr', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of localIpAddr
+    public function local_ip_addr($value)
+    {
+        return $this->localIpAddr($value);
+    }
+        
     public function storagePool($value)
     {
         return $this->builder->where('storage_pool', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of storagePool
+    public function storage_pool($value)
+    {
+        return $this->storagePool($value);
+    }
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'like', '%' . $value . '%');
     }
 
+    
     public function totalDisk($value)
     {
         $operator = substr($value, 0, 1);
@@ -66,6 +88,12 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_disk', $operator, $value);
     }
 
+        //  This is an alias function of totalDisk
+    public function total_disk($value)
+    {
+        return $this->totalDisk($value);
+    }
+    
     public function usedDisk($value)
     {
         $operator = substr($value, 0, 1);
@@ -79,30 +107,45 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_disk', $operator, $value);
     }
 
+        //  This is an alias function of usedDisk
+    public function used_disk($value)
+    {
+        return $this->usedDisk($value);
+    }
+    
     public function isHealthy($value)
     {
-
-
-
         return $this->builder->where('is_healthy', $value);
     }
 
+        //  This is an alias function of isHealthy
+    public function is_healthy($value)
+    {
+        return $this->isHealthy($value);
+    }
+     
     public function isMaintenance($value)
     {
-
-
-
         return $this->builder->where('is_maintenance', $value);
     }
 
+        //  This is an alias function of isMaintenance
+    public function is_maintenance($value)
+    {
+        return $this->isMaintenance($value);
+    }
+     
     public function isAlive($value)
     {
-
-
-
         return $this->builder->where('is_alive', $value);
     }
 
+        //  This is an alias function of isAlive
+    public function is_alive($value)
+    {
+        return $this->isAlive($value);
+    }
+     
     public function uptimeStart($date)
     {
         return $this->builder->where('uptime', '>=', $date);
@@ -111,6 +154,18 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
     public function uptimeEnd($date)
     {
         return $this->builder->where('uptime', '<=', $date);
+    }
+
+    //  This is an alias function of uptime
+    public function uptime_start($value)
+    {
+        return $this->uptimeStart($value);
+    }
+
+    //  This is an alias function of uptime
+    public function uptime_end($value)
+    {
+        return $this->uptimeEnd($value);
     }
 
     public function createdAtStart($date)
@@ -123,6 +178,18 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('created_at', '<=', $date);
     }
 
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
+    }
+
     public function updatedAtStart($date)
     {
         return $this->builder->where('updated_at', '>=', $date);
@@ -131,6 +198,18 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
     public function updatedAtEnd($date)
     {
         return $this->builder->where('updated_at', '<=', $date);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
     }
 
     public function deletedAtStart($date)
@@ -143,6 +222,18 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('deleted_at', '<=', $date);
     }
 
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
+    }
+
     public function iaasStoragePoolId($value)
     {
             $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
@@ -152,6 +243,12 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasStoragePool
+    public function iaas_storage_pool_id($value)
+    {
+        return $this->iaasStoragePool($value);
+    }
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -161,6 +258,7 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -170,7 +268,12 @@ class StorageMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 
 
 

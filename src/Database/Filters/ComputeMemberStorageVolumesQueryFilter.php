@@ -22,25 +22,36 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('hypervisor_uuid', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of hypervisorUuid
+    public function hypervisor_uuid($value)
+    {
+        return $this->hypervisorUuid($value);
+    }
+        
     public function name($value)
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function description($value)
     {
         return $this->builder->where('description', 'like', '%' . $value . '%');
     }
 
+    
     public function isLocalStorage($value)
     {
-
-
-
         return $this->builder->where('is_local_storage', $value);
     }
 
+        //  This is an alias function of isLocalStorage
+    public function is_local_storage($value)
+    {
+        return $this->isLocalStorage($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -49,6 +60,18 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
     }
 
     public function updatedAtStart($date)
@@ -61,6 +84,18 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('updated_at', '<=', $date);
     }
 
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
     public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
@@ -69,6 +104,18 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iamAccountId($value)
@@ -80,6 +127,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -89,6 +137,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iaasStorageVolumeId($value)
     {
             $iaasStorageVolume = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('uuid', $value)->first();
@@ -98,6 +147,12 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasStorageVolume
+    public function iaas_storage_volume_id($value)
+    {
+        return $this->iaasStorageVolume($value);
+    }
+    
     public function iaasStorageMemberId($value)
     {
             $iaasStorageMember = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('uuid', $value)->first();
@@ -107,6 +162,12 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasStorageMember
+    public function iaas_storage_member_id($value)
+    {
+        return $this->iaasStorageMember($value);
+    }
+    
     public function iaasStoragePoolId($value)
     {
             $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
@@ -116,6 +177,12 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasStoragePool
+    public function iaas_storage_pool_id($value)
+    {
+        return $this->iaasStoragePool($value);
+    }
+    
     public function iaasComputeMemberId($value)
     {
             $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
@@ -125,7 +192,18 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasComputeMember
+    public function iaas_compute_member_id($value)
+    {
+        return $this->iaasComputeMember($value);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 

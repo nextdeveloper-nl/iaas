@@ -42,37 +42,59 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function sshUsername($value)
     {
         return $this->builder->where('ssh_username', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of sshUsername
+    public function ssh_username($value)
+    {
+        return $this->sshUsername($value);
+    }
+        
     public function sshPassword($value)
     {
         return $this->builder->where('ssh_password', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of sshPassword
+    public function ssh_password($value)
+    {
+        return $this->sshPassword($value);
+    }
+        
     public function computePoolName($value)
     {
         return $this->builder->where('compute_pool_name', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of computePoolName
+    public function compute_pool_name($value)
+    {
+        return $this->computePoolName($value);
+    }
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'like', '%' . $value . '%');
     }
 
+    
     public function sshPort($value)
     {
         $operator = substr($value, 0, 1);
@@ -86,6 +108,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ssh_port', $operator, $value);
     }
 
+        //  This is an alias function of sshPort
+    public function ssh_port($value)
+    {
+        return $this->sshPort($value);
+    }
+    
     public function totalSocket($value)
     {
         $operator = substr($value, 0, 1);
@@ -99,6 +127,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_socket', $operator, $value);
     }
 
+        //  This is an alias function of totalSocket
+    public function total_socket($value)
+    {
+        return $this->totalSocket($value);
+    }
+    
     public function totalCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -112,6 +146,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_cpu', $operator, $value);
     }
 
+        //  This is an alias function of totalCpu
+    public function total_cpu($value)
+    {
+        return $this->totalCpu($value);
+    }
+    
     public function totalRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -125,6 +165,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_ram', $operator, $value);
     }
 
+        //  This is an alias function of totalRam
+    public function total_ram($value)
+    {
+        return $this->totalRam($value);
+    }
+    
     public function usedCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -138,6 +184,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_cpu', $operator, $value);
     }
 
+        //  This is an alias function of usedCpu
+    public function used_cpu($value)
+    {
+        return $this->usedCpu($value);
+    }
+    
     public function usedRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -151,6 +203,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('used_ram', $operator, $value);
     }
 
+        //  This is an alias function of usedRam
+    public function used_ram($value)
+    {
+        return $this->usedRam($value);
+    }
+    
     public function freeCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -164,6 +222,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('free_cpu', $operator, $value);
     }
 
+        //  This is an alias function of freeCpu
+    public function free_cpu($value)
+    {
+        return $this->freeCpu($value);
+    }
+    
     public function runningVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -177,6 +241,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('running_vm', $operator, $value);
     }
 
+        //  This is an alias function of runningVm
+    public function running_vm($value)
+    {
+        return $this->runningVm($value);
+    }
+    
     public function haltedVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -190,6 +260,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('halted_vm', $operator, $value);
     }
 
+        //  This is an alias function of haltedVm
+    public function halted_vm($value)
+    {
+        return $this->haltedVm($value);
+    }
+    
     public function totalVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -203,6 +279,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_vm', $operator, $value);
     }
 
+        //  This is an alias function of totalVm
+    public function total_vm($value)
+    {
+        return $this->totalVm($value);
+    }
+    
     public function benchmarkScore($value)
     {
         $operator = substr($value, 0, 1);
@@ -216,22 +298,34 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('benchmark_score', $operator, $value);
     }
 
+        //  This is an alias function of benchmarkScore
+    public function benchmark_score($value)
+    {
+        return $this->benchmarkScore($value);
+    }
+    
     public function isInMaintenance($value)
     {
-
-
-
         return $this->builder->where('is_in_maintenance', $value);
     }
 
+        //  This is an alias function of isInMaintenance
+    public function is_in_maintenance($value)
+    {
+        return $this->isInMaintenance($value);
+    }
+     
     public function isAlive($value)
     {
-
-
-
         return $this->builder->where('is_alive', $value);
     }
 
+        //  This is an alias function of isAlive
+    public function is_alive($value)
+    {
+        return $this->isAlive($value);
+    }
+     
     public function uptimeStart($date)
     {
         return $this->builder->where('uptime', '>=', $date);
@@ -240,6 +334,18 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     public function uptimeEnd($date)
     {
         return $this->builder->where('uptime', '<=', $date);
+    }
+
+    //  This is an alias function of uptime
+    public function uptime_start($value)
+    {
+        return $this->uptimeStart($value);
+    }
+
+    //  This is an alias function of uptime
+    public function uptime_end($value)
+    {
+        return $this->uptimeEnd($value);
     }
 
     public function idleTimeStart($date)
@@ -252,6 +358,18 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('idle_time', '<=', $date);
     }
 
+    //  This is an alias function of idleTime
+    public function idle_time_start($value)
+    {
+        return $this->idleTimeStart($value);
+    }
+
+    //  This is an alias function of idleTime
+    public function idle_time_end($value)
+    {
+        return $this->idleTimeEnd($value);
+    }
+
     public function iaasComputePoolId($value)
     {
             $iaasComputePool = \NextDeveloper\IAAS\Database\Models\ComputePools::where('uuid', $value)->first();
@@ -261,6 +379,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasComputePool
+    public function iaas_compute_pool_id($value)
+    {
+        return $this->iaasComputePool($value);
+    }
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -270,6 +394,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -279,7 +404,12 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 
 
 

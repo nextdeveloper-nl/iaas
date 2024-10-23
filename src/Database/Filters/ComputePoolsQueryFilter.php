@@ -42,32 +42,58 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function resourceValidator($value)
     {
         return $this->builder->where('resource_validator', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of resourceValidator
+    public function resource_validator($value)
+    {
+        return $this->resourceValidator($value);
+    }
+        
     public function virtualization($value)
     {
         return $this->builder->where('virtualization', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function provisioningAlg($value)
     {
         return $this->builder->where('provisioning_alg', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of provisioningAlg
+    public function provisioning_alg($value)
+    {
+        return $this->provisioningAlg($value);
+    }
+        
     public function poolType($value)
     {
         return $this->builder->where('pool_type', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of poolType
+    public function pool_type($value)
+    {
+        return $this->poolType($value);
+    }
+        
     public function codeName($value)
     {
         return $this->builder->where('code_name', 'like', '%' . $value . '%');
     }
 
+        //  This is an alias function of codeName
+    public function code_name($value)
+    {
+        return $this->codeName($value);
+    }
+    
     public function totalCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -81,6 +107,12 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_cpu', $operator, $value);
     }
 
+        //  This is an alias function of totalCpu
+    public function total_cpu($value)
+    {
+        return $this->totalCpu($value);
+    }
+    
     public function totalRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -94,30 +126,45 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('total_ram', $operator, $value);
     }
 
+        //  This is an alias function of totalRam
+    public function total_ram($value)
+    {
+        return $this->totalRam($value);
+    }
+    
     public function isActive($value)
     {
-
-
-
         return $this->builder->where('is_active', $value);
     }
 
+        //  This is an alias function of isActive
+    public function is_active($value)
+    {
+        return $this->isActive($value);
+    }
+     
     public function isAlive($value)
     {
-
-
-
         return $this->builder->where('is_alive', $value);
     }
 
+        //  This is an alias function of isAlive
+    public function is_alive($value)
+    {
+        return $this->isAlive($value);
+    }
+     
     public function isPublic($value)
     {
-
-
-
         return $this->builder->where('is_public', $value);
     }
 
+        //  This is an alias function of isPublic
+    public function is_public($value)
+    {
+        return $this->isPublic($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -126,6 +173,18 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
     }
 
     public function updatedAtStart($date)
@@ -138,6 +197,18 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('updated_at', '<=', $date);
     }
 
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
     public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
@@ -146,6 +217,18 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iaasDatacenterId($value)
@@ -157,6 +240,12 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasDatacenter
+    public function iaas_datacenter_id($value)
+    {
+        return $this->iaasDatacenter($value);
+    }
+    
     public function iaasCloudNodeId($value)
     {
             $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
@@ -166,6 +255,12 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of iaasCloudNode
+    public function iaas_cloud_node_id($value)
+    {
+        return $this->iaasCloudNode($value);
+    }
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -175,6 +270,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -184,6 +280,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function commonCurrencyId($value)
     {
             $commonCurrency = \NextDeveloper\Commons\Database\Models\Currencies::where('uuid', $value)->first();
@@ -193,7 +290,18 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
+        //  This is an alias function of commonCurrency
+    public function common_currency_id($value)
+    {
+        return $this->commonCurrency($value);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
 
 
 

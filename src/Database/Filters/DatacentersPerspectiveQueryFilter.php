@@ -42,67 +42,110 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function slug($value)
     {
         return $this->builder->where('slug', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function description($value)
     {
         return $this->builder->where('description', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function geoLatitude($value)
     {
         return $this->builder->where('geo_latitude', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of geoLatitude
+    public function geo_latitude($value)
+    {
+        return $this->geoLatitude($value);
+    }
+        
     public function geoLongitude($value)
     {
         return $this->builder->where('geo_longitude', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of geoLongitude
+    public function geo_longitude($value)
+    {
+        return $this->geoLongitude($value);
+    }
+        
     public function powerSource($value)
     {
         return $this->builder->where('power_source', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of powerSource
+    public function power_source($value)
+    {
+        return $this->powerSource($value);
+    }
+        
     public function ups($value)
     {
         return $this->builder->where('ups', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function cooling($value)
     {
         return $this->builder->where('cooling', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function cityName($value)
     {
         return $this->builder->where('city_name', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of cityName
+    public function city_name($value)
+    {
+        return $this->cityName($value);
+    }
+        
     public function countryName($value)
     {
         return $this->builder->where('country_name', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of countryName
+    public function country_name($value)
+    {
+        return $this->countryName($value);
+    }
+        
     public function datacenterMaintainer($value)
     {
         return $this->builder->where('datacenter_maintainer', 'like', '%' . $value . '%');
     }
-    
+
+        //  This is an alias function of datacenterMaintainer
+    public function datacenter_maintainer($value)
+    {
+        return $this->datacenterMaintainer($value);
+    }
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'like', '%' . $value . '%');
     }
-    
+
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'like', '%' . $value . '%');
     }
 
+    
     public function tierLevel($value)
     {
         $operator = substr($value, 0, 1);
@@ -116,6 +159,12 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('tier_level', $operator, $value);
     }
 
+        //  This is an alias function of tierLevel
+    public function tier_level($value)
+    {
+        return $this->tierLevel($value);
+    }
+    
     public function cloudNodesCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -129,6 +178,12 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cloud_nodes_count', $operator, $value);
     }
 
+        //  This is an alias function of cloudNodesCount
+    public function cloud_nodes_count($value)
+    {
+        return $this->cloudNodesCount($value);
+    }
+    
     public function computePoolsCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -142,6 +197,12 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('compute_pools_count', $operator, $value);
     }
 
+        //  This is an alias function of computePoolsCount
+    public function compute_pools_count($value)
+    {
+        return $this->computePoolsCount($value);
+    }
+    
     public function storagePoolsCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -155,6 +216,12 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('storage_pools_count', $operator, $value);
     }
 
+        //  This is an alias function of storagePoolsCount
+    public function storage_pools_count($value)
+    {
+        return $this->storagePoolsCount($value);
+    }
+    
     public function networkPoolsCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -168,38 +235,56 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('network_pools_count', $operator, $value);
     }
 
+        //  This is an alias function of networkPoolsCount
+    public function network_pools_count($value)
+    {
+        return $this->networkPoolsCount($value);
+    }
+    
     public function isPublic($value)
     {
-
-
-
         return $this->builder->where('is_public', $value);
     }
 
+        //  This is an alias function of isPublic
+    public function is_public($value)
+    {
+        return $this->isPublic($value);
+    }
+     
     public function isActive($value)
     {
-
-
-
         return $this->builder->where('is_active', $value);
     }
 
+        //  This is an alias function of isActive
+    public function is_active($value)
+    {
+        return $this->isActive($value);
+    }
+     
     public function isInMaintenance($value)
     {
-
-
-
         return $this->builder->where('is_in_maintenance', $value);
     }
 
+        //  This is an alias function of isInMaintenance
+    public function is_in_maintenance($value)
+    {
+        return $this->isInMaintenance($value);
+    }
+     
     public function isCarrierNeutral($value)
     {
-
-
-
         return $this->builder->where('is_carrier_neutral', $value);
     }
 
+        //  This is an alias function of isCarrierNeutral
+    public function is_carrier_neutral($value)
+    {
+        return $this->isCarrierNeutral($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -208,6 +293,18 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
     public function createdAtEnd($date)
     {
         return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
     }
 
     public function updatedAtStart($date)
@@ -220,6 +317,18 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('updated_at', '<=', $date);
     }
 
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
     public function deletedAtStart($date)
     {
         return $this->builder->where('deleted_at', '>=', $date);
@@ -228,6 +337,18 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
     public function deletedAtEnd($date)
     {
         return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iamUserId($value)
@@ -239,6 +360,7 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -248,7 +370,12 @@ class DatacentersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 
 
 

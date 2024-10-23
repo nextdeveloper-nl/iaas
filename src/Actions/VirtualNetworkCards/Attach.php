@@ -39,14 +39,19 @@ class Attach extends AbstractAction
     public function handle()
     {
         $this->setProgress(0, 'Initiate virtual machine started');
-        Events::fire('attaching:NextDeveloper\IAAS\VirtualNetworkCards', $vif);
 
         $this->setProgress(5, 'Getting all the information to complete this process');
 
         $vif = $this->model;
 
+        Events::fire('attaching:NextDeveloper\IAAS\VirtualNetworkCards', $vif);
+
         if($vif->hypervisor_uuid != null) {
             $this->setFinished('Network card is already attached.');
+
+            $vif->updateQuietly([
+                'status'    =>  'attached'
+            ]);
 
             Events::fire('attached:NextDeveloper\IAAS\VirtualNetworkCards', $vif);
             return;
