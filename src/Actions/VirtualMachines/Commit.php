@@ -26,6 +26,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\IpAddressesService;
+use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\Intelligence\Services\IpsService;
 
@@ -129,13 +130,15 @@ class Commit extends AbstractAction
             $addIp = MetaHelper::get($vif, 'auto_add_ip_v4');
 
             if($addIp) {
-                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
-                    ->where('iaas_network_id', $vif->iaas_network_id)
-                    ->first();
+                $network = VirtualNetworkCardsService::getConnectedNetwork($vif);
 
                 $randomIp = IpAddressesService::getRandomAvailableIp($network);
             }
+
+            IpAddressesService::setIpToVif($randomIp, $vif);
         }
+
+
     }
 
     private function setupNetworking($step)

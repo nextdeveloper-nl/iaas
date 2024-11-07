@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services\DHCP;
 
+use Illuminate\Support\Str;
 use IPv4\SubnetCalculator;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAAS\Database\Models\DhcpServers;
@@ -53,8 +54,15 @@ class IscDhcpServices
                     ->where('id', $ip->iaas_virtual_network_card_id)
                     ->first();
 
+                $ipAddr = $vnc->ip_addr;
+
+                if(Str::contains($ipAddr, '/')) {
+                    $ipAddr = explode('/', $ipAddr);
+                    $ipAddr = $ipAddr[0];
+                }
+
                 if($vnc)
-                    $config .= 'host ' . md5($vnc->uuid . $ip->uuid) . ' { hardware ethernet ' . $vnc->mac_addr . '; fixed-address ' . $ip->ip_addr . '; }' . PHP_EOL;
+                    $config .= 'host ' . md5($vnc->uuid . $ip->uuid) . ' { hardware ethernet ' . $vnc->mac_addr . '; fixed-address ' . $ipAddr . '; }' . PHP_EOL;
             }
         }
 

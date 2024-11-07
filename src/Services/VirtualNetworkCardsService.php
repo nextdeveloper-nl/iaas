@@ -5,9 +5,12 @@ namespace NextDeveloper\IAAS\Services;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
+use NextDeveloper\IAAS\Database\Models\IpAddresses;
+use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualNetworkCardsService;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * This class is responsible from managing the data for VirtualNetworkCards
@@ -75,5 +78,23 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
         dispatch(new Attach($vif));
 
         return $vif;
+    }
+
+    public static function getConnectedNetwork(VirtualNetworkCards $card) : Networks
+    {
+        return Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $card->iaas_network_id)
+            ->first();
+    }
+
+    public static function assignIpToCard(string $ip, VirtualNetworkCards $card)
+    {
+        $ipAddress = IpAddressesService::create([
+            'iaas_virtual_network_card_id'  =>  $card->id,
+            'iaas_network_id'   =>  $card->iaas_network_id,
+            'ip_addr'   =>  $ip
+        ]);
+
+        return $ipAddress;
     }
 }
