@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services\DHCP;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use IPv4\SubnetCalculator;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
@@ -49,12 +50,22 @@ class IscDhcpServices
                 ->where('iaas_network_id', $network->id)
                 ->get();
 
+            $macList = [];
+
             foreach ($ips as $ip) {
                 $vnc = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
                     ->where('id', $ip->iaas_virtual_network_card_id)
                     ->first();
 
-                $ipAddr = $vnc->ip_addr;
+                if(in_array($vnc->mac_addr, $macList)) {
+                    Log::warning(__METHOD__ . ' | I found more that one same mac address in the' .
+                        ' configuration so I am taking only the first one. Seems like there is a problem' .
+                        ' with the configuration or records.');
+
+                    continue;
+                }
+
+                $ipAddr = $ip->ip_addr;
 
                 if(Str::contains($ipAddr, '/')) {
                     $ipAddr = explode('/', $ipAddr);
@@ -63,6 +74,8 @@ class IscDhcpServices
 
                 if($vnc)
                     $config .= 'host ' . md5($vnc->uuid . $ip->uuid) . ' { hardware ethernet ' . $vnc->mac_addr . '; fixed-address ' . $ipAddr . '; }' . PHP_EOL;
+
+                $macList[] = $vnc->mac_addr;
             }
         }
 
