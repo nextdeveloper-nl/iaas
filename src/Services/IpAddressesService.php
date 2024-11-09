@@ -24,7 +24,7 @@ class IpAddressesService extends AbstractIpAddressesService
 
     public static function getNextIpAvailable(Networks $network): string
     {
-        $subnet = $network->cidr;
+        $subnet = $network->ip_addr;
 
         if (!$subnet) {
             throw new ModelNotFoundException('We cannot for a CIDR information for this network. ' .
