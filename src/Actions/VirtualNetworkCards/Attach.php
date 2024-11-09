@@ -60,6 +60,7 @@ class Attach extends AbstractAction
         $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vif->iaas_virtual_machine_id)
             ->first();
+
         $computeMember = VirtualMachinesService::getComputeMember($vm);
         $network = Networks::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vif->iaas_network_id)

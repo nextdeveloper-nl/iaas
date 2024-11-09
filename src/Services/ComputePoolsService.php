@@ -54,8 +54,6 @@ class ComputePoolsService extends AbstractComputePoolsService
                 'hourly'    =>  $computePool->price_pergb * $gb . ' ' . $currency->code
             ];
 
-            Log::info('GB is ' . $gb);
-
             if($gb > 1024)
                 break;
         }

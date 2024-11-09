@@ -45,13 +45,14 @@ class UtilizeStorageVolumes extends AbstractStorageVolumeAlgorithm
         /**
          * We didn't check the disk size here. We need to check the disk size here.
          */
-        $storageVolumes = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+        $storageVolume = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->whereIn('id', $storageVolumesMounted)
-            ->whereIn('disk_physical_type', 'ssd')
+            ->where('disk_physical_type', 'ssd')
+            ->orderBy('free_hdd', 'desc')
             ->first();
 
-        Log::info(__METHOD__ . ' | Volume we select: ', $storageVolumes);
+        Log::info(__METHOD__ . ' | Volume we select: (' . $storageVolume->uuid . ') ' . $storageVolume->name);
 
-        return $storageVolumes;
+        return $storageVolume;
     }
 }

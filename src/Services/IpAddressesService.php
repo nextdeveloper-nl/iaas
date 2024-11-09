@@ -63,9 +63,4 @@ class IpAddressesService extends AbstractIpAddressesService
 
         return $foundIp;
     }
-
-    public static function setIpToVif(IpAddresses $ip, VirtualNetworkCards $vif)
-    {
-
-    }
 }

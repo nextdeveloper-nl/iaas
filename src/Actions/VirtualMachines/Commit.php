@@ -3,10 +3,12 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use GPBMetadata\Google\Api\Auth;
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\MetaHelper;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
@@ -87,6 +89,7 @@ class Commit extends AbstractAction
 
         //  Here we will import the virtual machine
         if (!$vm->hypervisor_uuid) {
+            $this->setProgress(10, 'Importing virtual machine to the related compute member');
             $this->importVirtualMachine(10);
         } else {
             $this->setProgress(10, 'Virtual machine already imported, ' .
@@ -132,30 +135,35 @@ class Commit extends AbstractAction
             if($addIp) {
                 $network = VirtualNetworkCardsService::getConnectedNetwork($vif);
 
-                $randomIp = IpAddressesService::getRandomAvailableIp($network);
+                $nextAvailableIp = IpAddressesService::getNextIpAvailable($network);
+
+                VirtualNetworkCardsService::assignIpToCard($nextAvailableIp, $vif);
             }
-
-            IpAddressesService::setIpToVif($randomIp, $vif);
         }
-
-
     }
 
     private function setupNetworking($step)
     {
         switch ($this->computePool->virtualization) {
             case 'xenserver-8.2':
-                $uuid = $this->setupXenNetworking($step);
+                $this->setupXenNetworking($step);
                 break;
         }
     }
 
+    /**
+     * In this function we will be setting up the network card
+     *
+     * @param $step
+     * @return void
+     */
     private function setupXenNetworking($step)
     {
         $vm = $this->model;
 
         $netConfig = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
 
+        //  Checking if the virtual machine actually has a VIF. If has we are syncing those vifs.
         $vifs = VirtualMachinesXenService::getVifs($vm);
 
         $syncedVifs = [];
@@ -185,32 +193,35 @@ class Commit extends AbstractAction
         $netConfig = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
 
         foreach ($netConfig as $config) {
+            //  Here we check if the VIF not exists. If not exists hypervisor_uuid is null
             if($config->hypervisor_uuid == null) {
-                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
-                    ->where('id', $config->iaas_network_id)
-                    ->first();
-
-                $vm = $this->model->fresh();
-
-                $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
-                    ->where('vlan', $network->vlan)
-                    ->where('iaas_compute_member_id', $vm->iaas_compute_member_id)
-                    ->first();
-
-                $result = VirtualMachinesXenService::createVif($vm, $cmni->network_uuid, $config->device_number);
-
-                $params = VirtualMachinesXenService::getVifParams($vm, $result);
-
-                $vif = $params[0];
-
-                $config->update([
-                    'hypervisor_uuid'   => $vif['uuid'],
-                    'hypervisor_data'   => $vif,
-                    'mac_addr'          => $vif['MAC'],
-                    'iaas_network_id'   =>  $network ? $network->id : null,
-                    'bandwitdh_limit'   =>  -1,
-                    'is_draft'          =>  false
-                ]);
+                (new Attach($config))->handle();
+//                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+//                    ->where('id', $config->iaas_network_id)
+//                    ->first();
+//
+//                $vm = $this->model->fresh();
+//
+//                $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+//                    ->where('vlan', $network->vlan)
+//                    ->where('iaas_compute_member_id', $vm->iaas_compute_member_id)
+//                    ->first();
+//
+//                //  Here we create the VIF
+//                $result = VirtualMachinesXenService::createVif($vm, $cmni->network_uuid, $config->device_number);
+//
+//                $params = VirtualMachinesXenService::getVifParams($vm, $result);
+//
+//                $vif = $params[0];
+//
+//                $config->update([
+//                    'hypervisor_uuid'   => $vif['uuid'],
+//                    'hypervisor_data'   => $vif,
+//                    'mac_addr'          => $vif['MAC'],
+//                    'iaas_network_id'   =>  $network ? $network->id : null,
+//                    'bandwitdh_limit'   =>  -1,
+//                    'is_draft'          =>  false
+//                ]);
             }
         }
     }
@@ -244,7 +255,7 @@ class Commit extends AbstractAction
 
         switch ($computePool->virtualization) {
             case 'xenserver-8.2':
-                $uuid = $this->setupXenDisks($step);
+                $this->setupXenDisks($step);
                 break;
         }
     }
@@ -275,6 +286,7 @@ class Commit extends AbstractAction
         $storageVolume = null;
 
         $this->setProgress($step + 2, 'Finding the best storage volume for your virtual machine.');
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 2 . '] | Finding the best storage volume for your virtual machine.');
 
         //  Checking disk configuration here. At this moment we will only implement the null disk formation actually.
         //  Later we will implement the deployment of disks by looking at disk formation.
@@ -282,6 +294,7 @@ class Commit extends AbstractAction
         //  Check if the compute pool is one or star
         if ($computePool->pool_type == 'one') {
             $this->setProgress($step + 3, 'Since the pool type is "one" we will be deploying this server to a local storage.');
+            Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Since the pool type is "one" we will be deploying this server to a local storage.');
 
             $computeMemberStorageVolumes = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
                 ->where('iaas_compute_member_id', $computeMember->id)
@@ -293,6 +306,7 @@ class Commit extends AbstractAction
                 ->first();
         } else {
             $this->setProgress($step + 3, 'Since the pool type is "star" we will be deploying this server to an ssd or nvme storage.');
+            Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Since the pool type is "star" we will be deploying this server to an ssd or nvme storage.');
             // If we don't have a storage pool here, we will be choosing the SSD pool.
             // Why ? because I wanted to do like that :D
 
@@ -332,12 +346,15 @@ class Commit extends AbstractAction
     private function importXenServer($vm, $computeMember, $repo, $volume, $image, $step = 0)
     {
         $this->setProgress($step + 4, 'Mounting repository to compute member');
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 4 . '] | Mounting repository to compute member');
         ComputeMemberXenService::mountVmRepository($computeMember, $repo);
 
         $this->setProgress($step + 5, 'Importing virtual machine image');
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 5 . '] | Importing virtual machine image');
         $uuid = ComputeMemberXenService::importVirtualMachine($computeMember, $volume, $image);
 
         $this->setProgress($step + 6, 'Updating virtual machine parameters');
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 6 . '] | Updating virtual machine parameters');
         $vmParams = VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
 
         $vm->update([
@@ -356,6 +373,7 @@ class Commit extends AbstractAction
         Events::listen('imported-virtual-machine:NextDeveloper\IAAS\ComputeMembers', $computeMember);
 
         $this->setProgress($step + 9, 'Unmounting repository from compute member');
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 9 . '] | Unmounting repository from compute member');
         $result = ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
 
         ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
@@ -375,11 +393,13 @@ class Commit extends AbstractAction
         $diskConfig = VirtualDiskImages::where('iaas_virtual_machine_id', $vm->id)->orderBy('id', 'asc')->get();
 
         $this->setProgress($step + 1, 'Got the disk configuration of the virtual machine.');
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 1 . '] | Got the disk configuration of the virtual machine.');
 
         //  Check if imported VM has a disk already
         $disks = VirtualMachinesXenService::getVmDisks($vm);
 
         $this->setProgress($step + 3, 'Syncing the disks we have.');
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Syncing the disks we have.');
 
         if (!$diskConfig) {
             //  Here this means that we dont have any disk config, so we will directly sync what we have.

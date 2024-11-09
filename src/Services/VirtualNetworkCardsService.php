@@ -4,7 +4,10 @@ namespace NextDeveloper\IAAS\Services;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\IAAS\Actions\DhcpServers\UpdateConfiguration;
 use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
+use NextDeveloper\IAAS\Database\Models\DhcpServers;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -35,47 +38,47 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
             return null;
         }
 
-        if(array_key_exists('iaas_virtual_machine_id', $data)) {
-            if(Str::isUuid($data['iaas_virtual_machine_id']))
-                $vm = VirtualMachines::where('uuid', $data['iaas_virtual_machine_id'])->first();
-            else
-                $vm = VirtualMachines::where('id', $data['iaas_virtual_machine_id'])->first();
-
-            if(!$vm) {
-                //  If we still cannot find the virtual machine, this means that either this machine is deleted in the database
-                //  or the virtual machine is not owned by the executer
-                if(Str::isUuid($data['iaas_virtual_machine_id'])) {
-                    $vm = VirtualMachines::withoutGlobalScopes()
-                        ->where('uuid', $data['iaas_virtual_machine_id'])
-                        ->first();
-                }
-                else {
-                    $vm = VirtualMachines::withoutGlobalScopes()
-                        ->where('id', $data['iaas_virtual_machine_id'])
-                        ->first();
-                }
-            }
-
-            if(!$vm) {
-                Log::error(__METHOD__ . ' | So I have a data to create virtual network card with ' .
-                    'data below. But I cannot find the VM. This is kind of weird, ' .
-                    'that is why I am putting the data here too;' . print_r($data, true));
-
-                Log::error(__METHOD__ . ' | Highly likely the VM is in the database but it is set as ' .
-                    'deleted. We may need to revive the VM.');
-
-                return null;
-            }
-
-            $vifs = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
-
-            //  We need to create a unique device number for the new VIF
-            $data['device_number']  =  count($vifs);
+        if(!array_key_exists('iaas_virtual_machine_id', $data)) {
+            return null;
         }
 
-        $vif = parent::create($data);
+        if(Str::isUuid($data['iaas_virtual_machine_id']))
+            $vm = VirtualMachines::where('uuid', $data['iaas_virtual_machine_id'])->first();
+        else
+            $vm = VirtualMachines::where('id', $data['iaas_virtual_machine_id'])->first();
 
-        dispatch(new Attach($vif));
+        if(!$vm) {
+            //  If we still cannot find the virtual machine, this means that either this machine is deleted in the database
+            //  or the virtual machine is not owned by the executer
+            if(Str::isUuid($data['iaas_virtual_machine_id'])) {
+                $vm = VirtualMachines::withoutGlobalScopes()
+                    ->where('uuid', $data['iaas_virtual_machine_id'])
+                    ->first();
+            }
+            else {
+                $vm = VirtualMachines::withoutGlobalScopes()
+                    ->where('id', $data['iaas_virtual_machine_id'])
+                    ->first();
+            }
+        }
+
+        if(!$vm) {
+            Log::error(__METHOD__ . ' | So I have a data to create virtual network card with ' .
+                'data below. But I cannot find the VM. This is kind of weird, ' .
+                'that is why I am putting the data here too;' . print_r($data, true));
+
+            Log::error(__METHOD__ . ' | Highly likely the VM is in the database but it is set as ' .
+                'deleted. We may need to revive the VM.');
+
+            return null;
+        }
+
+        $vifs = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
+
+        //  We need to create a unique device number for the new VIF
+        $data['device_number']  =  count($vifs);
+
+        $vif = parent::create($data);
 
         return $vif;
     }
@@ -94,6 +97,32 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
             'iaas_network_id'   =>  $card->iaas_network_id,
             'ip_addr'   =>  $ip
         ]);
+
+        //  Here we check if the network had DHCP server, if it has we need to trigger the DHCP configuration also
+        $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $card->iaas_network_id)
+            ->first();
+
+        if($network->iaas_dhcp_server_id) {
+            $dhcpServer = DhcpServers::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $network->iaas_dhcp_server_id)
+                ->first();
+
+            if($dhcpServer) {
+                dispatch(new UpdateConfiguration($dhcpServer));
+            } else {
+                Log::warning(__METHOD__ . ' | I wanted to update the dhcp configuration, and according ' .
+                    'to the records I should have a DHCP server but now I dont see it. Maybe we need to update ' .
+                    'the DHCP server information.');
+
+                StateHelper::setState(
+                    $network,
+                    'dhcp-server',
+                    'Cannot find the dhcp server. I cannot update the dhcp configuration.',
+                    StateHelper::STATE_WARNING
+                );
+            }
+        }
 
         return $ipAddress;
     }
