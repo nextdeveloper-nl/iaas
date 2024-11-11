@@ -23,6 +23,7 @@ class DhcpServersService extends AbstractDhcpServersService
         switch ($server->server_type) {
             case 'isc-linux':
             case 'isc-docker':
+            case 'isc-linux-http':
                 return IscDhcpServices::generateServerConfiguration($server);
                 break;
             default:

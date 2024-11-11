@@ -75,6 +75,9 @@ class IscDhcpServices
                 if($vnc)
                     $config .= 'host ' . md5($vnc->uuid . $ip->uuid) . ' { hardware ethernet ' . $vnc->mac_addr . '; fixed-address ' . $ipAddr . '; }' . PHP_EOL;
 
+                if(!$vnc && $ip->custom_mac_addr)
+                    $config .= 'host CUSTOM-' . md5($ip->custom_mac_addr) . ' { hardware ethernet ' . $ip->custom_mac_addr . '; fixed-address ' . $ipAddr . '; }' . PHP_EOL;
+
                 $macList[] = $vnc->mac_addr;
             }
         }
