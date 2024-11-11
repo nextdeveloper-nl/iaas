@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\NetworkMembersInterfaces;
 
 use GPBMetadata\Google\Api\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
@@ -68,6 +69,8 @@ class UpdateIpsWithArp extends AbstractAction
         }
 
         foreach ($arpRecords as $arp) {
+            Log::info(__METHOD__ . ' | Found ARP record: ' . print_r($arp, true));
+
             $ipOwner    = $this->getOwnerOfMac($arp['mac']);
 
             $ipAddress  =   IpAddresses::withoutGlobalScope(AuthorizationScope::class)
@@ -79,13 +82,15 @@ class UpdateIpsWithArp extends AbstractAction
                 ->first();
 
             if($ipAddress) {
-                if($ipAddress->iam_account_id == $ipOwner->id) {
-                    //  Everything is fine, we dont need to do anything
-                } else {
-                    //  We need to send an email to DC owner and tell them that there is a problem here.
-                    StateHelper::setState($this->model, 'unknown_ip_address', 'The IP address '
-                        . $ipAddress->ip . ' is not owned by ' . $ipOwner->name . ' but it is in the database.' .
-                        ' Please check the ownership of this IP address. May cause problems.');
+                if($ipOwner) {
+                    //  This means that there is an owner, and there is an account but they are not matching.
+                    //  This is actually a serious problem.
+                    if($ipAddress->iam_account_id != $ipOwner->id) {
+                        //  We need to send an email to DC owner and tell them that there is a problem here.
+                        StateHelper::setState($this->model, 'unknown_ip_owner', 'The IP address '
+                            . $ipAddress->ip . ' is not owned by ' . $ipOwner->name . ' but it is in the database.' .
+                            ' Please check the ownership of this IP address. May cause problems.');
+                    }
                 }
             } else {
                 //  We need to create the IP address

@@ -90,7 +90,7 @@ class ScanVirtualMachines extends AbstractAction
 
             if($dbVm) {
                 Log::info('[ScanVirtualMachines] VM exists in database: ' . $vm['uuid']);
-                $dbVm->update([
+                $dbVm->updateQuietly([
                     //'name'          =>  $vmInfo['name-label'],
                     'domain_type'   =>  $vmInfo['hvm'] == 'false' ? 'pv' : 'hvm',
                     'cpu'           =>  $vmInfo['VCPUs-max'],
@@ -211,7 +211,7 @@ class ScanVirtualMachines extends AbstractAction
                 ];
 
                 if($dbVdi)
-                    $dbVdi->update($data);
+                    $dbVdi->updateQuietly($data);
                 else
                     $dbVdi = VirtualDiskImages::create($data);
             }
@@ -284,7 +284,7 @@ class ScanVirtualMachines extends AbstractAction
                 ];
 
                 if($dbVif)
-                    $dbVif->update($data);
+                    $dbVif->updateQuietly($data);
                 else
                     VirtualNetworkCardsService::create($data);
             }
