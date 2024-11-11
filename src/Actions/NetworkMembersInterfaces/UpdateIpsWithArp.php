@@ -83,15 +83,15 @@ class UpdateIpsWithArp extends AbstractAction
 
             if($ipAddress) {
                 if($vnc) {
-                    $ipAddress->update([
+                    $ipAddress->updateQuietly([
                         'iaas_virtual_network_card_id'  =>  $vnc ? $vnc->id : null,
                     ]);
                 } else {
-                    $ipAddress->update([
+                    $ipAddress->updateQuietly([
                         'custom_mac_addr'   =>  $vnc ? null : $arp['mac'],
                     ]);
                 }
-                
+
                 if($ipOwner) {
                     if(!$ipAddress->iam_account_id) {
                         $ipAddress->updateQuietly([
