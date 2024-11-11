@@ -88,7 +88,7 @@ class UpdateIpsWithArp extends AbstractAction
                             'iam_account_id'    =>  $ipOwner->id,
                             'iam_user_id'       =>  $ipOwner->iam_user_id,
                             'iaas_virtual_network_card_id'  =>  $vnc ? $vnc->id : null,
-                            'custom_mac_addr'   =>  !$vnc ? $arp['mac'] : null,
+                            'custom_mac_addr'   =>  $vnc ? null : $arp['mac'],
                         ]);
                     }
 
@@ -106,7 +106,7 @@ class UpdateIpsWithArp extends AbstractAction
                 IpAddresses::create([
                     'ip_addr'                =>  $arp['ip'],
                     'iaas_virtual_network_card_id'  =>  $vnc ? $vnc->id : null,
-                    'custom_mac_addr'   =>  !$vnc ? $arp['mac'] : null,
+                    'custom_mac_addr'   =>  $vnc ? null : $arp['mac'],
                     'iam_account_id'    =>  $ipOwner ? $ipOwner->id : null,
                     'iam_user_id'    =>  $ipOwner ? $ipOwner->iam_user_id : null,
                     'iaas_network_id'   =>  $this->model->iaas_network_id
