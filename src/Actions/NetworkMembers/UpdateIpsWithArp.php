@@ -90,6 +90,7 @@ class UpdateIpsWithArp extends AbstractAction
                     IpAddresses::create([
                         'ip_addr'                =>  $arp['ip'],
                         'iaas_virtual_network_card_id'  =>  $vnc ? $vnc->id : null,
+                        'custom_mac_addr'   =>  !$vnc ? $arp['mac'] : null,
                         'iam_account_id'    =>  $ipOwner ? $ipOwner->id : null,
                         'iam_user_id'    =>  $ipOwner ? $ipOwner->iam_user_id : null,
                         'iaas_network_id'   =>  $interface->iaas_network_id
