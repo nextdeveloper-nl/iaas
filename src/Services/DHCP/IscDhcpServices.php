@@ -57,14 +57,6 @@ class IscDhcpServices
                     ->where('id', $ip->iaas_virtual_network_card_id)
                     ->first();
 
-                if(in_array($vnc->mac_addr, $macList)) {
-                    Log::warning(__METHOD__ . ' | I found more that one same mac address in the' .
-                        ' configuration so I am taking only the first one. Seems like there is a problem' .
-                        ' with the configuration or records.');
-
-                    continue;
-                }
-
                 $ipAddr = $ip->ip_addr;
 
                 if(Str::contains($ipAddr, '/')) {
@@ -72,13 +64,23 @@ class IscDhcpServices
                     $ipAddr = $ipAddr[0];
                 }
 
-                if($vnc)
-                    $config .= 'host ' . md5($vnc->uuid . $ip->uuid) . ' { hardware ethernet ' . $vnc->mac_addr . '; fixed-address ' . $ipAddr . '; }' . PHP_EOL;
+                if($vnc) {
+                    if(in_array($vnc->mac_addr, $macList)) {
+                        Log::warning(__METHOD__ . ' | I found more that one same mac address in the' .
+                            ' configuration so I am taking only the first one. Seems like there is a problem' .
+                            ' with the configuration or records.');
 
-                if(!$vnc && $ip->custom_mac_addr)
+                        continue;
+                    }
+
+                    if($vnc)
+                        $config .= 'host ' . md5($vnc->uuid . $ip->uuid) . ' { hardware ethernet ' . $vnc->mac_addr . '; fixed-address ' . $ipAddr . '; }' . PHP_EOL;
+
+                    $macList[] = $vnc->mac_addr;
+                }
+
+                if($ip->custom_mac_addr && !$vnc)
                     $config .= 'host CUSTOM-' . md5($ip->custom_mac_addr) . ' { hardware ethernet ' . $ip->custom_mac_addr . '; fixed-address ' . $ipAddr . '; }' . PHP_EOL;
-
-                $macList[] = $vnc->mac_addr;
             }
         }
 
