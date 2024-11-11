@@ -84,7 +84,7 @@ class UpdateIpsWithArp extends AbstractAction
             if($ipAddress) {
                 if($ipOwner) {
                     if(!$ipAddress->iam_account_id) {
-                        $ipAddress->update([
+                        $ipAddress->updateQuietly([
                             'iam_account_id'    =>  $ipOwner->id,
                             'iam_user_id'       =>  $ipOwner->iam_user_id
                         ]);
