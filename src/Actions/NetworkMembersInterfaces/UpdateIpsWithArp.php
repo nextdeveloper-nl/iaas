@@ -83,6 +83,13 @@ class UpdateIpsWithArp extends AbstractAction
 
             if($ipAddress) {
                 if($ipOwner) {
+                    if(!$ipAddress->iam_account_id) {
+                        $ipAddress->update([
+                            'iam_account_id'    =>  $ipOwner->id,
+                            'iam_user_id'       =>  $ipOwner->iam_user_id
+                        ]);
+                    }
+
                     //  This means that there is an owner, and there is an account but they are not matching.
                     //  This is actually a serious problem.
                     if($ipAddress->iam_account_id != $ipOwner->id) {
