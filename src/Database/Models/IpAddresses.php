@@ -50,6 +50,7 @@ class IpAddresses extends Model
             'iaas_virtual_network_card_id',
             'iam_account_id',
             'iam_user_id',
+        'custom_mac_addr'
     ];
 
     /**
@@ -143,12 +144,12 @@ class IpAddresses extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
     }
-    
+
     public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
     }
-    
+
     public function ipAddressHistories() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddressHistories::class);
