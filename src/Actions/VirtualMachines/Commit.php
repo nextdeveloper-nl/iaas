@@ -110,6 +110,12 @@ class Commit extends AbstractAction
             'status' => 'halted',
         ]);
 
+        if(MetaHelper::get($vm, 'boot_after_deploy')) {
+            if(MetaHelper::get($vm, 'boot_after_deploy') == true) {
+                dispatch(new Start($vm));
+            }
+        }
+
         $this->setProgress(100, 'Virtual machine initiated');
     }
 
