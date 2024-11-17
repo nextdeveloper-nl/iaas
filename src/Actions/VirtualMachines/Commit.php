@@ -206,32 +206,6 @@ class Commit extends AbstractAction
             //  Here we check if the VIF not exists. If not exists hypervisor_uuid is null
             if($config->hypervisor_uuid == null) {
                 (new Attach($config))->handle();
-//                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
-//                    ->where('id', $config->iaas_network_id)
-//                    ->first();
-//
-//                $vm = $this->model->fresh();
-//
-//                $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
-//                    ->where('vlan', $network->vlan)
-//                    ->where('iaas_compute_member_id', $vm->iaas_compute_member_id)
-//                    ->first();
-//
-//                //  Here we create the VIF
-//                $result = VirtualMachinesXenService::createVif($vm, $cmni->network_uuid, $config->device_number);
-//
-//                $params = VirtualMachinesXenService::getVifParams($vm, $result);
-//
-//                $vif = $params[0];
-//
-//                $config->update([
-//                    'hypervisor_uuid'   => $vif['uuid'],
-//                    'hypervisor_data'   => $vif,
-//                    'mac_addr'          => $vif['MAC'],
-//                    'iaas_network_id'   =>  $network ? $network->id : null,
-//                    'bandwitdh_limit'   =>  -1,
-//                    'is_draft'          =>  false
-//                ]);
             }
         }
     }
