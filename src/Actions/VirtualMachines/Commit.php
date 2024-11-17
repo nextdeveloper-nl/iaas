@@ -83,6 +83,10 @@ class Commit extends AbstractAction
             return;
         }
 
+        $vm->updateQuietly([
+            'status'    =>  'deploying'
+        ]);
+
         $this->computePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_pool_id)
             ->first();
