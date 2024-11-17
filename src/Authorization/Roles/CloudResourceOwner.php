@@ -71,7 +71,7 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
 
     public function checkUpdatePolicy(Model $model, Users $user): bool
     {
-
+        return true;
     }
 
     public function allowedOperations() :array
