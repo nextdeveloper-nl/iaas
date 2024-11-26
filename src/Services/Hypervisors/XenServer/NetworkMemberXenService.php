@@ -35,6 +35,7 @@ class NetworkMemberXenService
                 'iaas_network_pool_id'  =>  $networkPool->id,
                 'is_management_agent_available'  =>  false,
                 'is_behind_firewall'    =>  $computeMember->is_behind_firewall,
+                'switch_type'   =>  'ovs',
                 'iam_account_id'    =>  $computeMember->iam_account_id,
                 'iam_user_id'   =>  $computeMember->iam_user_id
             ]);

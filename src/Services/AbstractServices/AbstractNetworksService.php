@@ -110,7 +110,7 @@ class AbstractNetworksService
         $object = Networks::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\Networks')
+            ->where('input', 'NextDeveloper\IAAS\Networks')
             ->first();
 
         $class = $action->class;

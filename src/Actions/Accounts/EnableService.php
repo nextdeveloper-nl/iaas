@@ -16,7 +16,7 @@ class EnableService extends AbstractAction
     /**
      * Events related to enabling the service.
      */
-    public const array EVENTS = [
+    public const  EVENTS = [
         'enable-service:NextDeveloper\IAAS\Accounts'
     ];
 

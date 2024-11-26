@@ -2,10 +2,17 @@
 
 namespace NextDeveloper\IAAS\Services\Switches;
 
+use GPBMetadata\Google\Api\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces;
+use NextDeveloper\IAAS\Database\Models\NetworkPools;
+use NextDeveloper\IAAS\Database\Models\Networks;
+use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class DellS6100 extends AbstractSwitches
@@ -18,11 +25,57 @@ class DellS6100 extends AbstractSwitches
     public static function getInterfaces(NetworkMembers $nm)
     {
         $interfaces = [];
-        //$interfaces = self::getPhysicalInterfaces($nm);
-        $interfaces = array_merge($interfaces, self::getVlans($nm));
+        $interfaces = self::getPhysicalInterfaces($nm);
+        //$interfaces = array_merge($interfaces, self::getVlans($nm));
         //$interfaces = array_merge($interfaces, self::getVLTs($nm));
 
         return $interfaces;
+    }
+
+    /**
+     * Applying the network to the related network interfaces. If the network interface is given null, then
+     * function will apply all interfaces available.
+     *
+     * @param Networks $network
+     * @param NetworkMembersInterfaces|null $physicalInterfaces
+     * @return void
+     */
+    public static function addNetworkToSwitch(Networks $network, NetworkMembers $member) {
+        $commands = [
+            'configure',
+            'interface vlan ' . $network->vlan
+        ];
+
+        $physicalInterfaces = NetworkMembersInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
+            ->where('iaas_network_member_id', $member->id)
+            ->where('name', 'not like', 'vlan%')
+            ->where('is_up', true)
+            ->get();
+
+        $i = 0;
+
+        foreach ($physicalInterfaces as $interface) {
+            if($i > 2)
+                break;
+
+            $c = 'tagged ' . $interface->name;
+            $c = str_replace('tenGigabitEthernet', 'Tengigabitethernet', $c);
+
+            $commands[] = $c;
+
+            $i++;
+        }
+
+        $commands[] = 'no shutdown';
+
+        $response = $member->performMultipleSSHCommands($commands);
+
+        foreach ($response as $r) {
+            Log::debug(__METHOD__ . ' | Response: ' . $r['output']);
+        }
+
+        return true;
     }
 
     public static function getPhysicalInterfaces(NetworkMembers $nm) {

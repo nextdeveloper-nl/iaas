@@ -16,7 +16,7 @@ class DisableService extends AbstractAction
     /**
      * Events related to disabling the service.
      */
-    public const array EVENTS = [
+    public const EVENTS = [
         'enable-service:NextDeveloper\IAAS\Accounts'
     ];
 
