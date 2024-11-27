@@ -2,15 +2,12 @@
 
 namespace NextDeveloper\IAAS\Actions\Networks;
 
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
-use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Models\Networks;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\Switches\DellS6100;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use PharIo\Manifest\Author;
 
 /**
  * This action converts the virtual machine into a template
@@ -37,6 +34,8 @@ class Create extends AbstractAction
             ->get();
 
         foreach ($networkMembers as $member) {
+            Log::info(__METHOD__ . ' | Configuring switch: ' . $member->name);
+
             switch ($member->switch_type) {
                 case 'dells6100':
                     DellS6100::addNetworkToSwitch($this->model, $member);
