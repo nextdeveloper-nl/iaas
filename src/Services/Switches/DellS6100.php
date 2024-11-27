@@ -56,9 +56,6 @@ class DellS6100 extends AbstractSwitches
         $i = 0;
 
         foreach ($physicalInterfaces as $interface) {
-            if($i > 2)
-                break;
-
             $c = 'tagged ' . $interface->name;
             $c = str_replace('tenGigabitEthernet', 'Tengigabitethernet', $c);
 
