@@ -66,11 +66,9 @@ class DellS6100 extends AbstractSwitches
 
         $commands[] = 'no shutdown';
 
-        $response = $member->performMultipleSSHCommands($commands);
+        $response = $member->performSSHCommand($commands);
 
-        foreach ($response as $r) {
-            Log::debug(__METHOD__ . ' | Response: ' . $r['output']);
-        }
+        Log::debug(__METHOD__ . ' | Response: ' . $response['output']);
 
         return true;
     }
