@@ -16,9 +16,9 @@ class VirtualDiskImageXenService extends AbstractXenService
         $command = 'xe vm-cd-remove vm=' . $vmName . ' cd-name=\<EMPTY\>';
         $result = self::performCommand($command, $computeMember);
 
-        logger()->info('[VirtualDiskImageService@destroyCdrom] Returned result as: ' . $result[0]['output']);
+        logger()->info('[VirtualDiskImageService@destroyCdrom] Returned result as: ' . $result['output']);
 
-        return self::parseResult($result[0]['output']);
+        return self::parseResult($result['output']);
     }
 
     public static function ejectCdrom($uuid, $computeMember)
@@ -29,7 +29,7 @@ class VirtualDiskImageXenService extends AbstractXenService
         $command = 'xe vm-cd-eject uuid=' . $uuid;
         $result = self::performCommand($command, $computeMember);
 
-        return self::parseResult($result[0]['output']);
+        return self::parseResult($result['output']);
     }
 
     public static function destroyDisk($uuid, $computeMember)
@@ -40,7 +40,7 @@ class VirtualDiskImageXenService extends AbstractXenService
         $command = 'xe vdi-destroy uuid=' . $uuid;
         $result = self::performCommand($command, $computeMember);
 
-        return self::parseResult($result[0]['output']);
+        return self::parseResult($result['output']);
     }
 
     public static function resize($uuid, $computeMember, $size) : array
@@ -51,7 +51,7 @@ class VirtualDiskImageXenService extends AbstractXenService
         $command = 'xe vdi-resize uuid='. $uuid . ' disk-size=' . $size;
         $result = self::performCommand($command, $computeMember);
 
-        return self::parseResult($result[0]['output']);
+        return self::parseResult($result['output']);
     }
 
     public static function getDiskImageParametersByUuid($uuid, $computeMember) : array
@@ -59,7 +59,7 @@ class VirtualDiskImageXenService extends AbstractXenService
         $command = 'xe vdi-param-list uuid=' . $uuid;
         $result = self::performCommand($command, $computeMember);
 
-        return self::parseResult($result[0]['output']);
+        return self::parseResult($result['output']);
     }
 
     public static function getDiskConnectionInformation($uuid, $computeMember) : array
@@ -67,7 +67,7 @@ class VirtualDiskImageXenService extends AbstractXenService
         $command = 'xe vbd-param-list uuid=' . $uuid;
         $result = self::performCommand($command, $computeMember);
 
-        return self::parseResult($result[0]['output']);
+        return self::parseResult($result['output']);
     }
 
     public static function performCommand($command, ComputeMembers $computeMember) : ?array

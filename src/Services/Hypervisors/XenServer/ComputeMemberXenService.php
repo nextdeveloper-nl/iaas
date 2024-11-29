@@ -117,12 +117,12 @@ physical interfaces and vlans of compute member');
 
         $command = 'xe pif-list';
         $result = self::performCommand($command, $computeMember);
-        $interfaces = self::parseListResult($result[0]['output']);
+        $interfaces = self::parseListResult($result['output']);
 
         foreach ($interfaces as $interface) {
             $command = 'xe pif-param-list uuid=' . $interface['uuid'];
             $result = self::performCommand($command, $computeMember);
-            $interfaceDetail = self::parseResult($result[0]['output']);
+            $interfaceDetail = self::parseResult($result['output']);
 
             $data = [
                 'device'    =>  $interfaceDetail['device'],
@@ -202,12 +202,12 @@ physical interfaces and vlans of compute member');
 
         $command = 'xe network-list';
         $result = self::performCommand($command, $computeMember);
-        $bridges = self::parseListResult($result[0]['output']);
+        $bridges = self::parseListResult($result['output']);
 
         foreach ($bridges as $bridge) {
             $command = 'xe network-param-list uuid=' . $bridge['uuid'];
             $result = self::performCommand($command, $computeMember);
-            $details = self::parseListResult($result[0]['output']);
+            $details = self::parseListResult($result['output']);
             $details = $details[0];
 
             //  If this is the host internal management network, then we dont need to create a network for this.
@@ -273,7 +273,7 @@ physical interfaces and vlans of compute member');
             return $computeMember;
         }
 
-        $volumes = self::parseListResult($result[0]['output']);
+        $volumes = self::parseListResult($result['output']);
 
         foreach ($volumes as $volume) {
             /*
@@ -301,7 +301,7 @@ physical interfaces and vlans of compute member');
     {
         $command = 'xe vm-list';
         $result = self::performCommand($command, $computeMember);
-        $vms = self::parseListResult($result[0]['output']);
+        $vms = self::parseListResult($result['output']);
 
         return $vms;
     }
@@ -310,7 +310,7 @@ physical interfaces and vlans of compute member');
     {
         $command = 'xe vm-param-list uuid=' . $uuid;
         $result = self::performCommand($command, $computeMember);
-        $vm = self::parseListResult($result[0]['output']);
+        $vm = self::parseListResult($result['output']);
 
         return $vm;
     }
@@ -321,7 +321,7 @@ physical interfaces and vlans of compute member');
 
         $command = 'xe vm-param-set uuid=' . $vm->hypervisor_uuid . ' name-label="' . $vm->uuid . '"';
         $result = self::performCommand($command, $computeMembers);
-        $result = self::parseListResult($result[0]['output']);
+        $result = self::parseListResult($result['output']);
 
         $vmParams = self::getVirtualMachineByUuid($computeMembers, $vm->hypervisor_uuid);
 
@@ -335,7 +335,7 @@ physical interfaces and vlans of compute member');
     {
         $command = 'xe vbd-list vm-uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMembers);
-        $vdis = self::parseListResult($result[0]['output']);
+        $vdis = self::parseListResult($result['output']);
 
         return $vdis;
     }
@@ -344,7 +344,7 @@ physical interfaces and vlans of compute member');
     {
         $command = 'xe vdi-param-list uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMembers);
-        $vdi = self::parseListResult($result[0]['output']);
+        $vdi = self::parseListResult($result['output']);
 
         return [];
     }
@@ -360,15 +360,15 @@ physical interfaces and vlans of compute member');
 
         $command = 'xe pbd-list sr-uuid=' . $volume['uuid'] . ' params=uuid';
         $result = self::performCommand($command, $computeMember);
-        $pbd = self::parseListResult($result[0]['output']);
+        $pbd = self::parseListResult($result['output']);
 
         $command = 'xe pbd-param-list uuid=' . $pbd[0]['uuid'];
         $result = self::performCommand($command, $computeMember);
-        $pbdParams = self::parseListResult($result[0]['output']);
+        $pbdParams = self::parseListResult($result['output']);
 
         $command = 'xe sr-param-list uuid=' . $volume['uuid'];
         $result = self::performCommand($command, $computeMember);
-        $volumeParamList = self::parseListResult($result[0]['output']);
+        $volumeParamList = self::parseListResult($result['output']);
 
         if(array_key_exists(0, $volumeParamList))
             $volumeParamList = $volumeParamList[0];
@@ -406,11 +406,11 @@ physical interfaces and vlans of compute member');
 
         $command = 'xe pbd-list sr-uuid=' . $volume['uuid'] . ' params=uuid';
         $result = self::performCommand($command, $computeMember);
-        $pbd = self::parseListResult($result[0]['output']);
+        $pbd = self::parseListResult($result['output']);
 
         $command = 'xe pbd-param-list uuid=' . $pbd[0]['uuid'];
         $result = self::performCommand($command, $computeMember);
-        $pbdParams = self::parseListResult($result[0]['output']);
+        $pbdParams = self::parseListResult($result['output']);
 
         $data = [
             'name'   =>  $volume['name-label'],
@@ -453,11 +453,11 @@ physical interfaces and vlans of compute member');
 
         $command = 'xe pbd-list sr-uuid=' . $volume['uuid'] . ' params=uuid';
         $result = self::performCommand($command, $computeMember);
-        $pbd = self::parseListResult($result[0]['output']);
+        $pbd = self::parseListResult($result['output']);
 
         $command = 'xe pbd-param-list uuid=' . $pbd[0]['uuid'];
         $result = self::performCommand($command, $computeMember);
-        $pbdParams = self::parseListResult($result[0]['output']);
+        $pbdParams = self::parseListResult($result['output']);
 
         $data = [
             'name'   =>  $volume['name-label'],
@@ -575,12 +575,12 @@ physical interfaces and vlans of compute member');
         //  If we are here this means that we could not find the interface, now we need to create
         $command = 'xe network-create name-label=' . $network->name;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         $command = 'xe vlan-create network-uuid=' . $result . ' pif-uuid=' . $defaultPIF->hypervisor_uuid . ' vlan=' . $network->vlan;
         $result = self::performCommand($command, $computeMember);
 
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         self::updateInterfaceInformation($computeMember);
 
@@ -607,7 +607,7 @@ physical interfaces and vlans of compute member');
                 $createDirectoryCommand);
 
         $result = self::performCommand($createDirectoryCommand, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         $cloudNode = ComputeMembersService::getCloudNode($computeMember);
 
@@ -636,7 +636,7 @@ physical interfaces and vlans of compute member');
                 $createDirectoryCommand);
 
         $result = self::performCommand($createDirectoryCommand, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         $mountRepoCommand = 'mount -t nfs ' . $repo->local_ip_addr . ':' . $repo->vm_path . ' ' . $computeMemberPath;
 
@@ -645,10 +645,10 @@ physical interfaces and vlans of compute member');
                 $mountRepoCommand);
 
         $result = self::performCommand($mountRepoCommand, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         $result = self::performCommand('ls ' . $computeMemberPath . '/hash.txt', $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         if($result == $computeMemberPath . '/hash.txt')
             return true;
@@ -674,7 +674,7 @@ physical interfaces and vlans of compute member');
 
         $checkCommand = 'ls ' . $computeMemberPath . '/';
         $result = self::performCommand($checkCommand, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         if(strlen($result) > 0) {
             Log::error('[ComputeMembersXenService@mountVmRepo] The repository is not unmounted properly. ' .
@@ -711,7 +711,7 @@ physical interfaces and vlans of compute member');
         $command = 'ls /mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
         $result = self::performCommand($command, $computeMember);
 
-        if(Str::contains($result[0]['error'], "ls: cannot access")) {
+        if(Str::contains($result['error'], "ls: cannot access")) {
             Events::fire('image-lost:NextDeveloper\Iaas\RepositoryImages', $image);
 
             if(config('leo.debug.iaas.compute_members'))
@@ -737,7 +737,7 @@ physical interfaces and vlans of compute member');
 
         $result = self::performCommand($command, $computeMember);
 
-        return $result[0]['output'];
+        return $result['output'];
     }
 
     public static function mountIsoRepository(ComputeMembers $computeMember, Repositories $repo) {
@@ -762,7 +762,7 @@ physical interfaces and vlans of compute member');
             ' shared=true';
 
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         $srList = self::performCommand('xe sr-list', $computeMember);
         $srList = self::parseListResult($srList[0]['output']);

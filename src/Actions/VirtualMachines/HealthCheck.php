@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Database\Models\Actions;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
@@ -25,23 +26,25 @@ class HealthCheck extends AbstractAction
         'vm-is-lost:NextDeveloper\IAAS\VirtualMachines'
     ];
 
-    public function __construct(VirtualMachines $vm)
+    public function __construct(VirtualMachines $vm, $params = null, $previous)
     {
         $this->queue = 'iaas-health-check';
 
         $this->model = $vm;
+
+        parent::__construct($params, $previous);
     }
 
     public function handle()
     {
         $this->setProgress(0, 'Initiate virtual machine started');
 
-        $this->setProgress(0, 'Marking the server as checking health');
+        $this->setProgress(10, 'Marking the server as checking health');
 
         $this->model->status = 'checking-health';
         $this->model->saveQuietly();
 
-        $this->setProgress(0, 'Checking if the virtual machine is alive');
+        $this->setProgress(50, 'Checking if the virtual machine is alive');
         $isVmThere = VirtualMachinesXenService::checkIfVmIsThere($this->model);
 
         Log::info(__METHOD__ . ' | We checked if VM (' . $this->model->uuid
@@ -68,8 +71,9 @@ class HealthCheck extends AbstractAction
 
         $this->setProgress(75, 'Marking the server power state as: ' . $vmParams['power-state']);
 
-        $this->model->status = $vmParams['power-state'];
-        $this->model->saveQuietly();
+        $this->model->updateQuietly([
+            'status'    =>  $vmParams['power-state']
+        ]);
 
         $this->setProgress(100, 'Virtual machine initiated');
     }

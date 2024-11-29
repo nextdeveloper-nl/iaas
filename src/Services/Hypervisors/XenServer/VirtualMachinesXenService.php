@@ -20,7 +20,7 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class VirtualMachinesXenService extends AbstractXenService
 {
-    public static function start(VirtualMachines $vm) : VirtualMachines
+    public static function start(VirtualMachines $vm) : array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
@@ -33,9 +33,8 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-start uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
 
-        return $vm;
+        return $result;
     }
 
     public static function restart(VirtualMachines $vm) : bool
@@ -51,7 +50,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-reboot uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         return true;
     }
@@ -69,7 +68,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-unpause uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         return true;
     }
@@ -87,7 +86,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-pause uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         return true;
     }
@@ -105,7 +104,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-reboot force=true uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         return true;
     }
@@ -123,7 +122,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-shutdown uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         return true;
     }
@@ -141,7 +140,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-shutdown force=true uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         return true;
     }
@@ -364,7 +363,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
             'filename=/mnt/plusclouds-repo/' . $repo->uuid . '/' . $newUuid. '.pvm';
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         return $newUuid;
     }
@@ -383,7 +382,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe vm-param-list uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
 
-        return self::parseResult($result[0]['output']);
+        return self::parseResult($result['output']);
     }
 
     public static function checkIfVmIsThere(VirtualMachines $vm): bool
@@ -404,7 +403,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe vm-param-list uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
 
-        if(Str::contains($result[0]['error'], 'The uuid you supplied was invalid'))
+        if(Str::contains($result['error'], 'The uuid you supplied was invalid'))
             return false;
 
         return true;
@@ -420,7 +419,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe vm-param-list uuid=' . $vmUuid;
         $result = self::performCommand($command, $computeMember);
 
-        return self::parseResult($result[0]['output']);
+        return self::parseResult($result['output']);
     }
 
     public static function getVmDisks(VirtualMachines $vm) : array
@@ -436,7 +435,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vbd-list vm-uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $list = self::parseListResult($result[0]['output']);
+        $list = self::parseListResult($result['output']);
 
         return $list;
     }
@@ -454,7 +453,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vif-list vm-uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $list = self::parseListResult($result[0]['output']);
+        $list = self::parseListResult($result['output']);
 
         return $list;
     }
@@ -472,7 +471,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vif-param-list uuid=' . $uuid;
         $result = self::performCommand($command, $computeMember);
-        $list = self::parseListResult($result[0]['output']);
+        $list = self::parseListResult($result['output']);
 
         return $list;
     }
@@ -494,7 +493,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         Log::info('[' . __METHOD__ . '] The result of creating the VIF is: ' . print_r($result, true));
 
-        return $result[0]['output'];
+        return $result['output'];
     }
 
     public static function destroyVif(VirtualMachines $vm, $uuid)
@@ -535,12 +534,12 @@ class VirtualMachinesXenService extends AbstractXenService
         //  Setting vCPU max
         $command = 'xe vm-param-set VCPUs-max=' . $coreCount . ' uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         //  Setting vCPU on boot
         $command = 'xe vm-param-set VCPUs-at-startup=' . $coreCount . ' uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         if ($corePerSocket) {
             $corePerSocket = (int)$corePerSocket;
@@ -550,7 +549,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
             $command = 'xe vm-param-set platform:cores-per-socket=' . $coreCount . ' uuid=' . $vm->hypervisor_uuid;
             $result = self::performCommand($command, $computeMember);
-            $result = $result[0]['output'];
+            $result = $result['output'];
         }
 
         return true;
@@ -588,7 +587,7 @@ class VirtualMachinesXenService extends AbstractXenService
             logger()->info('[VirtualMachineService@setRam] Executing command: ' . $command);
 
         $result = self::performCommand($command, $computeMember);
-        $result = $result[0]['output'];
+        $result = $result['output'];
 
         return true;
     }

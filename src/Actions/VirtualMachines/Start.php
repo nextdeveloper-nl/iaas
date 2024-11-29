@@ -4,6 +4,8 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Database\Models\Actions;
+use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
@@ -20,18 +22,18 @@ class Start extends AbstractAction
         'start-failed:NextDeveloper\IAAS\VirtualMachines'
     ];
 
-    public function __construct(VirtualMachines $vm)
+    public function __construct(VirtualMachines $vm, $params = null, $previous = null)
     {
         $this->model = $vm;
 
         $this->queue = 'iaas';
 
-        parent::__construct();
+        parent::__construct($previous);
     }
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Starting virtual machine job started.');
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -47,8 +49,21 @@ class Start extends AbstractAction
 
         (new Fix($this->model))->handle();
 
-        $vm = VirtualMachinesXenService::start($this->model);
-        $vmParams = VirtualMachinesXenService::getVmParameters($vm);
+        $result = VirtualMachinesXenService::start($this->model);
+
+        if($result['error'] != '') {
+            if($result['error'] == 'Error: No matching VMs found') {
+                StateHelper::setState($this->model, 'cannot-find-vm', 'true', StateHelper::STATE_ERROR);
+
+                dispatch(new HealthCheck($this->model, null, $this));
+
+                $this->setFinishedWithError('This VM needs a health check. That is why I am finishing this action here.');
+                //  We need to finish this action
+                return;
+            }
+        }
+
+        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
         if(!array_key_exists('power_state', $vmParams)) {
             //  The VM must not be available to be honest. So we should make a health check here.
@@ -69,7 +84,7 @@ class Start extends AbstractAction
 
         if(config('leo.debug.iaas.compute_members'))
             Log::error('[Start@handle] I am starting the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ')');
+                ' VM (' . $this->model->name. '/' . $this->model->uuid . ')');
 
         if($vmParams['power-state'] != 'running') {
             $this->setProgress(100, 'Virtual machine failed to start');
@@ -84,6 +99,6 @@ class Start extends AbstractAction
 
         Events::fire('started:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $this->setProgress(100, 'Virtual machine initiated');
+        $this->setProgress(100, 'Virtual machine started');
     }
 }

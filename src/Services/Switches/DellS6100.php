@@ -77,7 +77,7 @@ class DellS6100 extends AbstractSwitches
         $command = 'show interfaces status';
         $result = self::execute($nm, $command);
 
-        $output = $result[0]['output'];
+        $output = $result['output'];
 
         $lines = explode("\n", $output);
 
@@ -113,7 +113,7 @@ class DellS6100 extends AbstractSwitches
         $command = 'show vlan brief';
         $result = self::execute($nm, $command);
 
-        $output = $result[0]['output'];
+        $output = $result['output'];
 
         $lines = explode("\n", $output);
 
@@ -182,7 +182,7 @@ class DellS6100 extends AbstractSwitches
         if(!$result)
             return null;
 
-        $output = $result[0]['output'];
+        $output = $result['output'];
 
         $lines = explode("\n", $output);
 

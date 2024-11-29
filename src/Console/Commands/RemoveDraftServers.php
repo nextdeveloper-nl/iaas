@@ -34,6 +34,7 @@ class RemoveDraftServers extends Command {
         $vms = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
             ->where('is_draft', 'true')
+            ->where('created_at', '<', Carbon::now()->subHours(8))
             ->whereNull('deleted_at')
             ->get();
 

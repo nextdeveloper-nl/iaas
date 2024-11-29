@@ -117,7 +117,7 @@ class SyncRepositoryService
 
                 $command = 'stat -c \'%b%n%y%z\' ' . $file;
                 $result = self::performCommand($command, $repoServer);
-                $result = $result[0]['output'];
+                $result = $result['output'];
 
                 $hash = md5($result);
 
@@ -138,7 +138,7 @@ class SyncRepositoryService
 
                     $command = 'stat -c \'%b%n%y%z\' ' . $file;
                     $result = self::performCommand($command, $repoServer);
-                    $result = $result[0]['output'];
+                    $result = $result['output'];
 
                     $hash = md5($result);
 

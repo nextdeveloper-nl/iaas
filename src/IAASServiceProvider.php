@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\AbstractServiceProvider;
+use NextDeveloper\IAAS\Console\Commands\RemoveLostServers;
 
 /**
  * Class IAASServiceProvider
@@ -120,6 +121,7 @@ class IAASServiceProvider extends AbstractServiceProvider {
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \NextDeveloper\IAAS\Console\Commands\StartHealthCheck::class,
+                \NextDeveloper\IAAS\Console\Commands\RemoveLostServers::class,
                 \NextDeveloper\IAAS\Console\Commands\RemoveDraftServers::class
             ]);
         }
