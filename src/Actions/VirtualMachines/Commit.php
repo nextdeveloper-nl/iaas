@@ -13,6 +13,7 @@ use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
@@ -83,9 +84,15 @@ class Commit extends AbstractAction
             return;
         }
 
-        $vm->updateQuietly([
-            'status'    =>  'deploying'
-        ]);
+        if($vm->status == 'pending-update') {
+            $vm->updateQuietly([
+                'status'    =>  'updating'
+            ]);
+        } else {
+            $vm->updateQuietly([
+                'status'    =>  'deploying'
+            ]);
+        }
 
         $this->computePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_pool_id)
@@ -140,9 +147,14 @@ class Commit extends AbstractAction
             ->get();
 
         foreach ($vifs as $vif) {
+            $ipList = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_network_card_id', $vif->id)
+                ->get();
+
             $addIp = MetaHelper::get($vif, 'auto_add_ip_v4');
 
-            if($addIp) {
+            //  If there is no IP in the card and auto_add_ip_v4 is true
+            if($addIp && !$ipList) {
                 $network = VirtualNetworkCardsService::getConnectedNetwork($vif);
 
                 $nextAvailableIp = IpAddressesService::getNextIpAvailable($network);

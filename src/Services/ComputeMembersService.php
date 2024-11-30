@@ -7,6 +7,7 @@ use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
+use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractComputeMembersService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -46,6 +47,13 @@ class ComputeMembersService extends AbstractComputeMembersService
         return $cloudNode;
     }
 
+    public static function getComputePool(ComputeMembers $computeMember) : ?ComputePools
+    {
+        return ComputePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $computeMember->iaas_compute_pool_id)
+            ->first();
+    }
+
     public static function getNetworkPool(ComputeMembers $computeMember) : ?NetworkPools
     {
         $computePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
@@ -70,6 +78,16 @@ class ComputeMembersService extends AbstractComputeMembersService
         }
 
         return $networkPool;
+    }
+
+    public static function hasRamResource(ComputeMembers $cm, $ram)
+    {
+        $ram = ResourceCalculationHelper::getActualRam($ram);
+
+        if($cm->free_ram > $ram)
+            return true;
+
+        return false;
     }
 
     public static function updateStats()

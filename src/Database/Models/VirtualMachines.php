@@ -248,22 +248,22 @@ class VirtualMachines extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
     }
-    
+
     public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
     }
-    
+
     public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
     }
-    
+
     public function computeMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
     }
-    
+
     public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
@@ -290,12 +290,6 @@ class VirtualMachines extends Model
             },
         );
     }
-
-
-
-
-
-
 
 
 }
