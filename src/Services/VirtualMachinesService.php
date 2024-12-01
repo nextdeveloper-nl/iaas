@@ -33,7 +33,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function get(VirtualMachinesQueryFilter $filter = null, array $params = []): \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        if(array_key_exists('snapshotOfVirtualMachine'))
+        
     }
 
     public static function create(array $data)
