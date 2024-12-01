@@ -3,10 +3,13 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use App\Services\IAAS\VirtualMachineServices;
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
+use ParagonIE\Sodium\Core\Poly1305\State;
 
 /**
  * This action converts the virtual machine into a template
@@ -48,7 +51,8 @@ class Snapshot extends AbstractAction
 
         if($snapshot['error']) {
             //  There is an error
-            dd($snapshot);
+            Log::error(__METHOD__ . ' | We have an error while taking a snapshot. Here is the error: ' . print_r($snapshot, true));
+            StateHelper::setState($this->model, 'snapshot', 'Cannot take a snapshot, this should be investigated', StateHelper::STATE_ERROR);
         }
 
         $uuid = $snapshot['output'];
@@ -72,10 +76,7 @@ class Snapshot extends AbstractAction
             'iaas_cloud_node_id'  =>  $this->model->iaas_cloud_node_id
         ]);
 
-        VirtualMachinesXenService::fixName($snapshot);
-
-        $this->model->status = 'initiated';
-        $this->model->save();
+        StateHelper::setState($this->model, 'snapshot', 'Snapshot taken successfully', StateHelper::STATE_SUCCESS);
 
         $this->setProgress(100, 'Virtual machine initiated');
     }
