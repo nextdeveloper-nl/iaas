@@ -36,7 +36,7 @@ class Backup extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Backup virtual machine action started.');
 
         $backupStarts = Carbon::now();
 

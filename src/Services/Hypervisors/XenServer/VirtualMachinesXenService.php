@@ -341,8 +341,8 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $result = self::performCommand($command, $computeMember);
 
-        $result[0]['filename'] = $backupName;
-        $result[0]['path']  =   'default-backup-repo://' . $backupName;
+        $result['filename'] = $backupName;
+        $result['path']  =   'default-backup-repo://' . $backupName;
 
         return $result;
     }
