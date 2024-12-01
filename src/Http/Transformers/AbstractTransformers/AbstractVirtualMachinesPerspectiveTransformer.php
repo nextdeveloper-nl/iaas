@@ -59,7 +59,8 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
                                                             $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                        
+                                                            $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -78,6 +79,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
             'cloud_node'  =>  $model->cloud_node,
             'common_domain_id'  =>  $commonDomainId ? $commonDomainId->uuid : null,
+            'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
             'domain'  =>  $model->domain,
             'disk_count'  =>  $model->disk_count,
             'network_card_count'  =>  $model->network_card_count,
