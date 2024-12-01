@@ -1,15 +1,12 @@
 <?php
 namespace NextDeveloper\IAAS\Console\Commands;
 
-use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
-use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use NextDeveloper\IAM\Helpers\UserHelper;
 
 class RemoveDraftServers extends Command {
     /**

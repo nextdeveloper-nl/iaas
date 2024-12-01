@@ -26,7 +26,7 @@ class HealthCheck extends AbstractAction
         'vm-is-lost:NextDeveloper\IAAS\VirtualMachines'
     ];
 
-    public function __construct(VirtualMachines $vm, $params = null, $previous)
+    public function __construct(VirtualMachines $vm, $params = null, $previous = null)
     {
         $this->queue = 'iaas-health-check';
 

@@ -54,7 +54,7 @@ class Sync extends AbstractAction
                 'status'    =>  'checking-health'
             ]);
 
-            $job = new HealthCheck($this->model);
+            $job = new HealthCheck($this->model, null, $this);
             $id = $job->getActionId();
 
             dispatch($job)->onQueue('iaas');
