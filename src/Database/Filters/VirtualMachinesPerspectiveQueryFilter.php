@@ -4,7 +4,8 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,49 +38,49 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'like', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
         return $this->builder->where('description', 'like', '%' . $value . '%');
     }
 
-        
+
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'like', '%' . $value . '%');
     }
 
-        
+
     public function username($value)
     {
         return $this->builder->where('username', 'like', '%' . $value . '%');
     }
 
-        
+
     public function os($value)
     {
         return $this->builder->where('os', 'like', '%' . $value . '%');
     }
 
-        
+
     public function distro($value)
     {
         return $this->builder->where('distro', 'like', '%' . $value . '%');
     }
 
-        
+
     public function version($value)
     {
         return $this->builder->where('version', 'like', '%' . $value . '%');
     }
 
-        
+
     public function domainType($value)
     {
         return $this->builder->where('domain_type', 'like', '%' . $value . '%');
@@ -90,13 +91,13 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->domainType($value);
     }
-        
+
     public function status($value)
     {
         return $this->builder->where('status', 'like', '%' . $value . '%');
     }
 
-        
+
     public function cloudNode($value)
     {
         return $this->builder->where('cloud_node', 'like', '%' . $value . '%');
@@ -107,19 +108,19 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->cloudNode($value);
     }
-        
+
     public function domain($value)
     {
         return $this->builder->where('domain', 'like', '%' . $value . '%');
     }
 
-        
+
     public function network($value)
     {
         return $this->builder->where('network', 'like', '%' . $value . '%');
     }
 
-        
+
     public function autoBackupInterval($value)
     {
         return $this->builder->where('auto_backup_interval', 'like', '%' . $value . '%');
@@ -130,7 +131,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->autoBackupInterval($value);
     }
-        
+
     public function autoBackupTime($value)
     {
         return $this->builder->where('auto_backup_time', 'like', '%' . $value . '%');
@@ -141,19 +142,19 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->autoBackupTime($value);
     }
-        
+
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'like', '%' . $value . '%');
     }
 
-        
+
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'like', '%' . $value . '%');
     }
 
-    
+
     public function cpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -167,7 +168,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
-    
+
     public function ram($value)
     {
         $operator = substr($value, 0, 1);
@@ -181,7 +182,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
-    
+
     public function diskCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -200,7 +201,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->diskCount($value);
     }
-    
+
     public function networkCardCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -219,7 +220,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->networkCardCount($value);
     }
-    
+
     public function hasWarnings($value)
     {
         $operator = substr($value, 0, 1);
@@ -238,7 +239,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->hasWarnings($value);
     }
-    
+
     public function hasErrors($value)
     {
         $operator = substr($value, 0, 1);
@@ -257,7 +258,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->hasErrors($value);
     }
-    
+
     public function numberOfDisks($value)
     {
         $operator = substr($value, 0, 1);
@@ -276,7 +277,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->numberOfDisks($value);
     }
-    
+
     public function totalDiskSize($value)
     {
         $operator = substr($value, 0, 1);
@@ -295,7 +296,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalDiskSize($value);
     }
-    
+
     public function isTemplate($value)
     {
         return $this->builder->where('is_template', $value);
@@ -306,7 +307,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isTemplate($value);
     }
-     
+
     public function isDraft($value)
     {
         return $this->builder->where('is_draft', $value);
@@ -317,7 +318,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isDraft($value);
     }
-     
+
     public function isLost($value)
     {
         return $this->builder->where('is_lost', $value);
@@ -328,7 +329,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isLost($value);
     }
-     
+
     public function isLocked($value)
     {
         return $this->builder->where('is_locked', $value);
@@ -339,7 +340,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isLocked($value);
     }
-     
+
     public function isSnapshot($value)
     {
         return $this->builder->where('is_snapshot', $value);
@@ -350,7 +351,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isSnapshot($value);
     }
-     
+
     public function lastMetadataRequestStart($date)
     {
         return $this->builder->where('last_metadata_request', '>=', $date);
@@ -453,7 +454,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasCloudNode($value);
     }
-    
+
     public function commonDomainId($value)
     {
             $commonDomain = \NextDeveloper\Commons\Database\Models\Domains::where('uuid', $value)->first();
@@ -468,7 +469,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->commonDomain($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -478,7 +479,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -488,16 +489,17 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
+    public function snapshotOfVirtualMachine($uuid)
+    {
+        $vm = VirtualMachines::where('uuid', $uuid)
+            ->first();
 
-
-
-
-
-
-
-
-
+        if($vm)
+            return $this->builder->where('snapshot_of_virtual_machine', $vm->id);
+        else
+            return $this->builder->where('id', '=', '0');
+    }
 }

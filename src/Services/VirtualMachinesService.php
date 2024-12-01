@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
+use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
@@ -29,6 +30,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    public static function get(VirtualMachinesQueryFilter $filter = null, array $params = []): \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        if(array_key_exists('snapshotOfVirtualMachine'))
+    }
 
     public static function create(array $data)
     {
