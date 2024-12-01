@@ -619,7 +619,7 @@ physical interfaces and vlans of compute member');
 
         $result = self::performCommand($mountRepoCommand, $computeMember);
 
-        return $result[0];
+        return $result;
     }
 
     public static function mountVmRepository(ComputeMembers $computeMember, Repositories $repo) : bool

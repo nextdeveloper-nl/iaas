@@ -166,7 +166,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe vm-snapshot vm=' . $vm->uuid . ' new-name-label=' . $name;
         $result = self::performCommand($command, $computeMember);
 
-        return $result[0];
+        return $result;
     }
 
     public static function convertSnapshotToVm(VirtualMachines $vm, $name = null) : array
@@ -186,7 +186,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe snapshot-param-set is-a-template=false uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
 
-        return $result[0];
+        return $result;
     }
 
     public static function destroyVm(VirtualMachines $vm) : array
@@ -203,7 +203,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe vm-destroy uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
 
-        return $result[0];
+        return $result;
     }
 
     public static function cloneVm(VirtualMachines $vm) : array
@@ -220,7 +220,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe vm-clone vm=' . $vm->uuid . ' new-name-label=cloned-' . $vm->uuid;
         $result = self::performCommand($command, $computeMember);
 
-        return $result[0];
+        return $result;
     }
 
     public static function fixName(VirtualMachines $vm) : bool
@@ -344,7 +344,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $result[0]['filename'] = $backupName;
         $result[0]['path']  =   'default-backup-repo://' . $backupName;
 
-        return $result[0];
+        return $result;
     }
 
     public static function export(VirtualMachines $vm, Repositories $repo) : string
