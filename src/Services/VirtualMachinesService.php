@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
+use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -293,5 +294,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         return true;
+    }
+
+    public static function isRunning(VirtualMachines $vm, $force = false) : bool
+    {
+        if($force) {
+            (new HealthCheck($vm))->handle();
+        }
+
+        return $vm->status == 'running';
     }
 }

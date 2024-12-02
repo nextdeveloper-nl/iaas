@@ -5,13 +5,20 @@ namespace NextDeveloper\IAAS\Services;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Commons\Services\StatesService;
+use NextDeveloper\IAAS\Actions\VirtualDiskImages\Resize;
+use NextDeveloper\IAAS\Database\Models\CloudNodes;
+use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\StorageMembers;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
+use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotCreateDisk;
 use NextDeveloper\IAAS\Exceptions\CannotCreateRootDisk;
+use NextDeveloper\IAAS\Exceptions\CannotUpdateResourcesException;
+use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualDiskImagesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -102,5 +109,113 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
         }
 
         return parent::create($data);
+    }
+
+    public static function update($id, array $data)
+    {
+        $vdi = VirtualDiskImages::where('uuid', $id)->first();
+
+        $requestedDiskSize = ResourceCalculationHelper::getDiskInBytes($data['size']);
+        $shouldResizeDisk = false;
+
+        if($vdi->size != $requestedDiskSize) {
+            $availableDiskSizes = ResourceCalculationHelper::getAvailableDiskSizes(
+                self::getComputePool($vdi)
+            );
+
+            if(!in_array($requestedDiskSize, $availableDiskSizes)) {
+                if(VirtualMachinesService::isRunning(
+                    self::getVirtualMachine($vdi)
+                )) {
+                    throw new CannotUpdateResourcesException('We cannot update the disk size, because the ' .
+                        'server is running at the moment. Please shutdown your server and try again.');
+                }
+            }
+
+            $shouldResizeDisk = true;
+        }
+
+        $data['size']   =   $requestedDiskSize;
+
+        $vdi = parent::update($id, $data);
+
+        if($shouldResizeDisk)
+            dispatch(new Resize($vdi));
+
+        return $vdi;
+    }
+
+    public static function getStorageVolume(VirtualDiskImages $vdi): ?StorageVolumes
+    {
+        return StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vdi->iaas_storage_volume_id)
+            ->first();
+    }
+
+    public static function getStorageMember(VirtualDiskImages $vdi): ?StorageMembers
+    {
+        return StorageMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', self::getStorageVolume($vdi)->iaas_storage_member_id)
+            ->first();
+    }
+
+    public static function getStoragePool(VirtualDiskImages $vdi): ?StoragePools
+    {
+        return StoragePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', self::getStorageMember($vdi)->iaas_storage_pool_id)
+            ->first();
+    }
+
+    /**
+     * Returns true if the storage pool is local.
+     *
+     * @param VirtualDiskImages $vdi
+     * @return bool
+     */
+    public static function isOnLocalStorage(VirtualDiskImages $vdi) : bool
+    {
+        return self::getStoragePool($vdi)->storage_pool_type == 'local';
+    }
+
+    public static function isOnLeoOne(VirtualDiskImages $vdi): ?bool
+    {
+        $vm = self::getVirtualMachine($vdi);
+
+        if(!$vm) return null;
+
+        $cp = ComputePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_pool_id)
+            ->first();
+
+        return $cp->pool_type == 'one';
+    }
+
+    public static function getComputeMember(VirtualDiskImages $vdi) : ?ComputeMembers
+    {
+        $vm = self::getVirtualMachine($vdi);
+
+        if(!$vm) return null;
+
+        return ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+    }
+
+    public static function getComputePool(VirtualDiskImages $vdi) : ?ComputePools
+    {
+        $vm = self::getVirtualMachine($vdi);
+
+        if(!$vm) return null;
+
+        return ComputePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_pool_id)
+            ->first();
+    }
+
+    public static function getVirtualMachine(VirtualDiskImages $vdi) : ?VirtualMachines
+    {
+        return VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vdi->iaas_virtual_machine_id)
+            ->first();
     }
 }

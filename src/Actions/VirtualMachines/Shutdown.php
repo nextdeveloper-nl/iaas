@@ -30,7 +30,7 @@ class Shutdown extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Shutdown virtual machine started');
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -46,22 +46,27 @@ class Shutdown extends AbstractAction
 
         (new Fix($this->model))->handle();
 
-        $vm = VirtualMachinesXenService::shutdown($this->model);
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        try {
+            $vm = VirtualMachinesXenService::shutdown($this->model);
+            $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
-        if($vmParams['power-state'] != 'halted') {
-            $this->setProgress(100, 'Virtual machine failed to shutdown');
+            if($vmParams['power-state'] != 'halted') {
+                $this->setProgress(100, 'Virtual machine failed to shutdown');
+                Events::fire('shutdown-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
+                return;
+            }
+
+            $this->model->update([
+                'status'            =>  'halted',
+                'hypervisor_data'   =>  $vmParams
+            ]);
+        } catch (\Exception $e) {
             Events::fire('shutdown-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
-            return;
+            dispatch(new HealthCheck($this->model));
         }
-
-        $this->model->update([
-            'status'            =>  'halted',
-            'hypervisor_data'   =>  $vmParams
-        ]);
 
         Events::fire('halted:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $this->setProgress(100, 'Virtual machine initiated');
+        $this->setProgress(100, 'Virtual machine shutdown');
     }
 }

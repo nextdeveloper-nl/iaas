@@ -56,21 +56,24 @@ class Export extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Export of virtual machine started');
+        Events::fire('exporting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
+            Events::fire('export-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
 
         if($this->model->deleted_at != null) {
             $this->setFinished('I cannot complete this process because the VM is already deleted');
+            Events::fire('export-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
 
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
-        if(!array_key_exists('power_state', $vmParams)) {
+        if(!array_key_exists('power-state', $vmParams)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'
@@ -83,6 +86,8 @@ class Export extends AbstractAction
 
             $this->setProgress(100, 'Checking the health of the VM. ' .
                 'We suspect something is happening to it.');
+
+            Events::fire('export-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
             return $id;
         }
@@ -98,6 +103,7 @@ class Export extends AbstractAction
         $this->model->status = 'initiated';
         $this->model->save();
 
+        Events::fire('exported:NextDeveloper\IAAS\VirtualMachines', $this->model);
         $this->setProgress(100, 'Virtual machine initiated');
     }
 }

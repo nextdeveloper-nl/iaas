@@ -59,6 +59,28 @@ class ResourceCalculationHelper
     }
 
     /**
+     * Returns the disk size in bytes for virtualization. Careful!! Default disk size unit is GB.
+     *
+     * @param $size
+     * @return int
+     */
+    public static function getDiskInBytes($size) : int
+    {
+        if(Str::contains($size, ['G', 'g', 'GB', 'Gb', 'gb'])) {
+            $size = Str::remove(['G', 'g', 'GB', 'Gb', 'gb'], $size);
+            return intval(trim($size)) * 1024 * 1024 * 1024;
+        }
+
+        if(Str::contains($size, ['T', 't', 'TB', 'Tb', 'tb'])) {
+            $size = Str::remove(['G', 'g', 'GB', 'Gb', 'gb'], $size);
+            return intval(trim($size)) * 1024 * 1024 * 1024 * 1024;
+        }
+
+        //  We accept is the size is GB by default.
+        return $size * 1024 * 1024 * 1024;
+    }
+
+    /**
      * Returns the number of CPU core which can be provided against the ram
      * @param ComputePools $cp
      * @param $ram

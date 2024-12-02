@@ -6,6 +6,7 @@ use App\Services\IAAS\VirtualMachineServices;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
@@ -34,6 +35,7 @@ class Snapshot extends AbstractAction
     public function handle()
     {
         $this->setProgress(0, 'Initiate virtual machine started');
+        Events::fire('taking-snapshot:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -78,6 +80,7 @@ class Snapshot extends AbstractAction
 
         StateHelper::setState($this->model, 'snapshot', 'Snapshot taken successfully', StateHelper::STATE_SUCCESS);
 
+        Events::fire('snapstot-taken:NextDeveloper\IAAS\VirtualMachines', $this->model);
         $this->setProgress(100, 'Virtual machine initiated');
     }
 }

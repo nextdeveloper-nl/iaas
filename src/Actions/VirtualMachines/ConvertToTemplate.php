@@ -78,7 +78,7 @@ class ConvertToTemplate extends AbstractAction
 
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
-        if(!array_key_exists('power_state', $vmParams)) {
+        if(!array_key_exists('power-state', $vmParams)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'

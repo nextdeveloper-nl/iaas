@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\Gateways;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\IAAS\Database\Models\Gateways;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
 /**
@@ -16,11 +17,11 @@ class Commit extends AbstractAction
         'commit-failed:NextDeveloper\IAAS\Gateways'
     ];
 
-    public function __construct(VirtualMachines $vm)
+    public function __construct(Gateways $gateway)
     {
         trigger_error('This action is not yet implemented', E_USER_ERROR);
 
-        $this->model = $vm;
+        $this->model = $gateway;
     }
 
     public function handle()

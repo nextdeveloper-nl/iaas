@@ -30,7 +30,7 @@ class Sync extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Initiate virtual machine sync');
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -48,7 +48,7 @@ class Sync extends AbstractAction
 
         $params = VirtualMachinesXenService::getVmParameters($this->model);
 
-        if(!array_key_exists('power_state', $params)) {
+        if(!array_key_exists('power-state', $params)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'
@@ -82,6 +82,6 @@ class Sync extends AbstractAction
 
         Events::fire('synced:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $this->setProgress(100, 'Virtual machine initiated');
+        $this->setProgress(100, 'Virtual machine synced');
     }
 }

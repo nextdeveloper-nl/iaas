@@ -111,7 +111,7 @@ class AbstractVirtualDiskImagesService
         $object = VirtualDiskImages::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\VirtualDiskImages')
+            ->where('input', 'NextDeveloper\IAAS\VirtualDiskImages')
             ->first();
 
         $class = $action->class;

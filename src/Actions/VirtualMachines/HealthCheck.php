@@ -15,13 +15,13 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 class HealthCheck extends AbstractAction
 {
     public const EVENTS = [
+        'checking:NextDeveloper\IAAS\VirtualMachines',
         'checked:NextDeveloper\IAAS\VirtualMachines',
         'healthy:NextDeveloper\IAAS\VirtualMachines',
         'stopped:NextDeveloper\IAAS\VirtualMachines',
         'halted:NextDeveloper\IAAS\VirtualMachines',
         'running:NextDeveloper\IAAS\VirtualMachines',
         'paused:NextDeveloper\IAAS\VirtualMachines',
-        'resumed:NextDeveloper\IAAS\VirtualMachines',
         'health-check-failed:NextDeveloper\IAAS\VirtualMachines',
         'vm-is-lost:NextDeveloper\IAAS\VirtualMachines'
     ];
@@ -37,7 +37,8 @@ class HealthCheck extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Virtual machine health check started');
+        Events::fire('checking:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         $this->setProgress(10, 'Marking the server as checking health');
 
@@ -75,6 +76,20 @@ class HealthCheck extends AbstractAction
             'status'    =>  $vmParams['power-state']
         ]);
 
-        $this->setProgress(100, 'Virtual machine initiated');
+        switch ($vmParams['power-state']) {
+            case 'running':
+                Events::fire('running:NextDeveloper\IAAS\VirtualMachines', $this->model);
+                break;
+            case 'halted':
+                Events::fire('halted:NextDeveloper\IAAS\VirtualMachines', $this->model);
+                break;
+            case 'paused':
+                Events::fire('paused:NextDeveloper\IAAS\VirtualMachines', $this->model);
+                break;
+        }
+
+        Events::fire('healthy:NextDeveloper\IAAS\VirtualMachines', $this->model);
+        Events::fire('checked:NextDeveloper\IAAS\VirtualMachines', $this->model);
+        $this->setProgress(100, 'Virtual machine health check finished');
     }
 }

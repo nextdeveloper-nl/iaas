@@ -30,6 +30,7 @@ class Unpause extends AbstractAction
     public function handle()
     {
         $this->setProgress(0, 'Initiate virtual machine unpausing');
+        Events::fire('unpausing:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -43,7 +44,7 @@ class Unpause extends AbstractAction
 
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
-        if(!array_key_exists('power_state', $vmParams)) {
+        if(!array_key_exists('power-state', $vmParams)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'

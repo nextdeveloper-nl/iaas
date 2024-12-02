@@ -30,7 +30,8 @@ class Pause extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Pausing virtual machine started');
+        Events::fire('pausing:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -69,6 +70,7 @@ class Pause extends AbstractAction
             'hypervisor_data'   =>  $vmParams
         ]);
 
+        Events::fire('paused:NextDeveloper\IAAS\VirtualMachines', $this->model);
         $this->setProgress(100, 'Virtual machine paused');
     }
 }

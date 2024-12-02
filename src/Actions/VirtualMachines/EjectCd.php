@@ -14,8 +14,8 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 class EjectCd extends AbstractAction
 {
     public const EVENTS = [
-        'mounting-cd:NextDeveloper\IAAS\VirtualMachines',
-        'cd-mounted:NextDeveloper\IAAS\VirtualMachines',
+        'ejecting-cd:NextDeveloper\IAAS\VirtualMachines',
+        'cd-ejected:NextDeveloper\IAAS\VirtualMachines',
         'mounting-cd-failed:NextDeveloper\IAAS\VirtualMachines'
     ];
 
@@ -30,7 +30,7 @@ class EjectCd extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Mounting CD to virtual machine');
+        $this->setProgress(0, 'Ejecting CD from virtual machine');
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
