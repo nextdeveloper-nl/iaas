@@ -70,6 +70,8 @@ class VirtualDiskImages extends Model
             'is_draft',
             'iaas_repository_image_id',
             'iaas_storage_pool_id',
+        'vbd_hypervisor_uuid',
+        'vbd_hypervisor_data'
     ];
 
     /**

@@ -29,6 +29,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\IpAddressesService;
+use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\Intelligence\Services\IpsService;
@@ -121,6 +122,7 @@ class Commit extends AbstractAction
             'status' => 'halted',
         ]);
 
+        //  Buranın değişmesi lazım, zira bunun boot_after_commit olması lazım.
         if(MetaHelper::get($vm, 'boot_after_deploy')) {
             if(MetaHelper::get($vm, 'boot_after_deploy') == true) {
                 dispatch(new Start($vm));
@@ -388,13 +390,29 @@ class Commit extends AbstractAction
 
         $diskConfig = VirtualDiskImages::where('iaas_virtual_machine_id', $vm->id)->orderBy('id', 'asc')->get();
 
-        $this->setProgress($step + 1, 'Got the disk configuration of the virtual machine.');
+        Log::info(__METHOD__ . ' | Checking if we have draft disks that we need to handle');
+        $this->setProgress($step + 1, 'Looking if we have new disks that we need to create or attach.');
+
+        //  Now we need to create the disks that are in draft state
+        foreach ($diskConfig as $disk) {
+            //  If we have a draft disk this means that we have a disk that we need to create
+            if($disk->is_draft) {
+                $disk = VirtualDiskImageXenService::create($disk);
+                $disk = VirtualDiskImageXenService::attach($disk);
+
+                $disk->updateQuietly([
+                    'is_draft'  =>  false
+                ]);
+            }
+        }
+
+        $this->setProgress($step + 3, 'Got the disk configuration of the virtual machine.');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 1 . '] | Got the disk configuration of the virtual machine.');
 
         //  Check if imported VM has a disk already
         $disks = VirtualMachinesXenService::getVmDisks($vm);
 
-        $this->setProgress($step + 3, 'Syncing the disks we have.');
+        $this->setProgress($step + 4, 'Syncing the disks we have.');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Syncing the disks we have.');
 
         if (!$diskConfig) {
@@ -427,7 +445,7 @@ class Commit extends AbstractAction
             }
         }
 
-        $this->setProgress($step + 5, 'Removing unwanted disks/cdroms.');
+        $this->setProgress($step + 6, 'Removing unwanted disks/cdroms.');
 
         foreach ($unsyncedDisks as $disk) {
             if($disk['vdi-uuid'] === '<not in database>') {
@@ -436,6 +454,8 @@ class Commit extends AbstractAction
                 VirtualDiskImageXenService::destroyDisk($disk['vdi-uuid'], $computeMember);
             }
         }
+
+        $this->setProgress($step + 9, 'Disk sync finished.');
     }
 
     private function syncDisk($config, $disk) {

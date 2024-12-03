@@ -208,6 +208,8 @@ class ScanVirtualMachines extends AbstractAction
                     'iam_account_id'        =>  $dbVm->iam_account_id,
                     'iam_user_id'           =>  $dbVm->iam_user_id,
                     'is_draft'              =>  false,
+                    'vbd_hypervisor_uuid'   =>  $vbd['uuid'],
+                    'vbd_hypervisor_data'   =>  $vbdParams
                 ];
 
                 if($dbVdi)
