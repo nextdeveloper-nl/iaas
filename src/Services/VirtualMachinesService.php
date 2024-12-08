@@ -99,6 +99,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 Log::error(__METHOD__ . ' | We got the payload is invalid error. Maybe the password is not ' .
                     'encrpyted for the customer. That is why I am returning the raw password');
 
+                $vm->update([
+                    'password'  =>  $vm->password
+                ]);
+
                 return ResponseHelper::status($vm->password);
             }
         }
