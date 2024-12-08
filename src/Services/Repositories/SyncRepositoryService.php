@@ -160,7 +160,7 @@ class SyncRepositoryService
                             'cpu_type' => $vmCpuVersion,
                             'extra' => $extra,
                             'default_username'  =>  'root',
-                            'default_password'  =>  'pep0movt!',
+                            'default_password'  =>  'Pu9vopfed1gerlmov0beto!',
                             'hash' => $hash,
                             'path' => $file,
                             'is_iso'    =>  false,

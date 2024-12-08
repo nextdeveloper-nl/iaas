@@ -27,13 +27,13 @@ class Attach extends AbstractAction
         'attach-failed:NextDeveloper\IAAS\VirtualNetworkCards'
     ];
 
-    public function __construct(VirtualNetworkCards $vif)
+    public function __construct(VirtualNetworkCards $vif, $params = null, $previous = null)
     {
         $this->model = $vif;
 
         $this->queue = 'iaas';
 
-        parent::__construct();
+        parent::__construct($params, $previous);
     }
 
     public function handle()

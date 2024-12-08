@@ -20,13 +20,13 @@ class SynchronizeMachineImages extends AbstractAction
         'cannot-sync-machine-images:NextDeveloper\IAAS\Repositories'
     ];
 
-    public function __construct(Repositories $repo)
+    public function __construct(Repositories $repo, $params = null, $previous = null)
     {
         $this->model = $repo;
 
         $this->queue = 'iaas';
 
-        parent::__construct();
+        parent::__construct($params, $previous);
     }
 
     public function handle()

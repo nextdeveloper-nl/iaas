@@ -21,9 +21,11 @@ class Resize extends AbstractAction
         'resize-failed:NextDeveloper\IAAS\VirtualDiskImages'
     ];
 
-    public function __construct(VirtualDiskImages $vdi, $params = null, $previous = null)
+    public function __construct(VirtualDiskImages $diskImage, $params = null, $previous = null)
     {
-        $this->model = $vdi;
+        trigger_error('This action is not yet implemented', E_USER_ERROR);
+
+        $this->model = $diskImage;
 
         parent::__construct($params, $previous);
     }

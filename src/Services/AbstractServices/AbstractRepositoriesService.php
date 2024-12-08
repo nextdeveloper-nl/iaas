@@ -111,7 +111,7 @@ class AbstractRepositoriesService
         $object = Repositories::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\Repositories')
+            ->where('input', 'NextDeveloper\IAAS\Repositories')
             ->first();
 
         $class = $action->class;
@@ -181,7 +181,7 @@ class AbstractRepositoriesService
                 $data['iam_account_id']
             );
         }
-            
+
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
@@ -191,11 +191,11 @@ class AbstractRepositoriesService
                 $data['iam_user_id']
             );
         }
-                    
+
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
-            
+
         try {
             $model = Repositories::create($data);
         } catch(\Exception $e) {
@@ -255,7 +255,7 @@ class AbstractRepositoriesService
                 $data['iam_user_id']
             );
         }
-    
+
         Events::fire('updating:NextDeveloper\IAAS\Repositories', $model);
 
         try {

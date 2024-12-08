@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\VirtualDiskImages;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
 /**
@@ -16,11 +17,13 @@ class Detach extends AbstractAction
         'detach-failed:NextDeveloper\IAAS\VirtualDiskImages'
     ];
 
-    public function __construct(VirtualMachines $vm)
+    public function __construct(VirtualDiskImages $diskImage, $params = null, $previous = null)
     {
         trigger_error('This action is not yet implemented', E_USER_ERROR);
 
-        $this->model = $vm;
+        $this->model = $diskImage;
+
+        parent::__construct($params, $previous);
     }
 
     public function handle()

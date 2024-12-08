@@ -122,6 +122,8 @@ class Commit extends AbstractAction
             'status' => 'halted',
         ]);
 
+
+
         //  Buranın değişmesi lazım, zira bunun boot_after_commit olması lazım.
         if(MetaHelper::get($vm, 'boot_after_deploy')) {
             if(MetaHelper::get($vm, 'boot_after_deploy') == true) {
