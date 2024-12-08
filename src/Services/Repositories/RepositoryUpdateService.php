@@ -10,7 +10,7 @@ class RepositoryUpdateService
     {
         $command = 'hostname -I | awk \'{print $1}\''; // get the ip address of the server
         $ipAddr = self::performCommand($command, $repo);
-        $ipAddr = $ipAddr[0]['output'];
+        $ipAddr = $ipAddr['output'];
 
         $repo->update([
             'local_ip_addr' =>  $ipAddr,

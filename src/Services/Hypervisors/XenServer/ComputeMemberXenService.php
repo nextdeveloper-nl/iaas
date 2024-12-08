@@ -35,23 +35,23 @@ class ComputeMemberXenService extends AbstractXenService
 
         $command = 'hostname';
         $hostname = self::performCommand($command, $computeMember);
-        $hostname = $hostname[0]['output'];
+        $hostname = $hostname['output'];
 
         //  This command will give us the uptime of the host as timestamp
         $command = 'stat -c %Z /proc/ ';
         $uptime = self::performCommand($command, $computeMember);
-        $uptime = $uptime[0]['output'];
+        $uptime = $uptime['output'];
 
         $command = 'xe host-list';
         $hostlist = self::performCommand($command, $computeMember);
-        $hostListArray = self::parseListResult($hostlist[0]['output']);
+        $hostListArray = self::parseListResult($hostlist['output']);
 
         $hypervisor = null;
 
         foreach ($hostListArray as $host) {
             $command = 'xe host-param-list uuid=' . $host['uuid'];
             $hostInfo = self::performCommand($command, $computeMember);
-            $hostInfo = self::parseResult($hostInfo[0]['output']);
+            $hostInfo = self::parseResult($hostInfo['output']);
 
             //  We are checking this because this host can be a part of a pool and we need to get the correct host
             if($hostInfo['hostname'] == $hostname) {
@@ -746,7 +746,7 @@ physical interfaces and vlans of compute member');
                 $repo->name . ' to the compute member: ' . $computeMember->name);
 
         $srList = self::performCommand('xe sr-list', $computeMember);
-        $srList = self::parseListResult($srList[0]['output']);
+        $srList = self::parseListResult($srList['output']);
 
         foreach ($srList as $sr) {
             if($sr['name-label'] == 'ISO on ' . $repo->name) {
@@ -765,7 +765,7 @@ physical interfaces and vlans of compute member');
         $result = $result['output'];
 
         $srList = self::performCommand('xe sr-list', $computeMember);
-        $srList = self::parseListResult($srList[0]['output']);
+        $srList = self::parseListResult($srList['output']);
 
         foreach ($srList as $sr) {
             if($sr['name-label'] == 'ISO on ' . $repo->name) {
@@ -785,7 +785,7 @@ physical interfaces and vlans of compute member');
 
         $srList = self::performCommand('xe pif-list VLAN=' . $network->vlan, $computeMember);
 
-        if($srList[0]['output'] == '')
+        if($srList['output'] == '')
             return false;
 
         return true;

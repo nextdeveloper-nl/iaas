@@ -260,7 +260,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $checkCommand = 'xe vm-cd-list vm=' . $vm->uuid;
         $command = self::performCommand($checkCommand, $computeMember);
-        $result = self::parseListResult($command[0]['output']);
+        $result = self::parseListResult($command['output']);
 
         $cdrom = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
             ->where('is_cdrom', 'true')
@@ -303,7 +303,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $checkCommand = 'xe vm-cd-list vm=' . $vm->uuid;
         $command = self::performCommand($checkCommand, $computeMember);
-        $result = self::parseListResult($command[0]['output']);
+        $result = self::parseListResult($command['output']);
 
         $cdrom = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
             ->where('is_cdrom', 'true')

@@ -22,7 +22,7 @@ class SyncRepositoryService
     {
         $command = 'find ' . $repo->iso_path;
         $images = self::performCommand($command, $repo);
-        $images = $images[0]['output'];
+        $images = $images['output'];
 
         $images = array_filter(explode("\n", trim($images)));
 
@@ -51,7 +51,7 @@ class SyncRepositoryService
 
         $command = 'find ' . $repo->vm_path;
         $images = self::performCommand($command, $repo);
-        $images = $images[0]['output'];
+        $images = $images['output'];
 
         $imageFiles = array_filter(explode("\n", trim($images)));
 
@@ -144,7 +144,7 @@ class SyncRepositoryService
 
                     $command = 'du -shb ' . $file;
                     $size = self::performCommand($command, $repoServer);
-                    $size = $size[0]['output'];
+                    $size = $size['output'];
                     $size = trim(str_replace($file, '', $size));
 
                     //  Böyle bir imaj yok ise kayıt et
@@ -189,7 +189,7 @@ class SyncRepositoryService
 
                         $command = 'du -shb ' . $file;
                         $size = self::performCommand($command, $repoServer);
-                        $size = $size[0]['output'];
+                        $size = $size['output'];
                         $size = trim(str_replace($file, '', $size));
 
                         $image->update([

@@ -100,6 +100,9 @@ class VirtualDiskImageXenService extends AbstractXenService
 
         $computeMember = VirtualDiskImagesService::getComputeMember($vdi);
 
+        Log::info(__METHOD__ . ' | Trying to get the volume for compute member: ' . $computeMember->uuid
+            . ' and the disk for: ' . $vdi->uuid);
+
         $cmVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_compute_member_id', $computeMember->id)
             ->where('iaas_storage_pool_id', $vdi->iaas_storage_pool_id)

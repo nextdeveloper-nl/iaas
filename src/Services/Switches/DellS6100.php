@@ -167,7 +167,7 @@ class DellS6100 extends AbstractSwitches
             return '[NEED-REFRESH-CANNOT-GET-CONFIG]';
         }
 
-        $lines = $config[0]['output'];
+        $lines = $config['output'];
         $lines = explode(PHP_EOL, $lines);
         $lines = self::getLinesAfter($lines, 'interface ' . $interface->name);
 
