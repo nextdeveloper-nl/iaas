@@ -155,11 +155,16 @@ class Commit extends AbstractAction
 
             $addIp = MetaHelper::get($vif, 'auto_add_ip_v4');
 
+            Log::info('[VM Commit][Setup IP] IP count for VIf:' . count($ipList)
+                . ' auto_add_ip_v4: ' . $addIp);
+
             //  If there is no IP in the card and auto_add_ip_v4 is true
             if($addIp && !$ipList) {
                 $network = VirtualNetworkCardsService::getConnectedNetwork($vif);
 
                 $nextAvailableIp = IpAddressesService::getNextIpAvailable($network);
+
+                Log::info('[VM Commit][Setup IP] The next available IP is: ' . $nextAvailableIp);
 
                 VirtualNetworkCardsService::assignIpToCard($nextAvailableIp, $vif);
             }
