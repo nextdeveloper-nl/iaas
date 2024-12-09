@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use NextDeveloper\IAAS\Database\Filters\RepositoryImagesPerspectiveQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractRepositoryImagesPerspectiveService;
 
 /**
@@ -15,4 +16,9 @@ class RepositoryImagesPerspectiveService extends AbstractRepositoryImagesPerspec
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    public static function get(RepositoryImagesPerspectiveQueryFilter $filter = null, array $params = []): \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+
+    }
 }
