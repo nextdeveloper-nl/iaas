@@ -41,7 +41,6 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('distro', 'ilike', '%' . $value . '%');
     }
 
-        
     public function version($value)
     {
         return $this->builder->where('version', 'like', '%' . $value . '%');
