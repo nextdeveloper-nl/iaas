@@ -238,8 +238,6 @@ class AbstractVirtualMachinesService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\VirtualMachines', $model);
-
         return $model->fresh();
     }
 
@@ -328,16 +326,12 @@ class AbstractVirtualMachinesService
             );
         }
 
-        Events::fire('updating:NextDeveloper\IAAS\VirtualMachines', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\VirtualMachines', $model);
 
         return $model->fresh();
     }
@@ -362,8 +356,6 @@ class AbstractVirtualMachinesService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\VirtualMachines', $model);
 
         try {
             $model = $model->delete();
