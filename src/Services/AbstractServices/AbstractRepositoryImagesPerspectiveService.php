@@ -111,7 +111,7 @@ class AbstractRepositoryImagesPerspectiveService
         $object = RepositoryImagesPerspective::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\RepositoryImagesPerspective')
+            ->where('input', 'NextDeveloper\IAAS\RepositoryImagesPerspective')
             ->first();
 
         $class = $action->class;
@@ -208,8 +208,6 @@ class AbstractRepositoryImagesPerspectiveService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\RepositoryImagesPerspective', $model);
-
         return $model->fresh();
     }
 
@@ -268,16 +266,12 @@ class AbstractRepositoryImagesPerspectiveService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\RepositoryImagesPerspective', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\RepositoryImagesPerspective', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractRepositoryImagesPerspectiveService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\RepositoryImagesPerspective', $model);
 
         try {
             $model = $model->delete();

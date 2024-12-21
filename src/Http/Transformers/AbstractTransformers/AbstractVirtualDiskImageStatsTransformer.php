@@ -20,16 +20,16 @@ use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
 use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
 use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
 use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
-use NextDeveloper\IAAS\Database\Models\AccountsStats;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImageStats;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
- * Class AccountsStatsTransformer. This class is being used to manipulate the data we are serving to the customer
+ * Class VirtualDiskImageStatsTransformer. This class is being used to manipulate the data we are serving to the customer
  *
  * @package NextDeveloper\IAAS\Http\Transformers
  */
-class AbstractAccountsStatsTransformer extends AbstractTransformer
+class AbstractVirtualDiskImageStatsTransformer extends AbstractTransformer
 {
 
     /**
@@ -48,19 +48,20 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
     ];
 
     /**
-     * @param AccountsStats $model
+     * @param VirtualDiskImageStats $model
      *
      * @return array
      */
-    public function transform(AccountsStats $model)
+    public function transform(VirtualDiskImageStats $model)
     {
-                                                $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                $iaasVirtualDiskImagesId = \NextDeveloper\IAAS\Database\Models\VirtualDiskImages::where('id', $model->iaas_virtual_disk_images_id)->first();
                         
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
-            'usage_report'  =>  $model->usage_report,
-            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'iaas_virtual_disk_images_id'  =>  $iaasVirtualDiskImagesId ? $iaasVirtualDiskImagesId->uuid : null,
+            'size'  =>  $model->size,
+            'physical_utilisation'  =>  $model->physical_utilisation,
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
@@ -68,7 +69,7 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         );
     }
 
-    public function includeStates(AccountsStats $model)
+    public function includeStates(VirtualDiskImageStats $model)
     {
         $states = States::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -77,7 +78,7 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         return $this->collection($states, new StatesTransformer());
     }
 
-    public function includeActions(AccountsStats $model)
+    public function includeActions(VirtualDiskImageStats $model)
     {
         $input = get_class($model);
         $input = str_replace('\\Database\\Models', '', $input);
@@ -89,7 +90,7 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         return $this->collection($actions, new AvailableActionsTransformer());
     }
 
-    public function includeMedia(AccountsStats $model)
+    public function includeMedia(VirtualDiskImageStats $model)
     {
         $media = Media::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -98,7 +99,7 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         return $this->collection($media, new MediaTransformer());
     }
 
-    public function includeSocialMedia(AccountsStats $model)
+    public function includeSocialMedia(VirtualDiskImageStats $model)
     {
         $socialMedia = SocialMedia::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -107,7 +108,7 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         return $this->collection($socialMedia, new SocialMediaTransformer());
     }
 
-    public function includeComments(AccountsStats $model)
+    public function includeComments(VirtualDiskImageStats $model)
     {
         $comments = Comments::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -116,7 +117,7 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         return $this->collection($comments, new CommentsTransformer());
     }
 
-    public function includeVotes(AccountsStats $model)
+    public function includeVotes(VirtualDiskImageStats $model)
     {
         $votes = Votes::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -125,7 +126,7 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         return $this->collection($votes, new VotesTransformer());
     }
 
-    public function includeMeta(AccountsStats $model)
+    public function includeMeta(VirtualDiskImageStats $model)
     {
         $meta = Meta::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -134,7 +135,7 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         return $this->collection($meta, new MetaTransformer());
     }
 
-    public function includePhoneNumbers(AccountsStats $model)
+    public function includePhoneNumbers(VirtualDiskImageStats $model)
     {
         $phoneNumbers = PhoneNumbers::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -143,7 +144,7 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         return $this->collection($phoneNumbers, new PhoneNumbersTransformer());
     }
 
-    public function includeAddresses(AccountsStats $model)
+    public function includeAddresses(VirtualDiskImageStats $model)
     {
         $addresses = Addresses::where('object_type', get_class($model))
             ->where('object_id', $model->id)
@@ -152,11 +153,4 @@ class AbstractAccountsStatsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
 }

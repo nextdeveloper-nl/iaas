@@ -111,7 +111,7 @@ class AbstractVirtualNetworkCardStatsService
         $object = VirtualNetworkCardStats::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\VirtualNetworkCardStats')
+            ->where('input', 'NextDeveloper\IAAS\VirtualNetworkCardStats')
             ->first();
 
         $class = $action->class;
@@ -188,8 +188,6 @@ class AbstractVirtualNetworkCardStatsService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\VirtualNetworkCardStats', $model);
-
         return $model->fresh();
     }
 
@@ -236,16 +234,12 @@ class AbstractVirtualNetworkCardStatsService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\VirtualNetworkCardStats', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\VirtualNetworkCardStats', $model);
 
         return $model->fresh();
     }
@@ -270,8 +264,6 @@ class AbstractVirtualNetworkCardStatsService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\VirtualNetworkCardStats', $model);
 
         try {
             $model = $model->delete();

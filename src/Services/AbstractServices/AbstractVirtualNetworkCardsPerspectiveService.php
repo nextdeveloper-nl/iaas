@@ -214,8 +214,6 @@ class AbstractVirtualNetworkCardsPerspectiveService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\VirtualNetworkCardsPerspective', $model);
-
         return $model->fresh();
     }
 
@@ -280,16 +278,12 @@ class AbstractVirtualNetworkCardsPerspectiveService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\VirtualNetworkCardsPerspective', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\VirtualNetworkCardsPerspective', $model);
 
         return $model->fresh();
     }
@@ -314,8 +308,6 @@ class AbstractVirtualNetworkCardsPerspectiveService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\VirtualNetworkCardsPerspective', $model);
 
         try {
             $model = $model->delete();

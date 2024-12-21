@@ -1,7 +1,6 @@
 <?php
 namespace NextDeveloper\IAAS\Console\Commands;
 
-use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
@@ -42,10 +41,14 @@ class StartHealthCheck extends Command {
             UserHelper::setUserById($vm->iam_user_id);
             UserHelper::setCurrentAccountById($vm->iam_account_id);
 
-            $job = new HealthCheck($vm);
-            $id = $job->getActionId();
+            try {
+                $job = new HealthCheck($vm);
+                $id = $job->getActionId();
 
-            dispatch($job)->onQueue('iaas-health-check');
+                dispatch($job)->onQueue('iaas-health-check');
+            } catch (\Exception $e) {
+                Log::error(__METHOD__ . " | Having a problem with health check of vm: " . $vm->uuid);
+            }
         }
     }
 }

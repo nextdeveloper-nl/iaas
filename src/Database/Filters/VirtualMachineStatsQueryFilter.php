@@ -17,7 +17,13 @@ class VirtualMachineStatsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
+    
+    public function status($value)
+    {
+        return $this->builder->where('status', 'like', '%' . $value . '%');
+    }
 
+    
     public function cpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -128,6 +134,7 @@ class VirtualMachineStatsQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

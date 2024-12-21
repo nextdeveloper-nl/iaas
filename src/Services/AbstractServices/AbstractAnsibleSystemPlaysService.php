@@ -111,7 +111,7 @@ class AbstractAnsibleSystemPlaysService
         $object = AnsibleSystemPlays::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\AnsibleSystemPlays')
+            ->where('input', 'NextDeveloper\IAAS\AnsibleSystemPlays')
             ->first();
 
         $class = $action->class;
@@ -208,8 +208,6 @@ class AbstractAnsibleSystemPlaysService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\AnsibleSystemPlays', $model);
-
         return $model->fresh();
     }
 
@@ -268,16 +266,12 @@ class AbstractAnsibleSystemPlaysService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\AnsibleSystemPlays', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\AnsibleSystemPlays', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractAnsibleSystemPlaysService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\AnsibleSystemPlays', $model);
 
         try {
             $model = $model->delete();

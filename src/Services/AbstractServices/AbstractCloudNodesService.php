@@ -111,7 +111,7 @@ class AbstractCloudNodesService
         $object = CloudNodes::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\CloudNodes')
+            ->where('input', 'NextDeveloper\IAAS\CloudNodes')
             ->first();
 
         $class = $action->class;
@@ -208,8 +208,6 @@ class AbstractCloudNodesService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\CloudNodes', $model);
-
         return $model->fresh();
     }
 
@@ -268,16 +266,12 @@ class AbstractCloudNodesService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\CloudNodes', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\CloudNodes', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractCloudNodesService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\CloudNodes', $model);
 
         try {
             $model = $model->delete();

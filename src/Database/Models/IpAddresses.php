@@ -27,6 +27,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property $custom_mac_addr
  */
 class IpAddresses extends Model
 {
@@ -39,74 +40,74 @@ class IpAddresses extends Model
 
 
     /**
-     * @var array
+     @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-        'ip_addr',
-        'is_reserved',
-        'iaas_network_id',
-        'iaas_virtual_network_card_id',
-        'iam_account_id',
-        'iam_user_id',
-        'custom_mac_addr'
+            'ip_addr',
+            'is_reserved',
+            'iaas_network_id',
+            'iaas_virtual_network_card_id',
+            'iam_account_id',
+            'iam_user_id',
+            'custom_mac_addr',
     ];
 
     /**
-     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
+      Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     * We are casting fields to objects so that we can work on them better
+     We are casting fields to objects so that we can work on them better
      *
-     * @var array
+     @var array
      */
     protected $casts = [
-        'id' => 'integer',
-        'is_reserved' => 'boolean',
-        'iaas_network_id' => 'integer',
-        'iaas_virtual_network_card_id' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+    'id' => 'integer',
+    'is_reserved' => 'boolean',
+    'iaas_network_id' => 'integer',
+    'iaas_virtual_network_card_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
-     * We are casting data fields.
+     We are casting data fields.
      *
-     * @var array
+     @var array
      */
     protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $with = [
 
     ];
 
     /**
-     * @var int
+     @var int
      */
     protected $perPage = 20;
 
     /**
-     * @return void
+     @return void
      */
     public static function boot()
     {
@@ -123,11 +124,9 @@ class IpAddresses extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_ip_addresses');
 
-        if (!$modelScopes) {
-            $modelScopes = [];
+        if(!$modelScopes) { $modelScopes = [];
         }
-        if (!$globalScopes) {
-            $globalScopes = [];
+        if (!$globalScopes) { $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -135,29 +134,30 @@ class IpAddresses extends Model
             $modelScopes
         );
 
-        if ($scopes) {
+        if($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
         }
     }
 
-    public function networks(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function networks() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
     }
-
-    public function virtualNetworkCards(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    
+    public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
     }
-
-    public function ipAddressHistories(): \Illuminate\Database\Eloquent\Relations\HasMany
+    
+    public function ipAddressHistories() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddressHistories::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 }

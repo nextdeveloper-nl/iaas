@@ -111,7 +111,7 @@ class AbstractDhcpServersService
         $object = DhcpServers::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\DhcpServers')
+            ->where('input', 'NextDeveloper\IAAS\DhcpServers')
             ->first();
 
         $class = $action->class;
@@ -208,8 +208,6 @@ class AbstractDhcpServersService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\DhcpServers', $model);
-
         return $model->fresh();
     }
 
@@ -268,16 +266,12 @@ class AbstractDhcpServersService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\DhcpServers', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\DhcpServers', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractDhcpServersService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\DhcpServers', $model);
 
         try {
             $model = $model->delete();

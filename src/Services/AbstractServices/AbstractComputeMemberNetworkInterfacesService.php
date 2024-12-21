@@ -111,7 +111,7 @@ class AbstractComputeMemberNetworkInterfacesService
         $object = ComputeMemberNetworkInterfaces::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces')
+            ->where('input', 'NextDeveloper\IAAS\ComputeMemberNetworkInterfaces')
             ->first();
 
         $class = $action->class;
@@ -208,8 +208,6 @@ class AbstractComputeMemberNetworkInterfacesService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\ComputeMemberNetworkInterfaces', $model);
-
         return $model->fresh();
     }
 
@@ -268,16 +266,12 @@ class AbstractComputeMemberNetworkInterfacesService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\ComputeMemberNetworkInterfaces', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\ComputeMemberNetworkInterfaces', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractComputeMemberNetworkInterfacesService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\ComputeMemberNetworkInterfaces', $model);
 
         try {
             $model = $model->delete();

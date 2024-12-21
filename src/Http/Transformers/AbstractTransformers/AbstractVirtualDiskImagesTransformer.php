@@ -83,6 +83,8 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
             'is_draft'  =>  $model->is_draft,
             'iaas_repository_image_id'  =>  $iaasRepositoryImageId ? $iaasRepositoryImageId->uuid : null,
             'iaas_storage_pool_id'  =>  $iaasStoragePoolId ? $iaasStoragePoolId->uuid : null,
+            'vbd_hypervisor_data'  =>  $model->vbd_hypervisor_data,
+            'vbd_hypervisor_uuid'  =>  $model->vbd_hypervisor_uuid,
             ]
         );
     }
@@ -171,35 +173,4 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

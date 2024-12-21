@@ -111,7 +111,7 @@ class AbstractNetworkStatsService
         $object = NetworkStats::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\NetworkStats')
+            ->where('input', 'NextDeveloper\IAAS\NetworkStats')
             ->first();
 
         $class = $action->class;
@@ -188,8 +188,6 @@ class AbstractNetworkStatsService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\NetworkStats', $model);
-
         return $model->fresh();
     }
 
@@ -236,16 +234,12 @@ class AbstractNetworkStatsService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\NetworkStats', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\NetworkStats', $model);
 
         return $model->fresh();
     }
@@ -270,8 +264,6 @@ class AbstractNetworkStatsService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\NetworkStats', $model);
 
         try {
             $model = $model->delete();

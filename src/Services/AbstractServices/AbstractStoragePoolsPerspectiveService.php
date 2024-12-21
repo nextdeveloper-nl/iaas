@@ -111,7 +111,7 @@ class AbstractStoragePoolsPerspectiveService
         $object = StoragePoolsPerspective::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\StoragePoolsPerspective')
+            ->where('input', 'NextDeveloper\IAAS\StoragePoolsPerspective')
             ->first();
 
         $class = $action->class;
@@ -202,8 +202,6 @@ class AbstractStoragePoolsPerspectiveService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\StoragePoolsPerspective', $model);
-
         return $model->fresh();
     }
 
@@ -256,16 +254,12 @@ class AbstractStoragePoolsPerspectiveService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\StoragePoolsPerspective', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\StoragePoolsPerspective', $model);
 
         return $model->fresh();
     }
@@ -290,8 +284,6 @@ class AbstractStoragePoolsPerspectiveService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\StoragePoolsPerspective', $model);
 
         try {
             $model = $model->delete();

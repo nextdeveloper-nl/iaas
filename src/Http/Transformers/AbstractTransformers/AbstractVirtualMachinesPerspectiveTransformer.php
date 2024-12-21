@@ -2,7 +2,6 @@
 
 namespace NextDeveloper\IAAS\Http\Transformers\AbstractTransformers;
 
-use League\Fractal\ParamBag;
 use NextDeveloper\Commons\Database\Models\Addresses;
 use NextDeveloper\Commons\Database\Models\Comments;
 use NextDeveloper\Commons\Database\Models\Meta;
@@ -57,10 +56,10 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
     {
                                                 $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
                                                             $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
+                                                            $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                                                            $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
-
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -79,7 +78,6 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
             'cloud_node'  =>  $model->cloud_node,
             'common_domain_id'  =>  $commonDomainId ? $commonDomainId->uuid : null,
-            'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
             'domain'  =>  $model->domain,
             'disk_count'  =>  $model->disk_count,
             'network_card_count'  =>  $model->network_card_count,
@@ -100,6 +98,8 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'auto_backup_time'  =>  $model->auto_backup_time,
             'maintainer'  =>  $model->maintainer,
             'responsible'  =>  $model->responsible,
+            'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
+            'snapshot_of_virtual_machine'  =>  $model->snapshot_of_virtual_machine,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'created_at'  =>  $model->created_at,
@@ -193,12 +193,4 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
 }

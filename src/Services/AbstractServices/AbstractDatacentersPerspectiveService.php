@@ -111,7 +111,7 @@ class AbstractDatacentersPerspectiveService
         $object = DatacentersPerspective::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\DatacentersPerspective')
+            ->where('input', 'NextDeveloper\IAAS\DatacentersPerspective')
             ->first();
 
         $class = $action->class;
@@ -202,8 +202,6 @@ class AbstractDatacentersPerspectiveService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\DatacentersPerspective', $model);
-
         return $model->fresh();
     }
 
@@ -256,16 +254,12 @@ class AbstractDatacentersPerspectiveService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\DatacentersPerspective', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\DatacentersPerspective', $model);
 
         return $model->fresh();
     }
@@ -290,8 +284,6 @@ class AbstractDatacentersPerspectiveService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\DatacentersPerspective', $model);
 
         try {
             $model = $model->delete();

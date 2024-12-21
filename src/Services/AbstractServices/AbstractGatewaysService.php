@@ -111,7 +111,7 @@ class AbstractGatewaysService
         $object = Gateways::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\Gateways')
+            ->where('input', 'NextDeveloper\IAAS\Gateways')
             ->first();
 
         $class = $action->class;
@@ -208,8 +208,6 @@ class AbstractGatewaysService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\Gateways', $model);
-
         return $model->fresh();
     }
 
@@ -268,16 +266,12 @@ class AbstractGatewaysService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\Gateways', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\Gateways', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractGatewaysService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\Gateways', $model);
 
         try {
             $model = $model->delete();

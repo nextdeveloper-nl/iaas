@@ -111,7 +111,7 @@ class AbstractComputeMemberStorageVolumesService
         $object = ComputeMemberStorageVolumes::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes')
+            ->where('input', 'NextDeveloper\IAAS\ComputeMemberStorageVolumes')
             ->first();
 
         $class = $action->class;
@@ -226,8 +226,6 @@ class AbstractComputeMemberStorageVolumesService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\ComputeMemberStorageVolumes', $model);
-
         return $model->fresh();
     }
 
@@ -304,16 +302,12 @@ class AbstractComputeMemberStorageVolumesService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\ComputeMemberStorageVolumes', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\ComputeMemberStorageVolumes', $model);
 
         return $model->fresh();
     }
@@ -338,8 +332,6 @@ class AbstractComputeMemberStorageVolumesService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\ComputeMemberStorageVolumes', $model);
 
         try {
             $model = $model->delete();

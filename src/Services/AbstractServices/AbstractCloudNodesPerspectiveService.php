@@ -111,7 +111,7 @@ class AbstractCloudNodesPerspectiveService
         $object = CloudNodesPerspective::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\CloudNodesPerspective')
+            ->where('input', 'NextDeveloper\IAAS\CloudNodesPerspective')
             ->first();
 
         $class = $action->class;
@@ -202,8 +202,6 @@ class AbstractCloudNodesPerspectiveService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\CloudNodesPerspective', $model);
-
         return $model->fresh();
     }
 
@@ -256,16 +254,12 @@ class AbstractCloudNodesPerspectiveService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\CloudNodesPerspective', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\CloudNodesPerspective', $model);
 
         return $model->fresh();
     }
@@ -290,8 +284,6 @@ class AbstractCloudNodesPerspectiveService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\CloudNodesPerspective', $model);
 
         try {
             $model = $model->delete();

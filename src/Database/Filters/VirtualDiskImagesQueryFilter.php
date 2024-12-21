@@ -34,6 +34,17 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->hypervisorUuid($value);
     }
+        
+    public function vbdHypervisorUuid($value)
+    {
+        return $this->builder->where('vbd_hypervisor_uuid', 'like', '%' . $value . '%');
+    }
+
+        //  This is an alias function of vbdHypervisorUuid
+    public function vbd_hypervisor_uuid($value)
+    {
+        return $this->vbdHypervisorUuid($value);
+    }
     
     public function size($value)
     {
@@ -256,6 +267,7 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

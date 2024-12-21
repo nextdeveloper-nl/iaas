@@ -187,7 +187,7 @@ class AbstractComputeMembersService
                 $data['iam_account_id']
             );
         }
-
+            
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
@@ -197,18 +197,16 @@ class AbstractComputeMembersService
                 $data['iam_user_id']
             );
         }
-
+                    
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
-
+            
         try {
             $model = ComputeMembers::create($data);
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('created:NextDeveloper\IAAS\ComputeMembers', $model);
 
         return $model->fresh();
     }
@@ -267,17 +265,13 @@ class AbstractComputeMembersService
                 $data['iam_user_id']
             );
         }
-
-        Events::fire('updating:NextDeveloper\IAAS\ComputeMembers', $model);
-
+    
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\ComputeMembers', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractComputeMembersService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\ComputeMembers', $model);
 
         try {
             $model = $model->delete();

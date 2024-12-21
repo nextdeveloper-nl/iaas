@@ -226,8 +226,6 @@ class AbstractVirtualDiskImagesService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\VirtualDiskImages', $model);
-
         return $model->fresh();
     }
 
@@ -304,16 +302,12 @@ class AbstractVirtualDiskImagesService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\VirtualDiskImages', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\VirtualDiskImages', $model);
 
         return $model->fresh();
     }
@@ -338,8 +332,6 @@ class AbstractVirtualDiskImagesService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\VirtualDiskImages', $model);
 
         try {
             $model = $model->delete();

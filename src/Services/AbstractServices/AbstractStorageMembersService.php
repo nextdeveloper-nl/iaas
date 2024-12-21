@@ -111,7 +111,7 @@ class AbstractStorageMembersService
         $object = StorageMembers::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\StorageMembers')
+            ->where('input', 'NextDeveloper\IAAS\StorageMembers')
             ->first();
 
         $class = $action->class;
@@ -208,8 +208,6 @@ class AbstractStorageMembersService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\StorageMembers', $model);
-
         return $model->fresh();
     }
 
@@ -268,16 +266,12 @@ class AbstractStorageMembersService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\StorageMembers', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\StorageMembers', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractStorageMembersService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\StorageMembers', $model);
 
         try {
             $model = $model->delete();

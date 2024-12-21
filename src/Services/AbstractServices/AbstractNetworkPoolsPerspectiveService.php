@@ -111,7 +111,7 @@ class AbstractNetworkPoolsPerspectiveService
         $object = NetworkPoolsPerspective::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\NetworkPoolsPerspective')
+            ->where('input', 'NextDeveloper\IAAS\NetworkPoolsPerspective')
             ->first();
 
         $class = $action->class;
@@ -202,8 +202,6 @@ class AbstractNetworkPoolsPerspectiveService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\NetworkPoolsPerspective', $model);
-
         return $model->fresh();
     }
 
@@ -256,16 +254,12 @@ class AbstractNetworkPoolsPerspectiveService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\NetworkPoolsPerspective', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\NetworkPoolsPerspective', $model);
 
         return $model->fresh();
     }
@@ -290,8 +284,6 @@ class AbstractNetworkPoolsPerspectiveService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\NetworkPoolsPerspective', $model);
 
         try {
             $model = $model->delete();

@@ -58,6 +58,7 @@ trait IaasVirtualMachineStatTestTraits
         $response = $this->http->request(
             'POST', '/iaas/iaasvirtualmachinestat', [
             'form_params'   =>  [
+                'status'  =>  'a',
                 'cpu'  =>  '1',
                 'ram'  =>  '1',
                             ],
@@ -335,6 +336,25 @@ trait IaasVirtualMachineStatTestTraits
             $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineStat::first();
 
             event(new \NextDeveloper\IAAS\Events\IaasVirtualMachineStat\IaasVirtualMachineStatRestoredEvent($model));
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualmachinestat_event_status_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'status'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasVirtualMachineStatQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineStat::filter($filter)->first();
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }

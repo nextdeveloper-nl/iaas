@@ -60,6 +60,7 @@ trait IaasVirtualDiskImageTestTraits
             'form_params'   =>  [
                 'name'  =>  'a',
                 'hypervisor_uuid'  =>  'a',
+                'vbd_hypervisor_uuid'  =>  'a',
                 'size'  =>  '1',
                 'physical_utilisation'  =>  '1',
                 'device_number'  =>  '1',
@@ -370,6 +371,25 @@ trait IaasVirtualDiskImageTestTraits
             $request = new Request(
                 [
                 'hypervisor_uuid'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasVirtualDiskImageQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualDiskImage::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualdiskimage_event_vbd_hypervisor_uuid_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'vbd_hypervisor_uuid'  =>  'a'
                 ]
             );
 

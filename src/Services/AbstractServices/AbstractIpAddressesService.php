@@ -111,7 +111,7 @@ class AbstractIpAddressesService
         $object = IpAddresses::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\IpAddresses')
+            ->where('input', 'NextDeveloper\IAAS\IpAddresses')
             ->first();
 
         $class = $action->class;
@@ -214,8 +214,6 @@ class AbstractIpAddressesService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\IpAddresses', $model);
-
         return $model->fresh();
     }
 
@@ -280,16 +278,12 @@ class AbstractIpAddressesService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\IpAddresses', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\IpAddresses', $model);
 
         return $model->fresh();
     }
@@ -314,8 +308,6 @@ class AbstractIpAddressesService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\IpAddresses', $model);
 
         try {
             $model = $model->delete();

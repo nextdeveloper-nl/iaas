@@ -37,6 +37,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property boolean $is_draft
  * @property integer $iaas_repository_image_id
  * @property integer $iaas_storage_pool_id
+ * @property $vbd_hypervisor_data
+ * @property string $vbd_hypervisor_uuid
  */
 class VirtualDiskImages extends Model
 {
@@ -70,8 +72,8 @@ class VirtualDiskImages extends Model
             'is_draft',
             'iaas_repository_image_id',
             'iaas_storage_pool_id',
-        'vbd_hypervisor_uuid',
-        'vbd_hypervisor_data'
+            'vbd_hypervisor_data',
+            'vbd_hypervisor_uuid',
     ];
 
     /**
@@ -112,6 +114,8 @@ class VirtualDiskImages extends Model
     'is_draft' => 'boolean',
     'iaas_repository_image_id' => 'integer',
     'iaas_storage_pool_id' => 'integer',
+    'vbd_hypervisor_data' => 'array',
+    'vbd_hypervisor_uuid' => 'string',
     ];
 
     /**
@@ -173,6 +177,7 @@ class VirtualDiskImages extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -111,7 +111,7 @@ class AbstractComputeMemberMetricsService
         $object = ComputeMemberMetrics::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\ComputeMemberMetrics')
+            ->where('input', 'NextDeveloper\IAAS\ComputeMemberMetrics')
             ->first();
 
         $class = $action->class;
@@ -188,8 +188,6 @@ class AbstractComputeMemberMetricsService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\ComputeMemberMetrics', $model);
-
         return $model->fresh();
     }
 
@@ -236,16 +234,12 @@ class AbstractComputeMemberMetricsService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\ComputeMemberMetrics', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\ComputeMemberMetrics', $model);
 
         return $model->fresh();
     }
@@ -270,8 +264,6 @@ class AbstractComputeMemberMetricsService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\ComputeMemberMetrics', $model);
 
         try {
             $model = $model->delete();

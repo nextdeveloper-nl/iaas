@@ -41,55 +41,55 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function name($value)
     {
-        return $this->builder->where('name', 'ilike', '%' . $value . '%');
+        return $this->builder->where('name', 'like', '%' . $value . '%');
     }
 
 
     public function username($value)
     {
-        return $this->builder->where('username', 'ilike', '%' . $value . '%');
+        return $this->builder->where('username', 'like', '%' . $value . '%');
     }
 
 
     public function password($value)
     {
-        return $this->builder->where('password', 'ilike', '%' . $value . '%');
+        return $this->builder->where('password', 'like', '%' . $value . '%');
     }
 
 
     public function hostname($value)
     {
-        return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
+        return $this->builder->where('hostname', 'like', '%' . $value . '%');
     }
 
 
     public function description($value)
     {
-        return $this->builder->where('description', 'ilike', '%' . $value . '%');
+        return $this->builder->where('description', 'like', '%' . $value . '%');
     }
 
 
     public function os($value)
     {
-        return $this->builder->where('os', 'ilike', '%' . $value . '%');
+        return $this->builder->where('os', 'like', '%' . $value . '%');
     }
 
 
     public function distro($value)
     {
-        return $this->builder->where('distro', 'ilike', '%' . $value . '%');
+        return $this->builder->where('distro', 'like', '%' . $value . '%');
     }
 
 
     public function version($value)
     {
-        return $this->builder->where('version', 'ilike', '%' . $value . '%');
+        return $this->builder->where('version', 'like', '%' . $value . '%');
     }
 
 
     public function domainType($value)
     {
-        return $this->builder->where('domain_type', 'ilike', '%' . $value . '%');
+        return $this->builder->where('domain_type', 'like', '%' . $value . '%');
     }
 
         //  This is an alias function of domainType
@@ -100,13 +100,13 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function status($value)
     {
-        return $this->builder->where('status', 'ilike', '%' . $value . '%');
+        return $this->builder->where('status', 'like', '%' . $value . '%');
     }
 
 
     public function lockPassword($value)
     {
-        return $this->builder->where('lock_password', 'ilike', '%' . $value . '%');
+        return $this->builder->where('lock_password', 'like', '%' . $value . '%');
     }
 
         //  This is an alias function of lockPassword
@@ -164,7 +164,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
-    //  This is an alias function of snapshotOfVirtualMachine
+        //  This is an alias function of snapshotOfVirtualMachine
     public function snapshot_of_virtual_machine($value)
     {
         return $this->snapshotOfVirtualMachine($value);
@@ -428,7 +428,7 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    //  This is an alias function of iaasComputePool
+        //  This is an alias function of iaasComputePool
     public function iaas_compute_pool_id($value)
     {
         return $this->iaasComputePool($value);
@@ -441,9 +441,11 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         $vm = VirtualMachines::where('uuid', $uuid)
             ->first();
 
-        if($vm)
+        if($vm) {
             return $this->builder->where('snapshot_of_virtual_machine', $vm->id);
-        else
+        } else {
             return $this->builder->where('id', '=', '0');
+        }
     }
+
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use NextDeveloper\IAM\Helpers\UserHelper;
+use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\Commons\Database\Models\AvailableActions;
 use NextDeveloper\IAAS\Database\Models\Networks;
@@ -210,7 +211,7 @@ class AbstractNetworksService
                 $data['iam_account_id']
             );
         }
-
+            
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
@@ -220,18 +221,16 @@ class AbstractNetworksService
                 $data['iam_user_id']
             );
         }
-
+                    
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
-
+            
         try {
             $model = Networks::create($data);
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('created:NextDeveloper\IAAS\Networks', $model);
 
         return $model->fresh();
     }
@@ -314,17 +313,13 @@ class AbstractNetworksService
                 $data['iam_user_id']
             );
         }
-
-        Events::fire('updating:NextDeveloper\IAAS\Networks', $model);
-
+    
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\Networks', $model);
 
         return $model->fresh();
     }
@@ -349,8 +344,6 @@ class AbstractNetworksService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\Networks', $model);
 
         try {
             $model = $model->delete();

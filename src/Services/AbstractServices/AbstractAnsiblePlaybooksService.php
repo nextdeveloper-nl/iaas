@@ -111,7 +111,7 @@ class AbstractAnsiblePlaybooksService
         $object = AnsiblePlaybooks::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\AnsiblePlaybooks')
+            ->where('input', 'NextDeveloper\IAAS\AnsiblePlaybooks')
             ->first();
 
         $class = $action->class;
@@ -208,8 +208,6 @@ class AbstractAnsiblePlaybooksService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\AnsiblePlaybooks', $model);
-
         return $model->fresh();
     }
 
@@ -268,16 +266,12 @@ class AbstractAnsiblePlaybooksService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\AnsiblePlaybooks', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\AnsiblePlaybooks', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractAnsiblePlaybooksService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\AnsiblePlaybooks', $model);
 
         try {
             $model = $model->delete();

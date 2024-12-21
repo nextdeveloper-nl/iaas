@@ -111,7 +111,7 @@ class AbstractVirtualMachinesPerspectiveService
         $object = VirtualMachinesPerspective::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective')
+            ->where('input', 'NextDeveloper\IAAS\VirtualMachinesPerspective')
             ->first();
 
         $class = $action->class;
@@ -187,6 +187,12 @@ class AbstractVirtualMachinesPerspectiveService
                 $data['common_domain_id']
             );
         }
+        if (array_key_exists('iaas_compute_pool_id', $data)) {
+            $data['iaas_compute_pool_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\ComputePools',
+                $data['iaas_compute_pool_id']
+            );
+        }
         if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
@@ -213,8 +219,6 @@ class AbstractVirtualMachinesPerspectiveService
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('created:NextDeveloper\IAAS\VirtualMachinesPerspective', $model);
 
         return $model->fresh();
     }
@@ -267,6 +271,12 @@ class AbstractVirtualMachinesPerspectiveService
                 $data['common_domain_id']
             );
         }
+        if (array_key_exists('iaas_compute_pool_id', $data)) {
+            $data['iaas_compute_pool_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\IAAS\Database\Models\ComputePools',
+                $data['iaas_compute_pool_id']
+            );
+        }
         if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
@@ -280,16 +290,12 @@ class AbstractVirtualMachinesPerspectiveService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\VirtualMachinesPerspective', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\VirtualMachinesPerspective', $model);
 
         return $model->fresh();
     }
@@ -314,8 +320,6 @@ class AbstractVirtualMachinesPerspectiveService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\VirtualMachinesPerspective', $model);
 
         try {
             $model = $model->delete();

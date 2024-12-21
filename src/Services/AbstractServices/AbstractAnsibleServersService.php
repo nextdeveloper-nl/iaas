@@ -111,7 +111,7 @@ class AbstractAnsibleServersService
         $object = AnsibleServers::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\AnsibleServers')
+            ->where('input', 'NextDeveloper\IAAS\AnsibleServers')
             ->first();
 
         $class = $action->class;
@@ -214,8 +214,6 @@ class AbstractAnsibleServersService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\AnsibleServers', $model);
-
         return $model->fresh();
     }
 
@@ -280,16 +278,12 @@ class AbstractAnsibleServersService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\AnsibleServers', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\AnsibleServers', $model);
 
         return $model->fresh();
     }
@@ -314,8 +308,6 @@ class AbstractAnsibleServersService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\AnsibleServers', $model);
 
         try {
             $model = $model->delete();

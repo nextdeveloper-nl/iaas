@@ -111,7 +111,7 @@ class AbstractVirtualMachineMetricsService
         $object = VirtualMachineMetrics::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics')
+            ->where('input', 'NextDeveloper\IAAS\VirtualMachineMetrics')
             ->first();
 
         $class = $action->class;
@@ -188,8 +188,6 @@ class AbstractVirtualMachineMetricsService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\VirtualMachineMetrics', $model);
-
         return $model->fresh();
     }
 
@@ -236,16 +234,12 @@ class AbstractVirtualMachineMetricsService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\VirtualMachineMetrics', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\VirtualMachineMetrics', $model);
 
         return $model->fresh();
     }
@@ -270,8 +264,6 @@ class AbstractVirtualMachineMetricsService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\VirtualMachineMetrics', $model);
 
         try {
             $model = $model->delete();

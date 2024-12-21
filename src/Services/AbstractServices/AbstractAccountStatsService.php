@@ -111,7 +111,7 @@ class AbstractAccountStatsService
         $object = AccountStats::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\AccountStats')
+            ->where('input', 'NextDeveloper\IAAS\AccountStats')
             ->first();
 
         $class = $action->class;
@@ -192,8 +192,6 @@ class AbstractAccountStatsService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\AccountStats', $model);
-
         return $model->fresh();
     }
 
@@ -240,16 +238,12 @@ class AbstractAccountStatsService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\AccountStats', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\AccountStats', $model);
 
         return $model->fresh();
     }
@@ -274,8 +268,6 @@ class AbstractAccountStatsService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\AccountStats', $model);
 
         try {
             $model = $model->delete();

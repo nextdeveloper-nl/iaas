@@ -111,7 +111,7 @@ class AbstractAnsibleRolesService
         $object = AnsibleRoles::where('uuid', $objectId)->first();
 
         $action = AvailableActions::where('name', $action)
-            ->where('input', 'NextDeveloper\IAAS\Database\Models\AnsibleRoles')
+            ->where('input', 'NextDeveloper\IAAS\AnsibleRoles')
             ->first();
 
         $class = $action->class;
@@ -208,8 +208,6 @@ class AbstractAnsibleRolesService
             throw $e;
         }
 
-        Events::fire('created:NextDeveloper\IAAS\AnsibleRoles', $model);
-
         return $model->fresh();
     }
 
@@ -268,16 +266,12 @@ class AbstractAnsibleRolesService
             );
         }
     
-        Events::fire('updating:NextDeveloper\IAAS\AnsibleRoles', $model);
-
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
         } catch(\Exception $e) {
             throw $e;
         }
-
-        Events::fire('updated:NextDeveloper\IAAS\AnsibleRoles', $model);
 
         return $model->fresh();
     }
@@ -302,8 +296,6 @@ class AbstractAnsibleRolesService
                 'Maybe you dont have the permission to update this object?'
             );
         }
-
-        Events::fire('deleted:NextDeveloper\IAAS\AnsibleRoles', $model);
 
         try {
             $model = $model->delete();

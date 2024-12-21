@@ -53,6 +53,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @property string $auto_backup_time
  * @property string $maintainer
  * @property string $responsible
+ * @property integer $iaas_compute_pool_id
+ * @property integer $snapshot_of_virtual_machine
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
@@ -110,6 +112,8 @@ class VirtualMachinesPerspective extends Model
             'auto_backup_time',
             'maintainer',
             'responsible',
+            'iaas_compute_pool_id',
+            'snapshot_of_virtual_machine',
             'iam_account_id',
             'iam_user_id',
     ];
@@ -169,6 +173,8 @@ class VirtualMachinesPerspective extends Model
     'auto_backup_time' => 'string',
     'maintainer' => 'string',
     'responsible' => 'string',
+    'iaas_compute_pool_id' => 'integer',
+    'snapshot_of_virtual_machine' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -234,6 +240,7 @@ class VirtualMachinesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
