@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Actions\VirtualDiskImages;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
 /**
  * This action attaches the virtual disk image to the virtual machine

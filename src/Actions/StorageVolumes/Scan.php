@@ -34,6 +34,8 @@ class Scan extends AbstractAction
 
     public function handle()
     {
+        $this->setProgress(0, 'Scanning storage volume started: ' . $this->model->name);
+
         $list = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_storage_volume_id', $this->model->id)
             ->get();
@@ -46,6 +48,8 @@ class Scan extends AbstractAction
                     $this->syncXenServer($cm);
             }
         }
+
+        $this->setFinished('Scanning storage volume finished: ' . $this->model->name);
     }
 
     private function syncXenServer(ComputeMembers $computeMember)

@@ -28,6 +28,8 @@ class Scan extends AbstractAction
 
     public function handle()
     {
+        $this->setProgress(0, 'Starting to scan storage pool: ' . $this->model->name);
+
         Log::info(__METHOD__ . ' | Scanning all storage volumes on pool: ' . $this->model->name);
 
         $volumes = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
@@ -38,5 +40,7 @@ class Scan extends AbstractAction
             Log::info(__METHOD__ . ' | Scanning storage volume: ' . $volume->name . '/' . $volume->uuid);
             dispatch(new \NextDeveloper\IAAS\Actions\StorageVolumes\Scan($volume));
         }
+
+        $this->setFinished('Storage pool scanning is finished');
     }
 }
