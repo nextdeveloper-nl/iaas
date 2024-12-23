@@ -2,15 +2,14 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualDiskImages;
 
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
-use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
+use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
-use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * This action attaches the virtual disk image to the virtual machine
@@ -66,14 +65,27 @@ class Sync extends AbstractAction
         $computeMember = VirtualDiskImagesService::getComputeMember($this->model);
 
         $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($this->model['hypervisor_uuid'], $computeMember);
+        $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($this->model['uuid'], $computeMember);
 
-        //  Here later we need to take VBD and update those parameters also. At the moment it is not very urgent and/or important
+        $volume = StorageVolumesService::getVolumeByUuid($diskParams['sr-uuid']);
+
+        if(!$volume) {
+            Log::warning(__METHOD__ . ' | Disk does not have storage volume in DB. We should start ' .
+                'storage volume sync for this compute member');
+
+            ComputeMemberXenService::updateStorageVolumes($computeMember);
+        }
 
         $data = [
             'size' => $diskParams['virtual-size'],
             'physical_utilisation' => $diskParams['physical-utilisation'],
             'hypervisor_data' => $diskParams,
             'is_draft' => false,
+            'vbd_hypervisor_data'   =>  $vbdParams,
+            'vbd_hypervisor_uuid'   =>  $vbdParams['uuid'],
+            'iaas_storage_volume_id' =>  $volume->id,
+            'iaas_storage_pool_id'  =>  $volume->iaas_storage_pool_id,
+            //'device_number' =>  $vbdParams ? 0 : null,
         ];
 
         $this->model->updateQuietly($data);

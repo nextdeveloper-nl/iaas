@@ -13,7 +13,7 @@ class VirtualDiskImageStatsCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'iaas_virtual_disk_images_id' => 'required|exists:iaas_virtual_disk_images,uuid|uuid',
+            'iaas_virtual_disk_image_id' => 'required|exists:iaas_virtual_disk_images,uuid|uuid',
         'size' => 'required|integer',
         'physical_utilisation' => 'required|integer',
         ];

@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-    
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -31,7 +31,7 @@ class VirtualDiskImageStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('size', $operator, $value);
     }
 
-    
+
     public function physicalUtilisation($value)
     {
         $operator = substr($value, 0, 1);
@@ -50,7 +50,7 @@ class VirtualDiskImageStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->physicalUtilisation($value);
     }
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -122,15 +122,15 @@ class VirtualDiskImageStatsQueryFilter extends AbstractQueryFilter
             $iaasVirtualDiskImages = \NextDeveloper\IAAS\Database\Models\VirtualDiskImages::where('uuid', $value)->first();
 
         if($iaasVirtualDiskImages) {
-            return $this->builder->where('iaas_virtual_disk_images_id', '=', $iaasVirtualDiskImages->id);
+            return $this->builder->where('iaas_virtual_disk_image_id', '=', $iaasVirtualDiskImages->id);
         }
     }
 
         //  This is an alias function of iaasVirtualDiskImages
-    public function iaas_virtual_disk_images_id($value)
+    public function iaas_virtual_disk_image_id($value)
     {
         return $this->iaasVirtualDiskImages($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }

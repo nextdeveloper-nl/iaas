@@ -18,7 +18,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
  * @package  NextDeveloper\IAAS\Database\Models
  * @property integer $id
  * @property string $uuid
- * @property integer $iaas_virtual_disk_images_id
+ * @property integer $iaas_virtual_disk_image_id
  * @property integer $size
  * @property integer $physical_utilisation
  * @property \Carbon\Carbon $created_at
@@ -41,7 +41,7 @@ class VirtualDiskImageStats extends Model
     protected $guarded = [];
 
     protected $fillable = [
-            'iaas_virtual_disk_images_id',
+            'iaas_virtual_disk_image_id',
             'size',
             'physical_utilisation',
     ];
@@ -67,7 +67,7 @@ class VirtualDiskImageStats extends Model
      */
     protected $casts = [
     'id' => 'integer',
-    'iaas_virtual_disk_images_id' => 'integer',
+    'iaas_virtual_disk_image_id' => 'integer',
     'size' => 'integer',
     'physical_utilisation' => 'integer',
     'created_at' => 'datetime',

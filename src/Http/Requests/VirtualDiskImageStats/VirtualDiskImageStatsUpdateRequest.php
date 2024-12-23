@@ -13,7 +13,7 @@ class VirtualDiskImageStatsUpdateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
-            'iaas_virtual_disk_images_id' => 'nullable|exists:iaas_virtual_disk_images,uuid|uuid',
+            'iaas_virtual_disk_image_id' => 'nullable|exists:iaas_virtual_disk_images,uuid|uuid',
         'size' => 'nullable|integer',
         'physical_utilisation' => 'nullable|integer',
         ];

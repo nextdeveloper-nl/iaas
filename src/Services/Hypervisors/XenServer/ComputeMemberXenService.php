@@ -306,6 +306,15 @@ physical interfaces and vlans of compute member');
         return $vms;
     }
 
+    public static function getListOfDisksOnVolume(ComputeMembers $computeMember, StorageVolumes $volume) : array
+    {
+        $command = 'xe vdi-list sr-uuid=' . $volume->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+        $disks = self::parseListResult($result['output']);
+
+        return $disks;
+    }
+
     public static function getVirtualMachineByUuid(ComputeMembers $computeMember, $uuid) : ?array
     {
         $command = 'xe vm-param-list uuid=' . $uuid;

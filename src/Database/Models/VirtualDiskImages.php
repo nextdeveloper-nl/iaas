@@ -49,100 +49,100 @@ class VirtualDiskImages extends Model
 
     protected $table = 'iaas_virtual_disk_images';
 
-
     /**
-     @var array
+     * @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-            'name',
-            'size',
-            'physical_utilisation',
-            'available_operations',
-            'current_operations',
-            'is_cdrom',
-            'hypervisor_uuid',
-            'hypervisor_data',
-            'iaas_storage_volume_id',
-            'iaas_virtual_machine_id',
-            'device_number',
-            'iam_account_id',
-            'iam_user_id',
-            'is_draft',
-            'iaas_repository_image_id',
-            'iaas_storage_pool_id',
-            'vbd_hypervisor_data',
-            'vbd_hypervisor_uuid',
+        'name',
+        'size',
+        'physical_utilisation',
+        'available_operations',
+        'current_operations',
+        'is_cdrom',
+        'hypervisor_uuid',
+        'hypervisor_data',
+        'iaas_storage_volume_id',
+        'iaas_virtual_machine_id',
+        'device_number',
+        'iam_account_id',
+        'iam_user_id',
+        'is_draft',
+        'iaas_repository_image_id',
+        'iaas_storage_pool_id',
+        'vbd_hypervisor_data',
+        'vbd_hypervisor_uuid',
+        'created_at'
     ];
 
     /**
-      Here we have the fulltext fields. We can use these for fulltext search if enabled.
+     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     We are casting fields to objects so that we can work on them better
+     * We are casting fields to objects so that we can work on them better
      *
-     @var array
+     * @var array
      */
     protected $casts = [
-    'id' => 'integer',
-    'name' => 'string',
-    'size' => 'integer',
-    'physical_utilisation' => 'integer',
-    'available_operations' => 'array',
-    'current_operations' => 'array',
-    'is_cdrom' => 'boolean',
-    'hypervisor_uuid' => 'string',
-    'hypervisor_data' => 'array',
-    'iaas_storage_volume_id' => 'integer',
-    'iaas_virtual_machine_id' => 'integer',
-    'device_number' => 'integer',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
-    'is_draft' => 'boolean',
-    'iaas_repository_image_id' => 'integer',
-    'iaas_storage_pool_id' => 'integer',
-    'vbd_hypervisor_data' => 'array',
-    'vbd_hypervisor_uuid' => 'string',
+        'id' => 'integer',
+        'name' => 'string',
+        'size' => 'integer',
+        'physical_utilisation' => 'integer',
+        'available_operations' => 'array',
+        'current_operations' => 'array',
+        'is_cdrom' => 'boolean',
+        'hypervisor_uuid' => 'string',
+        'hypervisor_data' => 'array',
+        'iaas_storage_volume_id' => 'integer',
+        'iaas_virtual_machine_id' => 'integer',
+        'device_number' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'is_draft' => 'boolean',
+        'iaas_repository_image_id' => 'integer',
+        'iaas_storage_pool_id' => 'integer',
+        'vbd_hypervisor_data' => 'array',
+        'vbd_hypervisor_uuid' => 'string',
     ];
 
     /**
-     We are casting data fields.
+     * We are casting data fields.
      *
-     @var array
+     * @var array
      */
     protected $dates = [
-    'created_at',
-    'updated_at',
-    'deleted_at',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $with = [
 
     ];
 
     /**
-     @var int
+     * @var int
      */
     protected $perPage = 20;
 
     /**
-     @return void
+     * @return void
      */
     public static function boot()
     {
@@ -159,9 +159,11 @@ class VirtualDiskImages extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_virtual_disk_images');
 
-        if(!$modelScopes) { $modelScopes = [];
+        if (!$modelScopes) {
+            $modelScopes = [];
         }
-        if (!$globalScopes) { $globalScopes = [];
+        if (!$globalScopes) {
+            $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -169,7 +171,7 @@ class VirtualDiskImages extends Model
             $modelScopes
         );
 
-        if($scopes) {
+        if ($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
@@ -177,21 +179,6 @@ class VirtualDiskImages extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

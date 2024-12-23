@@ -166,6 +166,8 @@ class ImportVirtualMachine extends AbstractAction
                 'iam_account_id'        =>  $this->virtualMachine->iam_account_id,
                 'iam_user_id'           =>  $this->virtualMachine->iam_user_id,
                 'is_draft'              =>  false,
+                'vbd_hypervisor_data'   =>  $vbdParams,
+                'vbd_hypervisor_uuid'   =>  $vbdParams['uuid']
             ];
 
             VirtualDiskImages::create($data);

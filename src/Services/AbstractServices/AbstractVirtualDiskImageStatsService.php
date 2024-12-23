@@ -175,13 +175,13 @@ class AbstractVirtualDiskImageStatsService
      */
     public static function create(array $data)
     {
-        if (array_key_exists('iaas_virtual_disk_images_id', $data)) {
-            $data['iaas_virtual_disk_images_id'] = DatabaseHelper::uuidToId(
+        if (array_key_exists('iaas_virtual_disk_image_id', $data)) {
+            $data['iaas_virtual_disk_image_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\VirtualDiskImages',
-                $data['iaas_virtual_disk_images_id']
+                $data['iaas_virtual_disk_image_id']
             );
         }
-                        
+
         try {
             $model = VirtualDiskImageStats::create($data);
         } catch(\Exception $e) {
@@ -227,13 +227,13 @@ class AbstractVirtualDiskImageStatsService
             );
         }
 
-        if (array_key_exists('iaas_virtual_disk_images_id', $data)) {
-            $data['iaas_virtual_disk_images_id'] = DatabaseHelper::uuidToId(
+        if (array_key_exists('iaas_virtual_disk_image_id', $data)) {
+            $data['iaas_virtual_disk_image_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\VirtualDiskImages',
-                $data['iaas_virtual_disk_images_id']
+                $data['iaas_virtual_disk_image_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
