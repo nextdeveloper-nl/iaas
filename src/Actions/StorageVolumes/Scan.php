@@ -1,6 +1,7 @@
 <?php
 namespace NextDeveloper\IAAS\Actions\StorageVolumes;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Actions\VirtualDiskImages\Sync;
@@ -57,6 +58,9 @@ class Scan extends AbstractAction
         $getDisks = ComputeMemberXenService::getListOfDisksOnVolume($computeMember, $this->model);
 
         foreach ($getDisks as $disk) {
+            if(!array_key_exists('uuid', $disk))
+                continue;
+
             Log::info(__METHOD__ . ' | Syncing disk: ' . $disk['uuid']);
 
             $dbDisk = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
@@ -86,20 +90,12 @@ class Scan extends AbstractAction
                 ComputeMemberXenService::updateStorageVolumes($computeMember);
             }
 
-            /**
-             * Burada sanki hata var, aşağıdaki $disk['uuid'] olmamalı. Tekrar kontrol et.
-             */
-
-            $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-                ->where('hypervisor_uuid', $diskParams['sr-uuid'])
-                ->first();
-
             $data = [
                 'name' => $dbDisk ? $dbDisk->name : $diskParams['name-label'],
                 'size' => $diskParams['virtual-size'],
                 'physical_utilisation' => $diskParams['physical-utilisation'],
-                'iaas_storage_volume_id' => $diskVolume->iaas_storage_volume_id,
-                'iaas_storage_pool_id' => $diskVolume->iaas_storage_pool_id,
+                'iaas_storage_volume_id' => $volume->id,
+                'iaas_storage_pool_id' => $volume->iaas_storage_pool_id,
                 'is_cdrom' => false,
                 'hypervisor_uuid' => $diskParams['uuid'],
                 'hypervisor_data' => $disk,
@@ -116,19 +112,21 @@ class Scan extends AbstractAction
 
                 if (!$vm) {
                     Log::warning(__METHOD__ . ' | We cannot find the VM with uuid: ' . $vbdParams['vm-uuid']);
-                    //  Here we should sync the VM
-                    dd('NO VM HERE');
                 }
 
                 $data = array_merge($data, [
-                    'iaas_virtual_machine_id' => $vm->id,
-                    'device_number' => $vbdParams['userdevice'],
+                    'iaas_virtual_machine_id' => $vm ? $vm->id : null,
+                    'device_number' => $vm ? $vbdParams['userdevice'] : null,
                     'iam_account_id' => $vm ? $vm->iam_account_id : config('leo.current_account_id'),
                     'iam_user_id' => $vm? $vm->iam_user_id : config('leo.current_user_id'),
-                    'vbd_hypervisor_uuid' => $vbdParams['uuid'],
-                    'vbd_hypervisor_data' => $vbdParams,
-                    'created_at' => $vm->created_at
+                    'vbd_hypervisor_uuid' => $vm ? $vbdParams['uuid'] : null,
+                    'vbd_hypervisor_data' => $vm ? $vbdParams : null,
                 ]);
+
+                if($dbDisk)
+                    $data['created_at'] = $vm ? $vm->created_at : $dbDisk->created_at;
+                else
+                    $data['created_at'] = $vm ? $vm->created_at : now();
             }
 
             if (!$dbDisk) {
@@ -136,6 +134,7 @@ class Scan extends AbstractAction
                 VirtualDiskImages::create($data);
             } else {
                 Log::info(__METHOD__ . ' | Updating: ' . $dbDisk->uuid);
+                Log::info(__METHOD__ . ' | Updating with data: ' . json_encode($data));
                 $dbDisk->updateQuietly($data);
             }
         }
