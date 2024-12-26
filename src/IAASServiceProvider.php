@@ -6,6 +6,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\AbstractServiceProvider;
 use NextDeveloper\IAAS\Console\Commands\RemoveLostServers;
+use NextDeveloper\IAAS\Console\Commands\SyncCloudNode;
 
 /**
  * Class IAASServiceProvider
@@ -122,7 +123,8 @@ class IAASServiceProvider extends AbstractServiceProvider {
             $this->commands([
                 \NextDeveloper\IAAS\Console\Commands\StartHealthCheck::class,
                 \NextDeveloper\IAAS\Console\Commands\RemoveLostServers::class,
-                \NextDeveloper\IAAS\Console\Commands\RemoveDraftServers::class
+                \NextDeveloper\IAAS\Console\Commands\RemoveDraftServers::class,
+                \NextDeveloper\IAAS\Console\Commands\SyncCloudNode::class
             ]);
         }
     }

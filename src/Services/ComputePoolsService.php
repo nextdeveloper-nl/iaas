@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\Models\Currencies;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -62,5 +63,12 @@ class ComputePoolsService extends AbstractComputePoolsService
          * 1 2 4 8 16 32 64 128
          */
         return $priceTable;
+    }
+
+    public static function getComputeMembers(ComputePools $pool) : Collection
+    {
+        return ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_compute_pool_id', $pool->id)
+            ->get();
     }
 }
