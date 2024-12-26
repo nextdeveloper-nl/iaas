@@ -35,7 +35,9 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
     {
         if(
             $model->getTable() == 'iaas_compute_pools' ||
-            $model->getTable() == 'iaas_compute_pools_perspective'
+            $model->getTable() == 'iaas_compute_pools_perspective' ||
+            $model->getTable() == 'iaas_networks' ||
+            $model->getTable() == 'iaas_networks_perspective'
         ) {
             $builder->where('iam_account_id', UserHelper::currentAccount()->id)
                 ->orWhere('is_public', true);
