@@ -43,6 +43,27 @@ class SyncRepositoryService
         return $tempImages;
     }
 
+    public static function syncRepoImage(RepositoryImages $images) : RepositoryImages
+    {
+        if(config('leo.debug.iaas.repo'))
+            Log::info('[SyncService@syncRepoImages] Starting to sync the images for the' .
+                ' repository: ' . $images->name);
+
+        $repo = RepositoryImagesService::getRepositoryOfImage($images);
+
+        $command = 'stat -c %s ' . $repo->vm_path . '/' . $images->filename;
+        $result = self::performCommand($command, $repo);
+        $size = $result['output'];
+
+        $sizeInGb = ceil($size / 1000 / 1000);
+
+        $images->updateQuietly([
+            'size'  =>  $sizeInGb
+        ]);
+
+        return $images;
+    }
+
     public static function syncRepoImages(Repositories $repo) : Repositories
     {
         if(config('leo.debug.iaas.repo'))

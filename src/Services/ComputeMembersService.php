@@ -7,6 +7,7 @@ use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
+use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractComputeMembersService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -22,6 +23,15 @@ class ComputeMembersService extends AbstractComputeMembersService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    public static function getDefaultBackupRepository(ComputeMembers $member): ?Repositories
+    {
+        $cloud = self::getCloudNode($member);
+
+        return Repositories::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $cloud->backup_repository_id)
+            ->first();
+    }
+
     public static function getCloudNode(ComputeMembers $computeMember) : ?CloudNodes
     {
         $computePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)

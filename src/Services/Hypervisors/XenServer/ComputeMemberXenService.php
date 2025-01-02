@@ -603,6 +603,34 @@ physical interfaces and vlans of compute member');
             ->first();
     }
 
+    public static function mountRepository(ComputeMembers $computeMember, Repositories $repositories) : array {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Starting to mount default repo ' .
+                'of compute member: ' . $computeMember->name);
+
+        $computeMemberPath = '/mnt/plusclouds-repo/' . $repositories->uuid;
+        $createDirectoryCommand = 'mkdir -p ' . $computeMemberPath;
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Creating the directory with command; ' .
+                $createDirectoryCommand);
+
+        $result = self::performCommand($createDirectoryCommand, $computeMember);
+        $result = $result['output'];
+
+        $cloudNode = ComputeMembersService::getCloudNode($computeMember);
+
+        $mountRepoCommand = 'mount -t nfs ' . $repositories->local_ip_addr . ':' . $repositories->vm_path . ' ' . $computeMemberPath;
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@mountVmRepo] Mounting the default backup ' .
+                'repo with command: ' . $mountRepoCommand);
+
+        $result = self::performCommand($mountRepoCommand, $computeMember);
+
+        return $result;
+    }
+
     public static function mountDefaultBackupRepository(ComputeMembers $computeMember) : array {
         if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@mountVmRepo] Starting to mount default backup repo ' .

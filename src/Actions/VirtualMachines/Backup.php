@@ -4,12 +4,19 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\CloudNodesService;
+use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\RepositoriesService;
+use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachineBackupsService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -130,7 +137,9 @@ class Backup extends AbstractAction
 
         $this->setProgress(65, 'Mounting default backup repository.');
 
-        ComputeMemberXenService::mountDefaultBackupRepository($computeMember);
+        $backupRepo = ComputeMembersService::getDefaultBackupRepository($computeMember);
+
+        ComputeMemberXenService::mountRepository($computeMember, $backupRepo);
 
         $this->setProgress(75, 'Removing all the VIFs of cloned VM.');
 
@@ -142,7 +151,7 @@ class Backup extends AbstractAction
 
         $this->setProgress(80, 'Exporting to the default backup repository.');
 
-        $backupResult = VirtualMachinesXenService::exportToDefaultBackupRepository($clonedVm);
+        $backupResult = VirtualMachinesXenService::exportToRepository($clonedVm, $backupRepo);
 
         $backupEnds = Carbon::now();
         $backupDiff = $backupEnds->diffInSeconds($backupStarts);
@@ -163,8 +172,37 @@ class Backup extends AbstractAction
             'backup-type'   =>  'full-backup',
             'iaas_virtual_machine_id'   =>  $this->model->id,
             'iam_account_id'    =>  UserHelper::currentAccount()->id,
-            'iam_user_id'   =>  UserHelper::currentUser()->id
+            'iam_user_id'   =>  UserHelper::currentUser()->id,
+            'iaas_repository_id'    =>  $backupRepo->id
         ]);
+
+        $repoImage = RepositoryImagesService::create([
+            'iaas_repository_id'    =>  $backupRepo->id,
+            'name'                  =>  'Backup of ' . $this->model->name,
+            'filename'              =>  $backupResult['filename'],
+            'path'                  =>  $backupResult['path'],
+            'is_iso'                =>  false,
+            'is_public'             =>  false,
+            'ram'                   =>  $this->model->ram,
+            'cpu'                   =>  $this->model->cpu,
+            'default_username'  =>  $this->model->username,
+            'default_password'  =>  VirtualMachinesService::getRawPasswordById($this->model->id),
+            'is_virtual_machine_image'     =>  true,
+            'os'        =>  $this->model->os,
+            'distro'    =>  $this->model->distro,
+            'version'   =>  $this->model->version,
+            'iaas_virtual_machine_id'   =>  $this->model->id,
+            'iam_account_id'        =>  $this->model->iam_account_id,
+            'iam_user_id'           =>  $this->model->iam_user_id
+        ]);
+
+        //  Updating the vm backup to understand where is the image.
+        //  In the future we will be removing this table (most probably)
+        $vmBackup->updateQuietly([
+            'iaas_repository_image_id'  =>  $repoImage->id
+        ]);
+
+        RepositoryImagesService::updateRepoSize($repoImage);
 
         $this->setProgress(90, 'VM exported. It took: ' . $backupDiff . ' seconds.');
 

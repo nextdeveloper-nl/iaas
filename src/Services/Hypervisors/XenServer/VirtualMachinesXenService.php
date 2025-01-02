@@ -324,6 +324,29 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
+    public static function exportToRepository(VirtualMachines $vm, Repositories $repositories) : array
+    {
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        $exportName = $vm->uuid . '.' . (new Carbon($vm->created_at))->timestamp . '.pvm';
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@export] I am exporting the' .
+                ' VM (' . $vm->name. '/' . $vm->uuid . ') to default repo under name ' .
+                $exportName . '.backup from compute member' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
+            'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName;
+
+        $result = self::performCommand($command, $computeMember);
+
+        $result['filename'] = $exportName;
+        $result['path']  =   $repositories->local_ip_addr . ':' . $repositories->vm_path . '/' . $exportName;
+
+        return $result;
+    }
+
     public static function exportToDefaultBackupRepository(VirtualMachines $vm) : array
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);

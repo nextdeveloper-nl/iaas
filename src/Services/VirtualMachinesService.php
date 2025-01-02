@@ -88,9 +88,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->first();
     }
 
-    public static function getPasswordById($id)
+    public static function getRawPasswordById($id)
     {
-        $vm = VirtualMachines::where('uuid', $id)->first();
+        $vm = null;
+
+        if(Str::isUuid($id))
+            $vm = VirtualMachines::where('uuid', $id)->first();
+        else
+            $vm = VirtualMachines::where('id', $id)->first();
 
         try {
             $password = decrypt($vm->password);
@@ -103,11 +108,18 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                     'password'  =>  $vm->password
                 ]);
 
-                return ResponseHelper::status($vm->password);
+                return $vm->password;
             }
         }
 
-        return ResponseHelper::status($password);
+        return $password;
+    }
+
+    public static function getPasswordById($id)
+    {
+        return ResponseHelper::status(
+            self::getRawPasswordById($id)
+        );
     }
 
     public static function update($id, array $data)
