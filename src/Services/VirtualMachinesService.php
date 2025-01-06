@@ -4,8 +4,10 @@ namespace NextDeveloper\IAAS\Services;
 
 use App\Helpers\Http\ResponseHelper;
 use GPBMetadata\Google\Api\Auth;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
@@ -15,9 +17,11 @@ use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotUpdateResourcesException;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
+use NextDeveloper\IAM\Database\Models\Accounts;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -64,6 +68,34 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $data['ram'] = ResourceCalculationHelper::getRamInMb($data['ram']);
 
         return parent::create($data);
+    }
+
+    /**
+     * @param \NextDeveloper\IAM\Database\Models\Accounts $account
+     * @return Collection
+     */
+    public static function getVirtualMachines(Accounts $account) : Collection
+    {
+        return VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
+            ->where('iam_account_id', $account->id)
+            ->get();
+    }
+
+    public static function getVirtualDiskImages(VirtualMachines $vm) : Collection
+    {
+        return VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->get();
+    }
+
+    public static function getVirtualNetworkCards(VirtualMachines $vm) : Collection
+    {
+        return VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->get();
     }
 
     public static function getComputeMember(VirtualMachines $vm) : ?ComputeMembers

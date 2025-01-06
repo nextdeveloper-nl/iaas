@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
@@ -81,6 +82,13 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
         $vif = parent::create($data);
 
         return $vif;
+    }
+
+    public static function getIpAddresses(VirtualNetworkCards $card) : Collection
+    {
+        return IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_network_card_id', $card->id)
+            ->get();
     }
 
     public static function getConnectedNetwork(VirtualNetworkCards $card) : Networks
