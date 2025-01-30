@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\AbstractServiceProvider;
 use NextDeveloper\IAAS\Console\Commands\RemoveLostServers;
 use NextDeveloper\IAAS\Console\Commands\SyncCloudNode;
+use NextDeveloper\IAAS\Http\Middlewares\CheckSuspension;
 
 /**
  * Class IAASServiceProvider
@@ -91,6 +92,7 @@ class IAASServiceProvider extends AbstractServiceProvider {
     protected function registerRoutes() {
         if ( ! $this->app->routesAreCached() && config('leo.allowed_routes.iaas', true) ) {
             $this->app['router']
+                ->middleware(CheckSuspension::class)
                 ->namespace('NextDeveloper\IAAS\Http\Controllers')
                 ->group(__DIR__.DIRECTORY_SEPARATOR.'Http'.DIRECTORY_SEPARATOR.'api.routes.php');
         }

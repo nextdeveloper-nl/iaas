@@ -18,8 +18,12 @@ use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
+use NextDeveloper\IAAS\Exceptions\CannotCreateVirtualMachine;
 use NextDeveloper\IAAS\Exceptions\CannotUpdateResourcesException;
+use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
+use NextDeveloper\IAAS\Helpers\ResourceLimitsHelper;
+use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
 use NextDeveloper\IAM\Database\Models\Accounts;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -37,6 +41,13 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
     public static function create(array $data)
     {
+        //  Here we check if we are hitting the limits
+        $hasLimits = (new SimpleLimiter(IaasHelper::currentAccount()))->hasLimitForRam($data['ram']);
+
+        if(!$hasLimits) {
+            throw new CannotCreateVirtualMachine('You reached to limits of your account. You cannot have more ram in your account. Please consult to sales teams.');
+        }
+
         //  Getting the actual amount of ram
         $data['ram']    =   ResourceCalculationHelper::getActualRam($data['ram']);
 
