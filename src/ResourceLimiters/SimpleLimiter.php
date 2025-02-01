@@ -31,6 +31,11 @@ class SimpleLimiter extends AbstractLimiter
         }
     }
 
+    public static function getMinimumLimits()
+    {
+        return config('iaas.limits.minimum');
+    }
+
     public function hasLimitForRam($requiredRamSize)
     {
         $requiredRamSize = $requiredRamSize * 1024;

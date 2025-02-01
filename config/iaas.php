@@ -13,6 +13,11 @@ return [
         ]
     ],
     'limits'    =>  [
+        'minimum'   =>  [
+            'cpu'   =>  -1,
+            'ram'   =>  4,
+            'disk'  =>  40
+        ],
         'simple'    =>  [
             'cpu'   =>  -1,
             'ram'   =>  128,
