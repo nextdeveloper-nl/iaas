@@ -14,6 +14,7 @@ class AccountsUpdateRequest extends AbstractFormRequest
     {
         return [
             'is_service_enabled' => 'boolean',
+        'is_suspended' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

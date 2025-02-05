@@ -56,6 +56,7 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
     {
                                                 $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                                                            $commonCurrencyId = \NextDeveloper\Commons\Database\Models\Currencies::where('id', $model->common_currency_id)->first();
                         
         return $this->buildPayload(
             [
@@ -83,6 +84,9 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
             'is_behind_firewall'  =>  $model->is_behind_firewall,
             'is_management_agent_available'  =>  $model->is_management_agent_available,
             'ssh_port'  =>  $model->ssh_port,
+            'is_backup_repository'  =>  $model->is_backup_repository,
+            'price_pergb'  =>  $model->price_pergb,
+            'common_currency_id'  =>  $commonCurrencyId ? $commonCurrencyId->uuid : null,
             ]
         );
     }
@@ -171,4 +175,8 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 }

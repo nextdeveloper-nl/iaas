@@ -611,27 +611,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('cloud-nodes')->group(
-            function () {
-                Route::get('/', 'CloudNodes\CloudNodesController@index');
-                Route::get('/actions', 'CloudNodes\CloudNodesController@getActions');
-
-                Route::get('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@tags');
-                Route::post('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@saveTags');
-                Route::get('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@addresses');
-                Route::post('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@saveAddresses');
-
-                Route::get('/{iaas_cloud_nodes}/{subObjects}', 'CloudNodes\CloudNodesController@relatedObjects');
-                Route::get('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@show');
-
-                Route::post('/', 'CloudNodes\CloudNodesController@store');
-                Route::post('/{iaas_cloud_nodes}/do/{action}', 'CloudNodes\CloudNodesController@doAction');
-
-                Route::patch('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@update');
-                Route::delete('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@destroy');
-            }
-        );
-
         Route::prefix('ansible-playbooks')->group(
             function () {
                 Route::get('/', 'AnsiblePlaybooks\AnsiblePlaybooksController@index');
@@ -713,6 +692,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_gateways}', 'Gateways\GatewaysController@update');
                 Route::delete('/{iaas_gateways}', 'Gateways\GatewaysController@destroy');
+            }
+        );
+
+        Route::prefix('cloud-nodes')->group(
+            function () {
+                Route::get('/', 'CloudNodes\CloudNodesController@index');
+                Route::get('/actions', 'CloudNodes\CloudNodesController@getActions');
+
+                Route::get('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@tags');
+                Route::post('{iaas_cloud_nodes}/tags ', 'CloudNodes\CloudNodesController@saveTags');
+                Route::get('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@addresses');
+                Route::post('{iaas_cloud_nodes}/addresses ', 'CloudNodes\CloudNodesController@saveAddresses');
+
+                Route::get('/{iaas_cloud_nodes}/{subObjects}', 'CloudNodes\CloudNodesController@relatedObjects');
+                Route::get('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@show');
+
+                Route::post('/', 'CloudNodes\CloudNodesController@store');
+                Route::post('/{iaas_cloud_nodes}/do/{action}', 'CloudNodes\CloudNodesController@doAction');
+
+                Route::patch('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@update');
+                Route::delete('/{iaas_cloud_nodes}', 'CloudNodes\CloudNodesController@destroy');
             }
         );
 
@@ -989,24 +989,24 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('repositories-perspective')->group(
+        Route::prefix('licences')->group(
             function () {
-                Route::get('/', 'RepositoriesPerspective\RepositoriesPerspectiveController@index');
-                Route::get('/actions', 'RepositoriesPerspective\RepositoriesPerspectiveController@getActions');
+                Route::get('/', 'Licences\LicencesController@index');
+                Route::get('/actions', 'Licences\LicencesController@getActions');
 
-                Route::get('{iaas_repositories_perspective}/tags ', 'RepositoriesPerspective\RepositoriesPerspectiveController@tags');
-                Route::post('{iaas_repositories_perspective}/tags ', 'RepositoriesPerspective\RepositoriesPerspectiveController@saveTags');
-                Route::get('{iaas_repositories_perspective}/addresses ', 'RepositoriesPerspective\RepositoriesPerspectiveController@addresses');
-                Route::post('{iaas_repositories_perspective}/addresses ', 'RepositoriesPerspective\RepositoriesPerspectiveController@saveAddresses');
+                Route::get('{iaas_licences}/tags ', 'Licences\LicencesController@tags');
+                Route::post('{iaas_licences}/tags ', 'Licences\LicencesController@saveTags');
+                Route::get('{iaas_licences}/addresses ', 'Licences\LicencesController@addresses');
+                Route::post('{iaas_licences}/addresses ', 'Licences\LicencesController@saveAddresses');
 
-                Route::get('/{iaas_repositories_perspective}/{subObjects}', 'RepositoriesPerspective\RepositoriesPerspectiveController@relatedObjects');
-                Route::get('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@show');
+                Route::get('/{iaas_licences}/{subObjects}', 'Licences\LicencesController@relatedObjects');
+                Route::get('/{iaas_licences}', 'Licences\LicencesController@show');
 
-                Route::post('/', 'RepositoriesPerspective\RepositoriesPerspectiveController@store');
-                Route::post('/{iaas_repositories_perspective}/do/{action}', 'RepositoriesPerspective\RepositoriesPerspectiveController@doAction');
+                Route::post('/', 'Licences\LicencesController@store');
+                Route::post('/{iaas_licences}/do/{action}', 'Licences\LicencesController@doAction');
 
-                Route::patch('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@update');
-                Route::delete('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@destroy');
+                Route::patch('/{iaas_licences}', 'Licences\LicencesController@update');
+                Route::delete('/{iaas_licences}', 'Licences\LicencesController@destroy');
             }
         );
 
@@ -1049,6 +1049,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@update');
                 Route::delete('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('repositories-perspective')->group(
+            function () {
+                Route::get('/', 'RepositoriesPerspective\RepositoriesPerspectiveController@index');
+                Route::get('/actions', 'RepositoriesPerspective\RepositoriesPerspectiveController@getActions');
+
+                Route::get('{iaas_repositories_perspective}/tags ', 'RepositoriesPerspective\RepositoriesPerspectiveController@tags');
+                Route::post('{iaas_repositories_perspective}/tags ', 'RepositoriesPerspective\RepositoriesPerspectiveController@saveTags');
+                Route::get('{iaas_repositories_perspective}/addresses ', 'RepositoriesPerspective\RepositoriesPerspectiveController@addresses');
+                Route::post('{iaas_repositories_perspective}/addresses ', 'RepositoriesPerspective\RepositoriesPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_repositories_perspective}/{subObjects}', 'RepositoriesPerspective\RepositoriesPerspectiveController@relatedObjects');
+                Route::get('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@show');
+
+                Route::post('/', 'RepositoriesPerspective\RepositoriesPerspectiveController@store');
+                Route::post('/{iaas_repositories_perspective}/do/{action}', 'RepositoriesPerspective\RepositoriesPerspectiveController@doAction');
+
+                Route::patch('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@update');
+                Route::delete('/{iaas_repositories_perspective}', 'RepositoriesPerspective\RepositoriesPerspectiveController@destroy');
             }
         );
 
@@ -1718,10 +1739,263 @@ Route::prefix('iaas')->group(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         Route::get('/configurations/dhcp-servers/{server}', [\NextDeveloper\IAAS\Http\Controllers\DhcpServers\DhcpServersConfigurationController::class, 'show']);
 
     }
 );
+
+
+
+
 
 
 

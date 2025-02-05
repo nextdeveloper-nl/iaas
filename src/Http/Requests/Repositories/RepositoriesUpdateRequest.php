@@ -30,6 +30,9 @@ class RepositoriesUpdateRequest extends AbstractFormRequest
         'is_behind_firewall' => 'boolean',
         'is_management_agent_available' => 'boolean',
         'ssh_port' => 'integer',
+        'is_backup_repository' => 'boolean',
+        'price_pergb' => 'nullable',
+        'common_currency_id' => 'nullable|exists:common_currencies,uuid|uuid',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

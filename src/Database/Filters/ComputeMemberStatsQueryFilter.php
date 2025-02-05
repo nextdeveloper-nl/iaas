@@ -192,4 +192,8 @@ class ComputeMemberStatsQueryFilter extends AbstractQueryFilter
 
 
 
+
+
+
+
 }

@@ -29,6 +29,17 @@ class AccountsQueryFilter extends AbstractQueryFilter
         return $this->isServiceEnabled($value);
     }
      
+    public function isSuspended($value)
+    {
+        return $this->builder->where('is_suspended', $value);
+    }
+
+        //  This is an alias function of isSuspended
+    public function is_suspended($value)
+    {
+        return $this->isSuspended($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -106,6 +117,10 @@ class AccountsQueryFilter extends AbstractQueryFilter
 
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 
 
 

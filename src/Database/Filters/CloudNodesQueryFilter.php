@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-            
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -231,7 +231,26 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     }
 
     
+    public function backupRepositoryId($value)
+    {
+            $backupRepository = \NextDeveloper\IAAS\Database\Models\Repositories::where('uuid', $value)->first();
+
+        if($backupRepository) {
+            return $this->builder->where('backup_repository_id', '=', $backupRepository->id);
+        }
+    }
+
+        //  This is an alias function of backupRepository
+    public function backup_repository_id($value)
+    {
+        return $this->backupRepository($value);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 
 
 

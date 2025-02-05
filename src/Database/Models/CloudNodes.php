@@ -34,6 +34,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  * @property string $default_backup_path
+ * @property integer $backup_repository_id
  */
 class CloudNodes extends Model
 {
@@ -46,90 +47,90 @@ class CloudNodes extends Model
 
 
     /**
-     * @var array
+     @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-        'name',
-        'slug',
-        'is_active',
-        'is_public',
-        'is_edge',
-        'is_alive',
-        'is_in_maintenance',
-        'position',
-        'iaas_datacenter_id',
-        'iam_account_id',
-        'iam_user_id',
-        'tags',
-        'default_backup_path',
-        'default_backup_pool_id'
+            'name',
+            'slug',
+            'is_active',
+            'is_public',
+            'is_edge',
+            'is_alive',
+            'is_in_maintenance',
+            'position',
+            'iaas_datacenter_id',
+            'iam_account_id',
+            'iam_user_id',
+            'tags',
+            'default_backup_path',
+            'backup_repository_id',
     ];
 
     /**
-     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
+      Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     * We are casting fields to objects so that we can work on them better
+     We are casting fields to objects so that we can work on them better
      *
-     * @var array
+     @var array
      */
     protected $casts = [
-        'id' => 'integer',
-        'name' => 'string',
-        'slug' => 'string',
-        'is_active' => 'boolean',
-        'is_public' => 'boolean',
-        'is_edge' => 'boolean',
-        'is_alive' => 'boolean',
-        'is_in_maintenance' => 'boolean',
-        'position' => 'integer',
-        'iaas_datacenter_id' => 'integer',
-        'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
-        'default_backup_path' => 'string',
-        'default_backup_pool_id' => 'integer',
+    'id' => 'integer',
+    'name' => 'string',
+    'slug' => 'string',
+    'is_active' => 'boolean',
+    'is_public' => 'boolean',
+    'is_edge' => 'boolean',
+    'is_alive' => 'boolean',
+    'is_in_maintenance' => 'boolean',
+    'position' => 'integer',
+    'iaas_datacenter_id' => 'integer',
+    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
+    'default_backup_path' => 'string',
+    'backup_repository_id' => 'integer',
     ];
 
     /**
-     * We are casting data fields.
+     We are casting data fields.
      *
-     * @var array
+     @var array
      */
     protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $with = [
 
     ];
 
     /**
-     * @var int
+     @var int
      */
     protected $perPage = 20;
 
     /**
-     * @return void
+     @return void
      */
     public static function boot()
     {
@@ -146,11 +147,9 @@ class CloudNodes extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_cloud_nodes');
 
-        if (!$modelScopes) {
-            $modelScopes = [];
+        if(!$modelScopes) { $modelScopes = [];
         }
-        if (!$globalScopes) {
-            $globalScopes = [];
+        if (!$globalScopes) { $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -158,44 +157,48 @@ class CloudNodes extends Model
             $modelScopes
         );
 
-        if ($scopes) {
+        if($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
         }
     }
 
-    public function networks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function networks() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Networks::class);
     }
 
-    public function networkPools(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function networkPools() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
     }
 
-    public function computePools(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function computePools() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
     }
 
-    public function virtualMachines(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
 
-    public function datacenters(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
     }
-
-    public function storagePools(): \Illuminate\Database\Eloquent\Relations\HasMany
+    
+    public function storagePools() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 
 
 }

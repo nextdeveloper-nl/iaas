@@ -65,6 +65,7 @@ class AbstractAccountsTransformer extends AbstractTransformer
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
             'is_service_enabled'  =>  $model->is_service_enabled,
+            'is_suspended'  =>  $model->is_suspended,
             ]
         );
     }
@@ -153,4 +154,8 @@ class AbstractAccountsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 }

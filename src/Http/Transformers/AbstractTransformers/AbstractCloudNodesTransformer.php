@@ -57,6 +57,7 @@ class AbstractCloudNodesTransformer extends AbstractTransformer
                                                 $iaasDatacenterId = \NextDeveloper\IAAS\Database\Models\Datacenters::where('id', $model->iaas_datacenter_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                                                            $backupRepositoryId = \NextDeveloper\IAAS\Database\Models\Repositories::where('id', $model->backup_repository_id)->first();
                         
         return $this->buildPayload(
             [
@@ -77,6 +78,7 @@ class AbstractCloudNodesTransformer extends AbstractTransformer
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
             'default_backup_path'  =>  $model->default_backup_path,
+            'backup_repository_id'  =>  $backupRepositoryId ? $backupRepositoryId->uuid : null,
             ]
         );
     }
@@ -165,4 +167,8 @@ class AbstractCloudNodesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 }

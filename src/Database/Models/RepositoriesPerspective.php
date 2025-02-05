@@ -32,6 +32,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property integer $iam_user_id
  * @property integer $iam_account_id
  * @property $states
+ * @property boolean $is_backup_repository
+ * @property $price_pergb
+ * @property integer $common_currency_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
@@ -66,6 +69,9 @@ class RepositoriesPerspective extends Model
             'iam_user_id',
             'iam_account_id',
             'states',
+            'is_backup_repository',
+            'price_pergb',
+            'common_currency_id',
     ];
 
     /**
@@ -99,6 +105,8 @@ class RepositoriesPerspective extends Model
     'iso_image_count' => 'integer',
     'vm_image_count' => 'integer',
     'states' => 'array',
+    'is_backup_repository' => 'boolean',
+    'common_currency_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -163,6 +171,10 @@ class RepositoriesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
 
 
 

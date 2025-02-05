@@ -20,6 +20,7 @@ class VirtualMachineBackupsUpdateRequest extends AbstractFormRequest
         'backup_type' => 'string',
         'iaas_virtual_machine_id' => 'nullable|exists:iaas_virtual_machines,uuid|uuid',
         'status' => 'string',
+        'iaas_repository_image_id' => 'nullable|exists:iaas_repository_images,uuid|uuid',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
