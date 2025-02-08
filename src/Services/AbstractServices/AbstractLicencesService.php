@@ -65,10 +65,10 @@ class AbstractLicencesService
             //  We are using this because we have been experiencing huge security problem when we use the paginate method.
             //  The reason was, when the pagination method was using, somehow paginate was discarding all the filters.
             return new \Illuminate\Pagination\LengthAwarePaginator(
-                $model->skip(($request->get('page', 1) - 1) * $perPage)->take($perPage)->get(),
+                $model->skip((request()->get('page', 1) - 1) * $perPage)->take($perPage)->get(),
                 $model->count(),
                 $perPage,
-                $request->get('page', 1)
+                request()->get('page', 1)
             );
         }
 
@@ -181,7 +181,7 @@ class AbstractLicencesService
                 $data['subscription_id']
             );
         }
-                        
+
         try {
             $model = Licences::create($data);
         } catch(\Exception $e) {
@@ -233,7 +233,7 @@ class AbstractLicencesService
                 $data['subscription_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();

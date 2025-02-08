@@ -65,10 +65,10 @@ class AbstractVirtualMachinesService
             //  We are using this because we have been experiencing huge security problem when we use the paginate method.
             //  The reason was, when the pagination method was using, somehow paginate was discarding all the filters.
             return new \Illuminate\Pagination\LengthAwarePaginator(
-                $model->skip(($request->get('page', 1) - 1) * $perPage)->take($perPage)->get(),
+                $model->skip((request()->get('page', 1) - 1) * $perPage)->take($perPage)->get(),
                 $model->count(),
                 $perPage,
-                $request->get('page', 1)
+                request()->get('page', 1)
             );
         }
 
@@ -193,7 +193,7 @@ class AbstractVirtualMachinesService
                 $data['iam_account_id']
             );
         }
-            
+
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
@@ -203,7 +203,7 @@ class AbstractVirtualMachinesService
                 $data['iam_user_id']
             );
         }
-                    
+
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
@@ -231,7 +231,7 @@ class AbstractVirtualMachinesService
                 $data['iaas_compute_pool_id']
             );
         }
-                        
+
         try {
             $model = VirtualMachines::create($data);
         } catch(\Exception $e) {
@@ -325,7 +325,7 @@ class AbstractVirtualMachinesService
                 $data['iaas_compute_pool_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();

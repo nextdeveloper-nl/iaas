@@ -65,10 +65,10 @@ class AbstractStorageMemberStatsService
             //  We are using this because we have been experiencing huge security problem when we use the paginate method.
             //  The reason was, when the pagination method was using, somehow paginate was discarding all the filters.
             return new \Illuminate\Pagination\LengthAwarePaginator(
-                $model->skip(($request->get('page', 1) - 1) * $perPage)->take($perPage)->get(),
+                $model->skip((request()->get('page', 1) - 1) * $perPage)->take($perPage)->get(),
                 $model->count(),
                 $perPage,
-                $request->get('page', 1)
+                request()->get('page', 1)
             );
         }
 
@@ -181,7 +181,7 @@ class AbstractStorageMemberStatsService
                 $data['iaas_storage_member_id']
             );
         }
-                        
+
         try {
             $model = StorageMemberStats::create($data);
         } catch(\Exception $e) {
@@ -233,7 +233,7 @@ class AbstractStorageMemberStatsService
                 $data['iaas_storage_member_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();

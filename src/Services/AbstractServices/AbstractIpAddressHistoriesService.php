@@ -65,10 +65,10 @@ class AbstractIpAddressHistoriesService
             //  We are using this because we have been experiencing huge security problem when we use the paginate method.
             //  The reason was, when the pagination method was using, somehow paginate was discarding all the filters.
             return new \Illuminate\Pagination\LengthAwarePaginator(
-                $model->skip(($request->get('page', 1) - 1) * $perPage)->take($perPage)->get(),
+                $model->skip((request()->get('page', 1) - 1) * $perPage)->take($perPage)->get(),
                 $model->count(),
                 $perPage,
-                $request->get('page', 1)
+                request()->get('page', 1)
             );
         }
 
@@ -181,7 +181,7 @@ class AbstractIpAddressHistoriesService
                 $data['iam_account_id']
             );
         }
-            
+
         if(!array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = UserHelper::currentAccount()->id;
         }
@@ -191,7 +191,7 @@ class AbstractIpAddressHistoriesService
                 $data['iam_user_id']
             );
         }
-                    
+
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
@@ -201,7 +201,7 @@ class AbstractIpAddressHistoriesService
                 $data['iaas_ip_addresses_id']
             );
         }
-                        
+
         try {
             $model = IpAddressHistories::create($data);
         } catch(\Exception $e) {
@@ -265,7 +265,7 @@ class AbstractIpAddressHistoriesService
                 $data['iaas_ip_addresses_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();
