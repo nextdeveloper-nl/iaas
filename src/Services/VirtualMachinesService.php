@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Services;
 
 use App\Helpers\Http\ResponseHelper;
 use GPBMetadata\Google\Api\Auth;
+use http\Exception\UnexpectedValueException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -362,5 +363,48 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         return $vm->status == 'running';
+    }
+
+    public static function getConsoleData(VirtualMachines $vm) : string
+    {
+        $key = config('iaas.tunnel_server.key');
+        $iv = config('iaas.tunnel_server.iv');
+        $t = time();
+
+        $encrypt = function ($string) use ($key, $iv) {
+            $method = 'AES-256-CBC';
+            $output = openssl_encrypt($string, $method, $key, true, $iv);
+            return base64_encode($output);
+        };
+
+        if($vm->console_data == null) {
+            //  If we dont have the console data we are updating the VM
+            (new HealthCheck($vm))->handle();
+        }
+
+        $vm = $vm->fresh();
+        $computeMember = self::getComputeMember($vm);
+
+        $uuid = $vm->console_data['uuid'];
+        $ipAddr = $computeMember->ip_addr;
+
+        if($computeMember->is_behind_firewall)
+            $ipAddr = $computeMember->local_ip_addr;
+
+        $password = $computeMember->username . ':' . decrypt($computeMember->password);
+        $endpoint = $ipAddr . '/console?uuid=' . $uuid;
+
+        Log::info(__METHOD__ . ' | Endpoint: ' . $endpoint);
+
+        $data = [
+            $endpoint,
+            base64_encode($password),
+        ];
+
+        return [
+            'data' => $encrypt(implode('|', $data)),
+            't'    => $t,
+            'sign'  =>  md5($key.$t.$endpoint.$key)
+        ];
     }
 }

@@ -615,6 +615,23 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
+    public static function getConsoleParameters(VirtualMachines $vm) : array
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@getConsoleParameters] I am taking the' .
+                ' console parameters of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        $command = 'xe console-list vm-uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        return self::parseListResult($result['output']);
+    }
+
     public static function syncVirtualNetworkCards(VirtualMachines $vm) :bool {
         $vifs = VirtualMachinesXenService::getVifs($vm);
 

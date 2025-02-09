@@ -69,13 +69,13 @@ class HealthCheck extends AbstractAction
         }
 
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
-
-        Log::info(__METHOD__ . ' | VM Parameters: ' . print_r($vmParams, true));
+        $consoleParams = VirtualMachinesXenService::getConsoleParameters($this->model);
 
         $this->setProgress(75, 'Marking the server power state as: ' . $vmParams['power-state']);
 
         $this->model->updateQuietly([
-            'status'    =>  $vmParams['power-state']
+            'status'    =>  $vmParams['power-state'],
+            'console_data'  =>  $consoleParams[0]
         ]);
 
         switch ($vmParams['power-state']) {
