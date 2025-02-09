@@ -365,7 +365,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         return $vm->status == 'running';
     }
 
-    public static function getConsoleData(VirtualMachines $vm) : string
+    public static function getConsoleData(VirtualMachines $vm) : array
     {
         $key = config('iaas.console.key');
         $iv = config('iaas.console.iv');
