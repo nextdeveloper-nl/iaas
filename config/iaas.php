@@ -23,5 +23,11 @@ return [
             'ram'   =>  128,
             'disk'  =>  1280
         ]
+    ],
+
+    'console'   =>  [
+        //  Due to security there items should not have default values
+        'key'   =>  env('IAAS_CONSOLE_KEY' ),
+        'iv'    =>  env('IAAS_CONSOLE_IV' )
     ]
 ];
