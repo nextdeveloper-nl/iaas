@@ -367,8 +367,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function getConsoleData(VirtualMachines $vm) : string
     {
-        $key = config('iaas.tunnel_server.key');
-        $iv = config('iaas.tunnel_server.iv');
+        $key = config('iaas.console.key');
+        $iv = config('iaas.console.iv');
         $t = time();
 
         $encrypt = function ($string) use ($key, $iv) {
@@ -391,7 +391,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         if($computeMember->is_behind_firewall)
             $ipAddr = $computeMember->local_ip_addr;
 
-        $password = $computeMember->username . ':' . decrypt($computeMember->password);
+        $password = $computeMember->ssh_username . ':' . decrypt($computeMember->ssh_password);
         $endpoint = $ipAddr . '/console?uuid=' . $uuid;
 
         Log::info(__METHOD__ . ' | Endpoint: ' . $endpoint);
