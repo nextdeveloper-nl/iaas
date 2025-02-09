@@ -92,6 +92,9 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             'iaas_networks:create',
             'iaas_networks:update',
             'iaas_networks:delete',
+
+            'iaas_virtual_machines_perspective:read',
+
             'iaas_virtual_machines:read',
             'iaas_virtual_machines:create',
             'iaas_virtual_machines:update',
