@@ -3,8 +3,6 @@
 namespace NextDeveloper\IAAS\Services;
 
 use App\Helpers\Http\ResponseHelper;
-use GPBMetadata\Google\Api\Auth;
-use http\Exception\UnexpectedValueException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -12,18 +10,17 @@ use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
-use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotCreateVirtualMachine;
 use NextDeveloper\IAAS\Exceptions\CannotUpdateResourcesException;
 use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
-use NextDeveloper\IAAS\Helpers\ResourceLimitsHelper;
 use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
 use NextDeveloper\IAM\Database\Models\Accounts;
@@ -363,6 +360,15 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         return $vm->status == 'running';
+    }
+
+    public static function getConsoleDataWithPerspective(VirtualMachinesPerspective $vm)
+    {
+        return self::getConsoleData(
+            VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $vm->id)
+                ->first()
+        );
     }
 
     public static function getConsoleData(VirtualMachines $vm) : array

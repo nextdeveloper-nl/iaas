@@ -47,7 +47,7 @@ class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
         unset($transformed['hypervisor_data']);
         unset($transformed['console_data']);
 
-        //$transformed['console_data'] = VirtualMachinesService::getConsoleData($model);
+        $transformed['console_data'] = VirtualMachinesService::getConsoleData($model);
 
         Cache::set(
             CacheHelper::getKey('VirtualMachines', $model->uuid, 'Transformed'),
