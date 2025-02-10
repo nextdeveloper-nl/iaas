@@ -35,11 +35,9 @@ class SimpleLimiter extends AbstractLimiter
     {
         return config('iaas.limits.minimum');
     }
-
+,
     public function hasLimitForRam($requiredRamSize)
     {
-        $requiredRamSize = $requiredRamSize * 1024;
-
         $myLimits = IaasHelper::getLimits();
 
         if(!array_key_exists('simple', $myLimits))
@@ -47,7 +45,7 @@ class SimpleLimiter extends AbstractLimiter
 
         $totalRamSize = $this->ram + $requiredRamSize;
 
-        if($totalRamSize > $myLimits['simple']['ram'])
+        if($totalRamSize >= $myLimits['simple']['ram'])
             return false;
 
         return true;
