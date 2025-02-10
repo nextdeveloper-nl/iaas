@@ -11,6 +11,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMachinesPerspectiveTransformer;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
 /**
  * Class VirtualMachinesPerspectiveTransformer. This class is being used to manipulate the data we are serving to the customer
@@ -43,6 +44,8 @@ class VirtualMachinesPerspectiveTransformer extends AbstractVirtualMachinesPersp
         }
 
         $transformed = parent::transform($model);
+
+        $transformed['console_data'] = VirtualMachinesService::getConsoleDataWithPerspective($model);
 
         Cache::set(
             CacheHelper::getKey('VirtualMachinesPerspective', $model->uuid, 'Transformed'),
