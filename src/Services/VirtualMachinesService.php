@@ -391,6 +391,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $vm = $vm->fresh();
         $computeMember = self::getComputeMember($vm);
 
+        if(!array_key_exists('uuid', $vm->console_data)) {
+            dispatch(new HealthCheck($vm));
+            return [];
+        }
+
         $uuid = $vm->console_data['uuid'];
         $ipAddr = $computeMember->ip_addr;
 
