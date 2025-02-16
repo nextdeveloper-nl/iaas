@@ -42,8 +42,10 @@ class HealthCheck extends AbstractAction
 
         $this->setProgress(10, 'Marking the server as checking health');
 
-        if($this->model->is_draft)
+        if($this->model->is_draft) {
             $this->setFinished('Virtual machine is a draft. Skipping health check.');
+            return;
+        }
 
         $this->model->status = 'checking-health';
         $this->model->saveQuietly();
