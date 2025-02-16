@@ -5,7 +5,7 @@ namespace NextDeveloper\IAAS\Database\Models;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
-use NextDeveloper\Commons\Database\Traits\CreateAsAdmintrator;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\IAAS\Database\Observers\ComputeMemberNetworkInterfacesObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
@@ -41,7 +41,7 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 class ComputeMemberNetworkInterfaces extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable, HasStates;
-    use CreateAsAdmintrator;
+    use RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
