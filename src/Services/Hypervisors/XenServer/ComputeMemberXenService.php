@@ -189,8 +189,9 @@ physical interfaces and vlans of compute member');
 
             if($netInterface)
                 $netInterface->update($data);
-            else
-                ComputeMemberNetworkInterfaces::create($data);
+            else {
+                ComputeMemberNetworkInterfaces::createAsAdministrator($data);
+            }
         }
 
         return $computeMember->fresh();
