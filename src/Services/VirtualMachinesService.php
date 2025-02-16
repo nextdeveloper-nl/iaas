@@ -402,6 +402,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         if($computeMember->is_behind_firewall)
             $ipAddr = $computeMember->local_ip_addr;
 
+        if(Str::contains($ipAddr, '/'))
+            $ipAddr = explode('/', $ipAddr)[0];
+
         $password = $computeMember->ssh_username . ':' . decrypt($computeMember->ssh_password);
         $endpoint = $ipAddr . '/console?uuid=' . $uuid;
 
