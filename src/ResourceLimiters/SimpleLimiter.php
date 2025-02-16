@@ -35,7 +35,7 @@ class SimpleLimiter extends AbstractLimiter
     {
         return config('iaas.limits.minimum');
     }
-,
+
     public function hasLimitForRam($requiredRamSize)
     {
         $myLimits = IaasHelper::getLimits();
