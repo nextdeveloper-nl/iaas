@@ -391,6 +391,15 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $vm = $vm->fresh();
         $computeMember = self::getComputeMember($vm);
 
+        if(!$vm)
+            return [];
+
+        if(!$vm->console_data)
+            return [];
+
+        if($vm->status == 'draft' || $vm->status == 'halted')
+            return [];
+
         if(!array_key_exists('uuid', $vm->console_data)) {
             dispatch(new HealthCheck($vm));
             return [];
