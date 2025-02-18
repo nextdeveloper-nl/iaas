@@ -31,8 +31,7 @@ class Scan extends AbstractAction
         $members = ComputePoolsService::getComputeMembers($this->model);
 
         foreach ($members as $member) {
-            (new \NextDeveloper\IAAS\Actions\ComputeMembers\Scan($member))->handle();
-            (new \NextDeveloper\IAAS\Actions\ComputeMembers\ScanVirtualMachines($member))->handle();
+            dispatch(new \NextDeveloper\IAAS\Actions\ComputeMembers\Scan($member));
         }
     }
 }

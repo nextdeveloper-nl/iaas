@@ -50,6 +50,8 @@ class Scan extends AbstractAction
 
         Events::fire('scanned:NextDeveloper\IAAS\ComputeMembers', $this->model);
 
+        dispatch(new \NextDeveloper\IAAS\Actions\ComputeMembers\ScanVirtualMachines($this->model));
+
         $this->setProgress(100, 'Compute member scanned and synced');
     }
 }
