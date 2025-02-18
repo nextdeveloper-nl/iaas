@@ -1,6 +1,7 @@
 <?php
 namespace NextDeveloper\IAAS\Actions\ComputePools;
 
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Datacenters;
@@ -31,6 +32,11 @@ class Scan extends AbstractAction
         $members = ComputePoolsService::getComputeMembers($this->model);
 
         foreach ($members as $member) {
+            if($member->is_alive == false) {
+                Log::warning('Compute member is not alive, skipping scan', ['compute_member_id' => $member->id]);
+                continue;
+            }
+
             dispatch(new \NextDeveloper\IAAS\Actions\ComputeMembers\Scan($member));
         }
     }
