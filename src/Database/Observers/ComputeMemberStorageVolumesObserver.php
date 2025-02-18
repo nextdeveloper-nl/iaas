@@ -75,7 +75,6 @@ class ComputeMemberStorageVolumesObserver
         Events::fire('saved:NextDeveloper\IAAS\ComputeMemberStorageVolumes', $model);
     }
 
-
     /**
      * @param Model $model
      */

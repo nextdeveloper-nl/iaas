@@ -15,6 +15,7 @@ class SimpleLimiter extends AbstractLimiter
         $vms = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
             ->where('iam_account_id', $accounts->iam_account_id)
+            ->where('status', '!=', 'running')
             ->get();
 
         foreach ($vms as $vm) {
@@ -45,7 +46,7 @@ class SimpleLimiter extends AbstractLimiter
 
         $totalRamSize = $this->ram + $requiredRamSize;
 
-        if($totalRamSize >= $myLimits['simple']['ram'])
+        if($totalRamSize >= ($myLimits['simple']['ram'] * 1024))
             return false;
 
         return true;
