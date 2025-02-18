@@ -34,9 +34,21 @@ class ComputeMemberXenService extends AbstractXenService
     {
         Log::info('[ComputeMemberService@sync] Checking if we can connect to: ' . $computeMember->name);
 
-        $command = 'hostname';
-        $hostname = self::performCommand($command, $computeMember);
-        $hostname = $hostname['output'];
+        try {
+            $command = 'hostname';
+            $hostname = self::performCommand($command, $computeMember);
+            $hostname = $hostname['output'];
+        } catch (\Exception $e) {
+            Log::error('[ComputeMemberService@sync] Cannot connect to the host: ' . $computeMember->name);
+            StateHelper::setState(
+                $computeMember,
+                'netconf_connection_problem',
+                'has_errors',
+                StateHelper::STATE_ERROR,
+                'Cannot connect to the host: ' . $computeMember->name
+            );
+            return $computeMember;
+        }
 
         //  This command will give us the uptime of the host as timestamp
         $command = 'stat -c %Z /proc/ ';
@@ -832,10 +844,26 @@ physical interfaces and vlans of compute member');
 
     public static function performCommand($command, ComputeMembers $computeMember) : ?array
     {
-        if($computeMember->is_management_agent_available == true) {
-            return $computeMember->performAgentCommand($command);
-        } else {
-            return $computeMember->performSSHCommand($command);
+        try {
+            if($computeMember->is_management_agent_available == true) {
+                return $computeMember->performAgentCommand($command);
+            } else {
+                return $computeMember->performSSHCommand($command);
+            }
+        } catch (\Exception $e) {
+            Log::error('[ComputeMembersXenService@performCommand] There is an error while performing the command: ' .
+                $command . ' on the compute member: ' . $computeMember->name . ' with error: ' . $e->getMessage());
+
+            StateHelper::setState(
+                $computeMember,
+                'netconf_netmask_problem',
+                'has_errors',
+                StateHelper::STATE_ERROR,
+                'There is an error while performing the command: ' . $command . ' on the compute member: ' .
+                $computeMember->name . ' with error: ' . $e->getMessage()
+            );
+
+            return null;
         }
     }
 }
