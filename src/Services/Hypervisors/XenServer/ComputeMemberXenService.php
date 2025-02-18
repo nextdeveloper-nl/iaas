@@ -847,7 +847,11 @@ physical interfaces and vlans of compute member');
                     'The connection is OK'
                 );
 
-                return $computeMember->performSSHCommand($command);
+                $computeMember->updateAsAdministrator([
+                    'is_alive' => true
+                ]);
+
+                return $result;
             }
         } catch (\Exception $e) {
             Log::error('[ComputeMembersXenService@performCommand] There is an error while performing the command: ' .
