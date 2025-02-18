@@ -81,7 +81,17 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
 
     public function allowedOperations() :array
     {
-        return [
+        $allowedOperations = (new IaasSuccessManager())->allowedOperations();
+        $allowedOperations = array_merge(
+            $allowedOperations,
+            (new CloudResourceOwner())->allowedOperations()
+        );
+        $allowedOperations = array_merge(
+            $allowedOperations,
+            (new CloudNodeAdmin())->allowedOperations()
+        );
+
+        return array_merge($allowedOperations, [
             'iaas_ansible_playbook_ansible_role:read',
             'iaas_ansible_playbook_ansible_role:create',
             'iaas_ansible_playbook_ansible_role:update',
@@ -247,7 +257,7 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_compute_member_storage_volumes:create',
             'iaas_compute_member_storage_volumes:update',
             'iaas_compute_member_storage_volumes:delete',
-        ];
+        ]);
     }
 
     public function checkPrivileges(Users $users = null)
