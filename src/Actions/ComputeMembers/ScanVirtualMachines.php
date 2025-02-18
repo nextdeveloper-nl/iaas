@@ -214,8 +214,22 @@ class ScanVirtualMachines extends AbstractAction
 
                 if($dbVdi)
                     $dbVdi->updateQuietly($data);
-                else
-                    $dbVdi = VirtualDiskImages::create($data);
+                else {
+                    //  We need to check if we already have a record with the iaas_virtual_machine_id and device_number
+                    //  If we have, we will update it, if not we will create a new one
+                    $checkVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_virtual_machine_id', $dbVm->id)
+                        ->where('device_number', $vbdParams['userdevice'])
+                        ->first();
+
+                    //  This happens when the VDI is migrated to another storage. We need to update the hypervisor_uuid
+                    if($checkVdi) {
+                        $checkVdi->updateQuietly($data);
+                        $dbVdi = $checkVdi;
+                    }
+                    else
+                        $dbVdi = VirtualDiskImages::create($data);
+                }
             }
 
             /**

@@ -46,7 +46,17 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
 
     public function allowedObjects() :array
     {
-        return [
+        $allowedObjects = (new IaasSuccessManager())->allowedObjects();
+        $allowedObjects = array_merge(
+            $allowedObjects,
+            (new CloudResourceOwner())->allowedObjects()
+        );
+        $allowedObjects = array_merge(
+            $allowedObjects,
+            (new CloudNodeAdmin())->allowedObjects()
+        );
+
+        return array_merge($allowedObjects, [
             'iaas_datacenters',
             'iaas_cloud_nodes',
             'iaas_compute_members',
@@ -76,7 +86,7 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_compute_member_events',
             'iaas_compute_member_network_interfaces',
             'iaas_compute_member_stats'
-        ];
+        ]);
     }
 
     public function allowedOperations() :array

@@ -4,9 +4,11 @@ namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Authorization\Roles\DatacenterAdmin;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\NetworkMemberXenService;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action will scan compute member and sync all findings. Its the same as initiate but without the auto discovery.
