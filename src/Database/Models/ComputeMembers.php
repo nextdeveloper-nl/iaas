@@ -7,6 +7,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
 use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\Commons\Database\Traits\HasStates;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 use NextDeveloper\Commons\Database\Traits\SSHable;
 use NextDeveloper\IAAS\Database\Observers\ComputeMembersObserver;
 use NextDeveloper\Commons\Database\Traits\UuidId;
@@ -62,7 +63,7 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  */
 class ComputeMembers extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
     use SSHable, Agentable;
 
@@ -236,7 +237,7 @@ class ComputeMembers extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
     }
-    
+
     public function computeMemberStats() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStats::class);

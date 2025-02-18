@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
+use Google\Service\GKEHub\State;
 use NextDeveloper\IAAS\Exceptions\SynchronizationException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -34,21 +35,9 @@ class ComputeMemberXenService extends AbstractXenService
     {
         Log::info('[ComputeMemberService@sync] Checking if we can connect to: ' . $computeMember->name);
 
-        try {
-            $command = 'hostname';
-            $hostname = self::performCommand($command, $computeMember);
-            $hostname = $hostname['output'];
-        } catch (\Exception $e) {
-            Log::error('[ComputeMemberService@sync] Cannot connect to the host: ' . $computeMember->name);
-            StateHelper::setState(
-                $computeMember,
-                'netconf_connection_problem',
-                'has_errors',
-                StateHelper::STATE_ERROR,
-                'Cannot connect to the host: ' . $computeMember->name
-            );
-            return $computeMember;
-        }
+        $command = 'hostname';
+        $hostname = self::performCommand($command, $computeMember);
+        $hostname = $hostname['output'];
 
         //  This command will give us the uptime of the host as timestamp
         $command = 'stat -c %Z /proc/ ';
@@ -848,20 +837,55 @@ physical interfaces and vlans of compute member');
             if($computeMember->is_management_agent_available == true) {
                 return $computeMember->performAgentCommand($command);
             } else {
+                $result = $computeMember->performSSHCommand($command);
+
+                StateHelper::setState(
+                    $computeMember,
+                    'connection_problem_count',
+                    0,
+                    StateHelper::STATE_SUCCESS,
+                    'The connection is OK'
+                );
+
                 return $computeMember->performSSHCommand($command);
             }
         } catch (\Exception $e) {
             Log::error('[ComputeMembersXenService@performCommand] There is an error while performing the command: ' .
                 $command . ' on the compute member: ' . $computeMember->name . ' with error: ' . $e->getMessage());
 
+            $connectionProblemCount = StateHelper::getState($computeMember, 'connection_problem_count');
+
+            if(!$connectionProblemCount)
+                $connectionProblemCount = 0;
+            else
+                $connectionProblemCount = $connectionProblemCount->value;
+
+            $connectionProblemCount++;
+
             StateHelper::setState(
                 $computeMember,
-                'netconf_netmask_problem',
-                'has_errors',
+                'connection_problem_count',
+                $connectionProblemCount + 1,
                 StateHelper::STATE_ERROR,
                 'There is an error while performing the command: ' . $command . ' on the compute member: ' .
                 $computeMember->name . ' with error: ' . $e->getMessage()
             );
+
+            if($connectionProblemCount > 5) {
+                StateHelper::setState(
+                    $computeMember,
+                    'netconf_connection_problem',
+                    'has_errors',
+                    StateHelper::STATE_ERROR,
+                    'There is an error while performing the command: ' . $command . ' on the compute member: ' .
+                    $computeMember->name . ' with error: ' . $e->getMessage()
+                );
+
+                $computeMember->updateAsAdministrator([
+                    'is_alive' => false,
+                    'has_errors' => true
+                ]);
+            }
 
             return null;
         }
