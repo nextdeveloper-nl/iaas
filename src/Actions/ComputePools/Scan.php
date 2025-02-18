@@ -33,7 +33,7 @@ class Scan extends AbstractAction
 
         foreach ($members as $member) {
             if($member->is_alive == false) {
-                Log::warning('Compute member is not alive, skipping scan', ['compute_member_id' => $member->id]);
+                Log::warning(__METHOD__ . '| Compute member is not alive, skipping scan: ' . $member->uuid);
                 continue;
             }
 
