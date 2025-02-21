@@ -30,6 +30,9 @@ class SimpleLimiter extends AbstractLimiter
                 $this->disk += $vdi->size;
             }
         }
+
+        // Convert RAM to GBWe are putting this because we are storing the RAM in MB
+        $this->ram /= 1024;
     }
 
     public static function getMinimumLimits()
