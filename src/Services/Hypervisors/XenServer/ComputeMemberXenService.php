@@ -189,9 +189,12 @@ physical interfaces and vlans of compute member');
                 . ' with details: ' . print_r($data, true));
 
             if($netInterface)
+                unset($data['iam_account_id']);
+                unset($data['iam_user_id']);
+
                 $netInterface->update($data);
             else {
-                ComputeMemberNetworkInterfaces::createAsAdministrator($data);
+                ComputeMemberNetworkInterfaces::create($data);
             }
         }
 

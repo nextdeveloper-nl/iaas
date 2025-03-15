@@ -30,6 +30,8 @@ class Scan extends AbstractAction
 
     public function handle()
     {
+        UserHelper::setAdminAsCurrentUser();
+
         $this->setProgress(0, 'Initiate compute member started');
 
         $this->setProgress(10, 'Updating compute member information');

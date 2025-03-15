@@ -45,8 +45,6 @@ class VirtualMachinesPerspectiveTransformer extends AbstractVirtualMachinesPersp
 
         $transformed = parent::transform($model);
 
-        $transformed['console_data'] = VirtualMachinesService::getConsoleDataWithPerspective($model);
-
         Cache::set(
             CacheHelper::getKey('VirtualMachinesPerspective', $model->uuid, 'Transformed'),
             $transformed
