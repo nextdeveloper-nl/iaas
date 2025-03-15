@@ -188,11 +188,12 @@ physical interfaces and vlans of compute member');
                 . $interfaceDetail['device'] . ' for compute member: ' . $computeMember->name
                 . ' with details: ' . print_r($data, true));
 
-            if($netInterface)
+            if($netInterface) {
                 unset($data['iam_account_id']);
                 unset($data['iam_user_id']);
 
                 $netInterface->update($data);
+            }
             else {
                 ComputeMemberNetworkInterfaces::create($data);
             }
