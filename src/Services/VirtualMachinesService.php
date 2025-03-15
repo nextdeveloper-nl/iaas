@@ -371,8 +371,21 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         );
     }
 
+    public static function getConsoleDataFromVmId($id) : array
+    {
+        $vm = VirtualMachines::where('uuid', $id)->first();
+
+        return self::getConsoleData($vm);
+    }
+
     public static function getConsoleData(VirtualMachines $vm) : array
     {
+        if($vm->status == 'halted') {
+            return [
+                'console'   =>  'Not available while the server is shutdown.'
+            ];
+        }
+
         $key = config('iaas.console.key');
         $iv = config('iaas.console.iv');
         $t = time();
