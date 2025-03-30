@@ -625,8 +625,6 @@ physical interfaces and vlans of compute member');
         $result = self::performCommand($createDirectoryCommand, $computeMember);
         $result = $result['output'];
 
-        $cloudNode = ComputeMembersService::getCloudNode($computeMember);
-
         $mountRepoCommand = 'mount -t nfs ' . $repositories->local_ip_addr . ':' . $repositories->vm_path . ' ' . $computeMemberPath;
 
         if(config('leo.debug.iaas.compute_members'))

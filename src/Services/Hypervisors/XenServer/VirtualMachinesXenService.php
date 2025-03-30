@@ -163,7 +163,7 @@ class VirtualMachinesXenService extends AbstractXenService
          * Take the virtual machine name from hypervisor and then use that name in take snapshot command
          */
 
-        $command = 'xe vm-snapshot vm=' . $vm->uuid . ' new-name-label=' . $name;
+        $command = 'xe vm-snapshot vm=' . $vm->hypervisor_data['name-label'] . ' new-name-label=' . $name;
         $result = self::performCommand($command, $computeMember);
 
         return $result;
@@ -338,6 +338,8 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
             'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName;
+
+        Log::info(__METHOD__ . ' Exporting with command: ' . $command);
 
         $result = self::performCommand($command, $computeMember);
 

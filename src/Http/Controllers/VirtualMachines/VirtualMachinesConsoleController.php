@@ -2,15 +2,15 @@
 
 namespace NextDeveloper\IAAS\Http\Controllers\VirtualMachines;
 
-use Illuminate\Http\Request;
+use App\Helpers\Http\ResponseHelper;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\VirtualMachines\VirtualMachinesUpdateRequest;
-use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
-use NextDeveloper\IAAS\Http\Requests\VirtualMachines\VirtualMachinesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+
 class VirtualMachinesConsoleController extends AbstractController
 {
     private $model = VirtualMachines::class;
@@ -29,7 +29,11 @@ class VirtualMachinesConsoleController extends AbstractController
     public function getConsoleData($virtualMachinesId, VirtualMachinesUpdateRequest $request)
     {
         $console = VirtualMachinesService::getConsoleDataFromVmId($virtualMachinesId);
-dd($console);
-        return ResponsableFactory::makeResponse($this, $model);
+
+        if(!$console) {
+            return ResponseHelper::error('Virtual machine console is not available at the moment. Please make sure that virtual machine is running. Otherwise please create a support ticket.');
+        }
+
+        return ResponsableFactory::makeResponse($this, $console);
     }
 }
