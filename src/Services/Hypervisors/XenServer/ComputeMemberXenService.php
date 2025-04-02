@@ -145,9 +145,9 @@ physical interfaces and vlans of compute member');
                 'iam_user_id'       =>  $computeMember->iam_user_id
             ];
 
-            Log::info('[ComputeMemberService@updateInterfaceInformation] Syncing interface: '
-                . $interfaceDetail['device'] . ' for compute member: ' . $computeMember->name
-                . ' with details: ' . print_r($data, true));
+//            Log::info('[ComputeMemberService@updateInterfaceInformation] Syncing interface: '
+//                . $interfaceDetail['device'] . ' for compute member: ' . $computeMember->name
+//                . ' with details: ' . print_r($data, true));
 
             Log::info('[ComputeMemberService@updateInterfaceInformation] ' . $interfaceDetail['IP'] . '/' . NetworkCalculationHelper::mask2cidr($interfaceDetail['netmask']));
 

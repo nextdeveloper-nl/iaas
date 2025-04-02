@@ -42,7 +42,7 @@ class ScanVirtualMachines extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate compute member started');
+        $this->setProgress(0, 'Scanning virtual machines started');
 
         $this->scanXenVirtualMachines();
 
