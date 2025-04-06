@@ -603,6 +603,23 @@ physical interfaces and vlans of compute member');
         return self::getNetworkInterfaceFromVlan($computeMember, $network->vlan);
     }
 
+    public static function deleteNetwork(ComputeMembers $computeMember, ComputeMemberNetworkInterfaces $cmni) : bool
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[NetworkService@deleteNetworkOnComputeMember] Deleting network : ' . $cmni->vlan
+                . ' on compute member: ' . $computeMember->name);
+
+        $command = 'xe network-destroy uuid=' . $cmni->hypervisor_uuid;
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[NetworkService@deleteNetworkOnComputeMember] Deleting network with command: ' . $command);
+
+        $result = self::performCommand($command, $computeMember);
+        $result = $result['output'];
+
+        return true;
+    }
+
     public static function getStorageVolumeByHypervisorUuid($uuid) : ? ComputeMemberStorageVolumes
     {
         return ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
