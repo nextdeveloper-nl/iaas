@@ -195,7 +195,12 @@ physical interfaces and vlans of compute member');
                 $netInterface->update($data);
             }
             else {
-                ComputeMemberNetworkInterfaces::create($data);
+                $netInterface = ComputeMemberNetworkInterfaces::create($data);
+            }
+
+            //  Now here we take the VLAN information from hypervisor and save it to database
+            if($netInterface->vlan != 0) {
+                ComputeMemberXenService::updateVlanInformation($computeMember, $netInterface->vlan);
             }
         }
 
@@ -265,6 +270,16 @@ physical interfaces and vlans of compute member');
         }
 
         return $computeMember->fresh();
+    }
+
+    public static function updateVlanInformation(ComputeMembers $computeMembers, $vlan) : ComputeMemberNetworkInterfaces
+    {
+        $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('vlan', $vlan)
+            ->where('iaas_compute_member_id', $computeMembers->id)
+            ->first();
+
+        dd($cmni);
     }
 
     public static function updateStorageVolumes(ComputeMembers $computeMember) : ComputeMembers
@@ -609,13 +624,15 @@ physical interfaces and vlans of compute member');
             Log::info('[NetworkService@deleteNetworkOnComputeMember] Deleting network : ' . $cmni->vlan
                 . ' on compute member: ' . $computeMember->name);
 
-        $command = 'xe network-destroy uuid=' . $cmni->hypervisor_uuid;
+        $command = 'xe network-destroy uuid=' . $cmni->network_uuid;
 
         if(config('leo.debug.iaas.compute_members'))
             Log::info('[NetworkService@deleteNetworkOnComputeMember] Deleting network with command: ' . $command);
 
         $result = self::performCommand($command, $computeMember);
         $result = $result['output'];
+
+        $command = 'xe vlan-destroy uuid=' . $cmni->hypervisor_uuid;
 
         return true;
     }

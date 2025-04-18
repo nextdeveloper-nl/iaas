@@ -167,15 +167,12 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
 
     public function snapshotOfVirtualMachine($value)
     {
-        $operator = substr($value, 0, 1);
+        $vm = VirtualMachines::where('uuid', $value)->first();
 
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
+        if($vm)
+            return $this->builder->where('snapshot_of_virtual_machine', $vm->id);
 
-        return $this->builder->where('snapshot_of_virtual_machine', $operator, $value);
+        return null;
     }
 
         //  This is an alias function of snapshotOfVirtualMachine

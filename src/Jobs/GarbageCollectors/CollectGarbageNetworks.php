@@ -37,7 +37,7 @@ class CollectGarbageNetworks implements ShouldQueue
             ->get();
 
         foreach ($networks as $network) {
-            $computeMemberNetworks = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            $computeMemberNetworks = ComputeMemberNetworkInterfaces::withoutGlobalScopes(AuthorizationScope::class)
                 ->withoutGlobalScope(LimitScope::class)
                 ->where('vlan', $network->vlan)
                 ->get();
@@ -62,7 +62,15 @@ class CollectGarbageNetworks implements ShouldQueue
                 }
             }
 
-            $network->delete();
+            DB::update(
+                'UPDATE iaas_networks SET deleted_at = ? WHERE id = ?',
+                [now(), $network->id]
+            );
+
+            DB::update(
+                'UPDATE iaas_compute_member_network_interfaces SET deleted_at = ? WHERE id = ?',
+                [now(), $computeMemberNetwork->id]
+            );
         }
     }
 }

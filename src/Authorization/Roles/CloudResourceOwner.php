@@ -120,6 +120,11 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             'iaas_ip_addresses:create',
             'iaas_ip_addresses:update',
             'iaas_ip_addresses:delete',
+
+            'iaas_repository_images:read',
+            'iaas_repository_images:create',
+            'iaas_repository_images:update',
+            'iaas_repository_images:delete',
         ];
     }
 
