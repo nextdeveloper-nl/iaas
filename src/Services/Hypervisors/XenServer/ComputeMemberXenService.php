@@ -279,7 +279,7 @@ physical interfaces and vlans of compute member');
             ->where('iaas_compute_member_id', $computeMembers->id)
             ->first();
 
-        dd($cmni);
+        //dd($cmni);
     }
 
     public static function updateStorageVolumes(ComputeMembers $computeMember) : ComputeMembers
