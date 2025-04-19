@@ -36,11 +36,17 @@ class Scan extends AbstractAction
 
         $this->setProgress(0, 'Initiate compute member started');
 
-//        $this->setProgress(10, 'Updating compute member information');
-//        ComputeMemberXenService::updateMemberInformation($this->model);
-//
-//        $this->setProgress(20, 'Updating compute member network interface information');
-//        ComputeMemberXenService::updateInterfaceInformation($this->model);
+        $this->setProgress(10, 'Updating compute member information');
+        ComputeMemberXenService::updateMemberInformation($this->model);
+
+        $this->setProgress(15, 'Removing vlans which are deleted from compute member');
+        ComputeMemberXenService::removeDeletedVlans($this->model);
+
+        $this->setProgress(20, 'Updating compute member network interface information');
+        ComputeMemberXenService::updateInterfaceInformation($this->model);
+
+        $this->setProgress(30, 'Updating compute member storage repository information');
+        ComputeMemberXenService::updateMissingVlans($this->model);
 
         $this->setProgress(40, 'Updating compute member bridges/networks information');
         ComputeMemberXenService::updateNetworkInformation($this->model);

@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
+use Google\Service\Compute\Network;
 use Google\Service\GKEHub\State;
 use NextDeveloper\IAAS\Exceptions\SynchronizationException;
 use Illuminate\Support\Facades\Log;
@@ -112,6 +113,38 @@ class ComputeMemberXenService extends AbstractXenService
         return $computeMembers->fresh();
     }
 
+    public static function removeDeletedVlans(ComputeMembers $computeMembers)
+    {
+        $networks = Networks::withoutGlobalScopes()
+            ->whereNotNull('deleted_at')
+            ->get();
+
+//        dd($networks);
+    }
+
+    public static function updateMissingVlans(ComputeMembers $computeMember)
+    {
+        $cmnis = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_compute_member_id', $computeMember->id)
+            ->get();
+
+        foreach ($cmnis as $cmni) {
+            //  Checking if the VLAN exists
+            $command = 'xe vlan-list tag=' . $cmni['vlan'];
+
+            Log::info('[ComputeMemberService@updateVlanInformation] Getting the VLAN list for VLAN: '
+                . $cmni['vlan'] . ' on compute member: ' . $computeMember->name);
+
+            $result = self::performCommand($command, $computeMember);
+            $details = self::parseListResult($result['output']);
+            $vlanUuid = $details[0]['uuid'] ?? null;
+
+            if(!$vlanUuid) {
+                $cmni->delete();
+            }
+        }
+    }
+
     public static function updateInterfaceInformation(ComputeMembers $computeMember) : ComputeMembers
     {
         logger()->info('[ComputeMemberService@updateInterfaceInformation] We are starting to sync
@@ -199,7 +232,7 @@ physical interfaces and vlans of compute member');
             }
 
             //  Now here we take the VLAN information from hypervisor and save it to database
-            if($netInterface->vlan != 0) {
+            if($netInterface->vlan != 0 && $netInterface->vlan != -1) {
                 ComputeMemberXenService::updateVlanInformation($computeMember, $netInterface->vlan);
             }
         }
@@ -272,14 +305,36 @@ physical interfaces and vlans of compute member');
         return $computeMember->fresh();
     }
 
-    public static function updateVlanInformation(ComputeMembers $computeMembers, $vlan) : ComputeMemberNetworkInterfaces
+    public static function updateVlanInformation(ComputeMembers $computeMember, $vlan) : ComputeMemberNetworkInterfaces
     {
         $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
             ->where('vlan', $vlan)
-            ->where('iaas_compute_member_id', $computeMembers->id)
+            ->where('iaas_compute_member_id', $computeMember->id)
             ->first();
 
-        //dd($cmni);
+        $command = 'xe vlan-list tag=' . $cmni['vlan'];
+
+        Log::info('[ComputeMemberService@updateVlanInformation] Getting the VLAN list for VLAN: '
+            . $cmni['vlan'] . ' on compute member: ' . $computeMember->name);
+
+        $result = self::performCommand($command, $computeMember);
+        $details = self::parseListResult($result['output']);
+        $vlanUuid = $details[0]['uuid'];
+
+        $command = 'xe vlan-param-list uuid=' . $vlanUuid;
+
+        Log::info('[ComputeMemberService@updateVlanInformation] Getting the VLAN parameters for VLAN: '
+            . $cmni['vlan'] . ' on compute member: ' . $computeMember->name);
+
+        $result = self::performCommand($command, $computeMember);
+        $details = self::parseListResult($result['output']);
+        $details = $details[0];
+
+        $cmni->update([
+            'vlan_data' =>  $details
+        ]);
+
+        return $cmni->fresh();
     }
 
     public static function updateStorageVolumes(ComputeMembers $computeMember) : ComputeMembers

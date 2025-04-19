@@ -70,6 +70,7 @@ class ComputeMemberNetworkInterfaces extends Model
             'hypervisor_uuid',
             'network_uuid',
             'network_name',
+        'vlan_data'
     ];
 
     /**
