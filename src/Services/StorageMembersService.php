@@ -27,4 +27,9 @@ class StorageMembersService extends AbstractStorageMembersService
 
         return $storageMember;
     }
+
+    public static function fix(StorageMembers $storageMember)
+    {
+
+    }
 }

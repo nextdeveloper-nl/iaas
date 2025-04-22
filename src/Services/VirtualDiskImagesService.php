@@ -15,6 +15,7 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAAS\Exceptions\CannotCreateDisk;
 use NextDeveloper\IAAS\Exceptions\CannotCreateRootDisk;
 use NextDeveloper\IAAS\Exceptions\CannotUpdateResourcesException;
@@ -162,7 +163,7 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
     public static function getStoragePool(VirtualDiskImages $vdi): ?StoragePools
     {
         return StoragePools::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', self::getStorageMember($vdi)->iaas_storage_pool_id)
+            ->where('id', $vdi->iaas_storage_pool_id)
             ->first();
     }
 
@@ -217,5 +218,31 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
         return VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vdi->iaas_virtual_machine_id)
             ->first();
+    }
+
+    public static function fix(VirtualDiskImages $vdi) : VirtualDiskImages
+    {
+        // Check if the storage pool is set to null
+        if(!$vdi->iaas_storage_pool_id) {
+            // Get the storage pool from the storage volume
+            $storageVolume = self::getStorageVolume($vdi->fresh());
+
+            if($storageVolume) {
+                // Fixing the storage volume just to make sure it is correct
+                $storageVolume = StorageVolumesService::fix($storageVolume);
+
+                if($storageVolume->iaas_storage_pool_id) {
+                    $vdi->updateQuietly([
+                        'iaas_storage_pool_id' => $storageVolume->iaas_storage_pool_id,
+                    ]);
+
+                    return $vdi;
+                }
+            } else {
+                throw new CannotContinueException('Cannot find the storage volume for this VDI. You need to check this out or fix this problem in the database.', '1');
+            }
+        }
+
+        return $vdi->fresh();
     }
 }

@@ -33,4 +33,27 @@ class StorageVolumesService extends AbstractStorageVolumesService
             ->where('hypervisor_uuid', $uuid)
             ->first();
     }
+
+    public static function fix(StorageVolumes $volume) : StorageVolumes
+    {
+        //  Check if the storage volume does not have storage pool
+        if(!$volume->iaas_storage_pool_id) {
+            //  Here we should try to understand if there are any other storage volumes with the same name exists
+            $storageVolumes = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                ->where('name', $volume->name)
+                ->get();
+
+            foreach ($storageVolumes as $storageVolume) {
+                if($storageVolume->iaas_storage_pool_id != null) {
+                    $volume->updateQuietly([
+                        'iaas_storage_pool_id' => $storageVolume->iaas_storage_pool_id,
+                    ]);
+
+                    break;
+                }
+            }
+        }
+
+        return $volume->fresh();
+    }
 }
