@@ -149,6 +149,8 @@ class ComputeMemberXenService extends AbstractXenService
                     continue;
 
                 if($network->vlan == $networkOnMember['tag']) {
+                    Log::debug(__METHOD__ . '| Removing vlan ' . $networkOnMember['tag']);
+
                     $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
                         ->where('vlan', $network->vlan)
                         ->where('iaas_compute_member_id', $computeMembers->id)
@@ -166,6 +168,7 @@ class ComputeMemberXenService extends AbstractXenService
     {
         $cmnis = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_compute_member_id', $computeMember->id)
+            ->where('is_management', false)
             ->get();
 
         foreach ($cmnis as $cmni) {
