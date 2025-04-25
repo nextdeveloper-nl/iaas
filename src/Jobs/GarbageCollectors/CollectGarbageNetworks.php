@@ -23,6 +23,9 @@ class CollectGarbageNetworks implements ShouldQueue
 
     public function handle(): void
     {
+        //  This should not work
+        trigger_deprecation('nextdeveloper/iaas', '1.0', 'The %s class is deprecated and will be removed in the next major version.', __CLASS__);
+
         //  Checking this because we dont want to delete networks which have network cards in it.
         $virtualNetworkCards = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)

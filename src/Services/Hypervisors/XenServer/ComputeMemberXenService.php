@@ -113,13 +113,51 @@ class ComputeMemberXenService extends AbstractXenService
         return $computeMembers->fresh();
     }
 
+    public static function getListOfNetworks(ComputeMembers $computeMembers) : array
+    {
+        logger()->info('[ComputeMemberService@getListOfNetworks] Getting the list of networks');
+
+        $command = 'xe network-list';
+        $result = self::performCommand($command, $computeMembers);
+        $networks = self::parseListResult($result['output']);
+
+        return $networks;
+    }
+
+    public static function getListOfVlans(ComputeMembers $computeMembers) : array
+    {
+        logger()->info('[ComputeMemberService@getListOfNetworks] Getting the list of networks');
+
+        $command = 'xe vlan-list';
+        $result = self::performCommand($command, $computeMembers);
+        $networks = self::parseListResult($result['output']);
+
+        return $networks;
+    }
+
     public static function removeDeletedVlans(ComputeMembers $computeMembers)
     {
         $networks = Networks::withoutGlobalScopes()
             ->whereNotNull('deleted_at')
             ->get();
 
-//        dd($networks);
+        $networksOnMember = self::getListOfVlans($computeMembers);
+
+        foreach ($networks as $network) {
+            foreach ($networksOnMember as $networkOnMember) {
+                if($networkOnMember['tag'] == 0 || $networkOnMember['tag'] == -1)
+                    continue;
+
+                if($network->vlan == $networkOnMember['tag']) {
+                    $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('vlan', $network->vlan)
+                        ->where('iaas_compute_member_id', $computeMembers->id)
+                        ->first();
+
+                    self::deleteNetwork($computeMembers, $cmni);
+                }
+            }
+        }
     }
 
     public static function updateMissingVlans(ComputeMembers $computeMember)

@@ -101,6 +101,7 @@ class ComputeMemberNetworkInterfaces extends Model
     'is_default' => 'boolean',
     'is_connected' => 'boolean',
     'hypervisor_data' => 'array',
+        'vlan_data' =>  'array',
     'iaas_compute_member_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
