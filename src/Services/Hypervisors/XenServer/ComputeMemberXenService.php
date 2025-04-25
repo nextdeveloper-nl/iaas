@@ -155,6 +155,8 @@ class ComputeMemberXenService extends AbstractXenService
                         ->first();
 
                     self::deleteNetwork($computeMembers, $cmni);
+
+                    $cmni->delete();
                 }
             }
         }
