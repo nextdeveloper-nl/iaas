@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
-use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
@@ -24,13 +23,14 @@ class CollectGarbageNetworks implements ShouldQueue
 
     public function handle(): void
     {
+        //  Checking this because we dont want to delete networks which have network cards in it.
         $virtualNetworkCards = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
             ->pluck('iaas_network_id');
 
         // Retrieve all networks
-        $networks = Networks::withoutGlobalScope(AuthorizationScope::class)
-            ->withoutGlobalScope(LimitScope::class)
+        $networks = Networks::withoutGlobalScopes()
+            ->where('vlan', '!=', '-1')
             ->whereNotIn('id', $virtualNetworkCards)
             ->where('name', 'not like', 'Pool-wide%')
             ->whereNotNull('deleted_at')

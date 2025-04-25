@@ -679,7 +679,7 @@ physical interfaces and vlans of compute member');
             Log::info('[NetworkService@deleteNetworkOnComputeMember] Deleting network : ' . $cmni->vlan
                 . ' on compute member: ' . $computeMember->name);
 
-        $command = 'xe network-destroy uuid=' . $cmni->network_uuid;
+        $command = 'xe pif-unplug uuid=' . $cmni->hypervisor_uuid;
 
         if(config('leo.debug.iaas.compute_members'))
             Log::info('[NetworkService@deleteNetworkOnComputeMember] Deleting network with command: ' . $command);
@@ -687,7 +687,21 @@ physical interfaces and vlans of compute member');
         $result = self::performCommand($command, $computeMember);
         $result = $result['output'];
 
-        $command = 'xe vlan-destroy uuid=' . $cmni->hypervisor_uuid;
+        $command = 'xe vlan-destroy uuid=' . $cmni->vlan_data['uuid'];
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[NetworkService@deleteNetworkOnComputeMember] Deleting vlan with command: ' . $command);
+
+        $result = self::performCommand($command, $computeMember);
+        $result = $result['output'];
+
+        $command = 'xe network-destroy uuid=' . $cmni->network_uuid;
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[NetworkService@deleteNetworkOnComputeMember] Deleting network with command: ' . $command);
+
+        $result = self::performCommand($command, $computeMember);
+        $result = $result['output'];
 
         return true;
     }
