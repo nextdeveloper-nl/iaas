@@ -156,9 +156,10 @@ class ComputeMemberXenService extends AbstractXenService
                         ->where('iaas_compute_member_id', $computeMembers->id)
                         ->first();
 
-                    self::deleteNetwork($computeMembers, $cmni);
-
-                    $cmni->delete();
+                    if($cmni) {
+                        self::deleteNetwork($computeMembers, $cmni);
+                        $cmni->delete();
+                    }
                 }
             }
         }
