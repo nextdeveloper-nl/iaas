@@ -2,8 +2,11 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use NextDeveloper\IAAS\Database\Models\CloudNodes;
+use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractNetworksService;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 /**
  * This class is responsible from managing the data for Networks
@@ -33,5 +36,28 @@ class NetworksService extends AbstractNetworksService
         }
 
         return parent::create($data);
+    }
+
+    public static function getCloudNode(Networks $network)
+    {
+        return CloudNodes::where('id', $network->iaas_cloud_node_id)
+            ->first();
+    }
+
+    public static function getPublicNetwork(CloudNodes $node) : Networks
+    {
+        $cloudPool = NetworkPools::where('iaas_cloud_node_id', $node->id)
+            ->first();
+
+        $network = Networks::where('iaas_network_pool_id', $cloudPool->id)
+            ->where('is_public', true)
+            ->where('is_dmz', true)
+            ->first();
+
+        if(!$network) {
+            throw new ResourceNotFoundException('Cannot find public network with DMZ option. Please consult to your cloud provider.');
+        }
+
+        return $network;
     }
 }

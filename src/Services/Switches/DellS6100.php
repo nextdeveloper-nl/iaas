@@ -73,6 +73,22 @@ class DellS6100 extends AbstractSwitches
         return true;
     }
 
+    public static function isVlanExists(NetworkMembers $nm, $vlan)
+    {
+        $command = 'show running-config interface vlan ' . $vlan;
+        $result = self::execute($nm, $command);
+
+        $output = $result['output'];
+
+        $lines = explode("\n", $output);
+
+        foreach ($lines as $line) {
+            if(Str::contains($line, 'interface Vlan ' . $vlan)) {
+                return true;
+            }
+        }
+    }
+
     public static function getPhysicalInterfaces(NetworkMembers $nm) {
         $command = 'show interfaces status';
         $result = self::execute($nm, $command);

@@ -160,6 +160,8 @@ class Commit extends AbstractAction
             Log::info('[VM Commit][Setup IP] IP count for VIF:' . count($ipList)
                 . ' auto_add_ip_v4: ' . $addIp);
 
+            Log::debug('[VM Commit][Setup IP] The VIF is: ' . $vif->id . ' and the AddIp directive for this VIF is ' . $addIp . '. The network is: ' . $vif->iaas_network_id);
+
             //  If there is no IP in the card and auto_add_ip_v4 is true
             if($addIp && !count($ipList)) {
                 $network = VirtualNetworkCardsService::getConnectedNetwork($vif);

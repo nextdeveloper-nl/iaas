@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Collection;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Networks;
+use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractCloudNodesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -39,6 +41,12 @@ class CloudNodesService extends AbstractCloudNodesService
     public static function getComputePools(CloudNodes $node) : Collection {
         return ComputePools::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_cloud_node_id', $node->id)
+            ->get();
+    }
+
+    public static function getRepositories(CloudNodes $cloudNode) : Collection
+    {
+        return Repositories::where('iaas_cloud_node_id', $cloudNode->id)
             ->get();
     }
 }

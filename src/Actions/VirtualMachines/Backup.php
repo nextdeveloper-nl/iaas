@@ -11,6 +11,7 @@ use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Backups\BackupService;
 use NextDeveloper\IAAS\Services\CloudNodesService;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
@@ -44,6 +45,16 @@ class Backup extends AbstractAction
     public function handle()
     {
         $this->setProgress(0, 'Backup virtual machine action started.');
+
+        $vmBackup = BackupService::getPendingBackup($this->model);
+
+        if(!$vmBackup) {
+            $vmBackup = BackupService::createPendingBackup($this->model);
+            BackupService::setBackupState($this->model, 'initiated');
+        }
+        else {
+            BackupService::setBackupState($this->model, 'restarting');
+        }
 
         $backupStarts = Carbon::now();
 
@@ -151,28 +162,20 @@ class Backup extends AbstractAction
 
         $this->setProgress(80, 'Exporting to the default backup repository.');
 
+        BackupService::setBackupState($this->model, 'running');
+
         $backupResult = VirtualMachinesXenService::exportToRepository($clonedVm, $backupRepo);
+
+        BackupService::setBackupState($this->model, 'backed-up');
 
         $backupEnds = Carbon::now();
         $backupDiff = $backupEnds->diffInSeconds($backupStarts);
 
-        $vmBackup = VirtualMachineBackupsService::create([
-            'name'  =>  'Backup of ' . $this->model->name,
+        $vmBackup->update([
             'path'  =>  $backupResult['path'],
             'filename'  =>  $backupResult['filename'],
-            'username'  =>  $this->model->username,
-            'password'  =>  $this->model->password,
-            'size'      =>  0,
-            'ram'       =>  $this->model->ram,
-            'cpu'       =>  $this->model->cpu,
-            'hash'      =>  0,
             'status'    =>  'backed-up',
-            'backup_starts' =>  $backupStarts->timestamp,
-            'backup_ends'   =>  $backupEnds->timestamp,
             'backup-type'   =>  'full-backup',
-            'iaas_virtual_machine_id'   =>  $this->model->id,
-            'iam_account_id'    =>  UserHelper::currentAccount()->id,
-            'iam_user_id'   =>  UserHelper::currentUser()->id,
             'iaas_repository_id'    =>  $backupRepo->id
         ]);
 

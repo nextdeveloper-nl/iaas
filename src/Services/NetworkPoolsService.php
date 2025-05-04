@@ -2,10 +2,13 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
+use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Exceptions\CannotFindAvailableResourceException;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractNetworkPoolsService;
+use NextDeveloper\IAAS\Services\Switches\DellS6100;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -32,6 +35,7 @@ class NetworkPoolsService extends AbstractNetworkPoolsService
     public static function getNextAvailableVlan(NetworkPools $networkPool) : int
     {
         $vlans = Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
             ->where('iaas_network_pool_id', $networkPool->id)
             ->orderBy('vlan', 'asc')
             ->pluck('vlan');
@@ -46,5 +50,21 @@ class NetworkPoolsService extends AbstractNetworkPoolsService
         }
 
         throw new CannotFindAvailableResourceException('There is no available vlan in the network pool');
+    }
+
+    public static function checkVlanAvailability(NetworkPools $networkPool, $vlan) : bool
+    {
+        $rootSwitches = NetworkMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_network_pool_id', $networkPool->id)
+            ->where('is_root_switch', true)
+            ->get();
+
+        foreach ($rootSwitches as $rootSwitch) {
+            switch($rootSwitch->switch_type) {
+                case 'dells6100':
+                    return DellS6100::isVlanExists($rootSwitch, $vlan);
+                    break;
+            }
+        }
     }
 }

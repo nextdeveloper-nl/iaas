@@ -24,7 +24,7 @@ class IpAddressesService extends AbstractIpAddressesService
 
     public static function getNextIpAvailable(Networks $network): string
     {
-        $subnet = $network->ip_addr;
+        $subnet = $network->cidr;
 
         if (!$subnet) {
             throw new ModelNotFoundException('We cannot for a CIDR information for this network. ' .
@@ -44,6 +44,7 @@ class IpAddressesService extends AbstractIpAddressesService
 
         $foundIp = null;
 
+        //  Checking if this IP address exists on database
         for($i = $minIp + 1; $i < $maxIp; $i++) {
             //  Checking if this IP address exists on database
             $existingIp = IpAddresses::withoutGlobalScope(AuthorizationScope::class)

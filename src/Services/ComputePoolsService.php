@@ -5,8 +5,10 @@ namespace NextDeveloper\IAAS\Services;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\Models\Currencies;
+use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Exceptions\CannotFindAvailableResourceException;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractComputePoolsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -70,5 +72,19 @@ class ComputePoolsService extends AbstractComputePoolsService
         return ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_compute_pool_id', $pool->id)
             ->get();
+    }
+
+    public static function getDefaultPool(CloudNodes $node) : ?ComputePools
+    {
+        $default = ComputePools::where('is_default', true)
+            ->where('iaas_cloud_node_id', $node->id)
+            ->first();
+
+        if(!$default) {
+            throw new CannotFindAvailableResourceException('There is no default ' .
+                'compute pool in the cloud node: ' . $node->name . '. Please consult to your cloud provider.');
+        }
+
+        return $default;
     }
 }
