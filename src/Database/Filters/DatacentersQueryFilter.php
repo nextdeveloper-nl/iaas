@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,22 +37,22 @@ class DatacentersQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function slug($value)
     {
-        return $this->builder->where('slug', 'like', '%' . $value . '%');
+        return $this->builder->where('slug', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function geoLatitude($value)
     {
-        return $this->builder->where('geo_latitude', 'like', '%' . $value . '%');
+        return $this->builder->where('geo_latitude', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of geoLatitude
@@ -60,10 +60,10 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->geoLatitude($value);
     }
-        
+
     public function geoLongitude($value)
     {
-        return $this->builder->where('geo_longitude', 'like', '%' . $value . '%');
+        return $this->builder->where('geo_longitude', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of geoLongitude
@@ -71,10 +71,10 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->geoLongitude($value);
     }
-        
+
     public function powerSource($value)
     {
-        return $this->builder->where('power_source', 'like', '%' . $value . '%');
+        return $this->builder->where('power_source', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of powerSource
@@ -82,25 +82,25 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->powerSource($value);
     }
-        
+
     public function ups($value)
     {
-        return $this->builder->where('ups', 'like', '%' . $value . '%');
+        return $this->builder->where('ups', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function cooling($value)
     {
-        return $this->builder->where('cooling', 'like', '%' . $value . '%');
+        return $this->builder->where('cooling', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
-        return $this->builder->where('description', 'like', '%' . $value . '%');
+        return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function tierLevel($value)
     {
         $operator = substr($value, 0, 1);
@@ -119,7 +119,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->tierLevel($value);
     }
-    
+
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -130,7 +130,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-     
+
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -141,7 +141,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-     
+
     public function isCarrierNeutral($value)
     {
         return $this->builder->where('is_carrier_neutral', $value);
@@ -152,7 +152,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->isCarrierNeutral($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -233,7 +233,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->commonCity($value);
     }
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -243,7 +243,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -253,7 +253,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function commonCountryId($value)
     {
             $commonCountry = \NextDeveloper\Commons\Database\Models\Countries::where('uuid', $value)->first();
@@ -268,7 +268,7 @@ class DatacentersQueryFilter extends AbstractQueryFilter
     {
         return $this->commonCountry($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

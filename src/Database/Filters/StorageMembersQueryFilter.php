@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-            
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,22 +37,22 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function hostname($value)
     {
-        return $this->builder->where('hostname', 'like', '%' . $value . '%');
+        return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function ipAddr($value)
     {
-        return $this->builder->where('ip_addr', 'like', '%' . $value . '%');
+        return $this->builder->where('ip_addr', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of ipAddr
@@ -60,10 +60,10 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->ipAddr($value);
     }
-        
+
     public function localIpAddr($value)
     {
-        return $this->builder->where('local_ip_addr', 'like', '%' . $value . '%');
+        return $this->builder->where('local_ip_addr', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of localIpAddr
@@ -71,10 +71,10 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->localIpAddr($value);
     }
-        
+
     public function configurationData($value)
     {
-        return $this->builder->where('configuration_data', 'like', '%' . $value . '%');
+        return $this->builder->where('configuration_data', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of configurationData
@@ -82,10 +82,10 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->configurationData($value);
     }
-        
+
     public function sshUsername($value)
     {
-        return $this->builder->where('ssh_username', 'like', '%' . $value . '%');
+        return $this->builder->where('ssh_username', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of sshUsername
@@ -93,10 +93,10 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshUsername($value);
     }
-        
+
     public function sshPassword($value)
     {
-        return $this->builder->where('ssh_password', 'like', '%' . $value . '%');
+        return $this->builder->where('ssh_password', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of sshPassword
@@ -104,7 +104,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPassword($value);
     }
-    
+
     public function totalSocket($value)
     {
         $operator = substr($value, 0, 1);
@@ -123,7 +123,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->totalSocket($value);
     }
-    
+
     public function totalCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -142,7 +142,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->totalCpu($value);
     }
-    
+
     public function totalRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -161,7 +161,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->totalRam($value);
     }
-    
+
     public function totalDisk($value)
     {
         $operator = substr($value, 0, 1);
@@ -180,7 +180,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->totalDisk($value);
     }
-    
+
     public function usedDisk($value)
     {
         $operator = substr($value, 0, 1);
@@ -199,7 +199,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->usedDisk($value);
     }
-    
+
     public function benchmarkScore($value)
     {
         $operator = substr($value, 0, 1);
@@ -218,7 +218,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->benchmarkScore($value);
     }
-    
+
     public function sshPort($value)
     {
         $operator = substr($value, 0, 1);
@@ -237,7 +237,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPort($value);
     }
-    
+
     public function isHealthy($value)
     {
         return $this->builder->where('is_healthy', $value);
@@ -248,7 +248,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isHealthy($value);
     }
-     
+
     public function isBehindFirewall($value)
     {
         return $this->builder->where('is_behind_firewall', $value);
@@ -259,7 +259,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isBehindFirewall($value);
     }
-     
+
     public function isMaintenance($value)
     {
         return $this->builder->where('is_maintenance', $value);
@@ -270,7 +270,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isMaintenance($value);
     }
-     
+
     public function isAlive($value)
     {
         return $this->builder->where('is_alive', $value);
@@ -281,7 +281,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isAlive($value);
     }
-     
+
     public function uptimeStart($date)
     {
         return $this->builder->where('uptime', '>=', $date);
@@ -406,7 +406,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStoragePool($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -416,7 +416,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -426,7 +426,7 @@ class StorageMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

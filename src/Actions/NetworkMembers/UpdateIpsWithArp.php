@@ -46,7 +46,7 @@ class UpdateIpsWithArp extends AbstractAction
 
         $interfaces = NetworkMembersInterfaces::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_network_member_id', $this->model->id)
-            ->where('name', 'like', 'vlan %')
+            ->where('name', 'ilike', 'vlan %')
             ->get();
 
         $step = ceil(98 / count($interfaces));

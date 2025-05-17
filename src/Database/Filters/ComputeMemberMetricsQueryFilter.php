@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-    
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,19 +17,19 @@ class ComputeMemberMetricsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function source($value)
     {
-        return $this->builder->where('source', 'like', '%' . $value . '%');
+        return $this->builder->where('source', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function parameter($value)
     {
-        return $this->builder->where('parameter', 'like', '%' . $value . '%');
+        return $this->builder->where('parameter', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function timestampStart($date)
     {
         return $this->builder->where('timestamp', '>=', $date);
@@ -132,7 +132,7 @@ class ComputeMemberMetricsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasComputeMember($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

@@ -38,7 +38,7 @@ class Attach extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Initiate virtual network card attach');
 
         $this->setProgress(5, 'Getting all the information to complete this process');
 

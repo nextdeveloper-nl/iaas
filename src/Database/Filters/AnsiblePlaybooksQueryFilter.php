@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-            
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,19 +17,19 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
-        return $this->builder->where('description', 'like', '%' . $value . '%');
+        return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -40,7 +40,7 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-     
+
     public function isProcedure($value)
     {
         return $this->builder->where('is_procedure', $value);
@@ -51,7 +51,7 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
     {
         return $this->isProcedure($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -127,7 +127,7 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -137,7 +137,7 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iaasAnsibleServerId($value)
     {
             $iaasAnsibleServer = \NextDeveloper\IAAS\Database\Models\AnsibleServers::where('uuid', $value)->first();
@@ -152,7 +152,7 @@ class AnsiblePlaybooksQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasAnsibleServer($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

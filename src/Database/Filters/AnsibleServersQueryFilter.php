@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,16 +17,16 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function sshUsername($value)
     {
-        return $this->builder->where('ssh_username', 'like', '%' . $value . '%');
+        return $this->builder->where('ssh_username', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of sshUsername
@@ -34,10 +34,10 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshUsername($value);
     }
-        
+
     public function sshPassword($value)
     {
-        return $this->builder->where('ssh_password', 'like', '%' . $value . '%');
+        return $this->builder->where('ssh_password', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of sshPassword
@@ -45,10 +45,10 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPassword($value);
     }
-        
+
     public function rolesPath($value)
     {
-        return $this->builder->where('roles_path', 'like', '%' . $value . '%');
+        return $this->builder->where('roles_path', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of rolesPath
@@ -56,10 +56,10 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->rolesPath($value);
     }
-        
+
     public function systemPlaybooksPath($value)
     {
-        return $this->builder->where('system_playbooks_path', 'like', '%' . $value . '%');
+        return $this->builder->where('system_playbooks_path', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of systemPlaybooksPath
@@ -67,10 +67,10 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->systemPlaybooksPath($value);
     }
-        
+
     public function executionPath($value)
     {
-        return $this->builder->where('execution_path', 'like', '%' . $value . '%');
+        return $this->builder->where('execution_path', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of executionPath
@@ -78,7 +78,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->executionPath($value);
     }
-    
+
     public function sshPort($value)
     {
         $operator = substr($value, 0, 1);
@@ -97,7 +97,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPort($value);
     }
-    
+
     public function ansibleVersion($value)
     {
         $operator = substr($value, 0, 1);
@@ -116,7 +116,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->ansibleVersion($value);
     }
-    
+
     public function isExternalMachine($value)
     {
         return $this->builder->where('is_external_machine', $value);
@@ -127,7 +127,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->isExternalMachine($value);
     }
-     
+
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -138,7 +138,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-     
+
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -149,7 +149,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -230,7 +230,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     public function commonCurrencyId($value)
     {
             $commonCurrency = \NextDeveloper\Commons\Database\Models\Currencies::where('uuid', $value)->first();
@@ -245,7 +245,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
     {
         return $this->commonCurrency($value);
     }
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -255,7 +255,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -265,7 +265,7 @@ class AnsibleServersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

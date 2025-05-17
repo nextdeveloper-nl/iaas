@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,16 +17,16 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function hypervisorUuid($value)
     {
-        return $this->builder->where('hypervisor_uuid', 'like', '%' . $value . '%');
+        return $this->builder->where('hypervisor_uuid', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of hypervisorUuid
@@ -34,13 +34,13 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
     {
         return $this->hypervisorUuid($value);
     }
-        
+
     public function status($value)
     {
-        return $this->builder->where('status', 'like', '%' . $value . '%');
+        return $this->builder->where('status', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function bandwidthLimit($value)
     {
         $operator = substr($value, 0, 1);
@@ -59,7 +59,7 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
     {
         return $this->bandwidthLimit($value);
     }
-    
+
     public function deviceNumber($value)
     {
         $operator = substr($value, 0, 1);
@@ -78,7 +78,7 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
     {
         return $this->deviceNumber($value);
     }
-    
+
     public function isDraft($value)
     {
         return $this->builder->where('is_draft', $value);
@@ -89,7 +89,7 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
     {
         return $this->isDraft($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -170,7 +170,7 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetwork($value);
     }
-    
+
     public function iaasVirtualMachineId($value)
     {
             $iaasVirtualMachine = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
@@ -185,7 +185,7 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -195,7 +195,7 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -205,7 +205,7 @@ class VirtualNetworkCardsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

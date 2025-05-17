@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                            
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,19 +17,19 @@ class NetworksQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function vxlan($value)
     {
-        return $this->builder->where('vxlan', 'like', '%' . $value . '%');
+        return $this->builder->where('vxlan', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function vlan($value)
     {
         $operator = substr($value, 0, 1);
@@ -43,7 +43,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
         return $this->builder->where('vlan', $operator, $value);
     }
 
-    
+
     public function bandwidth($value)
     {
         $operator = substr($value, 0, 1);
@@ -57,7 +57,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
         return $this->builder->where('bandwidth', $operator, $value);
     }
 
-    
+
     public function speedLimit($value)
     {
         $operator = substr($value, 0, 1);
@@ -76,7 +76,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->speedLimit($value);
     }
-    
+
     public function mtu($value)
     {
         $operator = substr($value, 0, 1);
@@ -90,7 +90,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
         return $this->builder->where('mtu', $operator, $value);
     }
 
-    
+
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -101,7 +101,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-     
+
     public function isVpn($value)
     {
         return $this->builder->where('is_vpn', $value);
@@ -112,7 +112,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->isVpn($value);
     }
-     
+
     public function isManagement($value)
     {
         return $this->builder->where('is_management', $value);
@@ -123,7 +123,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->isManagement($value);
     }
-     
+
     public function isDmz($value)
     {
         return $this->builder->where('is_dmz', $value);
@@ -134,7 +134,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->isDmz($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -215,7 +215,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->commonDomain($value);
     }
-    
+
     public function iaasDhcpServerId($value)
     {
             $iaasDhcpServer = \NextDeveloper\IAAS\Database\Models\DhcpServers::where('uuid', $value)->first();
@@ -230,7 +230,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasDhcpServer($value);
     }
-    
+
     public function iaasGatewayId($value)
     {
             $iaasGateway = \NextDeveloper\IAAS\Database\Models\Gateways::where('uuid', $value)->first();
@@ -245,7 +245,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasGateway($value);
     }
-    
+
     public function iaasNetworkPoolId($value)
     {
             $iaasNetworkPool = \NextDeveloper\IAAS\Database\Models\NetworkPools::where('uuid', $value)->first();
@@ -260,7 +260,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetworkPool($value);
     }
-    
+
     public function iaasCloudNodeId($value)
     {
             $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
@@ -275,7 +275,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasCloudNode($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -285,7 +285,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -295,7 +295,7 @@ class NetworksQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

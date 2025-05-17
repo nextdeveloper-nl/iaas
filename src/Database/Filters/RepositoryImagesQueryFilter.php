@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,34 +17,34 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
-        return $this->builder->where('description', 'like', '%' . $value . '%');
+        return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function path($value)
     {
-        return $this->builder->where('path', 'like', '%' . $value . '%');
+        return $this->builder->where('path', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function filename($value)
     {
-        return $this->builder->where('filename', 'like', '%' . $value . '%');
+        return $this->builder->where('filename', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function defaultUsername($value)
     {
-        return $this->builder->where('default_username', 'like', '%' . $value . '%');
+        return $this->builder->where('default_username', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of defaultUsername
@@ -52,10 +52,10 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->defaultUsername($value);
     }
-        
+
     public function defaultPassword($value)
     {
-        return $this->builder->where('default_password', 'like', '%' . $value . '%');
+        return $this->builder->where('default_password', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of defaultPassword
@@ -63,28 +63,28 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->defaultPassword($value);
     }
-        
+
     public function os($value)
     {
-        return $this->builder->where('os', 'like', '%' . $value . '%');
+        return $this->builder->where('os', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function distro($value)
     {
-        return $this->builder->where('distro', 'like', '%' . $value . '%');
+        return $this->builder->where('distro', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function version($value)
     {
-        return $this->builder->where('version', 'like', '%' . $value . '%');
+        return $this->builder->where('version', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function releaseVersion($value)
     {
-        return $this->builder->where('release_version', 'like', '%' . $value . '%');
+        return $this->builder->where('release_version', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of releaseVersion
@@ -92,16 +92,16 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->releaseVersion($value);
     }
-        
+
     public function extra($value)
     {
-        return $this->builder->where('extra', 'like', '%' . $value . '%');
+        return $this->builder->where('extra', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function cpuType($value)
     {
-        return $this->builder->where('cpu_type', 'like', '%' . $value . '%');
+        return $this->builder->where('cpu_type', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of cpuType
@@ -109,13 +109,13 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->cpuType($value);
     }
-        
+
     public function hash($value)
     {
-        return $this->builder->where('hash', 'like', '%' . $value . '%');
+        return $this->builder->where('hash', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function size($value)
     {
         $operator = substr($value, 0, 1);
@@ -129,7 +129,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('size', $operator, $value);
     }
 
-    
+
     public function ram($value)
     {
         $operator = substr($value, 0, 1);
@@ -143,7 +143,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
-    
+
     public function cpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -157,7 +157,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
-    
+
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -168,7 +168,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-     
+
     public function isIso($value)
     {
         return $this->builder->where('is_iso', $value);
@@ -179,7 +179,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->isIso($value);
     }
-     
+
     public function isVirtualMachineImage($value)
     {
         return $this->builder->where('is_virtual_machine_image', $value);
@@ -190,7 +190,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->isVirtualMachineImage($value);
     }
-     
+
     public function isDockerImage($value)
     {
         return $this->builder->where('is_docker_image', $value);
@@ -201,7 +201,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->isDockerImage($value);
     }
-     
+
     public function isLatest($value)
     {
         return $this->builder->where('is_latest', $value);
@@ -212,7 +212,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->isLatest($value);
     }
-     
+
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -223,7 +223,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -304,7 +304,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasRepository($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -314,7 +314,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -324,7 +324,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iaasVirtualMachineId($value)
     {
             $iaasVirtualMachine = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
@@ -339,7 +339,7 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

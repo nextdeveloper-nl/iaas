@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                        
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,22 +17,22 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
-        return $this->builder->where('description', 'like', '%' . $value . '%');
+        return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function volumeName($value)
     {
-        return $this->builder->where('volume_name', 'like', '%' . $value . '%');
+        return $this->builder->where('volume_name', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of volumeName
@@ -40,10 +40,10 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     {
         return $this->volumeName($value);
     }
-        
+
     public function storagePoolName($value)
     {
-        return $this->builder->where('storage_pool_name', 'like', '%' . $value . '%');
+        return $this->builder->where('storage_pool_name', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of storagePoolName
@@ -51,10 +51,10 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     {
         return $this->storagePoolName($value);
     }
-        
+
     public function storageMemberName($value)
     {
-        return $this->builder->where('storage_member_name', 'like', '%' . $value . '%');
+        return $this->builder->where('storage_member_name', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of storageMemberName
@@ -62,10 +62,10 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     {
         return $this->storageMemberName($value);
     }
-        
+
     public function computeMemberName($value)
     {
-        return $this->builder->where('compute_member_name', 'like', '%' . $value . '%');
+        return $this->builder->where('compute_member_name', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of computeMemberName
@@ -73,19 +73,19 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     {
         return $this->computeMemberName($value);
     }
-        
+
     public function maintainer($value)
     {
-        return $this->builder->where('maintainer', 'like', '%' . $value . '%');
+        return $this->builder->where('maintainer', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function responsible($value)
     {
-        return $this->builder->where('responsible', 'like', '%' . $value . '%');
+        return $this->builder->where('responsible', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -166,7 +166,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     {
         return $this->iaasStorageVolume($value);
     }
-    
+
     public function iaasStoragePoolId($value)
     {
             $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
@@ -181,7 +181,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     {
         return $this->iaasStoragePool($value);
     }
-    
+
     public function iaasStorageMamberId($value)
     {
             $iaasStorageMamber = \NextDeveloper\IAAS\Database\Models\StorageMambers::where('uuid', $value)->first();
@@ -196,7 +196,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     {
         return $this->iaasStorageMamber($value);
     }
-    
+
     public function iaasComputeMemberId($value)
     {
             $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
@@ -211,7 +211,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
     {
         return $this->iaasComputeMember($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -221,7 +221,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -231,7 +231,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

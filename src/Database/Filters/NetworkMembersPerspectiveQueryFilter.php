@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-            
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,10 +37,10 @@ class NetworkMembersPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function networkPoolName($value)
     {
-        return $this->builder->where('network_pool_name', 'like', '%' . $value . '%');
+        return $this->builder->where('network_pool_name', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of networkPoolName
@@ -48,19 +48,19 @@ class NetworkMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->networkPoolName($value);
     }
-        
+
     public function maintainer($value)
     {
-        return $this->builder->where('maintainer', 'like', '%' . $value . '%');
+        return $this->builder->where('maintainer', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function responsible($value)
     {
-        return $this->builder->where('responsible', 'like', '%' . $value . '%');
+        return $this->builder->where('responsible', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -141,7 +141,7 @@ class NetworkMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetworkPool($value);
     }
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -151,7 +151,7 @@ class NetworkMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -161,7 +161,7 @@ class NetworkMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

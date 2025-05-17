@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-            
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,25 +17,25 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function source($value)
     {
-        return $this->builder->where('source', 'like', '%' . $value . '%');
+        return $this->builder->where('source', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function type($value)
     {
-        return $this->builder->where('type', 'like', '%' . $value . '%');
+        return $this->builder->where('type', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function event($value)
     {
-        return $this->builder->where('event', 'like', '%' . $value . '%');
+        return $this->builder->where('event', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function isExecuted($value)
     {
         return $this->builder->where('is_executed', $value);
@@ -46,7 +46,7 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
     {
         return $this->isExecuted($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -127,7 +127,7 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasComputeMember($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -137,7 +137,7 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -147,7 +147,7 @@ class ComputeMemberEventsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

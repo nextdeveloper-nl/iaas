@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-            
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,19 +17,19 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function body($value)
     {
-        return $this->builder->where('body', 'like', '%' . $value . '%');
+        return $this->builder->where('body', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function hash($value)
     {
-        return $this->builder->where('hash', 'like', '%' . $value . '%');
+        return $this->builder->where('hash', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function isCreate($value)
     {
         return $this->builder->where('is_create', $value);
@@ -40,7 +40,7 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isCreate($value);
     }
-     
+
     public function isUpdate($value)
     {
         return $this->builder->where('is_update', $value);
@@ -51,7 +51,7 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isUpdate($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -127,7 +127,7 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -137,7 +137,7 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iaasIpAddressesId($value)
     {
             $iaasIpAddresses = \NextDeveloper\IAAS\Database\Models\IpAddresses::where('uuid', $value)->first();
@@ -152,7 +152,7 @@ class IpAddressHistoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasIpAddresses($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

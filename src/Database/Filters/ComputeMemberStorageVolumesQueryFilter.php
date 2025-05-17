@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                        
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,10 +17,10 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function hypervisorUuid($value)
     {
-        return $this->builder->where('hypervisor_uuid', 'like', '%' . $value . '%');
+        return $this->builder->where('hypervisor_uuid', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of hypervisorUuid
@@ -28,19 +28,19 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->hypervisorUuid($value);
     }
-        
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
-        return $this->builder->where('description', 'like', '%' . $value . '%');
+        return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function isLocalStorage($value)
     {
         return $this->builder->where('is_local_storage', $value);
@@ -51,7 +51,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->isLocalStorage($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -127,7 +127,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -137,7 +137,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iaasStorageVolumeId($value)
     {
             $iaasStorageVolume = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('uuid', $value)->first();
@@ -152,7 +152,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStorageVolume($value);
     }
-    
+
     public function iaasStorageMemberId($value)
     {
             $iaasStorageMember = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('uuid', $value)->first();
@@ -167,7 +167,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStorageMember($value);
     }
-    
+
     public function iaasStoragePoolId($value)
     {
             $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
@@ -182,7 +182,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStoragePool($value);
     }
-    
+
     public function iaasComputeMemberId($value)
     {
             $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
@@ -197,7 +197,7 @@ class ComputeMemberStorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasComputeMember($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

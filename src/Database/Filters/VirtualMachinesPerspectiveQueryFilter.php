@@ -41,49 +41,49 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
 
     public function description($value)
     {
-        return $this->builder->where('description', 'like', '%' . $value . '%');
+        return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
 
     public function hostname($value)
     {
-        return $this->builder->where('hostname', 'like', '%' . $value . '%');
+        return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
     }
 
 
     public function username($value)
     {
-        return $this->builder->where('username', 'like', '%' . $value . '%');
+        return $this->builder->where('username', 'ilike', '%' . $value . '%');
     }
 
 
     public function os($value)
     {
-        return $this->builder->where('os', 'like', '%' . $value . '%');
+        return $this->builder->where('os', 'ilike', '%' . $value . '%');
     }
 
 
     public function distro($value)
     {
-        return $this->builder->where('distro', 'like', '%' . $value . '%');
+        return $this->builder->where('distro', 'ilike', '%' . $value . '%');
     }
 
 
     public function version($value)
     {
-        return $this->builder->where('version', 'like', '%' . $value . '%');
+        return $this->builder->where('version', 'ilike', '%' . $value . '%');
     }
 
 
     public function domainType($value)
     {
-        return $this->builder->where('domain_type', 'like', '%' . $value . '%');
+        return $this->builder->where('domain_type', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of domainType
@@ -94,13 +94,13 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function status($value)
     {
-        return $this->builder->where('status', 'like', '%' . $value . '%');
+        return $this->builder->where('status', 'ilike', '%' . $value . '%');
     }
 
 
     public function cloudNode($value)
     {
-        return $this->builder->where('cloud_node', 'like', '%' . $value . '%');
+        return $this->builder->where('cloud_node', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of cloudNode
@@ -111,19 +111,19 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function domain($value)
     {
-        return $this->builder->where('domain', 'like', '%' . $value . '%');
+        return $this->builder->where('domain', 'ilike', '%' . $value . '%');
     }
 
 
     public function network($value)
     {
-        return $this->builder->where('network', 'like', '%' . $value . '%');
+        return $this->builder->where('network', 'ilike', '%' . $value . '%');
     }
 
 
     public function autoBackupInterval($value)
     {
-        return $this->builder->where('auto_backup_interval', 'like', '%' . $value . '%');
+        return $this->builder->where('auto_backup_interval', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of autoBackupInterval
@@ -134,7 +134,7 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function autoBackupTime($value)
     {
-        return $this->builder->where('auto_backup_time', 'like', '%' . $value . '%');
+        return $this->builder->where('auto_backup_time', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of autoBackupTime
@@ -145,13 +145,13 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function maintainer($value)
     {
-        return $this->builder->where('maintainer', 'like', '%' . $value . '%');
+        return $this->builder->where('maintainer', 'ilike', '%' . $value . '%');
     }
 
 
     public function responsible($value)
     {
-        return $this->builder->where('responsible', 'like', '%' . $value . '%');
+        return $this->builder->where('responsible', 'ilike', '%' . $value . '%');
     }
 
 

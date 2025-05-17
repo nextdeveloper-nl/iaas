@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                    
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,16 +37,16 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function storagePoolType($value)
     {
-        return $this->builder->where('storage_pool_type', 'like', '%' . $value . '%');
+        return $this->builder->where('storage_pool_type', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of storagePoolType
@@ -54,7 +54,7 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->storagePoolType($value);
     }
-    
+
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -65,7 +65,7 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -146,7 +146,7 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasCloudNode($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -156,7 +156,7 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -166,7 +166,7 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function commonCurrencyId($value)
     {
             $commonCurrency = \NextDeveloper\Commons\Database\Models\Currencies::where('uuid', $value)->first();
@@ -181,7 +181,7 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->commonCurrency($value);
     }
-    
+
     public function iaasDatacenterId($value)
     {
             $iaasDatacenter = \NextDeveloper\IAAS\Database\Models\Datacenters::where('uuid', $value)->first();
@@ -196,7 +196,7 @@ class StoragePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasDatacenter($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,22 +37,22 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
-        return $this->builder->where('name', 'like', '%' . $value . '%');
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function slug($value)
     {
-        return $this->builder->where('slug', 'like', '%' . $value . '%');
+        return $this->builder->where('slug', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function defaultBackupPath($value)
     {
-        return $this->builder->where('default_backup_path', 'like', '%' . $value . '%');
+        return $this->builder->where('default_backup_path', 'ilike', '%' . $value . '%');
     }
 
         //  This is an alias function of defaultBackupPath
@@ -60,7 +60,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->defaultBackupPath($value);
     }
-    
+
     public function position($value)
     {
         $operator = substr($value, 0, 1);
@@ -74,7 +74,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('position', $operator, $value);
     }
 
-    
+
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -85,7 +85,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-     
+
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -96,7 +96,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-     
+
     public function isEdge($value)
     {
         return $this->builder->where('is_edge', $value);
@@ -107,7 +107,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->isEdge($value);
     }
-     
+
     public function isAlive($value)
     {
         return $this->builder->where('is_alive', $value);
@@ -118,7 +118,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->isAlive($value);
     }
-     
+
     public function isInMaintenance($value)
     {
         return $this->builder->where('is_in_maintenance', $value);
@@ -129,7 +129,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->isInMaintenance($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -210,7 +210,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasDatacenter($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -220,7 +220,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -230,7 +230,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function backupRepositoryId($value)
     {
             $backupRepository = \NextDeveloper\IAAS\Database\Models\Repositories::where('uuid', $value)->first();
@@ -245,7 +245,7 @@ class CloudNodesQueryFilter extends AbstractQueryFilter
     {
         return $this->backupRepository($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

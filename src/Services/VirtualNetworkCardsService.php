@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualNetworkCardsService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualNetworkCardsXenService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -131,6 +132,9 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
                 );
             }
         }
+
+        VirtualNetworkCardsXenService::setIpv4Allowed($card);
+        VirtualNetworkCardsXenService::setLockingState($card, VirtualNetworkCardsXenService::LOCKED);
 
         return $ipAddress;
     }
