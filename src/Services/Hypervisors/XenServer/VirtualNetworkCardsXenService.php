@@ -31,7 +31,10 @@ class VirtualNetworkCardsXenService extends AbstractXenService
         $implodedIps = implode(',', $ips);
         $implodedIps = str_replace('/32', '', $implodedIps);
 
-        $command = 'xe vif-param-set uuid=' . $vif->uuid . ' ipv4-allowed=' . $implodedIps;
+        $command = 'xe vif-param-set uuid=' . $vif->hypervisor_data['uuid'] . ' ipv4-allowed=' . $implodedIps;
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::debug(self::LOG_HEADER . ' set ip v4 allowed command is: ' . $command);
 
         $computeMember = self::getComputeMember($vif);
 
@@ -40,7 +43,7 @@ class VirtualNetworkCardsXenService extends AbstractXenService
         $parsedResult = self::parseResult($result['output']);
 
         if(config('leo.debug.iaas.compute_members'))
-            Log::debug(self::LOG_HEADER . ' Set allowed Ipv4 result is: ' . $parsedResult);
+            Log::debug(self::LOG_HEADER . ' Set allowed Ipv4 result is: ' . print_r($parsedResult, true));
 
         return $result;
     }
@@ -54,18 +57,21 @@ class VirtualNetworkCardsXenService extends AbstractXenService
 
         switch ($state) {
             case self::LOCKED:
-                $command = 'xe vif-param-set uuid=' . $vif->uuid . ' lock=locked';
+                $command = 'xe vif-param-set uuid=' . $vif->hypervisor_data['uuid'] . ' locking-mode=locked';
                 break;
             case self::UNLOCKED:
-                $command = 'xe vif-param-set uuid=' . $vif->uuid . ' lock=unlocked';
+                $command = 'xe vif-param-set uuid=' . $vif->hypervisor_data['uuid'] . ' locking-mode=unlocked';
                 break;
             case self::DISABLED:
-                $command = 'xe vif-param-set uuid=' . $vif->uuid . ' lock=disabled';
+                $command = 'xe vif-param-set uuid=' . $vif->hypervisor_data['uuid'] . ' locking-mode=disabled';
                 break;
             case self::DEFAULT:
-                $command = 'xe vif-param-set uuid=' . $vif->uuid . ' lock=network_default';
+                $command = 'xe vif-param-set uuid=' . $vif->hypervisor_data['uuid'] . ' locking-mode=network_default';
                 break;
         }
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::debug(self::LOG_HEADER . ' Locking state command is: ' . $command);
 
         $computeMember = self::getComputeMember($vif);
         $result = self::performCommand($command, $computeMember);
@@ -73,7 +79,7 @@ class VirtualNetworkCardsXenService extends AbstractXenService
         $parsedResult = self::parseResult($result['output']);
 
         if(config('leo.debug.iaas.compute_members'))
-            Log::debug(self::LOG_HEADER . ' Locking state result is: ' . $parsedResult);
+            Log::debug(self::LOG_HEADER . ' Locking state result is: ' . print_r($parsedResult, true));
 
         return $parsedResult;
     }
