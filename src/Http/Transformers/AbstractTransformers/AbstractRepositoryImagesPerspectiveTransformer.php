@@ -67,6 +67,7 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
                 'distro' => $model->distro,
                 'version' => $model->version,
                 'cpu_type' => $model->cpu_type,
+                'extra' =>  $model->extra,
                 'release_version' => $model->release_version,
                 'is_latest' => $model->is_latest,
                 'supported_virtualizations' => $model->supported_virtualizations,
