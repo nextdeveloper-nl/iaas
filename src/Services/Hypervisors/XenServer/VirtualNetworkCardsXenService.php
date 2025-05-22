@@ -9,6 +9,7 @@ use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
+use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class VirtualNetworkCardsXenService extends AbstractXenService
@@ -120,6 +121,35 @@ class VirtualNetworkCardsXenService extends AbstractXenService
         $vm = self::getVirtualMachine($vif);
 
         $existingVifs = VirtualMachinesXenService::getVifs($vm);
+
+        if(!$existingVifs[0]) {
+            Log::debug(__METHOD__ . '| No VIFS found for this VM. ' .
+                'We should create a new VIF for this VM. ' .
+                'VIF UUID: ' . $vif->uuid);
+            //  This means that we actually have a network card in the database but we dont have it in the virtual machine
+            if($vif->is_draft) {
+                Log::debug(__METHOD__ . '| VIF is in draft state, therefore we are creating it.');
+                //  This means that the VIF is not yet created in the hypervisor, so we actually should create it.
+                if($vm->status == 'halted') {
+                    Log::debug(__METHOD__ . '| VM is halted, trying to create the VIF.');
+
+                    $network = NetworksService::getById($vif->iaas_network_id);
+                    $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_compute_member_id', $vm->iaas_compute_member_id)
+                        ->where('vlan', $network->vlan)
+                        ->first();
+
+                    //  VM is halted so we can move on. But if the VM is not halted, we should not create the VIF.
+                    VirtualMachinesXenService::createVif(
+                        $vm,
+                        $network->uuid,
+                        $vif->device_number
+                    );
+
+                    $existingVifs = VirtualMachinesXenService::getVifs($vm);
+                }
+            }
+        }
 
         foreach($existingVifs as $xenVif) {
             if($vif->device_number == $xenVif['device']) {
