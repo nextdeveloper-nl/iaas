@@ -3,8 +3,10 @@
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
 use Illuminate\Support\Facades\Log;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
+use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -30,6 +32,10 @@ class VirtualNetworkCardsXenService extends AbstractXenService
 
         $implodedIps = implode(',', $ips);
         $implodedIps = str_replace('/32', '', $implodedIps);
+
+        if(!$vif->hypervisor_data) {
+            self::sync($vif);
+        }
 
         $command = 'xe vif-param-set uuid=' . $vif->hypervisor_data['uuid'] . ' ipv4-allowed=' . $implodedIps;
 
@@ -106,6 +112,38 @@ class VirtualNetworkCardsXenService extends AbstractXenService
             return $computeMember->performAgentCommand($command);
         } else {
             return $computeMember->performSSHCommand($command);
+        }
+    }
+
+    public static function sync(VirtualNetworkCards $vif)
+    {
+        $vm = self::getVirtualMachine($vif);
+
+        $existingVifs = VirtualMachinesXenService::getVifs($vm);
+
+        foreach($existingVifs as $xenVif) {
+            if($vif->device_number == $xenVif['device']) {
+                $params = VirtualMachinesXenService::getVifParams($vm, $xenVif['uuid']);
+
+                $vifParams = $params[0];
+
+                $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('network_uuid', $vifParams['network-uuid'])
+                    ->first();
+
+                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('vlan', $cmni->vlan)
+                    ->first();
+
+                $vif->update([
+                    'hypervisor_uuid'   => $vifParams['uuid'],
+                    'hypervisor_data'   => $vifParams,
+                    'mac_addr'          => $vifParams['MAC'],
+                    'iaas_network_id'   =>  $network ? $network->id : null,
+                    'bandwitdh_limit'   =>  -1,
+                    'is_draft'          =>  false
+                ]);
+            }
         }
     }
 }
