@@ -124,6 +124,11 @@ class AbstractVirtualNetworkCardsService
             $action = new $class($object, $params);
             $actionId = $action->getActionId();
 
+            if(request()->get('fg') == 'true') {
+                $action->handle();
+                return $actionId;
+            }
+
             dispatch($action);
 
             return $actionId;
