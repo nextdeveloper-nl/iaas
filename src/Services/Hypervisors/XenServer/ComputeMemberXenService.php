@@ -28,6 +28,7 @@ use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 use phpseclib3\File\ASN1\Maps\FieldID;
 
 class ComputeMemberXenService extends AbstractXenService
@@ -272,12 +273,34 @@ physical interfaces and vlans of compute member');
                 $netInterface->update($data);
             }
             else {
+                //  Here we are taking the current user and account and running this action.
+                $user = UserHelper::me();
+                $account = UserHelper::currentAccount($user);
+
+                //  Converting current user to admin because we need to create the network interface
+                UserHelper::setAdminAsCurrentUser();
+
+                //  Running this action as admin because we need to create the network interface
                 $netInterface = ComputeMemberNetworkInterfaces::create($data);
+
+                //  Going back to the current user and account
+                UserHelper::setCurrentUserAndAccount($user, $account);
             }
 
             //  Now here we take the VLAN information from hypervisor and save it to database
             if($netInterface->vlan != 0 && $netInterface->vlan != -1) {
+                //  Here we are taking the current user and account and running this action.
+                $user = UserHelper::me();
+                $account = UserHelper::currentAccount($user);
+
+                //  Converting current user to admin because we need to create the network interface
+                UserHelper::setAdminAsCurrentUser();
+
+                //  Running this action as admin because we need to create the network interface
                 ComputeMemberXenService::updateVlanInformation($computeMember, $netInterface->vlan);
+
+                //  Going back to the current user and account
+                UserHelper::setCurrentUserAndAccount($user, $account);
             }
         }
 
