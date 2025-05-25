@@ -399,22 +399,6 @@ class Commit extends AbstractAction
 
         $diskConfig = VirtualDiskImages::where('iaas_virtual_machine_id', $vm->id)->orderBy('id', 'asc')->get();
 
-        Log::info(__METHOD__ . ' | Checking if we have draft disks that we need to handle');
-        $this->setProgress($step + 1, 'Looking if we have new disks that we need to create or attach.');
-
-        //  Now we need to create the disks that are in draft state
-        foreach ($diskConfig as $disk) {
-            //  If we have a draft disk this means that we have a disk that we need to create
-            if($disk->is_draft) {
-                $disk = VirtualDiskImageXenService::create($disk);
-                $disk = VirtualDiskImageXenService::attach($disk);
-
-                $disk->updateQuietly([
-                    'is_draft'  =>  false
-                ]);
-            }
-        }
-
         $this->setProgress($step + 3, 'Got the disk configuration of the virtual machine.');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 1 . '] | Got the disk configuration of the virtual machine.');
 
@@ -423,11 +407,6 @@ class Commit extends AbstractAction
 
         $this->setProgress($step + 4, 'Syncing the disks we have.');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Syncing the disks we have.');
-
-        if (!$diskConfig) {
-            //  Here this means that we dont have any disk config, so we will directly sync what we have.
-            //$this->syncDisks($step);
-        }
 
         $syncedDisks = [];
 
@@ -461,6 +440,26 @@ class Commit extends AbstractAction
                 VirtualDiskImageXenService::destroyCdrom($vm->uuid, $computeMember);
             } else {
                 VirtualDiskImageXenService::destroyDisk($disk['vdi-uuid'], $computeMember);
+            }
+        }
+
+        //  After we finish syncing the disks, we will check if we have any disk configuration that is not synced.
+
+        Log::info(__METHOD__ . ' | Checking if we have draft disks that we need to handle');
+        $this->setProgress($step + 1, 'Looking if we have new disks that we need to create or attach.');
+
+        $diskConfig = VirtualDiskImages::where('iaas_virtual_machine_id', $vm->id)->orderBy('id', 'asc')->get();
+
+        //  Now we need to create the disks that are in draft state
+        foreach ($diskConfig as $disk) {
+            //  If we have a draft disk this means that we have a disk that we need to create
+            if($disk->is_draft) {
+                $disk = VirtualDiskImageXenService::create($disk);
+                $disk = VirtualDiskImageXenService::attach($disk);
+
+                $disk->updateQuietly([
+                    'is_draft'  =>  false
+                ]);
             }
         }
 
