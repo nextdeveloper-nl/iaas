@@ -6,6 +6,7 @@ use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractNetworksService;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 /**
@@ -40,7 +41,7 @@ class NetworksService extends AbstractNetworksService
 
     public static function getCloudNode(Networks $network)
     {
-        return CloudNodes::where('id', $network->iaas_cloud_node_id)
+        return CloudNodes::withoutGlobalScope(AuthorizationScope::class)->where('id', $network->iaas_cloud_node_id)
             ->first();
     }
 
