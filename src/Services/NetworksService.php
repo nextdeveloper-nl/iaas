@@ -47,7 +47,7 @@ class NetworksService extends AbstractNetworksService
 
     public static function getPublicNetwork(CloudNodes $node) : Networks
     {
-        $cloudPool = NetworkPools::where('iaas_cloud_node_id', $node->id)
+        $cloudPool = NetworkPools::withoutGlobalScope(AuthorizationScope::class)->where('iaas_cloud_node_id', $node->id)
             ->first();
 
         $network = Networks::where('iaas_network_pool_id', $cloudPool->id)
