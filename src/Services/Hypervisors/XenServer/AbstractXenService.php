@@ -2,8 +2,6 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
-use function Laravel\Prompts\error;
-
 class AbstractXenService
 {
     /**

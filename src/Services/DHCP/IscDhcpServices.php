@@ -11,7 +11,6 @@ use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use NextDeveloper\Intelligence\Database\Models\Ips;
 
 class IscDhcpServices
 {

@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\Gateways;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\Gateways\GatewaysUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\GatewaysQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Gateways;
-use NextDeveloper\IAAS\Services\GatewaysService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\Gateways\GatewaysCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\Gateways\GatewaysUpdateRequest;
+use NextDeveloper\IAAS\Services\GatewaysService;
+
 class GatewaysController extends AbstractController
 {
     private $model = Gateways::class;

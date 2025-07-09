@@ -4,23 +4,15 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
-use NextDeveloper\IAAS\Database\Models\Repositories;
-use NextDeveloper\IAAS\Database\Models\RepositoryImages;
-use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Backups\BackupService;
-use NextDeveloper\IAAS\Services\CloudNodesService;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
-use NextDeveloper\IAAS\Services\RepositoriesService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
-use NextDeveloper\IAAS\Services\VirtualMachineBackupsService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
-use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action converts the virtual machine into a template

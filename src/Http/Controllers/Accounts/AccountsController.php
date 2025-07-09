@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\Accounts;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\Accounts\AccountsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;
 use NextDeveloper\IAAS\Database\Filters\AccountsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Accounts;
-use NextDeveloper\IAAS\Services\AccountsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\Accounts\AccountsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\IAAS\Http\Requests\Accounts\AccountsUpdateRequest;
+use NextDeveloper\IAAS\Services\AccountsService;
+
 class AccountsController extends AbstractController
 {
     private $model = Accounts::class;

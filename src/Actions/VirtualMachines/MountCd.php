@@ -2,7 +2,6 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
-use GPBMetadata\Google\Api\Auth;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;

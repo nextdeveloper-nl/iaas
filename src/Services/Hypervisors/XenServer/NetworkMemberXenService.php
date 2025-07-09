@@ -7,7 +7,6 @@ use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\NetworkMembersService;
-use NextDeveloper\IAAS\Services\NetworkPoolsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class NetworkMemberXenService

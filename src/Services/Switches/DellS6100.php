@@ -2,17 +2,13 @@
 
 namespace NextDeveloper\IAAS\Services\Switches;
 
-use GPBMetadata\Google\Api\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Helpers\StateHelper;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces;
-use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Models\Networks;
-use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class DellS6100 extends AbstractSwitches

@@ -3,10 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\VirtualDiskImages;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
-use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
 

@@ -3,25 +3,25 @@
 namespace NextDeveloper\IAAS\Http\Transformers\AbstractTransformers;
 
 use NextDeveloper\Commons\Database\Models\Addresses;
+use NextDeveloper\Commons\Database\Models\AvailableActions;
 use NextDeveloper\Commons\Database\Models\Comments;
+use NextDeveloper\Commons\Database\Models\Media;
 use NextDeveloper\Commons\Database\Models\Meta;
 use NextDeveloper\Commons\Database\Models\PhoneNumbers;
 use NextDeveloper\Commons\Database\Models\SocialMedia;
-use NextDeveloper\Commons\Database\Models\Votes;
-use NextDeveloper\Commons\Database\Models\Media;
-use NextDeveloper\Commons\Http\Transformers\MediaTransformer;
-use NextDeveloper\Commons\Database\Models\AvailableActions;
-use NextDeveloper\Commons\Http\Transformers\AvailableActionsTransformer;
 use NextDeveloper\Commons\Database\Models\States;
-use NextDeveloper\Commons\Http\Transformers\StatesTransformer;
-use NextDeveloper\Commons\Http\Transformers\CommentsTransformer;
-use NextDeveloper\Commons\Http\Transformers\SocialMediaTransformer;
-use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
-use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
-use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
-use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\Commons\Database\Models\Votes;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
+use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
+use NextDeveloper\Commons\Http\Transformers\AvailableActionsTransformer;
+use NextDeveloper\Commons\Http\Transformers\CommentsTransformer;
+use NextDeveloper\Commons\Http\Transformers\MediaTransformer;
+use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
+use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
+use NextDeveloper\Commons\Http\Transformers\SocialMediaTransformer;
+use NextDeveloper\Commons\Http\Transformers\StatesTransformer;
+use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -62,7 +62,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
                                                             $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
                                                             $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
                                                             $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

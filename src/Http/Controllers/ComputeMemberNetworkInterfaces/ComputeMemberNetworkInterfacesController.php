@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\ComputeMemberNetworkInterfaces;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\ComputeMemberNetworkInterfaces\ComputeMemberNetworkInterfacesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\ComputeMemberNetworkInterfacesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
-use NextDeveloper\IAAS\Services\ComputeMemberNetworkInterfacesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\ComputeMemberNetworkInterfaces\ComputeMemberNetworkInterfacesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\ComputeMemberNetworkInterfaces\ComputeMemberNetworkInterfacesUpdateRequest;
+use NextDeveloper\IAAS\Services\ComputeMemberNetworkInterfacesService;
+
 class ComputeMemberNetworkInterfacesController extends AbstractController
 {
     private $model = ComputeMemberNetworkInterfaces::class;

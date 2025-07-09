@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\CloudNodes;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\CloudNodes\CloudNodesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\CloudNodesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
-use NextDeveloper\IAAS\Services\CloudNodesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\CloudNodes\CloudNodesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\CloudNodes\CloudNodesUpdateRequest;
+use NextDeveloper\IAAS\Services\CloudNodesService;
+
 class CloudNodesController extends AbstractController
 {
     private $model = CloudNodes::class;

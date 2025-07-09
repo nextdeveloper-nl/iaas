@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\IpAddresses;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\IpAddresses\IpAddressesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\IpAddressesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
-use NextDeveloper\IAAS\Services\IpAddressesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\IpAddresses\IpAddressesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\IpAddresses\IpAddressesUpdateRequest;
+use NextDeveloper\IAAS\Services\IpAddressesService;
+
 class IpAddressesController extends AbstractController
 {
     private $model = IpAddresses::class;

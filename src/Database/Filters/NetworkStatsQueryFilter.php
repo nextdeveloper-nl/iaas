@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-    
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -36,7 +36,7 @@ class NetworkStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->totalTx($value);
     }
-    
+
     public function totalRx($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class NetworkStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->totalRx($value);
     }
-    
+
     public function totalIpAddress($value)
     {
         $operator = substr($value, 0, 1);
@@ -74,7 +74,7 @@ class NetworkStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->totalIpAddress($value);
     }
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -155,7 +155,7 @@ class NetworkStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetwork($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

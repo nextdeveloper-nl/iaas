@@ -2,7 +2,6 @@
 
 namespace NextDeveloper\IAAS\Services;
 
-use NextDeveloper\IAAS\Database\Filters\RepositoryImagesPerspectiveQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractRepositoryImagesPerspectiveService;
 
 /**

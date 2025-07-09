@@ -8,7 +8,6 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
-use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;

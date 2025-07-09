@@ -2,7 +2,6 @@
 
 namespace NextDeveloper\IAAS\Services;
 
-use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\StorageMembers;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractStorageVolumesService;

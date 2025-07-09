@@ -3,13 +3,13 @@
 namespace NextDeveloper\IAAS\Http\Controllers\VirtualMachines;
 
 use App\Helpers\Http\ResponseHelper;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\VirtualMachines\VirtualMachinesUpdateRequest;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\VirtualMachinesService;
-use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
+use NextDeveloper\IAAS\Http\Requests\VirtualMachines\VirtualMachinesUpdateRequest;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
 class VirtualMachinesConsoleController extends AbstractController
 {

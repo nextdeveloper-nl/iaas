@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\AnsiblePlaybookExecutions;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\AnsiblePlaybookExecutionsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\AnsiblePlaybookExecutions;
-use NextDeveloper\IAAS\Services\AnsiblePlaybookExecutionsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\AnsiblePlaybookExecutions\AnsiblePlaybookExecutionsUpdateRequest;
+use NextDeveloper\IAAS\Services\AnsiblePlaybookExecutionsService;
+
 class AnsiblePlaybookExecutionsController extends AbstractController
 {
     private $model = AnsiblePlaybookExecutions::class;

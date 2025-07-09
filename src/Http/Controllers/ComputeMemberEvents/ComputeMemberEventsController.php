@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\ComputeMemberEvents;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\ComputeMemberEvents\ComputeMemberEventsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\ComputeMemberEventsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
-use NextDeveloper\IAAS\Services\ComputeMemberEventsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\ComputeMemberEvents\ComputeMemberEventsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\ComputeMemberEvents\ComputeMemberEventsUpdateRequest;
+use NextDeveloper\IAAS\Services\ComputeMemberEventsService;
+
 class ComputeMemberEventsController extends AbstractController
 {
     private $model = ComputeMemberEvents::class;

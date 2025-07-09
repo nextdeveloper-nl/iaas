@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
 
 /**

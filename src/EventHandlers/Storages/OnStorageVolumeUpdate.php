@@ -2,13 +2,10 @@
 
 namespace NextDeveloper\IAAS\EventHandlers\Storages;
 
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use NextDeveloper\IAAS\Database\Models\ComputeMembers;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberStats;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
-use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\StatService;
 
 /**

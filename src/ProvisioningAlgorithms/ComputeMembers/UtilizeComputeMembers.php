@@ -3,7 +3,6 @@
 namespace NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers;
 
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
-use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Exceptions\NotEnoughResourcesException;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 

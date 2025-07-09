@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\Repositories;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\Repositories\RepositoriesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\RepositoriesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Repositories;
-use NextDeveloper\IAAS\Services\RepositoriesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\Repositories\RepositoriesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\Repositories\RepositoriesUpdateRequest;
+use NextDeveloper\IAAS\Services\RepositoriesService;
+
 class RepositoriesController extends AbstractController
 {
     private $model = Repositories::class;

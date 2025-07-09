@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\Networks;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\Networks\NetworksUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\NetworksQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Networks;
-use NextDeveloper\IAAS\Services\NetworksService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\Networks\NetworksCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\Networks\NetworksUpdateRequest;
+use NextDeveloper\IAAS\Services\NetworksService;
+
 class NetworksController extends AbstractController
 {
     private $model = Networks::class;

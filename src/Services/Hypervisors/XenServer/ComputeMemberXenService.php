@@ -2,14 +2,10 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
-use Google\Service\Compute\Network;
-use Google\Service\GKEHub\State;
-use NextDeveloper\IAAS\Exceptions\SynchronizationException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
-use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
@@ -21,6 +17,7 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotImportException;
 use NextDeveloper\IAAS\Exceptions\NetworkNotInPoolException;
+use NextDeveloper\IAAS\Exceptions\SynchronizationException;
 use NextDeveloper\IAAS\Helpers\NetworkCalculationHelper;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
@@ -29,7 +26,6 @@ use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
-use phpseclib3\File\ASN1\Maps\FieldID;
 
 class ComputeMemberXenService extends AbstractXenService
 {

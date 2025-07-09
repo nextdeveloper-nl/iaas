@@ -2,20 +2,14 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
-use NextDeveloper\IAAS\Database\Models\ComputePools;
-use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\StorageMembers;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StoragePoolsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use NextDeveloper\LMS\Events\Courses\sCoursesCreatedEvent;
 use PlusClouds\IAAS\Services\XenServer\XenServerService;
 
 class StorageMemberXenService extends AbstractXenService

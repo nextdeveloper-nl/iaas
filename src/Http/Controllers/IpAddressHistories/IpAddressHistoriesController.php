@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\IpAddressHistories;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\IpAddressHistories\IpAddressHistoriesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\IpAddressHistoriesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\IpAddressHistories;
-use NextDeveloper\IAAS\Services\IpAddressHistoriesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\IpAddressHistories\IpAddressHistoriesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\IpAddressHistories\IpAddressHistoriesUpdateRequest;
+use NextDeveloper\IAAS\Services\IpAddressHistoriesService;
+
 class IpAddressHistoriesController extends AbstractController
 {
     private $model = IpAddressHistories::class;

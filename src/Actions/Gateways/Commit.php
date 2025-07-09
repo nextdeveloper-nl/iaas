@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Actions\Gateways;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\Gateways;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
 /**
  * This action converts the virtual machine into a template

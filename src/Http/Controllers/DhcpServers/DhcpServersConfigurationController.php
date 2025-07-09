@@ -3,12 +3,12 @@
 namespace NextDeveloper\IAAS\Http\Controllers\DhcpServers;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
-use NextDeveloper\Commons\Http\Response\ResponsableFactory;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\DhcpServersQueryFilter;
 use NextDeveloper\IAAS\Database\Models\DhcpServers;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Services\DhcpServersService;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class DhcpServersConfigurationController extends AbstractController

@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\ComputeMemberDevices;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\ComputeMemberDevices\ComputeMemberDevicesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\ComputeMemberDevicesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberDevices;
-use NextDeveloper\IAAS\Services\ComputeMemberDevicesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\ComputeMemberDevices\ComputeMemberDevicesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\ComputeMemberDevices\ComputeMemberDevicesUpdateRequest;
+use NextDeveloper\IAAS\Services\ComputeMemberDevicesService;
+
 class ComputeMemberDevicesController extends AbstractController
 {
     private $model = ComputeMemberDevices::class;

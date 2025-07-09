@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\VirtualNetworkCardStats;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\VirtualNetworkCardStats\VirtualNetworkCardStatsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\VirtualNetworkCardStatsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCardStats;
-use NextDeveloper\IAAS\Services\VirtualNetworkCardStatsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\VirtualNetworkCardStats\VirtualNetworkCardStatsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\VirtualNetworkCardStats\VirtualNetworkCardStatsUpdateRequest;
+use NextDeveloper\IAAS\Services\VirtualNetworkCardStatsService;
+
 class VirtualNetworkCardStatsController extends AbstractController
 {
     private $model = VirtualNetworkCardStats::class;

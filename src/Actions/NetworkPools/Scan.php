@@ -3,7 +3,6 @@ namespace NextDeveloper\IAAS\Actions\NetworkPools;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\Datacenters;
-use NextDeveloper\IAM\Database\Models\Users;
 
 class Scan extends AbstractAction
 {

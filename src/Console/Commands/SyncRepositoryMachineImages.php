@@ -2,17 +2,8 @@
 namespace NextDeveloper\IAAS\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
-use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
-use NextDeveloper\IAAS\Actions\ComputePools\Scan;
 use NextDeveloper\IAAS\Actions\Repositories\SynchronizeMachineImages;
-use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
-use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\Repositories;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\CloudNodesService;
-use NextDeveloper\IAAS\Services\ComputePoolsService;
-use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
 class SyncMarketplaceProducts extends Command {

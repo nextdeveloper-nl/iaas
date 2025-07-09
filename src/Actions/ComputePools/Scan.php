@@ -4,9 +4,7 @@ namespace NextDeveloper\IAAS\Actions\ComputePools;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
-use NextDeveloper\IAAS\Database\Models\Datacenters;
 use NextDeveloper\IAAS\Services\ComputePoolsService;
-use NextDeveloper\IAM\Database\Models\Users;
 
 class Scan extends AbstractAction
 {

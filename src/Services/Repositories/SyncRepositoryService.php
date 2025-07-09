@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Services\Repositories;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;

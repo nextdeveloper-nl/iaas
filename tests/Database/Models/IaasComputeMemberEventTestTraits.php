@@ -2,14 +2,13 @@
 
 namespace NextDeveloper\IAAS\Tests\Database\Models;
 
-use Tests\TestCase;
 use GuzzleHttp\Client;
-use Illuminate\Http\Response;
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Database\Filters\IaasComputeMemberEventQueryFilter;
-use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasComputeMemberEventService;
+use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
+use NextDeveloper\IAAS\Database\Filters\IaasComputeMemberEventQueryFilter;
+use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasComputeMemberEventService;
 
 trait IaasComputeMemberEventTestTraits
 {

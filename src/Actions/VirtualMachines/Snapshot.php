@@ -2,7 +2,6 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
-use App\Services\IAAS\VirtualMachineServices;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
@@ -10,7 +9,6 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
-use ParagonIE\Sodium\Core\Poly1305\State;
 
 /**
  * This action converts the virtual machine into a template

@@ -3,7 +3,6 @@ namespace NextDeveloper\IAAS\Actions\Datacenters;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\Datacenters;
-use NextDeveloper\IAM\Database\Models\Users;
 
 /**
  * This class initiates a datacenter, meaning that it will create the necessary resources for a datacenter. It includes
