@@ -37,6 +37,13 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    public static function getVirtualMachineByHypervisorUuid($uuid)
+    {
+        return VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('hypervisor_uuid', $uuid)
+            ->first();
+    }
+
     public static function create(array $data)
     {
         //  Here we check if we are hitting the limits

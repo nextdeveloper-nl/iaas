@@ -86,7 +86,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             $vifConfiguration[] = $data;
         }
 
-        $computePool = self::getComputePool($vm);
+        $computePool = VirtualMachinesService::getComputePool($vm);
 
         $computePoolArray = [
             'id' => $computePool->uuid,
@@ -96,7 +96,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'hypervisor_version' => $computePool->hypervisor_version,
         ];
 
-        $computeMember = self::getComputeMember($vm);
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
         $computeMemberArray = [];
 
         if($computeMember) {
@@ -110,7 +110,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             ];
         }
 
-        $cloudNode = self::getCloudPool($vm);
+        $cloudNode = VirtualMachinesService::getCloudPool($vm);
         $cloudPoolArray = [
             'id' => $cloudNode->uuid,
             'name' => $cloudNode->name,
