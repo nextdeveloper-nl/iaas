@@ -18,6 +18,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotCreateVirtualMachine;
+use NextDeveloper\IAAS\Exceptions\CannotFindAvailableResourceException;
 use NextDeveloper\IAAS\Exceptions\CannotUpdateResourcesException;
 use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
@@ -37,11 +38,13 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-    public static function getVirtualMachineByHypervisorUuid($uuid)
+    public static function getVirtualMachineByHypervisorUuid($uuid) : ?VirtualMachines
     {
-        return VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
             ->where('hypervisor_uuid', $uuid)
             ->first();
+
+        return $vm;
     }
 
     public static function create(array $data)
@@ -451,8 +454,48 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         ];
     }
 
-    public static function getMetadata(VirtualMachines $vm) : array
+    public static function fixUsername(VirtualMachines $vm)
     {
+        if($vm->username == null || $vm->username == '') {
+            if($vm->os == 'microsoft windows') {
+                $vm->update([
+                    'username' => 'Administrator'
+                ]);
+            } elseif($vm->os == 'linux') {
+                $vm->update([
+                    'username' => 'root'
+                ]);
+            } else {
+                //  If we don't know the OS, we will set the username to root
+                Log::warning('The OS is not known, setting username to root');
+            }
+        }
+
+        return $vm->fresh();
+    }
+
+    public static function fixHostname(VirtualMachines $vm)
+    {
+        if(!$vm->hostname) {
+            $vm->update([
+                'hostname' => Str::kebab($vm->name)
+            ]);
+        }
+
+        return $vm->fresh();
+    }
+
+    public static function getMetadata(VirtualMachines $vm = null) : array
+    {
+        if(!$vm) {
+            return [
+                'error' =>  'Virtual machine not found. Please provide a valid virtual machine instance.'
+            ];
+        }
+
+        $vm = VirtualMachinesService::fixUsername($vm);
+        $vm = VirtualMachinesService::fixHostname($vm);
+
         $vdis = self::getVirtualDiskImages($vm);
         $vifs = self::getVirtualNetworkCards($vm);
 
@@ -512,20 +555,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             'hypervisor_version' => $computePool->hypervisor_version,
         ];
 
-        $computeMember = self::getComputeMember($vm);
-        $computeMemberArray = [];
-
-        if($computeMember) {
-            $computeMemberArray = [
-                'id' => $computeMember->uuid,
-                'name' => $computeMember->name,
-                'ip_addr' => $computeMember->ip_addr,
-                'local_ip_addr' => $computeMember->local_ip_addr,
-                'is_behind_firewall' => $computeMember->is_behind_firewall,
-                'username' => $computeMember->username,
-            ];
-        }
-
         $cloudNode = self::getCloudPool($vm);
         $cloudPoolArray = [
             'id' => $cloudNode->uuid,
@@ -534,6 +563,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             'provider' => $cloudNode->provider,
             'region' => $cloudNode->region,
         ];
+
+        //  We need to make the username fix
+        //  we need to make the hostname fix
 
         return [
             'hostname' => $vm->hostname,
@@ -545,7 +577,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             'service_roles' => [
                 //  Here will be roles of the server
             ],
-            'compute_member' => $computeMemberArray,
             'compute_pool' => $computePoolArray,
             'cloud_node' => $cloudPoolArray,
             'ssh_keys' => [],
