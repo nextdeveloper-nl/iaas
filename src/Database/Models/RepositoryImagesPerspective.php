@@ -47,92 +47,94 @@ class RepositoryImagesPerspective extends Model
 
 
     /**
-     @var array
+     * @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-            'image',
-            'name',
-            'os',
-            'distro',
-            'version',
-            'is_latest',
-            'supported_virtualizations',
-            'is_iso',
-            'is_public',
-            'is_virtual_machine_image',
-            'is_docker_image',
-            'iaas_repository_id',
-            'repository_name',
-            'iam_account_id',
-            'iam_user_id',
+        'image_name',
+        'name',
+        'os',
+        'distro',
+        'version',
+        'is_latest',
+        'supported_virtualizations',
+        'is_iso',
+        'is_public',
+        'is_virtual_machine_image',
+        'is_docker_image',
+        'iaas_repository_id',
+        'repository_name',
+        'is_backup_repository',
+        'iam_account_id',
+        'iam_user_id',
     ];
 
     /**
-      Here we have the fulltext fields. We can use these for fulltext search if enabled.
+     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     We are casting fields to objects so that we can work on them better
+     * We are casting fields to objects so that we can work on them better
      *
-     @var array
+     * @var array
      */
     protected $casts = [
-    'id' => 'integer',
-    'image' => 'string',
-    'name' => 'string',
-    'os' => 'string',
-    'distro' => 'string',
-    'version' => 'string',
-    'is_latest' => 'boolean',
-    'supported_virtualizations' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
-    'is_iso' => 'boolean',
-    'is_public' => 'boolean',
-    'is_virtual_machine_image' => 'boolean',
-    'is_docker_image' => 'boolean',
-    'iaas_repository_id' => 'integer',
-    'repository_name' => 'string',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
+        'id' => 'integer',
+        'image_name' => 'string',
+        'name' => 'string',
+        'os' => 'string',
+        'distro' => 'string',
+        'version' => 'string',
+        'is_latest' => 'boolean',
+        'supported_virtualizations' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+        'is_iso' => 'boolean',
+        'is_public' => 'boolean',
+        'is_virtual_machine_image' => 'boolean',
+        'is_docker_image' => 'boolean',
+        'iaas_repository_id' => 'integer',
+        'repository_name' => 'string',
+        'is_backup_repository' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
-     We are casting data fields.
+     * We are casting data fields.
      *
-     @var array
+     * @var array
      */
     protected $dates = [
-    'created_at',
-    'updated_at',
-    'deleted_at',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $with = [
 
     ];
 
     /**
-     @var int
+     * @var int
      */
     protected $perPage = 20;
 
     /**
-     @return void
+     * @return void
      */
     public static function boot()
     {
@@ -149,9 +151,11 @@ class RepositoryImagesPerspective extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_repository_images_perspective');
 
-        if(!$modelScopes) { $modelScopes = [];
+        if (!$modelScopes) {
+            $modelScopes = [];
         }
-        if (!$globalScopes) { $globalScopes = [];
+        if (!$globalScopes) {
+            $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -159,7 +163,7 @@ class RepositoryImagesPerspective extends Model
             $modelScopes
         );
 
-        if($scopes) {
+        if ($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
@@ -167,31 +171,6 @@ class RepositoryImagesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

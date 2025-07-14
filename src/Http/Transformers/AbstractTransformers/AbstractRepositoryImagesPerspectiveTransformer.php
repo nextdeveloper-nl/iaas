@@ -61,7 +61,7 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
         return $this->buildPayload(
             [
                 'id' => $model->uuid,
-                'image' => $model->image,
+                'image_name' => $model->image_name,
                 'name' => $model->name,
                 'os' => $model->os,
                 'distro' => $model->distro,
@@ -79,6 +79,7 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
                 'repository_name' => $model->repository_name,
                 'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
                 'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
+                'is_backup_repository'  =>  $model->is_backup_repository,
                 'created_at' => $model->created_at,
                 'updated_at' => $model->updated_at,
                 'deleted_at' => $model->deleted_at,
