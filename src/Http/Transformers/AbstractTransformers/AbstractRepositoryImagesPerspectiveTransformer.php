@@ -80,6 +80,7 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
                 'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
                 'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
                 'is_backup_repository'  =>  $model->is_backup_repository,
+                'has_plusclouds_service' => $model->has_plusclouds_service,
                 'created_at' => $model->created_at,
                 'updated_at' => $model->updated_at,
                 'deleted_at' => $model->deleted_at,

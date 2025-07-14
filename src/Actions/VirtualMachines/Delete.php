@@ -5,6 +5,8 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
 /**
  * This action converts the virtual machine into a template
@@ -43,7 +45,19 @@ class Delete extends AbstractAction
             return;
         }
 
+        if($this->model->is_locked) {
+            $this->setFinished('I cannot complete this process because the VM is locked');
+            Events::fire('delete-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
+            return;
+        }
+
+        Events::fire('deleting:NextDeveloper\IAAS\VirtualMachines', $this->model);
+
         try {
+            VirtualMachinesXenService::forceShutdown($this->model);
+            VirtualMachinesXenService::destroyVm($this->model);
+
+            VirtualMachinesService::delete($this->model->uuid);
 
         } catch (\Exception $e) {
             Events::fire('deleted:NextDeveloper\IAAS\VirtualMachines', $this->model);
