@@ -11,6 +11,7 @@ use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
+use NextDeveloper\IAAS\Actions\VirtualMachines\Delete;
 use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -490,6 +491,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function delete($id)
     {
+        $vm = VirtualMachines::findByUuid($id);
+        dispatch(new Delete($vm));
+
         return parent::delete($id);
     }
 
