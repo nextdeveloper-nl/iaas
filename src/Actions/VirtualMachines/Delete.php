@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
@@ -59,6 +60,7 @@ class Delete extends AbstractAction
 
             VirtualMachinesService::delete($this->model->uuid);
 
+            $this->model->delete();
         } catch (\Exception $e) {
             Events::fire('deleted:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;

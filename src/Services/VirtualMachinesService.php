@@ -493,8 +493,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     {
         $vm = VirtualMachines::findByUuid($id);
         dispatch(new Delete($vm));
-
-        return parent::delete($id);
     }
 
     public static function getMetadata(VirtualMachines $vm = null) : array
