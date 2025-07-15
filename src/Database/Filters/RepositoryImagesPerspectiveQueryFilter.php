@@ -114,6 +114,16 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->isDockerImage($value);
     }
 
+    public function is_backup_repository($value)
+    {
+        return $this->builder->where('is_backup_repository', $value);
+    }
+
+    public function isBackupRepository($value)
+    {
+        return $this->is_backup_repository($value);
+    }
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);

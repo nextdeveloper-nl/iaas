@@ -23,6 +23,15 @@ class RepositoryImagesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
+    public function is_backup_repository($value)
+    {
+        return $this->builder->where('is_backup_repository', $value);
+    }
+
+    public function isBackupRepository($value)
+    {
+        return $this->is_backup_repository($value);
+    }
 
     public function description($value)
     {
