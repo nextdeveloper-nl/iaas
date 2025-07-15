@@ -19,13 +19,13 @@ class Delete extends AbstractAction
         'delete-failed:NextDeveloper\IAAS\VirtualMachines'
     ];
 
-    public function __construct(VirtualMachines $vm)
+    public function __construct(VirtualMachines $vm, array $options = [])
     {
-        trigger_error('This action is not yet implemented', E_USER_ERROR);
-
         $this->queue = 'iaas';
 
         $this->model = $vm;
+
+        parent::__construct();
     }
 
     public function handle()
