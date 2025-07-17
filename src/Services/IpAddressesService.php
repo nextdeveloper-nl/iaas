@@ -6,7 +6,6 @@ use IPv4\SubnetCalculator;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
-use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIpAddressesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 

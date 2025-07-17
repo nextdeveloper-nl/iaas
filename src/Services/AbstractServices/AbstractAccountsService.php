@@ -2,19 +2,17 @@
 
 namespace NextDeveloper\IAAS\Services\AbstractServices;
 
-use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use NextDeveloper\IAM\Helpers\UserHelper;
-use NextDeveloper\Commons\Common\Cache\CacheHelper;
-use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\Commons\Database\Models\AvailableActions;
-use NextDeveloper\IAAS\Database\Models\Accounts;
-use NextDeveloper\IAAS\Database\Filters\AccountsQueryFilter;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
-use NextDeveloper\Events\Services\Events;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
+use NextDeveloper\Commons\Helpers\DatabaseHelper;
+use NextDeveloper\IAAS\Database\Filters\AccountsQueryFilter;
+use NextDeveloper\IAAS\Database\Models\Accounts;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This class is responsible from managing the data for Accounts

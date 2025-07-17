@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\VirtualMachineMetrics;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\VirtualMachineMetrics\VirtualMachineMetricsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachineMetricsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics;
-use NextDeveloper\IAAS\Services\VirtualMachineMetricsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\VirtualMachineMetrics\VirtualMachineMetricsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\VirtualMachineMetrics\VirtualMachineMetricsUpdateRequest;
+use NextDeveloper\IAAS\Services\VirtualMachineMetricsService;
+
 class VirtualMachineMetricsController extends AbstractController
 {
     private $model = VirtualMachineMetrics::class;

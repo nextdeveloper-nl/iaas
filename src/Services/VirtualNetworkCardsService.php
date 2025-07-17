@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Actions\DhcpServers\UpdateConfiguration;
-use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
 use NextDeveloper\IAAS\Database\Models\DhcpServers;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;

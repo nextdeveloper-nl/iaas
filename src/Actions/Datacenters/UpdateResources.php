@@ -7,7 +7,6 @@ use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Datacenters;
-use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**

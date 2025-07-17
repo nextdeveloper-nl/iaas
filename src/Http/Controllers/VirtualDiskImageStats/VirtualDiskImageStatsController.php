@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\VirtualDiskImageStats;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\VirtualDiskImageStats\VirtualDiskImageStatsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;
 use NextDeveloper\IAAS\Database\Filters\VirtualDiskImageStatsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImageStats;
-use NextDeveloper\IAAS\Services\VirtualDiskImageStatsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\VirtualDiskImageStats\VirtualDiskImageStatsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\IAAS\Http\Requests\VirtualDiskImageStats\VirtualDiskImageStatsUpdateRequest;
+use NextDeveloper\IAAS\Services\VirtualDiskImageStatsService;
+
 class VirtualDiskImageStatsController extends AbstractController
 {
     private $model = VirtualDiskImageStats::class;

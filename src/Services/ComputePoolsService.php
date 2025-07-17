@@ -3,7 +3,6 @@
 namespace NextDeveloper\IAAS\Services;
 
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\Models\Currencies;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;

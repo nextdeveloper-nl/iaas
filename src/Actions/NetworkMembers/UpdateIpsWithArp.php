@@ -2,20 +2,16 @@
 
 namespace NextDeveloper\IAAS\Actions\NetworkMembers;
 
-use GPBMetadata\Google\Api\Auth;
-use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces;
-use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\Switches\DellS6100;
 use NextDeveloper\IAM\Database\Models\Accounts;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use PharIo\Manifest\Author;
 
 /**
  * This actions updates the list of ip addresses by looking at the arp values of the switch.

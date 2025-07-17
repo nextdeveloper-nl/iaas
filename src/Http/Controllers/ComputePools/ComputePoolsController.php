@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\ComputePools;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\ComputePools\ComputePoolsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\ComputePoolsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
-use NextDeveloper\IAAS\Services\ComputePoolsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\ComputePools\ComputePoolsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\ComputePools\ComputePoolsUpdateRequest;
+use NextDeveloper\IAAS\Services\ComputePoolsService;
+
 class ComputePoolsController extends AbstractController
 {
     private $model = ComputePools::class;

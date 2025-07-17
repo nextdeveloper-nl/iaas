@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Actions\IpAddresses;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
-use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 
 /**

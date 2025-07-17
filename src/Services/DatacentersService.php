@@ -3,7 +3,6 @@
 namespace NextDeveloper\IAAS\Services;
 
 use Exceptions\DuplicateObject;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Database\Models\Countries;

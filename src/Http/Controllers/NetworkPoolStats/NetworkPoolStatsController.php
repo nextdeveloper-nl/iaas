@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\NetworkPoolStats;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\NetworkPoolStats\NetworkPoolStatsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\NetworkPoolStatsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\NetworkPoolStats;
-use NextDeveloper\IAAS\Services\NetworkPoolStatsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\NetworkPoolStats\NetworkPoolStatsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\NetworkPoolStats\NetworkPoolStatsUpdateRequest;
+use NextDeveloper\IAAS\Services\NetworkPoolStatsService;
+
 class NetworkPoolStatsController extends AbstractController
 {
     private $model = NetworkPoolStats::class;

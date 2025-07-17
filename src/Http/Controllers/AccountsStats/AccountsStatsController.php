@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\AccountsStats;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\AccountsStats\AccountsStatsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;
 use NextDeveloper\IAAS\Database\Filters\AccountsStatsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\AccountsStats;
-use NextDeveloper\IAAS\Services\AccountsStatsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\AccountsStats\AccountsStatsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\IAAS\Http\Requests\AccountsStats\AccountsStatsUpdateRequest;
+use NextDeveloper\IAAS\Services\AccountsStatsService;
+
 class AccountsStatsController extends AbstractController
 {
     private $model = AccountsStats::class;

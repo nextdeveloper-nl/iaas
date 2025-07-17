@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\ComputeMemberStorageVolumes;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\ComputeMemberStorageVolumes\ComputeMemberStorageVolumesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\ComputeMemberStorageVolumesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
-use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\ComputeMemberStorageVolumes\ComputeMemberStorageVolumesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\ComputeMemberStorageVolumes\ComputeMemberStorageVolumesUpdateRequest;
+use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
+
 class ComputeMemberStorageVolumesController extends AbstractController
 {
     private $model = ComputeMemberStorageVolumes::class;

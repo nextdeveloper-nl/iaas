@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\AnsibleRoles;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\AnsibleRoles\AnsibleRolesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\AnsibleRolesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\AnsibleRoles;
-use NextDeveloper\IAAS\Services\AnsibleRolesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\AnsibleRoles\AnsibleRolesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\AnsibleRoles\AnsibleRolesUpdateRequest;
+use NextDeveloper\IAAS\Services\AnsibleRolesService;
+
 class AnsibleRolesController extends AbstractController
 {
     private $model = AnsibleRoles::class;

@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\RepositoryImages;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\RepositoryImages\RepositoryImagesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\RepositoryImagesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
-use NextDeveloper\IAAS\Services\RepositoryImagesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\RepositoryImages\RepositoryImagesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\RepositoryImages\RepositoryImagesUpdateRequest;
+use NextDeveloper\IAAS\Services\RepositoryImagesService;
+
 class RepositoryImagesController extends AbstractController
 {
     private $model = RepositoryImages::class;

@@ -2,14 +2,13 @@
 
 namespace NextDeveloper\IAAS\Tests\Database\Models;
 
-use Tests\TestCase;
 use GuzzleHttp\Client;
-use Illuminate\Http\Response;
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Database\Filters\IaasNetworkMemberQueryFilter;
-use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasNetworkMemberService;
+use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
+use NextDeveloper\IAAS\Database\Filters\IaasNetworkMemberQueryFilter;
+use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasNetworkMemberService;
 
 trait IaasNetworkMemberTestTraits
 {

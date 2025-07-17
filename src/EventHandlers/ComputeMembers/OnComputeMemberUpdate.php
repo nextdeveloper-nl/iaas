@@ -3,14 +3,12 @@
 namespace NextDeveloper\IAAS\EventHandlers\ComputeMembers;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberStats;
-use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\StatService;
 
 /**

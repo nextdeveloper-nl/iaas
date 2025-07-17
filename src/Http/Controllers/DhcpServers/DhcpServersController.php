@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\DhcpServers;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\DhcpServers\DhcpServersUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\DhcpServersQueryFilter;
 use NextDeveloper\IAAS\Database\Models\DhcpServers;
-use NextDeveloper\IAAS\Services\DhcpServersService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\DhcpServers\DhcpServersCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\DhcpServers\DhcpServersUpdateRequest;
+use NextDeveloper\IAAS\Services\DhcpServersService;
+
 class DhcpServersController extends AbstractController
 {
     private $model = DhcpServers::class;

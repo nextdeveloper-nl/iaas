@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\AnsibleServers;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\AnsibleServers\AnsibleServersUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\AnsibleServersQueryFilter;
 use NextDeveloper\IAAS\Database\Models\AnsibleServers;
-use NextDeveloper\IAAS\Services\AnsibleServersService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\AnsibleServers\AnsibleServersCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\AnsibleServers\AnsibleServersUpdateRequest;
+use NextDeveloper\IAAS\Services\AnsibleServersService;
+
 class AnsibleServersController extends AbstractController
 {
     private $model = AnsibleServers::class;

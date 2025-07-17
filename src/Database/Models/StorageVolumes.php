@@ -2,18 +2,16 @@
 
 namespace NextDeveloper\IAAS\Database\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
-use NextDeveloper\Commons\Database\Traits\Filterable;
-use NextDeveloper\Commons\Database\Traits\SSHable;
-use NextDeveloper\IAAS\Database\Observers\StorageVolumesObserver;
-use NextDeveloper\Commons\Database\Traits\UuidId;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
-use NextDeveloper\Commons\Database\Traits\Taggable;
-use NextDeveloper\IAAS\Database\Traits\Agentable;
+use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\Commons\Database\Traits\HasStates;
+use NextDeveloper\Commons\Database\Traits\SSHable;
+use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\UuidId;
+use NextDeveloper\IAAS\Database\Observers\StorageVolumesObserver;
+use NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * StorageVolumes model.
@@ -192,22 +190,22 @@ class StorageVolumes extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-    
+
     public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
-    
+
     public function storagePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
     }
-    
+
     public function storageMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\StorageMembers::class);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
     use SSHable, Agentable;

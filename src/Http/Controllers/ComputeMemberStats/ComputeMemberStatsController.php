@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\ComputeMemberStats;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\ComputeMemberStats\ComputeMemberStatsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\ComputeMemberStatsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStats;
-use NextDeveloper\IAAS\Services\ComputeMemberStatsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\ComputeMemberStats\ComputeMemberStatsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\ComputeMemberStats\ComputeMemberStatsUpdateRequest;
+use NextDeveloper\IAAS\Services\ComputeMemberStatsService;
+
 class ComputeMemberStatsController extends AbstractController
 {
     private $model = ComputeMemberStats::class;

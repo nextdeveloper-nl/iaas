@@ -7,7 +7,6 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
-use NextDeveloper\IAAS\Services\Repositories\RepositoryMountService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**

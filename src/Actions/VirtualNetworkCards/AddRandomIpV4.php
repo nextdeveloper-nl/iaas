@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Actions\VirtualNetworkCards;
 
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\DhcpServersService;
 use NextDeveloper\IAAS\Services\IpAddressesService;

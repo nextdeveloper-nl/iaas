@@ -6,12 +6,9 @@ use Illuminate\Support\Facades\Cache;
 use League\Fractal\ParamBag;
 use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
-use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMachinesPerspectiveTransformer;
-use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
 /**
  * Class VirtualMachinesPerspectiveTransformer. This class is being used to manipulate the data we are serving to the customer

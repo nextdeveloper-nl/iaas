@@ -9,8 +9,6 @@ use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Helpers\MetaHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
-use NextDeveloper\IAAS\Database\Models\CloudNodes;
-use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;

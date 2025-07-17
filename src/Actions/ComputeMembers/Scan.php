@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
-use NextDeveloper\IAAS\Authorization\Roles\DatacenterAdmin;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;

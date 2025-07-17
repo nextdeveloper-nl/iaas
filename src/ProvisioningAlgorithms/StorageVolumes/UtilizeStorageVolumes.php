@@ -5,9 +5,7 @@ namespace NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
-use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
-use NextDeveloper\IAAS\Exceptions\NotEnoughResourcesException;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**

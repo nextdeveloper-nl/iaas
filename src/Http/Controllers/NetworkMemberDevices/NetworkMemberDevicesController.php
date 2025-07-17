@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\NetworkMemberDevices;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\NetworkMemberDevices\NetworkMemberDevicesUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\NetworkMemberDevicesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\NetworkMemberDevices;
-use NextDeveloper\IAAS\Services\NetworkMemberDevicesService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\NetworkMemberDevices\NetworkMemberDevicesCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\NetworkMemberDevices\NetworkMemberDevicesUpdateRequest;
+use NextDeveloper\IAAS\Services\NetworkMemberDevicesService;
+
 class NetworkMemberDevicesController extends AbstractController
 {
     private $model = NetworkMemberDevices::class;

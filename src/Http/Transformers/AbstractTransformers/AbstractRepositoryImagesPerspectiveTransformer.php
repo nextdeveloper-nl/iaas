@@ -3,25 +3,25 @@
 namespace NextDeveloper\IAAS\Http\Transformers\AbstractTransformers;
 
 use NextDeveloper\Commons\Database\Models\Addresses;
+use NextDeveloper\Commons\Database\Models\AvailableActions;
 use NextDeveloper\Commons\Database\Models\Comments;
+use NextDeveloper\Commons\Database\Models\Media;
 use NextDeveloper\Commons\Database\Models\Meta;
 use NextDeveloper\Commons\Database\Models\PhoneNumbers;
 use NextDeveloper\Commons\Database\Models\SocialMedia;
-use NextDeveloper\Commons\Database\Models\Votes;
-use NextDeveloper\Commons\Database\Models\Media;
-use NextDeveloper\Commons\Http\Transformers\MediaTransformer;
-use NextDeveloper\Commons\Database\Models\AvailableActions;
-use NextDeveloper\Commons\Http\Transformers\AvailableActionsTransformer;
 use NextDeveloper\Commons\Database\Models\States;
-use NextDeveloper\Commons\Http\Transformers\StatesTransformer;
-use NextDeveloper\Commons\Http\Transformers\CommentsTransformer;
-use NextDeveloper\Commons\Http\Transformers\SocialMediaTransformer;
-use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
-use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
-use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
-use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
-use NextDeveloper\IAAS\Database\Models\RepositoryImagesPerspective;
+use NextDeveloper\Commons\Database\Models\Votes;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
+use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
+use NextDeveloper\Commons\Http\Transformers\AvailableActionsTransformer;
+use NextDeveloper\Commons\Http\Transformers\CommentsTransformer;
+use NextDeveloper\Commons\Http\Transformers\MediaTransformer;
+use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
+use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
+use NextDeveloper\Commons\Http\Transformers\SocialMediaTransformer;
+use NextDeveloper\Commons\Http\Transformers\StatesTransformer;
+use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
+use NextDeveloper\IAAS\Database\Models\RepositoryImagesPerspective;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -61,7 +61,7 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
         return $this->buildPayload(
             [
                 'id' => $model->uuid,
-                'image' => $model->image,
+                'image_name' => $model->image_name,
                 'name' => $model->name,
                 'os' => $model->os,
                 'distro' => $model->distro,
@@ -79,6 +79,8 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
                 'repository_name' => $model->repository_name,
                 'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
                 'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
+                'is_backup_repository'  =>  $model->is_backup_repository,
+                'has_plusclouds_service' => $model->has_plusclouds_service,
                 'created_at' => $model->created_at,
                 'updated_at' => $model->updated_at,
                 'deleted_at' => $model->deleted_at,

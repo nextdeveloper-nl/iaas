@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\NetworkMembers;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\NetworkMembers\NetworkMembersUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\NetworkMembersQueryFilter;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
-use NextDeveloper\IAAS\Services\NetworkMembersService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\NetworkMembers\NetworkMembersCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\NetworkMembers\NetworkMembersUpdateRequest;
+use NextDeveloper\IAAS\Services\NetworkMembersService;
+
 class NetworkMembersController extends AbstractController
 {
     private $model = NetworkMembers::class;

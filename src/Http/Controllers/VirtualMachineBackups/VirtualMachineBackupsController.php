@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\VirtualMachineBackups;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\VirtualMachineBackups\VirtualMachineBackupsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachineBackupsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
-use NextDeveloper\IAAS\Services\VirtualMachineBackupsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\VirtualMachineBackups\VirtualMachineBackupsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\IAAS\Http\Requests\VirtualMachineBackups\VirtualMachineBackupsUpdateRequest;
+use NextDeveloper\IAAS\Services\VirtualMachineBackupsService;
+
 class VirtualMachineBackupsController extends AbstractController
 {
     private $model = VirtualMachineBackups::class;

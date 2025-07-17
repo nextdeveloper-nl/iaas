@@ -2,7 +2,6 @@
 
 namespace NextDeveloper\IAAS\Jobs\GarbageCollectors;
 
-use GPBMetadata\Google\Api\Auth;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

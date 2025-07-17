@@ -11,7 +11,6 @@
 
 namespace NextDeveloper\IAAS\Database\Traits;
 
-use NextDeveloper\Commons\Helpers\StateHelper;
 /*
  * This trait creates SSH Connections
  */

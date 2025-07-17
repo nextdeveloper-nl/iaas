@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\NetworksPerspective;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\NetworksPerspective\NetworksPerspectiveUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;
 use NextDeveloper\IAAS\Database\Filters\NetworksPerspectiveQueryFilter;
 use NextDeveloper\IAAS\Database\Models\NetworksPerspective;
-use NextDeveloper\IAAS\Services\NetworksPerspectiveService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\NetworksPerspective\NetworksPerspectiveCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags as TagsTrait;use NextDeveloper\Commons\Http\Traits\Addresses as AddressesTrait;
+use NextDeveloper\IAAS\Http\Requests\NetworksPerspective\NetworksPerspectiveUpdateRequest;
+use NextDeveloper\IAAS\Services\NetworksPerspectiveService;
+
 class NetworksPerspectiveController extends AbstractController
 {
     private $model = NetworksPerspective::class;

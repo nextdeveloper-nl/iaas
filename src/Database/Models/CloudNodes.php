@@ -2,15 +2,14 @@
 
 namespace NextDeveloper\IAAS\Database\Models;
 
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
-use NextDeveloper\Commons\Database\Traits\Filterable;
-use NextDeveloper\IAAS\Database\Observers\CloudNodesObserver;
-use NextDeveloper\Commons\Database\Traits\UuidId;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
-use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\Commons\Database\Traits\HasStates;
+use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\UuidId;
+use NextDeveloper\IAAS\Database\Observers\CloudNodesObserver;
 
 /**
  * CloudNodes model.
@@ -188,7 +187,7 @@ class CloudNodes extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
     }
-    
+
     public function storagePools() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StoragePools::class);

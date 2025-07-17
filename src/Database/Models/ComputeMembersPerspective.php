@@ -2,16 +2,15 @@
 
 namespace NextDeveloper\IAAS\Database\Models;
 
-use NextDeveloper\Commons\Database\Traits\SSHable;
-use NextDeveloper\IAAS\Database\Traits\Agentable;
-use NextDeveloper\Commons\Database\Traits\HasStates;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
-use NextDeveloper\Commons\Database\Traits\Filterable;
-use NextDeveloper\IAAS\Database\Observers\ComputeMembersPerspectiveObserver;
-use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
+use NextDeveloper\Commons\Database\Traits\Filterable;
+use NextDeveloper\Commons\Database\Traits\HasStates;
+use NextDeveloper\Commons\Database\Traits\SSHable;
 use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\UuidId;
+use NextDeveloper\IAAS\Database\Observers\ComputeMembersPerspectiveObserver;
+use NextDeveloper\IAAS\Database\Traits\Agentable;
 
 /**
  * ComputeMembersPerspective model.

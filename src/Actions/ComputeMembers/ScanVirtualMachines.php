@@ -2,7 +2,6 @@
 
 namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
-use GPBMetadata\Google\Api\Auth;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;

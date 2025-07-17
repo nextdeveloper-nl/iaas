@@ -3,10 +3,8 @@ namespace NextDeveloper\IAAS\Actions\StoragePools;
 
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
-use NextDeveloper\IAAS\Database\Models\Datacenters;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
-use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class Scan extends AbstractAction

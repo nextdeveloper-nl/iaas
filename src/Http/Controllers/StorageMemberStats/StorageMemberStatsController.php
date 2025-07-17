@@ -3,14 +3,16 @@
 namespace NextDeveloper\IAAS\Http\Controllers\StorageMemberStats;
 
 use Illuminate\Http\Request;
-use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
-use NextDeveloper\IAAS\Http\Requests\StorageMemberStats\StorageMemberStatsUpdateRequest;
+use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\IAAS\Database\Filters\StorageMemberStatsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\StorageMemberStats;
-use NextDeveloper\IAAS\Services\StorageMemberStatsService;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\IAAS\Http\Requests\StorageMemberStats\StorageMemberStatsCreateRequest;
-use NextDeveloper\Commons\Http\Traits\Tags;use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAAS\Http\Requests\StorageMemberStats\StorageMemberStatsUpdateRequest;
+use NextDeveloper\IAAS\Services\StorageMemberStatsService;
+
 class StorageMemberStatsController extends AbstractController
 {
     private $model = StorageMemberStats::class;

@@ -2,13 +2,10 @@
 
 namespace NextDeveloper\IAAS\EventHandlers\VirtualMachines;
 
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use NextDeveloper\IAAS\Database\Models\ComputeMembers;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberStats;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\StatService;
 
 /**

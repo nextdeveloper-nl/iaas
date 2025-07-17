@@ -1,10 +1,8 @@
 <?php
 namespace NextDeveloper\IAAS\Actions\StorageVolumes;
 
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
-use NextDeveloper\IAAS\Actions\VirtualDiskImages\Sync;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;

@@ -2,8 +2,8 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
-use GPBMetadata\Google\Api\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\MetaHelper;
 use NextDeveloper\Commons\Helpers\StateHelper;
@@ -17,7 +17,6 @@ use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
-use NextDeveloper\IAAS\Database\Models\StorageMembers;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
@@ -29,10 +28,9 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\IpAddressesService;
-use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use NextDeveloper\Intelligence\Services\IpsService;
 
 /**
  * This action converts a draft virtual machine to a live virtual machine. This action should be triggered when the
@@ -80,6 +78,9 @@ class Commit extends AbstractAction
 
         $vm = $this->model;
 
+        $vm = VirtualMachinesService::fixUsername($vm);
+        $vm = VirtualMachinesService::fixHostname($vm);
+
         if (!$vm->is_draft && $vm->status != 'pending-update') {
             $this->setProgress(100, 'Virtual machine is not in draft or pending update state');
             return;
@@ -121,8 +122,6 @@ class Commit extends AbstractAction
         $vm->update([
             'status' => 'halted',
         ]);
-
-
 
         //  Buranın değişmesi lazım, zira bunun boot_after_commit olması lazım.
         if(MetaHelper::get($vm, 'boot_after_deploy')) {
