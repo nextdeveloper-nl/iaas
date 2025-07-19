@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
+use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -709,10 +710,27 @@ class VirtualMachinesXenService extends AbstractXenService
 
     public static function performCommand($command, ComputeMembers $computeMember) : ?array
     {
-        if($computeMember->is_management_agent_available == true) {
-            return $computeMember->performAgentCommand($command);
-        } else {
-            return $computeMember->performSSHCommand($command);
+        try {
+            if($computeMember->is_management_agent_available == true) {
+                return $computeMember->performAgentCommand($command);
+            } else {
+                return $computeMember->performSSHCommand($command);
+            }
+        } catch (CannotConnectWithSshException $exception) {
+            Log::error(__METHOD__ . 'There is an error in performing the command: ' . $command .
+                ' on the compute member: ' . $computeMember->name . '/' . $computeMember->uuid .
+                '. The error is: ' . $exception->getMessage());
+
+            Log::debug(__METHOD__ . ' Running the health check for the compute member: ' .
+                $computeMember->name . '/' . $computeMember->uuid);
+
+            throw $exception;
+        } catch (\Exception $exception) {
+            Log::error(__METHOD__ . 'There is an error in performing the command: ' . $command . '' .
+                ' on the compute member: ' . $computeMember->name . '/' . $computeMember->uuid .
+                '. The error is: ' . $exception->getMessage());
+
+            throw $exception;
         }
     }
 }
