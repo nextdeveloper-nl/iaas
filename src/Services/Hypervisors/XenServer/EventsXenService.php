@@ -2,10 +2,21 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
+use Illuminate\Support\Str;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Events\VirtualMachineEvents;
+
 class EventsXenService
 {
     public static function store($event) : bool
     {
+        if(!(
+            Str::contains($event, 'VM_STARTED') ||
+            Str::contains($event, 'VM_STOPPED')
+        )) {
+            return false;
+        }
+
         $charPos = strpos($event, '"');
         $charPosEnd = strpos($event, '"', $charPos+1);
 
@@ -27,12 +38,27 @@ class EventsXenService
             case 'VM_STARTED':
                 self::vmStart($event);
                 break;
+            default:
+                dd($event);
         }
 
         return true;
     }
 
     public static function vmStart($event) {
-        dd('vm_start');
+        $vm = VirtualMachines::withoutGlobalScopes()
+            ->where('hypervisor_uuid', $event['snapshot']['obj_uuid'])
+            ->first();
+
+        VirtualMachineEvents::started($vm);
+    }
+
+    public static function vmStop($event)
+    {
+        $vm = VirtualMachines::withoutGlobalScopes()
+            ->where('hypervisor_uuid', $event['snapshot']['obj_uuid'])
+            ->first();
+
+        VirtualMachineEvents::stopped($vm);
     }
 }
