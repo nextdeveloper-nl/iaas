@@ -50,6 +50,11 @@ class HealthCheck extends AbstractAction
             return;
         }
 
+        if($this->model->is_lost) {
+            $this->setFinished('Virtual machine is a draft. Skipping health check.');
+            return;
+        }
+
         $this->model->status = 'checking-health';
         $this->model->saveQuietly();
 
@@ -58,9 +63,6 @@ class HealthCheck extends AbstractAction
 
         if(!$computeMember->is_alive) {
             Log::error(__METHOD__ . ' | The compute member is not alive: ' . $computeMember->uuid);
-
-            $this->setFinishedWithError('Virtual machine health check failed. Please consult to your' .
-                ' administrator for more information or create a support ticket to resolve this issue.');
 
             Events::fire('health-check-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
@@ -72,7 +74,8 @@ class HealthCheck extends AbstractAction
                 'is_lost'   =>  true
             ]);
 
-            return;
+            $this->setFinishedWithError('Virtual machine health check failed. Please consult to your' .
+                ' administrator for more information or create a support ticket to resolve this issue.');
         }
 
         $this->setProgress(50, 'Checking if the virtual machine is alive');
