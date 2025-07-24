@@ -40,11 +40,11 @@ class Delete extends AbstractAction
             return;
         }
 
-        if($this->model->deleted_at != null) {
-            $this->setFinished('I cannot complete this process because the VM is already deleted');
-            Events::fire('deleted:NextDeveloper\IAAS\VirtualMachines', $this->model);
-            return;
-        }
+//        if($this->model->deleted_at != null) {
+//            $this->setFinished('I cannot complete this process because the VM is already deleted');
+//            Events::fire('deleted:NextDeveloper\IAAS\VirtualMachines', $this->model);
+//            return;
+//        }
 
         if($this->model->is_locked) {
             $this->setFinished('I cannot complete this process because the VM is locked');

@@ -999,6 +999,28 @@ physical interfaces and vlans of compute member');
         return true;
     }
 
+    public static function checkIfComputeMemberIsReachable(ComputeMembers $computeMembers) : bool
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@checkIfComputeMemberIsReachable] Checking if the compute member: '
+                . $computeMembers->name . ' is reachable.');
+
+        try {
+            $result = self::performCommand('hostname', $computeMembers);
+            if($result) {
+                Log::info('[ComputeMembersXenService@checkIfComputeMemberIsReachable] The compute member: '
+                    . $computeMembers->name . ' is reachable.');
+
+                return true;
+            }
+        } catch (\Exception $e) {
+            Log::error('[ComputeMembersXenService@checkIfComputeMemberIsReachable] The compute member: '
+                . $computeMembers->name . ' is not reachable. Error: ' . $e->getMessage());
+        }
+
+        return false;
+    }
+
     public static function performCommand($command, ComputeMembers $computeMember) : ?array
     {
         try {
@@ -1055,7 +1077,7 @@ physical interfaces and vlans of compute member');
 
                 $computeMember->updateAsAdministrator([
                     'is_alive' => false,
-                    'has_errors' => true
+                    'has_error' => true
                 ]);
             }
 

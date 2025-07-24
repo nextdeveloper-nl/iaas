@@ -150,6 +150,15 @@ class Commit extends AbstractAction
             ->get();
 
         foreach ($vifs as $vif) {
+            $network = VirtualNetworkCardsService::getConnectedNetwork($vif);
+
+            if(!$network->iaas_dhcp_server_id) {
+                // if we dont have a dhcp server then we skip this step.
+                continue;
+            }
+
+            //  This means we have a dhcp server and the network is managed with that DHCP server
+
             $ipList = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
                 ->where('iaas_virtual_network_card_id', $vif->id)
                 ->get();
@@ -163,8 +172,6 @@ class Commit extends AbstractAction
 
             //  If there is no IP in the card and auto_add_ip_v4 is true
             if($addIp && !count($ipList)) {
-                $network = VirtualNetworkCardsService::getConnectedNetwork($vif);
-
                 $nextAvailableIp = IpAddressesService::getNextIpAvailable($network);
 
                 Log::info('[VM Commit][Setup IP] The next available IP is: ' . $nextAvailableIp);
