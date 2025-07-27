@@ -15,4 +15,7 @@ class ComputeMemberEventsService extends AbstractComputeMemberEventsService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    public static function create($data) {
+        return parent::create($data);
+    }
 }
