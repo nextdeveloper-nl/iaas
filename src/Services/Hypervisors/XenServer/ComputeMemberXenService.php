@@ -1066,6 +1066,9 @@ physical interfaces and vlans of compute member');
             Log::info('[ComputeMembersXenService@deployEventsService] Deploying the events service on the compute member: '
                 . $computeMember->name);
 
+        $command = 'mkdir -p /opt/plusclouds';
+        $result = self::performCommand($command, $computeMember);
+
         $command = 'yes | cp -rf /opt/plusclouds/events.py /opt/plusclouds/events.py.bak';
         $result = self::performCommand($command, $computeMember);
 
