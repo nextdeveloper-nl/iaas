@@ -9,7 +9,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 /**
  * This action starts the Virtual Machine
  */
-class Lock extends AbstractAction
+class Unlock extends AbstractAction
 {
     public const EVENTS = [
         'locking:NextDeveloper\IAAS\VirtualMachines',
