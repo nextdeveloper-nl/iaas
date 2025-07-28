@@ -1098,12 +1098,16 @@ physical interfaces and vlans of compute member');
         $token = $computeMember->events_token;
 
         //  Now we need to start the events service
-        $command = 'nohup /opt/plusclouds/events.py ' .
+        $command = 'nohup /opt/plusclouds/events.py localhost ' .
             $username . ' ' .
             $password . ' ' .
             $endpoint . ' ' .
             $token . ' > /dev/null 2>&1 &';
         $result = self::performCommand($command, $computeMember);
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployEventsService] The events service is started on the compute member with command: '
+                . $command);
 
         if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@deployEventsService] The events service is started on the compute member: '
