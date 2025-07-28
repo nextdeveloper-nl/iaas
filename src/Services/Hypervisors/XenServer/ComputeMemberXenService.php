@@ -1077,7 +1077,12 @@ physical interfaces and vlans of compute member');
         $result = self::performCommand($command, $computeMember);
 
         $eventsFile = file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/xenserver/events.py'));
-        $command = 'echo "' . addslashes($eventsFile) . '" > /opt/plusclouds/events.py';
+        $eventsFileBase64 = base64_encode($eventsFile);
+
+        $command = 'echo "' . $eventsFileBase64 . '" > /opt/plusclouds/events.base64';
+        $result = self::performCommand($command, $computeMember);
+
+        $command = 'base64 -d /opt/plusclouds/events.base64 > /opt/plusclouds/events.py';
         $result = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))

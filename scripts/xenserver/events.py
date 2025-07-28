@@ -1,6 +1,6 @@
-!/usr/bin/env python
+#!/usr/bin/env python
 
-# This script is update by Harun Barış Bulut to be run with PlusClouds API.
+# This script is update by Harun Baris Bulut to be run with PlusClouds API.
 
 # Copyright (c) Cloud Software Group, Inc.
 #
@@ -71,9 +71,9 @@ def sanitize_for_json(data):
 def send_to_rest_api(endpoint, security_token, payload):
     try:
         postData = {
-                'source': 'xenserver',
-                'type': 'host_event',
-                'event': payload,
+            'source': 'xenserver',
+            'type': 'host_event',
+            'event': payload,
         }
 
 	print "Pushing"
