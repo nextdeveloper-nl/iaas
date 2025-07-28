@@ -149,8 +149,7 @@ def main(session, endpoint, security_token):
                         'class': event.get('class', ''),
                         'uuid': event.get('uuid', ''),
                         'operation': event.get('operation', ''),
-                        'snapshot': sanitize_for_json(event.get('snapshot', {})),
-                        'timestamp': now.timestamp()
+                        'snapshot': sanitize_for_json(event.get('snapshot', {}))
                     }
                     print event_payload
                     send_to_rest_api(endpoint, security_token, event_payload)
