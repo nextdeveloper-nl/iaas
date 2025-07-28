@@ -1069,6 +1069,10 @@ physical interfaces and vlans of compute member');
         $command = 'mkdir -p /opt/plusclouds';
         $result = self::performCommand($command, $computeMember);
 
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployEventsService] The directory /opt/plusclouds is created on the compute member: '
+                . $result['output']);
+
         $command = 'yes | cp -rf /opt/plusclouds/events.py /opt/plusclouds/events.py.bak';
         $result = self::performCommand($command, $computeMember);
 
