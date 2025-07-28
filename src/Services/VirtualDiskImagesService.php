@@ -111,7 +111,12 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
 
     public static function update($id, array $data)
     {
-        $vdi = VirtualDiskImages::where('uuid', $id)->first();
+        $vdi = null;
+
+        if(Str::isUuid($id))
+            $vdi = VirtualDiskImages::where('uuid', $id)->first();
+        else
+            $vdi = VirtualDiskImages::where('id', $id)->first();
 
         $requestedDiskSize = ResourceCalculationHelper::getDiskInBytes($data['size']);
         $shouldResizeDisk = false;
