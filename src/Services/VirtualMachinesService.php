@@ -284,7 +284,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 ->first();
 
             VirtualDiskImagesService::update($vdi->id, [
-                'size'  =>  ResourceCalculationHelper::getDiskSizeAgainstRam($cp)
+                'size'  =>  ResourceCalculationHelper::getDiskSizeAgainstRam($cp, $data['ram'])
             ]);
         } else {
             $data['status'] = 'pending-update';
