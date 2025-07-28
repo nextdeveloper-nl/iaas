@@ -1021,6 +1021,102 @@ physical interfaces and vlans of compute member');
         return false;
     }
 
+    public static function checkEventsService(ComputeMembers $computeMember) : bool
+    {
+        //  Checking if the event service exists on compute member
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@checkEventsService] Checking if the events service is available on '
+                . 'the compute member: ' . $computeMember->name);
+
+        //  Check if the events.py exists on the compute member
+        $command = 'ls /opt/plusclouds/events.py';
+        $result = self::performCommand($command, $computeMember);
+
+        if(!Str::contains($result['output'], 'events.py')) {
+            self::deployEventsService($computeMember);
+        }
+
+        //  Now we need to check if the events service is running
+        $command = 'ps aux | grep events.py | grep -v grep';
+        $result = self::performCommand($command, $computeMember);
+
+        if(Str::contains($result['output'], 'events.py')) {
+            Log::info('[ComputeMembersXenService@checkEventsService] The events service is running on the compute member: '
+                . $computeMember->name);
+            return true;
+        }
+
+        Log::error('[ComputeMembersXenService@checkEventsService] The events service is not running on the compute member: '
+            . $computeMember->name);
+
+        //  If the events service is not running, we will try to deploy it again
+        if(self::deployEventsService($computeMember)) {
+            Log::info('[ComputeMembersXenService@checkEventsService] The events service is deployed and running on the compute member: '
+                . $computeMember->name);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static function deployEventsService(ComputeMembers $computeMember) : bool
+    {
+        //  Deploy or rewrite the events service on the compute member
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployEventsService] Deploying the events service on the compute member: '
+                . $computeMember->name);
+
+        $command = 'yes | cp -rf /opt/plusclouds/events.py /opt/plusclouds/events.py.bak';
+        $result = self::performCommand($command, $computeMember);
+
+        $eventsFile = file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/xenserver/events.py'));
+        $command = 'echo "' . addslashes($eventsFile) . '" > /opt/plusclouds/events.py';
+        $result = self::performCommand($command, $computeMember);
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployEventsService] The events service is deployed on the compute member: '
+                . $computeMember->name);
+
+        //  Now we need to make the events service executable
+        $command = 'chmod +x /opt/plusclouds/events.py';
+        $result = self::performCommand($command, $computeMember);
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployEventsService] The events service is made executable on the compute member: '
+                . $computeMember->name);
+
+        $username = $computeMember->ssh_username;
+        $password = decrypt($computeMember->ssh_password);
+        $endpoint = config('leo.internal_endpoint') . '/public/iaas/compute-member-event/' . $computeMember->uuid;
+        $token = $computeMember->events_token;
+
+        //  Now we need to start the events service
+        $command = 'nohup /opt/plusclouds/events.py ' .
+            $username . ' ' .
+            $password . ' ' .
+            $endpoint . ' ' .
+            $token . ' > /dev/null 2>&1 &';
+        $result = self::performCommand($command, $computeMember);
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployEventsService] The events service is started on the compute member: '
+                . $computeMember->name);
+
+        //  We need to check if the events service is running
+        $command = 'ps aux | grep events.py | grep -v grep';
+        $result = self::performCommand($command, $computeMember);
+
+        if(Str::contains($result['output'], 'events.py')) {
+            Log::info('[ComputeMembersXenService@deployEventsService] The events service is running on the compute member: '
+                . $computeMember->name);
+            return true;
+        } else {
+            Log::error('[ComputeMembersXenService@deployEventsService] The events service is not running on the compute member: '
+                . $computeMember->name);
+            return false;
+        }
+    }
+
     public static function performCommand($command, ComputeMembers $computeMember) : ?array
     {
         try {

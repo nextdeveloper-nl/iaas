@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Services;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
@@ -10,6 +11,7 @@ use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractComputeMembersService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -105,5 +107,19 @@ class ComputeMembersService extends AbstractComputeMembersService
         /**
          * Here you will insert current resource information to stats table.
          */
+    }
+
+    public static function checkEventsService(ComputeMembers $computeMember) : bool
+    {
+        //  Check if the compute member has a valid events token
+        if(empty($computeMember->events_token)) {
+            //  Generate an event token if it does not exist
+            $computeMember->events_token = Str::random(64);
+            $computeMember->saveQuietly();
+
+            $computeMember = $computeMember->fresh();
+        }
+
+        return ComputeMemberXenService::checkEventsService($computeMember);
     }
 }

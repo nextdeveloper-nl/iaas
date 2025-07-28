@@ -32,6 +32,9 @@ class ComputeMembersTransformer extends AbstractComputeMembersTransformer
 
         $transformed = parent::transform($model);
 
+        if(array_key_exists('events_token', $transformed))
+            unset($transformed['events_token']);
+
         Cache::set(
             CacheHelper::getKey('ComputeMembers', $model->uuid, 'Transformed'),
             $transformed

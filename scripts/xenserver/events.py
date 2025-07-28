@@ -1,5 +1,7 @@
 !/usr/bin/env python
 
+# This script is update by Harun Barış Bulut to be run with PlusClouds API.
+
 # Copyright (c) Cloud Software Group, Inc.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,7 +28,6 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 # Simple python example to demonstrate how to use the event system.
 # Logs into the server, registers for events on all classes and prints
@@ -67,18 +68,17 @@ def sanitize_for_json(data):
     else:
 	return data
 
-
-def send_to_rest_api(endpoint, payload):
+def send_to_rest_api(endpoint, security_token, payload):
     try:
         postData = {
                 'source': 'xenserver',
                 'type': 'host_event',
                 'event': payload,
-                'timestamp': time.time()
         }
 
-	    data = json.dumps(payload).encode("utf-8")
-        req = Request(endpoint, data=data, headers={"Content-Type": "application/json"})
+	print "Pushing"
+        data = json.dumps(postData).encode("utf-8")
+        req = Request(endpoint, data=data, headers={"Content-Type": "application/json", "Authorization": security_token})
 
         context = None
         if sys.version_info >= (2, 7, 9):  # For SSL context
@@ -88,8 +88,9 @@ def send_to_rest_api(endpoint, payload):
             response = urlopen(req)
 
         code = response.getcode()
+        body = response.read().decode('utf-8')
         if code != 200:
-            print("Failed to send event: HTTP", code)
+            print("Failed to send event: HTTP", code, body)
         else:
             print("Sent event successfully.")
 
@@ -100,7 +101,7 @@ def send_to_rest_api(endpoint, payload):
     except Exception as e:
         print("Unknown error:", str(e))
 
-def main(session, endpoint):
+def main(session, endpoint, security_token):
     try:
         # interval in seconds, after which the event_from call should time out
         call_timeout = 30.0
@@ -152,7 +153,7 @@ def main(session, endpoint):
                         'timestamp': now.timestamp()
                     }
                     print event_payload
-                    send_to_rest_api(endpoint, event_payload)
+                    send_to_rest_api(endpoint, security_token, event_payload)
 
                 print "Waiting for %s seconds before next poll..." % polling_interval
                 time.sleep(polling_interval)
@@ -183,6 +184,7 @@ if __name__ == "__main__":
     username = sys.argv[2] if len(sys.argv) > 2 else ""
     password = sys.argv[3] if len(sys.argv) > 3 else ""
     endpoint = sys.argv[4] if len(sys.argv) > 4 else ""
+    token = sys.argv[5] if len(sys.argv) > 5 else ""
 
     # First acquire a valid session by logging in:
     if url == "http://localhost" or url == "localhost":
@@ -194,4 +196,5 @@ if __name__ == "__main__":
     except XenAPI.Failure as f:
         print "Failed to acquire a session: %s" % f.details
         sys.exit(1)
-    main(new_session, endpoint)
+    main(new_session, endpoint, token)
+
