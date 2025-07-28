@@ -140,7 +140,7 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
 
         $data['size']   =   $requestedDiskSize;
 
-        $vdi = parent::update($id, $data);
+        $vdi = parent::update($vdi->uuid, $data);
 
         if($shouldResizeDisk)
             dispatch(new Resize($vdi));
