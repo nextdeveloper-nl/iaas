@@ -46,7 +46,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                     ->first();
                 $healthCheck = new HealthCheck($vm);
                 dispatch($healthCheck);
-                $results = array_merge($results, ['skipped'  =>  'Initiated health check for VM with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
+                $results = array_merge($results, ['executed'  =>  'Initiated health check for VM with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
                 break;
             default:
                 $results = array_merge($results, ['skipped'  =>  'Event type not handled: ' . $event['snapshot']['name']]);
