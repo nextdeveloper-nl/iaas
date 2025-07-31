@@ -2,17 +2,14 @@
 
 namespace NextDeveloper\IAAS\Jobs;
 
-use GPBMetadata\Google\Api\Auth;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
-use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -27,6 +24,8 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
     public function handle(): void
     {
         $event = json_decode($this->event->event, true);
+
+        $results = [];;
 
         if(!$event) {
             Log::error( __METHOD__ . ': Invalid event data for event ID ' . $this->event->id);
@@ -47,11 +46,15 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                     ->first();
                 $healthCheck = new HealthCheck($vm);
                 dispatch($healthCheck);
+                $results = array_merge($results, ['skipped'  =>  'Initiated health check for VM with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
                 break;
             default:
-                dd($event);
+                $results = array_merge($results, ['skipped'  =>  'Event type not handled: ' . $event['snapshot']['name']]);
+                Log::info(__METHOD__ . ': Skipped event type ' . $event['snapshot']['name'] . ' for event ID ' . $this->event->id);
+                break;
         }
 
+        $this->event->results = $results;
         $this->event->is_executed = true;
         $this->event->saveQuietly();
     }
