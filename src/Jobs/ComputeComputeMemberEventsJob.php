@@ -12,6 +12,7 @@ use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 class ComputeComputeMemberEventsJob implements ShouldQueue
 {
@@ -37,6 +38,8 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             return;
         }
 
+        UserHelper::setAdminAsCurrentUser();
+
         if(!array_key_exists('name', $event['snapshot'])) {
             $results = array_merge($results, ['error' => 'Event snapshot does not contain a name']);
         } else {
@@ -48,7 +51,6 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                         ->withTrashed()
                         ->first();
                     $healthCheck = new HealthCheck($vm);
-                    $healthCheck->runAsAdministrator();
                     dispatch($healthCheck);
                     $results = array_merge($results, ['executed'  =>  'Initiated health check for VM with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
                     break;
