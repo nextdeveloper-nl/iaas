@@ -37,21 +37,25 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             return;
         }
 
-        switch ($event['snapshot']['name']) {
-            case 'VM_SHUTDOWN':
-            case 'VM_STARTED':
-                $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-                    ->where('hypervisor_uuid', $event['snapshot']['obj_uuid'])
-                    ->withTrashed()
-                    ->first();
-                $healthCheck = new HealthCheck($vm);
-                dispatch($healthCheck);
-                $results = array_merge($results, ['executed'  =>  'Initiated health check for VM with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
-                break;
-            default:
-                $results = array_merge($results, ['skipped'  =>  'Event type not handled: ' . $event['snapshot']['name']]);
-                Log::info(__METHOD__ . ': Skipped event type ' . $event['snapshot']['name'] . ' for event ID ' . $this->event->id);
-                break;
+        if(!array_key_exists('name', $event['snapshot'])) {
+            $results = array_merge($results, ['error' => 'Event snapshot does not contain a name']);
+        } else {
+            switch ($event['snapshot']['name']) {
+                case 'VM_SHUTDOWN':
+                case 'VM_STARTED':
+                    $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('hypervisor_uuid', $event['snapshot']['obj_uuid'])
+                        ->withTrashed()
+                        ->first();
+                    $healthCheck = new HealthCheck($vm);
+                    dispatch($healthCheck);
+                    $results = array_merge($results, ['executed'  =>  'Initiated health check for VM with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
+                    break;
+                default:
+                    $results = array_merge($results, ['skipped'  =>  'Event type not handled: ' . $event['snapshot']['name']]);
+                    Log::info(__METHOD__ . ': Skipped event type ' . $event['snapshot']['name'] . ' for event ID ' . $this->event->id);
+                    break;
+            }
         }
 
         $this->event->results = $results;
