@@ -48,6 +48,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                         ->withTrashed()
                         ->first();
                     $healthCheck = new HealthCheck($vm);
+                    $healthCheck->runAsAdministrator();
                     dispatch($healthCheck);
                     $results = array_merge($results, ['executed'  =>  'Initiated health check for VM with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
                     break;
