@@ -265,11 +265,6 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
         ]);
     }
 
-    public function checkUpdatePolicy(Model $model, Users $user): bool
-    {
-        return true;
-    }
-
     public function checkPrivileges(Users $users = null)
     {
         //return UserHelper::hasRole(self::NAME, $users);

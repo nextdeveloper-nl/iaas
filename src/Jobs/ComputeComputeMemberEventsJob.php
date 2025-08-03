@@ -144,8 +144,6 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
     private function vmAddOperation($results = [])
     {
-
-
         return [];
     }
 
