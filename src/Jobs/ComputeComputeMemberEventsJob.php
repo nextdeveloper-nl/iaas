@@ -94,5 +94,10 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             ->where('is_flagged', false)
             ->where('created_at', '<', now()->subDay())
             ->forceDelete();
+
+        //  Removing all events after 30 days
+        ComputeMemberEvents::withoutGlobalScope(AuthorizationScope::class)
+            ->where('created_at', '<', now()->subDays(30))
+            ->forceDelete();
     }
 }
