@@ -76,6 +76,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                     $healthCheck = new HealthCheck($vm);
                     dispatch($healthCheck);
                     $results = array_merge($results, ['executed'  =>  'Initiated health check for VM with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
+                    $this->event->is_flagged = true;
                     break;
                 default:
                     $results = array_merge($results, ['skipped'  =>  'Event type not handled: ' . $event['snapshot']['name']]);
@@ -90,7 +91,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
         //  Now we will remove events that are older than 24 hours and is_executed is false
         ComputeMemberEvents::withoutGlobalScope(AuthorizationScope::class)
-            ->where('is_executed', false)
+            ->whereNull('is_flagged')
             ->where('created_at', '<', now()->subDay())
             ->forceDelete();
     }
