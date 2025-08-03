@@ -50,6 +50,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
         //  We dont need to compute DEL => Delete events
         if($event['operation'] == 'del') {
+            Log::info('' . __METHOD__ . ': Skipped event type ' . $event['operation'] . ' for event ID ' . $this->event->id);
             $this->event->forceDelete();
             return;
         }
