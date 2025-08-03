@@ -36,6 +36,7 @@ use NextDeveloper\IAAS\Database\Observers\VirtualDiskImagesObserver;
  * @property boolean $is_draft
  * @property integer $iaas_repository_image_id
  * @property integer $iaas_storage_pool_id
+ * @property float $utilization
  * @property $vbd_hypervisor_data
  * @property string $vbd_hypervisor_uuid
  */

@@ -38,6 +38,8 @@ class CheckServices extends AbstractAction
 
         $isEventsServiceRunning = ComputeMembersService::checkEventsService($this->model);
 
+        $isRrdServiceRunning = ComputeMembersService::checkRrdService($this->model);;
+
         Events::fire('checked:NextDeveloper\IAAS\ComputeMembers', $this->model);
 
         $this->setProgress(100, 'Compute member services are checked');

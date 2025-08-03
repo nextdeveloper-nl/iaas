@@ -128,4 +128,24 @@ class ComputeMembersService extends AbstractComputeMembersService
 
         return ComputeMemberXenService::checkEventsService($computeMember);
     }
+
+    public static function checkRrdService(ComputeMembers $computeMember) : bool
+    {
+        //  Check if the compute member is alive
+        if(!$computeMember->is_alive) {
+            Log::error('[ComputeMemberService@checkEventsService] Compute member is not alive: ' . $computeMember->uuid);
+            return false;
+        }
+
+        //  Check if the compute member has a valid events token
+        if(empty($computeMember->events_token)) {
+            //  Generate an event token if it does not exist
+            $computeMember->events_token = Str::random(64);
+            $computeMember->save();
+
+            $computeMember = $computeMember->fresh();
+        }
+
+        return ComputeMemberXenService::checkRrdService($computeMember);
+    }
 }

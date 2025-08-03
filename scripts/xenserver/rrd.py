@@ -7,6 +7,7 @@
 #
 import subprocess
 import XenAPI
+import sys
 import urllib
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
@@ -132,9 +133,28 @@ class RRDUpdates:
             self.host_report[param] = col
         else:
             raise PerfMonException, "Invalid string in <legend>: %s" % col_meta_data
+
+def print_usage():
+    print """
+Usage:
+    %s <url> <username> <password> <endpoint>
+or
+    %s [http://]localhost [<username>] [<password>] [<endpoint>]
+""" % (sys.argv[0], sys.argv[0])
+
 def main():
-    xapi = XenAPI.xapi_local();
-    xapi.login_with_password("","")
+    if len(sys.argv) < 2:
+        print_usage()
+        sys.exit(1)
+
+    url = sys.argv[1]
+    username = sys.argv[2] if len(sys.argv) > 2 else ""
+    password = sys.argv[3] if len(sys.argv) > 3 else ""
+    endpoint = sys.argv[4] if len(sys.argv) > 4 else ""
+    token = sys.argv[5] if len(sys.argv) > 5 else ""
+
+    xapi = XenAPI.xapi_local()
+    xapi.login_with_password(username, password)
     session=xapi._session
     rrd_updates = RRDUpdates()
     rrd_updates.refresh(session,{})
@@ -147,6 +167,6 @@ def main():
                 data=data+"(%d,%f)" % (rrd_updates.get_row_time(row),
                                         rrd_updates.get_vm_data(uuid,param,row))
             data=data+"}"
-        command = "curl -X POST https://apiv4.plusclouds.com/public/iaas/metrics -s -H \"Content-Type: application/x-www-form-urlencoded\" -d \"uuid="+uuid+"&metrics="+data+"\""
+        command = "curl -X POST "+endpoint+" -s -H \"Content-Type: application/x-www-form-urlencoded\" -d \"uuid="+uuid+"&metrics="+data+"\""
         subprocess.call(command, shell=True)
 main()
