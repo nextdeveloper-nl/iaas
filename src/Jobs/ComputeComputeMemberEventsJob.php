@@ -17,14 +17,14 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private $vm;
+
     public function __construct(public ComputeMemberEvents $event) {
         $this->queue = 'iaas-health-check';
     }
 
     public function handle(): void
     {
-        UserHelper::setAdminAsCurrentUser();
-
         $event = json_decode($this->event->event, true);
 
         $results = [];
@@ -51,6 +51,15 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         }
 
         if($event['class'] == 'vm') {
+            $this->vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                ->where('hypervisor_uuid', $event['snapshot']['uuid'])
+                ->withTrashed()
+                ->first();
+
+            //  Because we need the users privileges to update the VM
+            UserHelper::setUserById($this->vm->user_id);
+            UserHelper::setCurrentAccountById($this->vm->account_id);
+
             //  We will handle VM events here
             switch ($event['operation']) {
                 case 'add':
@@ -112,24 +121,16 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
     {
         $event = json_decode($this->event->event, true);
 
-        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-            ->where('hypervisor_uuid', $event['snapshot']['obj_uuid'])
-            ->withTrashed()
-            ->first();
-
         switch ($event['snapshot']['name']) {
             case 'VM_SHUTDOWN':
-                $vm->status = 'halted';
                 $results = array_merge($results, ['executed'  =>  'VM is halted with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
+                \Log::info(__METHOD__ . ': VM (' . $event['snapshot']['obj_uuid'] . ') shutdown event handled for event ID ' . $this->event->id);
                 break;
             case 'VM_STARTED':
-                $vm->status = 'running';
-                $results = array_merge($results, ['executed'  =>  'VM is running with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
-                $this->event->is_flagged = true;
+                \Log::info(__METHOD__ . ': VM (' . $event['snapshot']['obj_uuid'] . ') started for event ID ' . $this->event->id);
                 break;
             case 'VM_REBOOTED':
-                $vm->status = 'rebooting';
-                $results = array_merge($results, ['executed'  =>  'VM is rebooting with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
+                \Log::info(__METHOD__ . ': VM (' . $event['snapshot']['obj_uuid'] . ') rebooted for event ID ' . $this->event->id);
                 $this->event->is_flagged = true;
                 break;
             default:
@@ -137,8 +138,6 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                 Log::info(__METHOD__ . ': Skipped event type ' . $event['snapshot']['name'] . ' for event ID ' . $this->event->id);
                 break;
         }
-
-        $vm->save();
 
         return $results;
     }
@@ -163,6 +162,8 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             'cpu'       =>  $event['snapshot']['VCPUs_max'],
             'domain_type'   =>  $event['snapshot']['domain_type'],
         ]);
+
+        \Log::info(__METHOD__ . ': VM modified with hypervisor_uuid: ' . $event['snapshot']['uuid'] . ' for event ID ' . $this->event->id);
 
         return [];
     }
