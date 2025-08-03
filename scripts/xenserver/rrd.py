@@ -28,8 +28,8 @@ class RRDUpdates:
     def __init__(self):
         # params are what get passed to the CGI executable in the URL
         self.params = dict()
-        self.params['start'] = int(time.time()) - 1000 # For demo purposes!
-        self.params['host'] = 'false'   # include data for host (as well as for VMs)
+        self.params['start'] = int(time.time()) - 180 # For demo purposes!
+        self.params['host'] = 'true'   # include data for host (as well as for VMs)
         self.params['cf'] = 'AVERAGE'  # consolidation function, each sample averages 12 from the 5 second RRD
         self.params['interval'] = '60'
     def get_nrows(self):
