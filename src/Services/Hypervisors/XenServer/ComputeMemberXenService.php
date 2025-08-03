@@ -1064,6 +1064,9 @@ physical interfaces and vlans of compute member');
             return true;
         }
 
+        $computeMember->is_event_service_running = false;
+        $computeMember->saveQuietly();
+
         return false;
     }
 
