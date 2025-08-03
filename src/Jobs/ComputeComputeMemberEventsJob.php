@@ -147,7 +147,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         return [];
     }
 
-    private function vmModOperation()
+    private function vmModOperation($results = [])
     {
         $event = json_decode($this->event->event, true);
 
@@ -156,18 +156,47 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             ->withTrashed()
             ->first();
 
+        $powerState = strtolower($event['snapshot']['power_state']);
+        $ram = intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024; // Convert from bytes to MB
+        $cpu = $event['snapshot']['VCPUs_max'];
+        $domainType = $event['snapshot']['domain_type'];
+
+        if($powerState != $vm->status ||) {
+            $results[] = [
+                'power_state'   =>  'Changed from: ' . $vm->status . ' to ' . $powerState
+            ];
+        }
+
+        if($ram != $vm->ram) {
+            $results[] = [
+                'ram'   =>  'Changed from: ' . $vm->ram . ' to ' . $ram
+            ];
+        }
+
+        if($cpu != $vm->cpu) {
+            $results[] = [
+                'cpu'   =>  'Changed from: ' . $vm->cpu . ' to ' . $cpu
+            ];
+        }
+
+        if($domainType != $vm->domain_type) {
+            $results[] = [
+                'domain_type'   =>  'Changed from: ' . $vm->domain_type . ' to ' . $domainType
+            ];
+        }
+
         $vm->update([
-            'status'    =>  strtolower($event['snapshot']['power_state']),
-            'ram'       =>  intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024, // Convert from bytes to MB
-            'cpu'       =>  $event['snapshot']['VCPUs_max'],
-            'domain_type'   =>  $event['snapshot']['domain_type'],
+            'status'    =>  $powerState,
+            'ram'       =>  $ram,
+            'cpu'       =>  $cpu,
+            'domain_type'   =>  $domainType
         ]);
 
         $event->is_flagged = true;
 
         \Log::info(__METHOD__ . ': VM modified with hypervisor_uuid: ' . $event['snapshot']['uuid'] . ' for event ID ' . $this->event->id);
 
-        return [];
+        return $results;
     }
 
     private function vmDelOperation() {
