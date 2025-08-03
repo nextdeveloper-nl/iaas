@@ -91,7 +91,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
         //  Now we will remove events that are older than 24 hours and is_executed is false
         ComputeMemberEvents::withoutGlobalScope(AuthorizationScope::class)
-            ->whereNull('is_flagged')
+            ->where('is_flagged', false)
             ->where('created_at', '<', now()->subDay())
             ->forceDelete();
     }
