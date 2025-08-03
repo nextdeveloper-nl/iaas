@@ -8,7 +8,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -24,6 +23,8 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
     public function handle(): void
     {
+        UserHelper::setAdminAsCurrentUser();
+
         $event = json_decode($this->event->event, true);
 
         $results = [];
