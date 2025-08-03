@@ -129,7 +129,7 @@ class ComputeMembersService extends AbstractComputeMembersService
         return ComputeMemberXenService::checkEventsService($computeMember);
     }
 
-    public static function checkRrdService(ComputeMembers $computeMember) : bool
+    public static function checkRrdService(ComputeMembers $computeMember, $reDeploy) : bool
     {
         //  Check if the compute member is alive
         if(!$computeMember->is_alive) {
@@ -146,6 +146,6 @@ class ComputeMembersService extends AbstractComputeMembersService
             $computeMember = $computeMember->fresh();
         }
 
-        return ComputeMemberXenService::checkRrdService($computeMember);
+        return ComputeMemberXenService::checkRrdService($computeMember, $reDeploy);
     }
 }

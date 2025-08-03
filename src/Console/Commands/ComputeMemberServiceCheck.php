@@ -15,7 +15,7 @@ class ComputeMemberServiceCheck extends Command {
     /**
      * @var string
      */
-    protected $signature = 'leo:cm-service-check';
+    protected $signature = 'leo:cm-service-check {--re-deploy : Re-deploy the services on compute member}';
 
     /**
      * @var string
@@ -39,7 +39,7 @@ class ComputeMemberServiceCheck extends Command {
 
             UserHelper::setAdminAsCurrentUser();
 
-            $job = new CheckServices($computeMember);
+            $job = new CheckServices($computeMember, true);
             $id = $job->getActionId();
 
             dispatch($job)->onQueue('iaas-health-check');

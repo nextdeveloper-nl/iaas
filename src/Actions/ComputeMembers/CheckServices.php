@@ -21,7 +21,7 @@ class CheckServices extends AbstractAction
         'checked:NextDeveloper\IAAS\ComputeMembers'
     ];
 
-    public function __construct(ComputeMembers $computeMember)
+    public function __construct(ComputeMembers $computeMember, public $reDeploy = false)
     {
         $this->model = $computeMember;
 
@@ -38,7 +38,7 @@ class CheckServices extends AbstractAction
 
         $isEventsServiceRunning = ComputeMembersService::checkEventsService($this->model);
 
-        $isRrdServiceRunning = ComputeMembersService::checkRrdService($this->model);;
+        $isRrdServiceRunning = ComputeMembersService::checkRrdService($this->model, $this->reDeploy);
 
         Events::fire('checked:NextDeveloper\IAAS\ComputeMembers', $this->model);
 

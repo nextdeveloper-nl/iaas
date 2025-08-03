@@ -1021,7 +1021,7 @@ physical interfaces and vlans of compute member');
         return false;
     }
 
-    public static function checkRrdService(ComputeMembers $computeMembers) : bool
+    public static function checkRrdService(ComputeMembers $computeMembers, $reDeploy) : bool
     {
         if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@checkRrdService] Checking if the RRD service is available on '
@@ -1031,7 +1031,7 @@ physical interfaces and vlans of compute member');
         $command = 'ls /opt/plusclouds/rrd.py';
         $result = self::performCommand($command, $computeMembers);
 
-        if(!Str::contains($result['output'], 'rrd.py')) {
+        if(!Str::contains($result['output'], 'rrd.py') || $reDeploy) {
             self::deployRrdService($computeMembers);
         }
 
