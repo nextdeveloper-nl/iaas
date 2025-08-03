@@ -159,7 +159,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             ->first();
 
         $vm->update([
-            'status'    =>  $event['snapshot']['power_state'],
+            'status'    =>  strtolower($event['snapshot']['power_state']),
             'ram'       =>  intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024, // Convert from bytes to MB
             'cpu'       =>  $event['snapshot']['VCPUs_max'],
             'domain_type'   =>  $event['snapshot']['domain_type'],

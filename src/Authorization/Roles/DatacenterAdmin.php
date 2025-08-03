@@ -31,9 +31,7 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
      */
     public function apply(Builder $builder, Model $model)
     {
-        $builder->where([
-            'iam_account_id'    =>  UserHelper::currentAccount()->id
-        ]);
+
     }
 
     public function getModule()
@@ -265,6 +263,11 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_compute_member_storage_volumes:update',
             'iaas_compute_member_storage_volumes:delete',
         ]);
+    }
+
+    public function checkUpdatePolicy(Model $model, Users $user): bool
+    {
+        return true;
     }
 
     public function checkPrivileges(Users $users = null)
