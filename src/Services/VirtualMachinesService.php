@@ -42,6 +42,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    public static function getAvailableMetrics(VirtualMachines $vm)
+    {
+
+    }
+
     public static function getVirtualMachineByHypervisorUuid($uuid) : ?VirtualMachines
     {
         $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
