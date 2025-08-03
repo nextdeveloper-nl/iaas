@@ -57,8 +57,8 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                 ->first();
 
             //  Because we need the users privileges to update the VM
-            UserHelper::setUserById($this->vm->user_id);
-            UserHelper::setCurrentAccountById($this->vm->account_id);
+            UserHelper::setUserById($this->vm->iam_user_id);
+            UserHelper::setCurrentAccountById($this->vm->iam_account_id);
 
             //  We will handle VM events here
             switch ($event['operation']) {
