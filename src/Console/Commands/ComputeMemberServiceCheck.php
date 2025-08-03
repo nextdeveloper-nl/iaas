@@ -32,7 +32,7 @@ class ComputeMemberServiceCheck extends Command {
         Log::info(__METHOD__ . 'Starting for routine health check.');
 
         $computeMembers = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
-            ->all();
+            ->get();
 
         foreach ($computeMembers as $computeMember) {
             Log::info(__METHOD__ . ' | Started service check for compute member: ' . $computeMember->uuid);
