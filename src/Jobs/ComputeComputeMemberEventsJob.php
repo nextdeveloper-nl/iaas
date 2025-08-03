@@ -26,7 +26,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
     {
         $event = json_decode($this->event->event, true);
 
-        $results = [];;
+        $results = [];
 
         if(!$event) {
             Log::error( __METHOD__ . ': Invalid event data for event ID ' . $this->event->id);
@@ -40,48 +40,54 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
         UserHelper::setAdminAsCurrentUser();
 
-        //  We dont need to update ISO SR events
-        if($event['class'] == 'sr' && $event['operation'] == 'mod') {
-            if($event['snapshot']['type'] == 'iso') {
-                $this->event->forceDelete();
-                return;
+        if($event['class'] == 'message') {
+            switch ($event['operation']) {
+                case 'add':
+                    //  We will handle message add events here
+                    $results = array_merge($results, $this->messageAddOperation());
+                    break;
             }
         }
 
-        //  We dont need to compute DEL => Delete events
-        if($event['operation'] == 'del') {
-            Log::info('' . __METHOD__ . ': Skipped event type ' . $event['operation'] . ' for event ID ' . $this->event->id);
-            $this->event->forceDelete();
-            return;
-        }
-
-        //  We dont need SR.scan events, therefore we can delete
-        if(array_key_exists('name_label', $event['snapshot'])) {
-            if($event['snapshot']['name_label'] == 'SR.scan') {
-                $this->event->forceDelete();
-                return;
-            }
-        }
-
-        if(!array_key_exists('name', $event['snapshot'])) {
-            $results = array_merge($results, ['error' => 'Event snapshot does not contain a name']);
-        } else {
-            switch ($event['snapshot']['name']) {
-                case 'VM_SHUTDOWN':
-                case 'VM_STARTED':
-                    $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-                        ->where('hypervisor_uuid', $event['snapshot']['obj_uuid'])
-                        ->withTrashed()
-                        ->first();
-                    $healthCheck = new HealthCheck($vm);
-                    dispatch($healthCheck);
-                    $results = array_merge($results, ['executed'  =>  'Initiated health check for VM with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
-                    $this->event->is_flagged = true;
+        if($event['class'] == 'vm') {
+            //  We will handle VM events here
+            switch ($event['operation']) {
+                case 'add':
+                    $results = array_merge($results, $this->vmAddOperation());
+                    break;
+                case 'mod':
+                    //  We will handle VM modification events here
+                    $results = array_merge($results, $this->vmModOperation());
+                    break;
+                case 'del':
+                    //  We will handle VM deletion events here
+                    $results = array_merge($results, $this->vmDelOperation());
                     break;
                 default:
-                    $results = array_merge($results, ['skipped'  =>  'Event type not handled: ' . $event['snapshot']['name']]);
-                    Log::info(__METHOD__ . ': Skipped event type ' . $event['snapshot']['name'] . ' for event ID ' . $this->event->id);
+                    Log::info(__METHOD__ . ': Skipped event type ' . $event['operation'] . ' for event ID ' . $this->event->id);
+                    $this->event->forceDelete();
+                    return;
+            }
+        }
+
+        if($event['class'] == 'sr') {
+            switch ($event['operation']) {
+                case 'add':
+                    //  We will handle SR add events here
+                    $results = array_merge($results, ['executed' => 'SR add event handled']);
                     break;
+                case 'mod':
+                    //  We will handle SR modification events here
+                    $results = array_merge($results, ['executed' => 'SR modification event handled']);
+                    break;
+                case 'del':
+                    //  We will handle SR deletion events here
+                    $results = array_merge($results, ['executed' => 'SR deletion event handled']);
+                    break;
+                default:
+                    Log::info(__METHOD__ . ': Skipped event type ' . $event['operation'] . ' for event ID ' . $this->event->id);
+                    $this->event->forceDelete();
+                    return;
             }
         }
 
@@ -99,5 +105,94 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         ComputeMemberEvents::withoutGlobalScope(AuthorizationScope::class)
             ->where('created_at', '<', now()->subDays(30))
             ->forceDelete();
+    }
+
+    private function messageAddOperation($results = [])
+    {
+        $event = json_decode($this->event->event, true);
+
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('hypervisor_uuid', $event['snapshot']['obj_uuid'])
+            ->withTrashed()
+            ->first();
+
+        switch ($event['snapshot']['name']) {
+            case 'VM_SHUTDOWN':
+                $vm->status = 'halted';
+                $results = array_merge($results, ['executed'  =>  'VM is halted with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
+                break;
+            case 'VM_STARTED':
+                $vm->status = 'running';
+                $results = array_merge($results, ['executed'  =>  'VM is running with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
+                $this->event->is_flagged = true;
+                break;
+            case 'VM_REBOOTED':
+                $vm->status = 'rebooting';
+                $results = array_merge($results, ['executed'  =>  'VM is rebooting with hypervisor_uuid: ' . $event['snapshot']['obj_uuid']]);
+                $this->event->is_flagged = true;
+                break;
+            default:
+                $results = array_merge($results, ['skipped'  =>  'Event type not handled: ' . $event['snapshot']['name']]);
+                Log::info(__METHOD__ . ': Skipped event type ' . $event['snapshot']['name'] . ' for event ID ' . $this->event->id);
+                break;
+        }
+
+        $vm->save();
+
+        return $results;
+    }
+
+    private function vmAddOperation($results = [])
+    {
+
+
+        return [];
+    }
+
+    private function vmModOperation()
+    {
+        $event = json_decode($this->event->event, true);
+
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('hypervisor_uuid', $event['snapshot']['uuid'])
+            ->withTrashed()
+            ->first();
+
+        $vm->update([
+            'status'    =>  $event['snapshot']['power_state'],
+            'ram'       =>  intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024, // Convert from bytes to MB
+            'cpu'       =>  $event['snapshot']['VCPUs_max'],
+            'domain_type'   =>  $event['snapshot']['domain_type'],
+        ]);
+
+        return [];
+    }
+
+    private function vmDelOperation() {
+        $this->event->forceDelete();
+
+        return [];
+    }
+
+    private function srAddOperation()
+    {
+        //  We will handle SR add events here
+        return [];
+    }
+
+    private function srModOperation()
+    {
+        //  We will handle SR modification events here
+        $this->event->forceDelete();
+
+        return [];
+    }
+
+    private function srDelOperation()
+    {
+        //  We will handle SR deletion events here
+        $this->event->forceDelete();
+
+        return [];
     }
 }
