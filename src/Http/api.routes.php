@@ -1331,7 +1331,7 @@ Route::prefix('iaas')->group(
         Route::get('/console/{iaas_virtual_machines}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesConsoleController::class, 'getConsoleData']);
 
         Route::get('/metrics/{uuid}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesMetricsController::class, 'index']);
-        Route::get('/metrics/{uuid}/{metric}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesMetricsController::class, 'index']);
+        Route::get('/metrics/{uuid}/{metric}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesMetricsController::class, 'getMetrics']);
 
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }

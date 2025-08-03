@@ -49,5 +49,7 @@ class VirtualMachinesMetricsController extends AbstractController
         }
 
         $metrics = VirtualMachinesService::getMetrics($vm, $metric);
+
+        return ResponseHelper::data($metrics);
     }
 }

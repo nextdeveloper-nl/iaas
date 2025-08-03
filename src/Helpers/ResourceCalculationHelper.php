@@ -22,21 +22,21 @@ class ResourceCalculationHelper
         if(Str::contains($ram, 'mb')) {
             $ram = str_replace('mb', '', $ram);
             $ram = trim($ram);
-            $ram = int($ram);
+            $ram = intval($ram);
             return $ram / 1024;
         }
 
         if(Str::contains($ram, 'gb')) {
             $ram = str_replace('gb', '', $ram);
             $ram = trim($ram);
-            $ram = int($ram);
+            $ram = intval($ram);
             return $ram;
         }
 
         if(Str::contains($ram, 'tb')) {
             $ram = str_replace('tb', '', $ram);
             $ram = trim($ram);
-            $ram = int($ram);
+            $ram = intval($ram);
             return $ram * 1024;
         }
 

@@ -72,6 +72,22 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             });
         }
 
+        if($metric == 'memory_target' || $metric == 'memory') {
+            $values = $values->map(function ($item) {
+                //  We are converting the memory target to MB
+                $item->value = $item->value / 1024 / 1024;
+                return $item;
+            });
+        }
+
+        if(Str::startsWith($metric, 'vif')) {
+            $values = $values->map(function ($item) {
+                //  We are converting the network traffic to kBits
+                $item->value = $item->value / 1024;
+                return $item;
+            });
+        }
+
         return $values->toArray();
     }
 
