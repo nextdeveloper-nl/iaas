@@ -86,5 +86,11 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         $this->event->results = $results;
         $this->event->is_executed = true;
         $this->event->saveQuietly();
+
+        //  Now we will remove events that are older than 24 hours and is_executed is false
+        ComputeMemberEvents::withoutGlobalScope(AuthorizationScope::class)
+            ->where('is_executed', false)
+            ->where('created_at', '<', now()->subDay())
+            ->forceDelete();
     }
 }
