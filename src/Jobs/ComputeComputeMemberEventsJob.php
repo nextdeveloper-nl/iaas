@@ -163,6 +163,8 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             'domain_type'   =>  $event['snapshot']['domain_type'],
         ]);
 
+        $event->is_flagged = true;
+
         \Log::info(__METHOD__ . ': VM modified with hypervisor_uuid: ' . $event['snapshot']['uuid'] . ' for event ID ' . $this->event->id);
 
         return [];
