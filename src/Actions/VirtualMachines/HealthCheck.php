@@ -56,7 +56,7 @@ class HealthCheck extends AbstractAction
         }
 
         $this->model->status = 'checking-health';
-        $this->model->saveQuietly();
+        $this->model->save();
 
         $this->setProgress(25, 'Checking the environment of the virtual machine.');
         $computeMember = VirtualMachinesService::getComputeMember($this->model);
@@ -101,7 +101,7 @@ class HealthCheck extends AbstractAction
             $this->model->is_lost = true;
             $this->model->status = 'lost';
             $this->model->deleted_at = now();
-            $this->model->saveQuietly();
+            $this->model->save();
 
             Log::info(__METHOD__ . ' | Marked VM as lost: ' . $this->model->name);
 
