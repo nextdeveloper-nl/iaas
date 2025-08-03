@@ -1053,6 +1053,10 @@ physical interfaces and vlans of compute member');
         if(self::deployEventsService($computeMember)) {
             Log::info('[ComputeMembersXenService@checkEventsService] The events service is deployed and running on the compute member: '
                 . $computeMember->name);
+
+            $computeMember->is_event_service_running = true;
+            $computeMember->saveQuietly();
+
             return true;
         }
 

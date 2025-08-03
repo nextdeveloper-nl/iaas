@@ -56,6 +56,7 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property array $tags
+ * @property boolean $is_event_service_running
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
@@ -114,7 +115,8 @@ class ComputeMembers extends Model
         'iam_user_id',
         'tags',
         'free_ram',
-        'events_token'
+        'events_token',
+        'is_event_service_running'
     ];
 
     /**
@@ -172,6 +174,8 @@ class ComputeMembers extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
         'free_ram' => 'integer',
+        'events_token'  =>  'string',
+        'is_event_service_running'  =>  'boolean'
     ];
 
     /**
