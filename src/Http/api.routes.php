@@ -1330,6 +1330,9 @@ Route::prefix('iaas')->group(
         Route::get('/configurations/dhcp-servers/{server}', [\NextDeveloper\IAAS\Http\Controllers\DhcpServers\DhcpServersConfigurationController::class, 'show']);
         Route::get('/console/{iaas_virtual_machines}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesConsoleController::class, 'getConsoleData']);
 
+        Route::get('/metrics/{uuid}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesMetricsController::class, 'index']);
+        Route::get('/metrics/{uuid}/{metric}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesMetricsController::class, 'index']);
+
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );

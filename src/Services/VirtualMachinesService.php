@@ -17,6 +17,7 @@ use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
@@ -44,7 +45,26 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
     public static function getAvailableMetrics(VirtualMachines $vm)
     {
+        $metrics = VirtualMachineMetrics::withoutGlobalScopes()
+            ->select('parameter')
+            ->distinct()
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->pluck('parameter');
 
+        return $metrics;
+    }
+
+    public static function getMetrics(VirtualMachines $vm, $metric)
+    {
+        $values = VirtualMachineMetrics::withoutGlobalScopes()
+            ->select(['value', 'timestamp'])
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->where('parameter', $metric)
+            ->orderBy('created_at', 'desc')
+            ->take(30)
+            ->get();
+
+        return $values->toArray();
     }
 
     public static function getVirtualMachineByHypervisorUuid($uuid) : ?VirtualMachines

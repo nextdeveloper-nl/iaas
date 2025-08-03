@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 class VirtualMachinesMetricsController extends AbstractController
 {
@@ -30,12 +31,23 @@ class VirtualMachinesMetricsController extends AbstractController
     {
         $vm = VirtualMachines::where('uuid', $uuid)->first();
 
-        $availableMetrics = VirtualMachinesService::getAvailableMetrics($vm);
-
-        if(!$console) {
-            return ResponseHelper::error('Virtual machine console is not available at the moment. Please make sure that virtual machine is running. Otherwise please create a support ticket.');
+        if(!$vm) {
+            return ResponseHelper::error('Virtual Machine not found', 404);
         }
 
-        return ResponsableFactory::makeResponse($this, $console);
+        $availableMetrics = VirtualMachinesService::getAvailableMetrics($vm);
+
+        return ResponseHelper::data($availableMetrics);
+    }
+
+    public function getMetrics($uuid, $metric)
+    {
+        $vm = VirtualMachines::where('uuid', $uuid)->first();
+
+        if(!$vm) {
+            return ResponseHelper::error('Virtual Machine not found', 404);
+        }
+
+        $metrics = VirtualMachinesService::getMetrics($vm, $metric);
     }
 }
