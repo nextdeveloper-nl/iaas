@@ -105,7 +105,8 @@ class IAASServiceProvider extends AbstractServiceProvider {
                 \NextDeveloper\IAAS\Console\Commands\RemoveLostServers::class,
                 \NextDeveloper\IAAS\Console\Commands\RemoveDraftServers::class,
                 \NextDeveloper\IAAS\Console\Commands\SyncCloudNode::class,
-                \NextDeveloper\IAAS\Console\Commands\TransferVirtualMachine::class
+                \NextDeveloper\IAAS\Console\Commands\TransferVirtualMachine::class,
+                \NextDeveloper\IAAS\Console\Commands\ComputeMemberServiceCheck::class,
             ]);
         }
     }
