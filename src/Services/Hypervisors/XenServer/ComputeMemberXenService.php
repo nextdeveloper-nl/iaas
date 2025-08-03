@@ -1043,6 +1043,10 @@ physical interfaces and vlans of compute member');
         if(Str::contains($result['output'], 'events.py')) {
             Log::info('[ComputeMembersXenService@checkEventsService] The events service is running on the compute member: '
                 . $computeMember->name);
+
+            $computeMember->is_event_service_running = true;
+            $computeMember->saveQuietly();
+
             return true;
         }
 

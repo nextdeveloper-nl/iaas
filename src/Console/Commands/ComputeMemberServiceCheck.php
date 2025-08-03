@@ -37,14 +37,12 @@ class ComputeMemberServiceCheck extends Command {
         foreach ($computeMembers as $computeMember) {
             Log::info(__METHOD__ . ' | Started service check for compute member: ' . $computeMember->uuid);
 
-            try {
-                $job = new CheckServices($computeMember);
-                $id = $job->getActionId();
+            UserHelper::setAdminAsCurrentUser();
 
-                dispatch($job)->onQueue('iaas-health-check');
-            } catch (\Exception $e) {
-                Log::error(__METHOD__ . " | Having a problem with service check of compute member: " . $computeMember->uuid);
-            }
+            $job = new CheckServices($computeMember);
+            $id = $job->getActionId();
+
+            dispatch($job)->onQueue('iaas-health-check');
         }
     }
 }
