@@ -27,7 +27,7 @@ class CheckServices extends AbstractAction
 
         $this->queue = 'iaas';
 
-        parent::__construct(null, null, true);
+        parent::__construct(null, null);
     }
 
     public function handle()
