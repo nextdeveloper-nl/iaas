@@ -6,7 +6,7 @@ use NextDeveloper\IAAS\Actions\Repositories\SynchronizeMachineImages;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
-class SyncMarketplaceProducts extends Command {
+class SyncRepositoryMachineImages extends Command {
     /**
      * @var string
      */

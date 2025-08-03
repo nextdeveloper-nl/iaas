@@ -115,7 +115,7 @@ class ComputeMembersService extends AbstractComputeMembersService
         if(empty($computeMember->events_token)) {
             //  Generate an event token if it does not exist
             $computeMember->events_token = Str::random(64);
-            $computeMember->saveQuietly();
+            $computeMember->save();
 
             $computeMember = $computeMember->fresh();
         }

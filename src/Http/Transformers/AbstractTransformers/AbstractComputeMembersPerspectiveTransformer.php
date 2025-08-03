@@ -54,43 +54,44 @@ class AbstractComputeMembersPerspectiveTransformer extends AbstractTransformer
      */
     public function transform(ComputeMembersPerspective $model)
     {
-                                                $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
-                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+        $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
+        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
 
         return $this->buildPayload(
             [
-            'id'  =>  $model->uuid,
-            'name'  =>  $model->name,
-            'hostname'  =>  $model->hostname,
-            'ip_addr'  =>  $model->ip_addr,
-            'has_warning'  =>  $model->has_warning,
-            'has_error'  =>  $model->has_error,
-            'ssh_username'  =>  $model->ssh_username,
-            'ssh_password'  =>  $model->ssh_password,
-            'ssh_port'  =>  $model->ssh_port,
-            'total_socket'  =>  $model->total_socket,
-            'total_cpu'  =>  $model->total_cpu,
-            'total_ram'  =>  $model->total_ram,
-            'used_cpu'  =>  $model->used_cpu,
-            'used_ram'  =>  $model->used_ram,
-            'free_cpu'  =>  $model->free_cpu,
-            'running_vm'  =>  $model->running_vm,
-            'halted_vm'  =>  $model->halted_vm,
-            'total_vm'  =>  $model->total_vm,
-            'uptime'  =>  $model->uptime,
-            'idle_time'  =>  $model->idle_time,
-            'benchmark_score'  =>  $model->benchmark_score,
-            'is_in_maintenance'  =>  $model->is_in_maintenance,
-            'is_alive'  =>  $model->is_alive,
-            'compute_pool_name'  =>  $model->compute_pool_name,
-            'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
-            'maintainer'  =>  $model->maintainer,
-            'responsible'  =>  $model->responsible,
-            'states'  =>  $model->states,
-            'tags'  =>  $model->tags,
-            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
-            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+                'id' => $model->uuid,
+                'name' => $model->name,
+                'hostname' => $model->hostname,
+                'ip_addr' => $model->ip_addr,
+                'has_warning' => $model->has_warning,
+                'has_error' => $model->has_error,
+                'ssh_username' => $model->ssh_username,
+                'ssh_password' => $model->ssh_password,
+                'ssh_port' => $model->ssh_port,
+                'total_socket' => $model->total_socket,
+                'total_cpu' => $model->total_cpu,
+                'total_ram' => $model->total_ram,
+                'used_cpu' => $model->used_cpu,
+                'used_ram' => $model->used_ram,
+                'free_cpu' => $model->free_cpu,
+                'running_vm' => $model->running_vm,
+                'halted_vm' => $model->halted_vm,
+                'total_vm' => $model->total_vm,
+                'uptime' => $model->uptime,
+                'idle_time' => $model->idle_time,
+                'benchmark_score' => $model->benchmark_score,
+                'is_in_maintenance' => $model->is_in_maintenance,
+                'is_alive' => $model->is_alive,
+                'compute_pool_name' => $model->compute_pool_name,
+                'iaas_compute_pool_id' => $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
+                'maintainer' => $model->maintainer,
+                'responsible' => $model->responsible,
+                'states' => $model->states,
+                'tags' => $model->tags,
+                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
+                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
+                'is_event_service_running'  =>  $model->is_event_service_running
             ]
         );
     }
@@ -179,8 +180,6 @@ class AbstractComputeMembersPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
 
 
 }
