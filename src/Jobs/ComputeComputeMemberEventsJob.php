@@ -161,7 +161,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         $cpu = $event['snapshot']['VCPUs_max'];
         $domainType = $event['snapshot']['domain_type'];
 
-        if($powerState != $vm->status ||) {
+        if($powerState != $vm->status) {
             $results[] = [
                 'power_state'   =>  'Changed from: ' . $vm->status . ' to ' . $powerState
             ];
