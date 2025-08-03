@@ -161,6 +161,16 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         $cpu = $event['snapshot']['VCPUs_max'];
         $domainType = $event['snapshot']['domain_type'];
 
+        $currentOperation = $event['snapshot']['current_operations'];
+
+        if($currentOperation) {
+            switch($currentOperation[array_keys($currentOperation)[0]]) {
+                case 'clean_reboot':
+                    $powerState = 'rebooting';
+                    break;
+            }
+        }
+
         if($powerState != $vm->status) {
             $results[] = [
                 'power_state'   =>  'Changed from: ' . $vm->status . ' to ' . $powerState
