@@ -64,6 +64,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->take(30)
             ->get();
 
+        if(Str::contains($metric, 'cpu')) {
+            $values = $values->map(function ($item) {
+                //  We are converting the CPU percentage to a number between 0 and 1
+                $item->value = $item->value * 100;
+                return $item;
+            });
+        }
+
         return $values->toArray();
     }
 
