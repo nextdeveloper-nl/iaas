@@ -40,6 +40,28 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
         UserHelper::setAdminAsCurrentUser();
 
+        //  We dont need to update ISO SR events
+        if($event['class'] == 'sr' && $event['operation'] == 'mod') {
+            if($event['snapshot']['type'] == 'iso') {
+                $this->event->forceDelete();
+                return;
+            }
+        }
+
+        //  We dont need to compute DEL => Delete events
+        if($event['operation'] == 'del') {
+            $this->event->forceDelete();
+            return;
+        }
+
+        //  We dont need SR.scan events, therefore we can delete
+        if(array_key_exists('name_label', $event['snapshot'])) {
+            if($event['snapshot']['name_label'] == 'SR.scan') {
+                $this->event->forceDelete();
+                return;
+            }
+        }
+
         if(!array_key_exists('name', $event['snapshot'])) {
             $results = array_merge($results, ['error' => 'Event snapshot does not contain a name']);
         } else {
