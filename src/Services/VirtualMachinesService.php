@@ -3,6 +3,8 @@
 namespace NextDeveloper\IAAS\Services;
 
 use App\Helpers\Http\ResponseHelper;
+use DateTime;
+use DateTimeZone;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -150,11 +152,15 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function convertToApexChartData($rawData) {
         $result = [];
+        $timezone = new DateTimeZone('Europe/Istanbul');
 
         foreach ($rawData as $cpu => $points) {
-            $series = array_map(function ($p) {
+            $series = array_map(function ($p) use ($timezone) {
+                $dt = new DateTime('@' . $p['timestamp']);
+                $dt->setTimezone($timezone);
+
                 return [
-                    'x' => gmdate('c', $p['timestamp']), // ISO 8601 in UTC
+                    'x' => $dt->format('c'), // ISO 8601 in UTC
                     'y' => round($p['value'], 2)
                 ];
             }, array_reverse($points)); // Reverse to oldest-to-newest
