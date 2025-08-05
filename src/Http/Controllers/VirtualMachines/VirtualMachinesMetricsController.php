@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
 class VirtualMachinesMetricsController extends AbstractController

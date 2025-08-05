@@ -56,6 +56,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function getMetrics(VirtualMachines $vm, $metric)
     {
+        if($metric == 'cpu')
+            return self::getCpuMetrics($vm);
+
         $values = VirtualMachineMetrics::withoutGlobalScopes()
             ->select(['value', 'timestamp'])
             ->where('iaas_virtual_machine_id', $vm->id)
@@ -90,6 +93,56 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
         return $values->toArray();
     }
+
+    public static function getCpuMetrics(VirtualMachines $vm)
+    {
+        $cpuCount = $vm->cpu;
+        $availableCpus = range(0, $cpuCount - 1);
+
+        foreach ($availableCpus as &$cpu) {
+            $cpu = 'cpu' . $cpu;
+        }
+
+        $values = VirtualMachineMetrics::withoutGlobalScopes()
+            ->select(['parameter', 'value', 'timestamp'])
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->whereIn('parameter', $availableCpus)
+            ->orderBy('created_at', 'desc')
+            ->take($cpuCount*30) //  We are taking 30 values for each CPU
+            ->get();
+
+        $cpuSeries = [];
+
+        foreach ($values as $value) {
+            $cpuSeries[$value->parameter][] = [
+                'timestamp' => $value->timestamp->timestamp,
+                'value'     => $value->value * 100 //  We are converting the CPU percentage to a number between 0 and 1
+            ];
+        }
+
+        return self::convertToApexChartData($cpuSeries);
+    }
+
+    public static function convertToApexChartData($rawData) {
+        $result = [];
+
+        foreach ($rawData as $cpu => $points) {
+            $series = array_map(function ($p) {
+                return [
+                    'x' => gmdate('c', $p['timestamp']), // ISO 8601 in UTC
+                    'y' => round($p['value'], 2)
+                ];
+            }, array_reverse($points)); // Reverse to oldest-to-newest
+
+            $result[] = [
+                'name' => $cpu,
+                'data' => $series
+            ];
+        }
+
+        return $result;
+    }
+
 
     public static function getVirtualMachineByHypervisorUuid($uuid) : ?VirtualMachines
     {
