@@ -59,6 +59,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         if($metric == 'cpu')
             return self::getCpuMetrics($vm);
 
+        if($metric == 'ram')
+            return self::getRamMetrics($vm);
+
         $values = VirtualMachineMetrics::withoutGlobalScopes()
             ->select(['value', 'timestamp'])
             ->where('iaas_virtual_machine_id', $vm->id)
@@ -92,6 +95,28 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         return $values->toArray();
+    }
+
+    public static function getRamMetrics(VirtualMachines $vm)
+    {
+        $values = VirtualMachineMetrics::withoutGlobalScopes()
+            ->select(['parameter', 'value', 'timestamp'])
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->whereIn('parameter', ['memory', 'memory_target'])
+            ->orderBy('created_at', 'desc')
+            ->take(30) //  We are taking 30 values for each CPU
+            ->get();
+
+        $ramSeries = [];
+
+        foreach ($values as $value) {
+            $ramSeries[$value->parameter][] = [
+                'timestamp' => $value->timestamp->timestamp,
+                'value'     => $value->value * 100 //  We are converting the CPU percentage to a number between 0 and 1
+            ];
+        }
+
+        return self::convertToApexChartData($ramSeries);
     }
 
     public static function getCpuMetrics(VirtualMachines $vm)
