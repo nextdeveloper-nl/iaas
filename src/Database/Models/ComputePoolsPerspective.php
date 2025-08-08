@@ -34,6 +34,7 @@ use NextDeveloper\IAAS\Database\Observers\ComputePoolsPerspectiveObserver;
  * @property string $responsible
  * @property array $tags
  * @property string $pool_type
+ * @property boolean $is_iso27001_enabled
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
@@ -75,6 +76,7 @@ class ComputePoolsPerspective extends Model
             'pool_type',
             'iam_account_id',
             'iam_user_id',
+        'is_iso27001_enabled',
     ];
 
     /**

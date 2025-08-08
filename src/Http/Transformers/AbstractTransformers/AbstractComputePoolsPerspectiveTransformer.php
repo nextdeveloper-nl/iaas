@@ -54,34 +54,35 @@ class AbstractComputePoolsPerspectiveTransformer extends AbstractTransformer
      */
     public function transform(ComputePoolsPerspective $model)
     {
-                                                $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
 
         return $this->buildPayload(
             [
-            'id'  =>  $model->uuid,
-            'name'  =>  $model->name,
-            'virtualization'  =>  $model->virtualization,
-            'resource_validator'  =>  $model->resource_validator,
-            'is_active'  =>  $model->is_active,
-            'price_pergb'  =>  $model->price_pergb,
-            'currency'  =>  $model->currency,
-            'total_ram_in_pool'  =>  $model->total_ram_in_pool,
-            'total_cpu_in_pool'  =>  $model->total_cpu_in_pool,
-            'used_ram_in_pool'  =>  $model->used_ram_in_pool,
-            'used_cpu_in_pool'  =>  $model->used_cpu_in_pool,
-            'total_vm_in_pool'  =>  $model->total_vm_in_pool,
-            'running_ram_in_pool'  =>  $model->running_ram_in_pool,
-            'halted_ram_in_pool'  =>  $model->halted_ram_in_pool,
-            'maintainer'  =>  $model->maintainer,
-            'responsible'  =>  $model->responsible,
-            'tags'  =>  $model->tags,
-            'pool_type'  =>  $model->pool_type,
-            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
-            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
-            'created_at'  =>  $model->created_at,
-            'updated_at'  =>  $model->updated_at,
-            'deleted_at'  =>  $model->deleted_at,
+                'id' => $model->uuid,
+                'name' => $model->name,
+                'virtualization' => $model->virtualization,
+                'resource_validator' => $model->resource_validator,
+                'is_active' => $model->is_active,
+                'price_pergb' => $model->price_pergb,
+                'currency' => $model->currency,
+                'total_ram_in_pool' => $model->total_ram_in_pool,
+                'total_cpu_in_pool' => $model->total_cpu_in_pool,
+                'used_ram_in_pool' => $model->used_ram_in_pool,
+                'used_cpu_in_pool' => $model->used_cpu_in_pool,
+                'total_vm_in_pool' => $model->total_vm_in_pool,
+                'running_ram_in_pool' => $model->running_ram_in_pool,
+                'halted_ram_in_pool' => $model->halted_ram_in_pool,
+                'maintainer' => $model->maintainer,
+                'responsible' => $model->responsible,
+                'tags' => $model->tags,
+                'pool_type' => $model->pool_type,
+                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
+                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
+                'is_iso27001_enabled' => $model->is_iso27001_enabled,
+                'created_at' => $model->created_at,
+                'updated_at' => $model->updated_at,
+                'deleted_at' => $model->deleted_at,
             ]
         );
     }
@@ -170,8 +171,6 @@ class AbstractComputePoolsPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
 
 
 }

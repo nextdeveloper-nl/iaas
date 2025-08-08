@@ -59,6 +59,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
         $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
         $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
         $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+        $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
 
         return $this->buildPayload(
             [
@@ -97,6 +98,8 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
                 'is_snapshot' => $model->is_snapshot,
                 'auto_backup_interval' => $model->auto_backup_interval,
                 'auto_backup_time' => $model->auto_backup_time,
+                'compute_member_name' => $model->compute_member_name,
+                'iaas_compute_member_id' => $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
                 'maintainer' => $model->maintainer,
                 'responsible' => $model->responsible,
                 'iaas_compute_pool_id' => $iaasComputePoolId ? $iaasComputePoolId->uuid : null,

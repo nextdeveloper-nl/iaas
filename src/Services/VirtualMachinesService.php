@@ -628,6 +628,49 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         dispatch(new Delete($vm));
     }
 
+    public static function getPerformanceSnapshot($vm)
+    {
+        $cpuCount = $vm->cpu;
+
+        $cpus = range(0, $cpuCount - 1);
+        foreach ($cpus as &$cpu) {
+            $cpu = 'cpu' . $cpu;
+        }
+
+        $cpuLoad = VirtualMachineMetrics::withoutGlobalScopes()
+            ->select(['parameter', 'value', 'timestamp'])
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->whereIn('parameter', $cpus)
+            ->orderBy('created_at', 'desc')
+            ->take($cpuCount * 1) //  We are taking 60 values for each CPU
+            ->get()
+            ->toArray();
+
+        $averageCpu = array_sum(array_column($cpuLoad, 'value')) / count($cpuLoad) * 100; //  Convert to percentage
+
+        $ramLoad = VirtualMachineMetrics::withoutGlobalScopes()
+            ->select(['parameter', 'value', 'timestamp'])
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->where('parameter', 'memory')
+            ->orderBy('created_at', 'desc')
+            ->take(1) //  We are taking the latest value
+            ->get()
+            ->toArray();
+
+        $averageRam = $ramLoad[0]['value'] / 1024 / 1024; // Convert to MB
+
+        $vdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->where('device_number', 0)
+            ->first();
+
+        return [
+            'average_cpu' => round($averageCpu, 2),
+            'average_ram' => round($averageRam, 2),
+            'disk_utilisation' => $vdi ? round($vdi->physical_utilisation / $vdi->size * 100, 0) : 100,
+        ];
+    }
+
     public static function getMetadata(VirtualMachines $vm = null) : array
     {
         if(!$vm) {

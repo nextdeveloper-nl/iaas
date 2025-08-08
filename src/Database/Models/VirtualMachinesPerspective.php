@@ -52,6 +52,8 @@ use NextDeveloper\IAAS\Database\Observers\VirtualMachinesPerspectiveObserver;
  * @property string $auto_backup_time
  * @property string $maintainer
  * @property string $responsible
+ * @property integer $iaas_compute_member_id
+ * @property string $compute_member_name
  * @property integer $iaas_compute_pool_id
  * @property integer $snapshot_of_virtual_machine
  * @property integer $iam_account_id
@@ -71,140 +73,142 @@ class VirtualMachinesPerspective extends Model
 
 
     /**
-     @var array
+     * @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-            'name',
-            'description',
-            'hostname',
-            'username',
-            'os',
-            'distro',
-            'version',
-            'domain_type',
-            'status',
-            'cpu',
-            'ram',
-            'last_metadata_request',
-            'iaas_cloud_node_id',
-            'cloud_node',
-            'common_domain_id',
-            'domain',
-            'disk_count',
-            'network_card_count',
-            'has_warnings',
-            'has_errors',
-            'number_of_disks',
-            'total_disk_size',
-            'network',
-            'ip_addr',
-            'states',
-            'tags',
-            'is_template',
-            'is_draft',
-            'is_lost',
-            'is_locked',
-            'is_snapshot',
-            'auto_backup_interval',
-            'auto_backup_time',
-            'maintainer',
-            'responsible',
-            'iaas_compute_pool_id',
-            'snapshot_of_virtual_machine',
-            'iam_account_id',
-            'iam_user_id',
+        'name',
+        'description',
+        'hostname',
+        'username',
+        'os',
+        'distro',
+        'version',
+        'domain_type',
+        'status',
+        'cpu',
+        'ram',
+        'last_metadata_request',
+        'iaas_cloud_node_id',
+        'cloud_node',
+        'common_domain_id',
+        'domain',
+        'disk_count',
+        'network_card_count',
+        'has_warnings',
+        'has_errors',
+        'number_of_disks',
+        'total_disk_size',
+        'network',
+        'ip_addr',
+        'states',
+        'tags',
+        'is_template',
+        'is_draft',
+        'is_lost',
+        'is_locked',
+        'is_snapshot',
+        'iaas_compute_member_id',
+        'compute_member_name',
+        'auto_backup_interval',
+        'auto_backup_time',
+        'maintainer',
+        'responsible',
+        'iaas_compute_pool_id',
+        'snapshot_of_virtual_machine',
+        'iam_account_id',
+        'iam_user_id',
     ];
 
     /**
-      Here we have the fulltext fields. We can use these for fulltext search if enabled.
+     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     We are casting fields to objects so that we can work on them better
+     * We are casting fields to objects so that we can work on them better
      *
-     @var array
+     * @var array
      */
     protected $casts = [
-    'id' => 'integer',
-    'name' => 'string',
-    'description' => 'string',
-    'hostname' => 'string',
-    'username' => 'string',
-    'os' => 'string',
-    'distro' => 'string',
-    'version' => 'string',
-    'domain_type' => 'string',
-    'status' => 'string',
-    'cpu' => 'integer',
-    'ram' => 'integer',
-    'last_metadata_request' => 'datetime',
-    'iaas_cloud_node_id' => 'integer',
-    'cloud_node' => 'string',
-    'common_domain_id' => 'integer',
-    'domain' => 'string',
-    'disk_count' => 'integer',
-    'network_card_count' => 'integer',
-    'has_warnings' => 'integer',
-    'has_errors' => 'integer',
-    'number_of_disks' => 'integer',
-    'total_disk_size' => 'integer',
-    'network' => 'string',
-    'states' => 'array',
-    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
-    'is_template' => 'boolean',
-    'is_draft' => 'boolean',
-    'is_lost' => 'boolean',
-    'is_locked' => 'boolean',
-    'is_snapshot' => 'boolean',
-    'auto_backup_interval' => 'string',
-    'auto_backup_time' => 'string',
-    'maintainer' => 'string',
-    'responsible' => 'string',
-    'iaas_compute_pool_id' => 'integer',
-    'snapshot_of_virtual_machine' => 'integer',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
+        'id' => 'integer',
+        'name' => 'string',
+        'description' => 'string',
+        'hostname' => 'string',
+        'username' => 'string',
+        'os' => 'string',
+        'distro' => 'string',
+        'version' => 'string',
+        'domain_type' => 'string',
+        'status' => 'string',
+        'cpu' => 'integer',
+        'ram' => 'integer',
+        'last_metadata_request' => 'datetime',
+        'iaas_cloud_node_id' => 'integer',
+        'cloud_node' => 'string',
+        'common_domain_id' => 'integer',
+        'domain' => 'string',
+        'disk_count' => 'integer',
+        'network_card_count' => 'integer',
+        'has_warnings' => 'integer',
+        'has_errors' => 'integer',
+        'number_of_disks' => 'integer',
+        'total_disk_size' => 'integer',
+        'network' => 'string',
+        'states' => 'array',
+        'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+        'is_template' => 'boolean',
+        'is_draft' => 'boolean',
+        'is_lost' => 'boolean',
+        'is_locked' => 'boolean',
+        'is_snapshot' => 'boolean',
+        'auto_backup_interval' => 'string',
+        'auto_backup_time' => 'string',
+        'maintainer' => 'string',
+        'responsible' => 'string',
+        'iaas_compute_pool_id' => 'integer',
+        'snapshot_of_virtual_machine' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
-     We are casting data fields.
+     * We are casting data fields.
      *
-     @var array
+     * @var array
      */
     protected $dates = [
-    'last_metadata_request',
-    'created_at',
-    'updated_at',
-    'deleted_at',
+        'last_metadata_request',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $with = [
 
     ];
 
     /**
-     @var int
+     * @var int
      */
     protected $perPage = 20;
 
     /**
-     @return void
+     * @return void
      */
     public static function boot()
     {
@@ -221,9 +225,11 @@ class VirtualMachinesPerspective extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_virtual_machines_perspective');
 
-        if(!$modelScopes) { $modelScopes = [];
+        if (!$modelScopes) {
+            $modelScopes = [];
         }
-        if (!$globalScopes) { $globalScopes = [];
+        if (!$globalScopes) {
+            $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -231,7 +237,7 @@ class VirtualMachinesPerspective extends Model
             $modelScopes
         );
 
-        if($scopes) {
+        if ($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
@@ -239,17 +245,6 @@ class VirtualMachinesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

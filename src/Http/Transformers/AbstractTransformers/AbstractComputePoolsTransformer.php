@@ -54,39 +54,40 @@ class AbstractComputePoolsTransformer extends AbstractTransformer
      */
     public function transform(ComputePools $model)
     {
-                                                $iaasDatacenterId = \NextDeveloper\IAAS\Database\Models\Datacenters::where('id', $model->iaas_datacenter_id)->first();
-                                                            $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
-                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                                                            $commonCurrencyId = \NextDeveloper\Commons\Database\Models\Currencies::where('id', $model->common_currency_id)->first();
+        $iaasDatacenterId = \NextDeveloper\IAAS\Database\Models\Datacenters::where('id', $model->iaas_datacenter_id)->first();
+        $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
+        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+        $commonCurrencyId = \NextDeveloper\Commons\Database\Models\Currencies::where('id', $model->common_currency_id)->first();
 
         return $this->buildPayload(
             [
-            'id'  =>  $model->uuid,
-            'name'  =>  $model->name,
-            'resource_validator'  =>  $model->resource_validator,
-            'pool_data'  =>  $model->pool_data,
-            'virtualization'  =>  $model->virtualization,
-            'provisioning_alg'  =>  $model->provisioning_alg,
-            'is_active'  =>  $model->is_active,
-            'is_alive'  =>  $model->is_alive,
-            'is_public'  =>  $model->is_public,
-            'iaas_datacenter_id'  =>  $iaasDatacenterId ? $iaasDatacenterId->uuid : null,
-            'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
-            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
-            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
-            'tags'  =>  $model->tags,
-            'price_pergb'  =>  $model->price_pergb,
-            'common_currency_id'  =>  $commonCurrencyId ? $commonCurrencyId->uuid : null,
-            'created_at'  =>  $model->created_at,
-            'updated_at'  =>  $model->updated_at,
-            'deleted_at'  =>  $model->deleted_at,
-            'pool_type'  =>  $model->pool_type,
-            'total_cpu'  =>  $model->total_cpu,
-            'total_ram'  =>  $model->total_ram,
-            'price_pergb_month'  =>  $model->price_pergb_month,
-            'disk_ram_ratio'  =>  $model->disk_ram_ratio,
-            'code_name'  =>  $model->code_name,
+                'id' => $model->uuid,
+                'name' => $model->name,
+                'resource_validator' => $model->resource_validator,
+                'pool_data' => $model->pool_data,
+                'virtualization' => $model->virtualization,
+                'provisioning_alg' => $model->provisioning_alg,
+                'is_active' => $model->is_active,
+                'is_alive' => $model->is_alive,
+                'is_public' => $model->is_public,
+                'iaas_datacenter_id' => $iaasDatacenterId ? $iaasDatacenterId->uuid : null,
+                'iaas_cloud_node_id' => $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
+                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
+                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
+                'tags' => $model->tags,
+                'price_pergb' => $model->price_pergb,
+                'common_currency_id' => $commonCurrencyId ? $commonCurrencyId->uuid : null,
+                'created_at' => $model->created_at,
+                'updated_at' => $model->updated_at,
+                'deleted_at' => $model->deleted_at,
+                'pool_type' => $model->pool_type,
+                'total_cpu' => $model->total_cpu,
+                'total_ram' => $model->total_ram,
+                'price_pergb_month' => $model->price_pergb_month,
+                'disk_ram_ratio' => $model->disk_ram_ratio,
+                'code_name' => $model->code_name,
+                'is_iso27001_enabled' => $model->is_iso27001_enabled,
             ]
         );
     }
@@ -175,8 +176,6 @@ class AbstractComputePoolsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
 
 
 }

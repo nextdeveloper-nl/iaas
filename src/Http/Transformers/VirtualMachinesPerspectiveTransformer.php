@@ -9,6 +9,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMachinesPerspectiveTransformer;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * Class VirtualMachinesPerspectiveTransformer. This class is being used to manipulate the data we are serving to the customer
@@ -37,6 +38,11 @@ class VirtualMachinesPerspectiveTransformer extends AbstractVirtualMachinesPersp
         );
 
         if($transformed) {
+            if(!UserHelper::hasRole('datacenter-admin')) {
+                unset($transformed['iaas_compute_member_id']);
+                unset($transformed['compute_member_name']);
+            }
+
             return $transformed;
         }
 

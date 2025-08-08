@@ -237,7 +237,15 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
+        $computePool = VirtualMachinesService::getComputePool($vm);
+
         $command = 'xe vm-param-set name-label="' . $vm->uuid . '" uuid=' . $vm->hypervisor_uuid;
+
+        //  If the iso27001 is not enabled, we can set the name-label to the VM name
+        //  Otherwise, we need to set the name-label to the VM uuid
+        if(!$computePool->is_iso27001_enabled)
+            $command = 'xe vm-param-set name-label="' . $vm->name . '" uuid=' . $vm->hypervisor_uuid;
+
         $result = self::performCommand($command, $computeMember);
 
         StateHelper::setState($vm, 'name', 'fixed');
