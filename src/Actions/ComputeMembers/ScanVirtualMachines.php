@@ -190,7 +190,6 @@ class ScanVirtualMachines extends AbstractAction
 
                     if(!$diskVolume) {
                         //  This means that there is a volume but we cannot find it. We need to make sync of this Volume
-
                     }
                 }
 
@@ -295,6 +294,7 @@ class ScanVirtualMachines extends AbstractAction
                     'iam_account_id'    => $dbVm->iam_account_id,
                     'iam_user_id'       => $dbVm->iam_user_id,
                     'is_draft'          => false,
+                    'status'            => 'attached:true',
                     'iaas_virtual_machine_id'   =>  $dbVm->id
                 ];
 
