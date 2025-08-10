@@ -18,6 +18,7 @@ use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -602,9 +603,21 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 $vm->update([
                     'username' => 'root'
                 ]);
+            } elseif($vm->os == 'application') {
+                $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('id', $vm->iaas_repository_image_id)
+                    ->first();
+
+                $vm->update([
+                    'username' => $repoImage->default_username ?? 'root'
+                ]);
             } else {
-                //  If we don't know the OS, we will set the username to root
+                //  If the OS is not known, we are setting the username to root
                 Log::warning('The OS is not known, setting username to root');
+
+                $vm->update([
+                    'username' => 'root'
+                ]);
             }
         }
 

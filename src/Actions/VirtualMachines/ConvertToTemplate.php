@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -13,6 +14,7 @@ use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -46,7 +48,11 @@ class ConvertToTemplate extends AbstractAction
 
         parent::__construct($params);
 
-        $this->repository = Repositories::where('uuid', $params['iaas_repository_id'])->first();
+        $cloudNode = VirtualMachinesService::getCloudPool($vm);
+
+        $this->repository = Repositories::where('iaas_cloud_node_id', $cloudNode->id)
+            ->where('is_backup_repository', false)
+            ->first();
 
         if($this->repository->is_public == false && $this->repository->iam_account_id != UserHelper::currentAccount()->id)
             throw new NotAllowedException('This repository is not public nor its yours. That is why' .

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Ansible VM Setup Script on Boot
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/plusclouds.sh
+Type=oneshot
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
