@@ -58,7 +58,7 @@ class Delete extends AbstractAction
             VirtualMachinesXenService::forceShutdown($this->model);
             VirtualMachinesXenService::destroyVm($this->model);
 
-            VirtualMachinesService::delete($this->model->uuid);
+            //VirtualMachinesService::delete($this->model->uuid);
 
             $this->model->delete();
         } catch (\Exception $e) {

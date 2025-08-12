@@ -775,6 +775,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             'virtual_network_cards' => $vifConfiguration,
             'service_roles' => [
                 //  Here will be roles of the server
+                'zabbix_server' => [
+                    'is_zabbix_enabled' => true,
+                    'zabbix_server_ip'  => '185.255.172.221'
+                ],
             ],
             'compute_pool' => $computePoolArray,
             'cloud_node' => $cloudPoolArray,

@@ -197,7 +197,7 @@ class VirtualMachinesXenService extends AbstractXenService
             ->first();
 
         if(config('leo.debug.iaas.compute_members'))
-            Log::info('[VirtualMachinesXenService@cloneVm] I am deleting the' .
+            Log::info('[VirtualMachinesXenService@destroyVm] I am deleting the' .
                 ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
