@@ -33,16 +33,22 @@ class VirtualMachinesPerspectiveTransformer extends AbstractVirtualMachinesPersp
      */
     public function transform(VirtualMachinesPerspective $model)
     {
+        // If the user is datacenter-admin, we do not cache the transformed data
+        // because the data may change frequently and we want to ensure that the admin
+        // always sees the most up-to-date information.
+        // This is to prevent stale data issues for admins who need real-time access to the data
+        // and to avoid unnecessary complexity in cache management.
+        if(UserHelper::hasRole('datacenter-admin')) {
+            return parent::transform($model);
+        }
+
+        // Continue with caching logic for non-admin users
+
         $transformed = Cache::get(
             CacheHelper::getKey('VirtualMachinesPerspective', $model->uuid, 'Transformed')
         );
 
         if($transformed) {
-            if(!UserHelper::hasRole('datacenter-admin')) {
-                unset($transformed['iaas_compute_member_id']);
-                unset($transformed['compute_member_name']);
-            }
-
             return $transformed;
         }
 
