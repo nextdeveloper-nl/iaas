@@ -49,6 +49,9 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
             $vm = VirtualMachines::where('id', $data['iaas_virtual_machine_id'])->first();
 
         if(!$vm) {
+            // @todo: We need to take a look at this part again because it seems like not logical.
+            // Why we are trying to find the virtual machine without AuthorizationScope?
+
             //  If we still cannot find the virtual machine, this means that either this machine is deleted in the database
             //  or the virtual machine is not owned by the executer
             if(Str::isUuid($data['iaas_virtual_machine_id'])) {
@@ -75,6 +78,12 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
         }
 
         $vifs = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
+
+        foreach ($vifs as $vif) {
+            if($vif->mac_addr === $data['mac_addr'] && $vif->iaas_virtual_machine_id === $vm->id) {
+                return $vif;
+            }
+        }
 
         //  We need to create a unique device number for the new VIF
         $data['device_number']  =  count($vifs);
