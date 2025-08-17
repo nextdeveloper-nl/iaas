@@ -18,6 +18,7 @@ use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics;
@@ -431,6 +432,16 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             $data['cpu']    = ResourceCalculationHelper::getCpuPerRam($data['ram'], $cp);
             $data['ram']    = ResourceCalculationHelper::getRamInMb($data['ram']);
             $data['status'] = 'pending-update';
+        }
+
+        if(array_key_exists('backup_repository_id', $data)) {
+            $repository = Repositories::withoutGlobalScope(AuthorizationScope::class)
+                ->where('uuid', $data['backup_repository_id'])
+                ->first();
+
+            if($repository) {
+                $data['backup_repository_id'] = $repository->id;
+            }
         }
 
         $updatedVm = parent::update($id, $data);

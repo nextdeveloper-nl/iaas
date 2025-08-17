@@ -98,6 +98,8 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
                 'is_snapshot' => $model->is_snapshot,
                 'auto_backup_interval' => $model->auto_backup_interval,
                 'auto_backup_time' => $model->auto_backup_time,
+                'backup_repository_id'  => $model->backup_repository_id,
+                'backup_repository_name' => $model->backup_repository_name,
                 'compute_member_name' => $model->compute_member_name,
                 'iaas_compute_member_id' => $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
                 'maintainer' => $model->maintainer,
