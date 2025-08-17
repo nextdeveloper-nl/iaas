@@ -298,6 +298,8 @@ class Commit extends AbstractAction
 
         $storageVolume = null;
 
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 1 . '] | Found the best compute member: ' . $computeMember->name);
+
         $this->setProgress($step + 2, 'Finding the best storage volume for your virtual machine.');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 2 . '] | Finding the best storage volume for your virtual machine.');
 
