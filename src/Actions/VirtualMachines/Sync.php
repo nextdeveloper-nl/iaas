@@ -112,7 +112,7 @@ class Sync extends AbstractAction
 
             $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
                 ->where('hypervisor_uuid', $vif['uuid'])
-                ->trashed()
+                ->withTrashed()
                 ->first();
 
             if($dbVif->isTrashed()) {
