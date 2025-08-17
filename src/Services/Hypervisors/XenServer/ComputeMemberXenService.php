@@ -952,6 +952,9 @@ physical interfaces and vlans of compute member');
         $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
         $command .= ' sr-uuid='.$volume->hypervisor_uuid;
 
+        Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
+            'command: ' . $command);
+
         $result = self::performCommand($command, $computeMember);
 
         return $result['output'];
