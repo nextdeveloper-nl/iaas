@@ -88,6 +88,8 @@ class Sync extends AbstractAction
             'hypervisor_data'   =>  $params
         ]);
 
+        $this->syncXenVifs();
+
         Events::fire('synced:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         $this->setProgress(100, 'Virtual machine synced');
