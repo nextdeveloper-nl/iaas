@@ -115,7 +115,7 @@ class Sync extends AbstractAction
                 ->withTrashed()
                 ->first();
 
-            if($dbVif->isTrashed()) {
+            if($dbVif->trashed()) {
                 //  If the VIF is trashed, we should restore it
                 $dbVif->restore();
             }
