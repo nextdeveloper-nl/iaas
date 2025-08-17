@@ -54,26 +54,30 @@ class AbstractStoragePoolsPerspectiveTransformer extends AbstractTransformer
      */
     public function transform(StoragePoolsPerspective $model)
     {
-                                                $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
 
         return $this->buildPayload(
             [
-            'id'  =>  $model->uuid,
-            'name'  =>  $model->name,
-            'price_pergb'  =>  $model->price_pergb,
-            'is_active'  =>  $model->is_active,
-            'currency'  =>  $model->currency,
-            'datacenter'  =>  $model->datacenter,
-            'cloud_node'  =>  $model->cloud_node,
-            'tags'  =>  $model->tags,
-            'maintainer'  =>  $model->maintainer,
-            'responsible'  =>  $model->responsible,
-            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
-            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
-            'created_at'  =>  $model->created_at,
-            'updated_at'  =>  $model->updated_at,
-            'deleted_at'  =>  $model->deleted_at,
+                'id' => $model->uuid,
+                'name' => $model->name,
+                'price_pergb' => $model->price_pergb,
+                'is_active' => $model->is_active,
+                'currency' => $model->currency,
+                'datacenter' => $model->datacenter,
+                'cloud_node' => $model->cloud_node,
+                'tags' => $model->tags,
+                'total_hdd' => $model->total_hdd,
+                'used_hdd' => $model->used_hdd,
+                'free_hdd' => $model->free_hdd,
+                'virtual_allocation' => $model->virtual_allocation,
+                'maintainer' => $model->maintainer,
+                'responsible' => $model->responsible,
+                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
+                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
+                'created_at' => $model->created_at,
+                'updated_at' => $model->updated_at,
+                'deleted_at' => $model->deleted_at,
             ]
         );
     }
@@ -162,8 +166,6 @@ class AbstractStoragePoolsPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
 
 
 }
