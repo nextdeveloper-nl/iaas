@@ -769,6 +769,15 @@ physical interfaces and vlans of compute member');
         return true;
     }
 
+    public static function getStorageVolumeInformationByHypervisorUuid($computeMember, $uuid) : ?array
+    {
+        $command = 'xe sr-param-list uuid=' . $uuid;
+        $result = self::performCommand($command, $computeMember);
+        $result = self::parseResult($result['output']);
+
+        return $result;
+    }
+
     public static function getStorageVolumeByHypervisorUuid($uuid) : ? ComputeMemberStorageVolumes
     {
         return ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)

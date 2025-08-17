@@ -136,5 +136,13 @@ class Scan extends AbstractAction
                 $dbDisk->updateQuietly($data);
             }
         }
+
+        $volumeInfo = ComputeMemberXenService::getStorageVolumeInformationByHypervisorUuid($computeMember, $this->model->hypervisor_uuid);
+
+        $this->model->update([
+            'total_hdd'         =>  ceil($volumeInfo['physical-size'] / 1000 / 1000 / 1000),
+            'used_hdd'          =>  ceil($volumeInfo['physical-utilisation'] / 1000 / 1000 / 1000),
+            'virtual_allocation' =>  ceil($volumeInfo['virtual-allocation'] / 1000 / 1000 / 1000),
+        ]);
     }
 }
