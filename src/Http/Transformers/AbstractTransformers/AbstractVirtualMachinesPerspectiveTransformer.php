@@ -52,7 +52,6 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
      *
      * @return array
      */
-    public function transform(VirtualMachinesPerspective $model)
     {
         $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
         $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();

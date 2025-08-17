@@ -54,6 +54,9 @@ class VirtualMachinesPerspectiveTransformer extends AbstractVirtualMachinesPersp
 
         $transformed = parent::transform($model);
 
+        unset($transformed['compute_member_name']);
+        unset($transformed['iaas_compute_member_id']);
+
         Cache::set(
             CacheHelper::getKey('VirtualMachinesPerspective', $model->uuid, 'Transformed'),
             $transformed
