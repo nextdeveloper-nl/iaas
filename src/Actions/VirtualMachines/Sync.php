@@ -138,7 +138,7 @@ class Sync extends AbstractAction
 
             $network = Networks::withoutGlobalScope(AuthorizationScope::class)
                 ->where('vlan', $connectedInterface->vlan)
-                ->where('iaas_cloud_node_id', (VirtualMachinesService::getCloudPool($this->model))->iaas_cloud_node_id)
+                ->where('iaas_cloud_node_id', (VirtualMachinesService::getCloudPool($this->model))->id)
                 ->first();
 
             if(!$network) {

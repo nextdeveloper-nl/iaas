@@ -14,7 +14,7 @@ class SyncVirtualMachine extends Command {
     /**
      * @var string
      */
-    protected $signature = 'leo:sync-virtual-machine {--uuid=}';
+    protected $signature = 'leo:sync-virtual-machine {--uuid=} {--fg=}';
 
     /**
      * @var string
@@ -62,7 +62,11 @@ class SyncVirtualMachine extends Command {
                 $job = new Sync($vm);
                 $id = $job->getActionId();
 
-                dispatch($job)->onQueue('iaas-misc');
+                if($this->option('fg')) {
+                    $job->handle();
+                } else {
+                    dispatch($job)->onQueue('iaas-misc');
+                }
             } catch (\Exception $e) {
                 Log::error(__METHOD__ . " | Having a problem with sync of vm: " . $vm->uuid);
             }
