@@ -36,7 +36,7 @@ class SyncVirtualMachine extends Command {
             $vms = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
                 ->withoutGlobalScope(LimitScope::class)
                 ->where('uuid', $this->option('uuid'))
-                ->first();
+                ->get();
 
             if(!$vms) {
                 Log::error(__METHOD__ . ' | Cannot find VM with uuid: ' . $this->option('uuid'));
