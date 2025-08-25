@@ -319,10 +319,10 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        $command = 'xe vm-cd-eject vm=' . $vm->uuid;
+        $command = 'xe vm-cd-eject vm="' . $vm->hypervisor_data['name-label'] . '"';
         $command = self::performCommand($command, $computeMember);
 
-        $checkCommand = 'xe vm-cd-list vm=' . $vm->uuid;
+        $checkCommand = 'xe vm-cd-list vm="' . $vm->hypervisor_data['name-label'] . '"';
         $command = self::performCommand($checkCommand, $computeMember);
         $result = self::parseListResult($command['output']);
 
