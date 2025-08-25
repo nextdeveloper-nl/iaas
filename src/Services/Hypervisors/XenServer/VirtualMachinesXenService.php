@@ -275,7 +275,7 @@ class VirtualMachinesXenService extends AbstractXenService
             Log::debug('[VirtualMachinesXenService@mountCD] Mount command result: ' .
                 json_encode($command));
 
-        $checkCommand = 'xe vm-cd-list vm=' . $vm->uuid;
+        $checkCommand = 'xe vm-cd-list vm="' . $vm->hypervisor_data['name-label'] . '"';
         $command = self::performCommand($checkCommand, $computeMember);
         $result = self::parseListResult($command['output']);
 
