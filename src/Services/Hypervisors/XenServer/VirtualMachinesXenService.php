@@ -267,9 +267,17 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'xe vm-cd-insert vm=' . $vm->uuid . ' cd-name=' . $image->filename;
         $command = self::performCommand($command, $computeMember);
 
+        if(config('leo.debug.iaas.compute_members'))
+            Log::debug('[VirtualMachinesXenService@mountCD] Mount command result: ' .
+                json_encode($command));
+
         $checkCommand = 'xe vm-cd-list vm=' . $vm->uuid;
         $command = self::performCommand($checkCommand, $computeMember);
         $result = self::parseListResult($command['output']);
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::debug('[VirtualMachinesXenService@mountCD] Check command result: ' .
+                json_encode($result));
 
         $cdrom = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
             ->where('is_cdrom', 'true')

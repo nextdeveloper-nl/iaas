@@ -13,7 +13,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
- * This action unplugs the virtual machine, and then plugs it back in
+ * This action mounts the cdrom iso to the virtual machine.
  */
 class MountCd extends AbstractAction
 {
@@ -86,7 +86,7 @@ class MountCd extends AbstractAction
         if(!$result) {
             Events::fire('mounting-cd-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-            $this->setFinishedWithError('Mounting cd failed');
+            $this->setFinishedWithError('Mounting cd failed with result: ' . $result);
             return;
         }
 
