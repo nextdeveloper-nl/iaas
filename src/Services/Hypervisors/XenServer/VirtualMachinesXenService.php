@@ -264,7 +264,11 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        $command = 'xe vm-cd-insert vm=' . $vm->hypervisor_data['name-label'] . ' cd-name=' . $image->filename;
+        $command = 'xe vm-cd-insert vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename;
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::debug('[VirtualMachinesXenService@mountCD] Mount command: ' . $command);
+
         $command = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))
