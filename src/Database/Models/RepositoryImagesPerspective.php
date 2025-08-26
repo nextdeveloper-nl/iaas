@@ -78,6 +78,7 @@ class RepositoryImagesPerspective extends Model
         'is_backup_repository',
         'iam_account_id',
         'iam_user_id',
+        'is_backup',
     ];
 
     /**
@@ -116,6 +117,7 @@ class RepositoryImagesPerspective extends Model
         'repository_name' => 'string',
         'is_backup_repository' => 'boolean',
         'has_plusclouds_service'    =>  'boolean',
+        'is_backup' =>  'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
