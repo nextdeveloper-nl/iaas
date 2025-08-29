@@ -92,6 +92,16 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->isPublic($value);
     }
 
+    public function is_backup($value)
+    {
+        return $this->builder->where('is_backup', $value);
+    }
+
+    public function isBackup($value)
+    {
+        return $this->is_backup($value);
+    }
+
     public function isVirtualMachineImage($value)
     {
         return $this->builder->where('is_virtual_machine_image', $value);

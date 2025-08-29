@@ -326,90 +326,94 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 'decision to run a manual health check for this VM.');
         }
 
-        if($vm->ram != $data['ram']) {
-            if($vm->hypervisor_uuid) {
-                if($vm->status != 'halted')
-                    throw new CannotUpdateResourcesException('Unfortunately we cannot update the resources ' .
-                        'of your virtual machine because your virtual machine is still running. Please shutdown your ' .
-                        'server and try updating the resources again.');
-            }
-
-            $canUpdateRam = self::canUpdateRam($vm, $data['ram']);
-
-            if(!$canUpdateRam) {
-                $availableRamSizes = ResourceCalculationHelper::getAvailableRamSizes($cp);
-
-                throw new CannotUpdateResourcesException('We cannot update the ram and cpu because the ram ' .
-                    'that you are asking to increase is either beyond our available ram or the amount of ram is not ' .
-                    'in the list of available ram amounts. To fix this problem please check if the ram size is ' .
-                    'within this list: ' . implode(' GB, ', $availableRamSizes) . ' GB');
-            }
-
-            /*  If we can update the ram, we should also take a look at the disk. Because if the server is in STAR
-            *   design we can update but if we are in ONE design we should check if we can update the disk also
-            */
-            $shouldUpdateDisk = self::shouldUpdateDiskWithRam($vm);
-
-            //  If we should update then I am updating the disk
-            //  Also if we should update the disk this means that the pool is ONE
-            if($shouldUpdateDisk) {
-                //  Since this is Leo One type or pool, we cannot allow to reduce resources.
-                if(ResourceCalculationHelper::getRamInMb($data['ram']) < $vm->ram) {
-                    throw new CannotUpdateResourcesException('We cannot update resources of this server,' .
-                        ' because the server is in Leo ONE pool where cpu, ram and disk resources are aligned with a ' .
-                        'certain ratio. The problem here is that we cannot reduce the size of the disk, therefore ' .
-                        'we cannot reduce the size of CPU and RAM. We are very sorry about this issue.');
+        //  Sometimes ram can be null and we want to change something else with the virtual machinne
+        //  like backup routine
+        if(array_key_exists('ram', $data)) {
+            if($vm->ram != $data['ram']) {
+                if($vm->hypervisor_uuid) {
+                    if($vm->status != 'halted')
+                        throw new CannotUpdateResourcesException('Unfortunately we cannot update the resources ' .
+                            'of your virtual machine because your virtual machine is still running. Please shutdown your ' .
+                            'server and try updating the resources again.');
                 }
 
-                //  @leo-pool ONE
-                //  If we came to this point this means that we have enough resources in the resource pool.
-                $cm = self::getComputeMember($vm);
+                $canUpdateRam = self::canUpdateRam($vm, $data['ram']);
 
-                //  If we have a compute member, this means that we should be taking a look at the CM resources.
-                //  If CM also has resource then everything is fine, we can move on.
-                if($cm) {
-                    //  Since the ram and disk are correlated in this design, we don't need to check for disk again.
-                    if(!ComputeMembersService::hasRamResource($cm, $data['ram'])) {
-                        throw new CannotUpdateResourcesException('We cannot update your virtual machines ' .
-                            'resources because on the host that you are using there is not enough resource. You ' .
-                            'should create a new server or you should enable migrate server option while asking for ' .
-                            'resize. But you should be aware that when you are migrating your server, you will have ' .
-                            'some downtime. Also you may not have the same hardware and your bios may change.');
+                if(!$canUpdateRam) {
+                    $availableRamSizes = ResourceCalculationHelper::getAvailableRamSizes($cp);
+
+                    throw new CannotUpdateResourcesException('We cannot update the ram and cpu because the ram ' .
+                        'that you are asking to increase is either beyond our available ram or the amount of ram is not ' .
+                        'in the list of available ram amounts. To fix this problem please check if the ram size is ' .
+                        'within this list: ' . implode(' GB, ', $availableRamSizes) . ' GB');
+                }
+
+                /*  If we can update the ram, we should also take a look at the disk. Because if the server is in STAR
+                *   design we can update but if we are in ONE design we should check if we can update the disk also
+                */
+                $shouldUpdateDisk = self::shouldUpdateDiskWithRam($vm);
+
+                //  If we should update then I am updating the disk
+                //  Also if we should update the disk this means that the pool is ONE
+                if($shouldUpdateDisk) {
+                    //  Since this is Leo One type or pool, we cannot allow to reduce resources.
+                    if(ResourceCalculationHelper::getRamInMb($data['ram']) < $vm->ram) {
+                        throw new CannotUpdateResourcesException('We cannot update resources of this server,' .
+                            ' because the server is in Leo ONE pool where cpu, ram and disk resources are aligned with a ' .
+                            'certain ratio. The problem here is that we cannot reduce the size of the disk, therefore ' .
+                            'we cannot reduce the size of CPU and RAM. We are very sorry about this issue.');
+                    }
+
+                    //  @leo-pool ONE
+                    //  If we came to this point this means that we have enough resources in the resource pool.
+                    $cm = self::getComputeMember($vm);
+
+                    //  If we have a compute member, this means that we should be taking a look at the CM resources.
+                    //  If CM also has resource then everything is fine, we can move on.
+                    if($cm) {
+                        //  Since the ram and disk are correlated in this design, we don't need to check for disk again.
+                        if(!ComputeMembersService::hasRamResource($cm, $data['ram'])) {
+                            throw new CannotUpdateResourcesException('We cannot update your virtual machines ' .
+                                'resources because on the host that you are using there is not enough resource. You ' .
+                                'should create a new server or you should enable migrate server option while asking for ' .
+                                'resize. But you should be aware that when you are migrating your server, you will have ' .
+                                'some downtime. Also you may not have the same hardware and your bios may change.');
+                        }
+                    }
+
+                    //  This means that we have done all the checks and we are good to go for VDI update
+                    $triggerVdiUpdate = true;
+                }
+
+                if(!$shouldUpdateDisk) {
+                    //  @leo-pool STAR
+                    $canUpdateDisk = self::canUpdateDisk(
+                        vm: $vm,
+                        toDisk: ResourceCalculationHelper::getDiskSizeAgainstRam(
+                            cp: self::getComputePool($vm),
+                            ram: $data['ram']
+                        )
+                    );
+
+                    $availableDiskSizes = ResourceCalculationHelper::getAvailableDiskSizes(
+                        cp: self::getComputePool($vm),
+                        minSize: ResourceCalculationHelper::getDiskSizeAgainstRam(
+                            cp: self::getComputePool($vm),
+                            ram: $data['ram']
+                        )
+                    );
+
+                    if(!$canUpdateDisk) {
+                        throw new CannotUpdateResourcesException('We cannot update the disk. The disk you are ' .
+                            'requesting either is not available or you cannot take that much. Try to ask for these ' .
+                            'amounts; ' . implode(' GB, ', $availableDiskSizes) . ' GB. Or you may have requested ' .
+                            'either ram to change or disk to change. If the compute pool is in one mode and you asked for ' .
+                            'ram to change, then we should also change the disk.');
                     }
                 }
 
-                //  This means that we have done all the checks and we are good to go for VDI update
-                $triggerVdiUpdate = true;
+                $triggerRamUpdate = true;
             }
-
-            if(!$shouldUpdateDisk) {
-                //  @leo-pool STAR
-                $canUpdateDisk = self::canUpdateDisk(
-                    vm: $vm,
-                    toDisk: ResourceCalculationHelper::getDiskSizeAgainstRam(
-                        cp: self::getComputePool($vm),
-                        ram: $data['ram']
-                    )
-                );
-
-                $availableDiskSizes = ResourceCalculationHelper::getAvailableDiskSizes(
-                    cp: self::getComputePool($vm),
-                    minSize: ResourceCalculationHelper::getDiskSizeAgainstRam(
-                        cp: self::getComputePool($vm),
-                        ram: $data['ram']
-                    )
-                );
-
-                if(!$canUpdateDisk) {
-                    throw new CannotUpdateResourcesException('We cannot update the disk. The disk you are ' .
-                        'requesting either is not available or you cannot take that much. Try to ask for these ' .
-                        'amounts; ' . implode(' GB, ', $availableDiskSizes) . ' GB. Or you may have requested ' .
-                        'either ram to change or disk to change. If the compute pool is in one mode and you asked for ' .
-                        'ram to change, then we should also change the disk.');
-                }
-            }
-
-            $triggerRamUpdate = true;
         }
 
         if($triggerVdiUpdate) {
