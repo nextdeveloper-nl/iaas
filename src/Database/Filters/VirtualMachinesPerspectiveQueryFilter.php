@@ -488,6 +488,20 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->commonDomain($value);
     }
 
+    public function iaasComputeMemberId($value)
+    {
+        return $this->iaas_compute_member_id($value);
+    }
+
+    public function iaas_compute_member_id($value)
+    {
+        $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
+
+        if($iaasComputeMember) {
+            return $this->builder->where('iaas_compute_member_id', '=', $iaasComputeMember->id);
+        }
+    }
+
     public function iaasComputePoolId($value)
     {
             $iaasComputePool = \NextDeveloper\IAAS\Database\Models\ComputePools::where('uuid', $value)->first();
