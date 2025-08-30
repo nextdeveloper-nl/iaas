@@ -38,7 +38,7 @@ class VirtualMachinesPerspectiveTransformer extends AbstractVirtualMachinesPersp
         // always sees the most up-to-date information.
         // This is to prevent stale data issues for admins who need real-time access to the data
         // and to avoid unnecessary complexity in cache management.
-        if(UserHelper::hasRole('datacenter-admin')) {
+        if(UserHelper::hasRole('datacenter-admin') || UserHelper::hasRole('cloud-node-admin')) {
             return parent::transform($model);
         }
 
