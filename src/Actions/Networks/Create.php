@@ -65,9 +65,15 @@ class Create extends AbstractAction
 
         Events::fire('created:NextDeveloper\IAAS\Networks', $this->model);
 
+        $cloudNode = NetworksService::getCloudNode($this->model);
+
+        if(!in_array($cloudNode->slug, config('leo.iaas.firewall_enabled_cloud_nodes'))) {
+            $this->setProgress(100, 'Network initiated');
+            return;
+        }
+
         $this->setProgress(50, 'Initiating firewall');
 
-        $cloudNode = NetworksService::getCloudNode($this->model);
         $repositories = CloudNodesService::getRepositories($cloudNode);
 
         $repositoryImage = RepositoryImages::where([
