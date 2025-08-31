@@ -57,7 +57,7 @@ class Scan extends AbstractAction
         (new \NextDeveloper\IAAS\Actions\ComputeMembers\ScanVirtualMachines($this->model))->handle();
 
         $this->setProgress(70, 'Updating compute member resources');
-        $this->updateResources();
+        ComputeMemberXenService::updateMemberInformation($this->model);
 
         $this->setProgress(80, 'Updating network information');
         ComputeMemberXenService::updateConnectionInformation($this->model);
@@ -68,33 +68,5 @@ class Scan extends AbstractAction
         Events::fire('scanned:NextDeveloper\IAAS\ComputeMembers', $this->model);
 
         $this->setProgress(100, 'Compute member scanned and synced');
-    }
-
-    private function updateResources() {
-        $vms = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-            ->where('iaas_compute_member_id', $this->model->id)
-            ->get();
-
-        $totalVm = 0;
-        $runningVm = 0;
-        $usedRam = 0;
-        $usedCpu = 0;
-
-        foreach ($vms as $vm) {
-            $totalVm++;
-
-            if($vm->status != 'halted' || $vm->status != 'paused')
-                $runningVm++;
-
-            $usedRam += $vm->ram;
-            $usedCpu += $vm->cpu;
-        }
-
-        $this->model->update([
-            'total_vm'  =>  $totalVm,
-            'running_vm'    =>  $runningVm,
-            'used_cpu'  =>  $usedCpu,
-            'used_ram'  =>  $usedRam / 1024
-        ]);
     }
 }
