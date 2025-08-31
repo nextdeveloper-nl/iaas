@@ -302,6 +302,9 @@ class Commit extends AbstractAction
             );
         }
 
+        $computeMember->used_ram += $vm->ram;
+        $computeMember->saveQuietly();
+
         $storageVolume = null;
 
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 1 . '] | Found the best compute member: ' . $computeMember->name);
@@ -371,6 +374,8 @@ class Commit extends AbstractAction
                 $uuid = $this->importXenServer($vm, $computeMember, $repositoryServer, $storageVolume, $machineImage, $step);
                 break;
         }
+
+        ComputeMemberXenService::updateMemberInformation($computeMember);
 
         $this->setProgress($step + 9, 'Virtual machine imported');
     }
