@@ -408,7 +408,7 @@ class Commit extends AbstractAction
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 9 . '] | Unmounting repository from compute member');
         $result = ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
 
-        ComputeMemberXenService::setVmXenstoreData('api', config('leo.api_url'), $vm, $computeMember);
+        ComputeMemberXenService::setVmXenstoreData('api', config('app.url'), $vm, $computeMember);
         ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
 
         return true;

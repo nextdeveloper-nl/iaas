@@ -91,6 +91,8 @@ class ComputeMemberXenService extends AbstractXenService
         $command = 'xe vm-param-set xenstore-data:' . $key . '="' . $value . '" uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMembers);
 
+        logger()->info('[ComputeMemberService@setXenstoreData] Result: ' . print_r($result, true));
+
         return true;
     }
 
