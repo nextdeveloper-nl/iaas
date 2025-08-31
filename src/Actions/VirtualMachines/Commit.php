@@ -291,10 +291,16 @@ class Commit extends AbstractAction
 
         $computePool = ComputePools::where('id', $vm->iaas_compute_pool_id)->first();
 
-        $computeMember = (new UtilizeComputeMembers($computePool))->calculate(
-            $vm->ram,
-            $vm->cpu
-        );
+        if($this->model->iaas_compute_member_id) {
+            $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $vm->iaas_compute_member_id)
+                ->first();
+        } else {
+            $computeMember = (new UtilizeComputeMembers($computePool))->calculate(
+                $vm->ram,
+                $vm->cpu
+            );
+        }
 
         $storageVolume = null;
 
@@ -306,40 +312,51 @@ class Commit extends AbstractAction
         //  Checking disk configuration here. At this moment we will only implement the null disk formation actually.
         //  Later we will implement the deployment of disks by looking at disk formation.
 
-        //  Check if the compute pool is one or star
-        if ($computePool->pool_type == 'one') {
-            $this->setProgress($step + 3, 'Since the pool type is "one" we will be deploying this server to a local storage.');
-            Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Since the pool type is "one" we will be deploying this server to a local storage.');
+        //  Checking if we already decided a storage volume for this VM
+        $vmDisk = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->first();
 
-            $computeMemberStorageVolumes = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-                ->where('iaas_compute_member_id', $computeMember->id)
-                ->where('is_local_storage', true)
-                ->first();
-
+        if($vmDisk->iaas_storage_volume_id) {
             $storageVolume = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-                ->where('id', $computeMemberStorageVolumes->iaas_storage_volume_id)
+                ->where('id', $vmDisk->iaas_storage_volume_id)
                 ->first();
         } else {
-            $this->setProgress($step + 3, 'Since the pool type is "star" we will be deploying this server to an ssd or nvme storage.');
-            Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Since the pool type is "star" we will be deploying this server to an ssd or nvme storage.');
-            // If we don't have a storage pool here, we will be choosing the SSD pool.
-            // Why ? because I wanted to do like that :D
+            //  Check if the compute pool is one or star
+            if ($computePool->pool_type == 'one') {
+                $this->setProgress($step + 3, 'Since the pool type is "one" we will be deploying this server to a local storage.');
+                Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Since the pool type is "one" we will be deploying this server to a local storage.');
 
-            $storagePool = StoragePools::withoutGlobalScope(AuthorizationScope::class)
-                ->where('iaas_cloud_node_id', $computePool->iaas_cloud_node_id)
-                ->where('storage_pool_type', 'ssd')
-                ->first();
-
-            if (!$storagePool)
-                $storagePool = StoragePools::withoutGlobalScope(AuthorizationScope::class)
-                    ->where('iaas_cloud_node_id', $computePool->iaas_cloud_node_id)
-                    ->where('storage_pool_type', 'nvme')
+                $computeMemberStorageVolumes = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_compute_member_id', $computeMember->id)
+                    ->where('is_local_storage', true)
                     ->first();
 
-            if (!$storagePool)
-                $this->setFinishedWithError('There is no SSD or NVMe storage pool in this Cloud Node!. Please contact support.');
+                $storageVolume = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('id', $computeMemberStorageVolumes->iaas_storage_volume_id)
+                    ->first();
+            } else {
+                $this->setProgress($step + 3, 'Since the pool type is "star" we will be deploying this server to an ssd or nvme storage.');
+                Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Since the pool type is "star" we will be deploying this server to an ssd or nvme storage.');
+                // If we don't have a storage pool here, we will be choosing the SSD pool.
+                // Why ? because I wanted to do like that :D
 
-            $storageVolume = (new UtilizeStorageVolumes($storagePool))->calculate($computeMember, 20);
+                $storagePool = StoragePools::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_cloud_node_id', $computePool->iaas_cloud_node_id)
+                    ->where('storage_pool_type', 'ssd')
+                    ->first();
+
+                if (!$storagePool)
+                    $storagePool = StoragePools::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_cloud_node_id', $computePool->iaas_cloud_node_id)
+                        ->where('storage_pool_type', 'nvme')
+                        ->first();
+
+                if (!$storagePool)
+                    $this->setFinishedWithError('There is no SSD or NVMe storage pool in this Cloud Node!. Please contact support.');
+
+                $storageVolume = (new UtilizeStorageVolumes($storagePool))->calculate($computeMember, 20);
+            }
         }
 
         //  Here I am putting this as control because if the pool type is one and we dont have a storage volume then we have a problem

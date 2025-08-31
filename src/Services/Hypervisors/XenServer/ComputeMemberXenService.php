@@ -950,7 +950,7 @@ physical interfaces and vlans of compute member');
 
         $command = 'xe vm-import ';
         $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
-        $command .= ' sr-uuid='.$volume->hypervisor_uuid;
+        $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
 
         Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
             'command: ' . $command);

@@ -35,7 +35,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
         return $this->builder->where('volume_name', 'ilike', '%' . $value . '%');
     }
 
-        //  This is an alias function of volumeName
+    //  This is an alias function of volumeName
     public function volume_name($value)
     {
         return $this->volumeName($value);
@@ -46,7 +46,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
         return $this->builder->where('storage_pool_name', 'ilike', '%' . $value . '%');
     }
 
-        //  This is an alias function of storagePoolName
+    //  This is an alias function of storagePoolName
     public function storage_pool_name($value)
     {
         return $this->storagePoolName($value);
@@ -57,7 +57,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
         return $this->builder->where('storage_member_name', 'ilike', '%' . $value . '%');
     }
 
-        //  This is an alias function of storageMemberName
+    //  This is an alias function of storageMemberName
     public function storage_member_name($value)
     {
         return $this->storageMemberName($value);
@@ -68,7 +68,7 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
         return $this->builder->where('compute_member_name', 'ilike', '%' . $value . '%');
     }
 
-        //  This is an alias function of computeMemberName
+    //  This is an alias function of computeMemberName
     public function compute_member_name($value)
     {
         return $this->computeMemberName($value);
@@ -154,14 +154,14 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
 
     public function iaasStorageVolumeId($value)
     {
-            $iaasStorageVolume = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('uuid', $value)->first();
+        $iaasStorageVolume = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('uuid', $value)->first();
 
-        if($iaasStorageVolume) {
+        if ($iaasStorageVolume) {
             return $this->builder->where('iaas_storage_volume_id', '=', $iaasStorageVolume->id);
         }
     }
 
-        //  This is an alias function of iaasStorageVolume
+    //  This is an alias function of iaasStorageVolume
     public function iaas_storage_volume_id($value)
     {
         return $this->iaasStorageVolume($value);
@@ -169,14 +169,14 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
 
     public function iaasStoragePoolId($value)
     {
-            $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
+        $iaasStoragePool = \NextDeveloper\IAAS\Database\Models\StoragePools::where('uuid', $value)->first();
 
-        if($iaasStoragePool) {
+        if ($iaasStoragePool) {
             return $this->builder->where('iaas_storage_pool_id', '=', $iaasStoragePool->id);
         }
     }
 
-        //  This is an alias function of iaasStoragePool
+    //  This is an alias function of iaasStoragePool
     public function iaas_storage_pool_id($value)
     {
         return $this->iaasStoragePool($value);
@@ -184,14 +184,14 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
 
     public function iaasStorageMamberId($value)
     {
-            $iaasStorageMamber = \NextDeveloper\IAAS\Database\Models\StorageMambers::where('uuid', $value)->first();
+        $iaasStorageMamber = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('uuid', $value)->first();
 
-        if($iaasStorageMamber) {
+        if ($iaasStorageMamber) {
             return $this->builder->where('iaas_storage_member_id', '=', $iaasStorageMamber->id);
         }
     }
 
-        //  This is an alias function of iaasStorageMamber
+    //  This is an alias function of iaasStorageMamber
     public function iaas_storage_member_id($value)
     {
         return $this->iaasStorageMamber($value);
@@ -199,14 +199,14 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
 
     public function iaasComputeMemberId($value)
     {
-            $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
+        $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
 
-        if($iaasComputeMember) {
+        if ($iaasComputeMember) {
             return $this->builder->where('iaas_compute_member_id', '=', $iaasComputeMember->id);
         }
     }
 
-        //  This is an alias function of iaasComputeMember
+    //  This is an alias function of iaasComputeMember
     public function iaas_compute_member_id($value)
     {
         return $this->iaasComputeMember($value);
@@ -214,9 +214,9 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
 
     public function iamAccountId($value)
     {
-            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
+        $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
 
-        if($iamAccount) {
+        if ($iamAccount) {
             return $this->builder->where('iam_account_id', '=', $iamAccount->id);
         }
     }
@@ -224,34 +224,44 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
 
     public function iamUserId($value)
     {
-            $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
+        $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
 
-        if($iamUser) {
+        if ($iamUser) {
             return $this->builder->where('iam_user_id', '=', $iamUser->id);
         }
     }
 
+    public function isStorage($value)
+    {
+        return $this->is_storage($value);
+    }
+
+    public function is_storage($value)
+    {
+        return $this->builder->where('is_storage', '=', filter_var($value, FILTER_VALIDATE_BOOLEAN));
+    }
+
+    public function isAlive($value)
+    {
+        return $this->is_alive($value);
+    }
+
+    public function is_alive($value)
+    {
+        return $this->builder->where('is_alive', '=', filter_var($value, FILTER_VALIDATE_BOOLEAN));
+    }
+
+    public function isCdrom($value)
+    {
+        return $this->is_cdrom($value);
+    }
+
+    public function is_cdrom($value)
+    {
+        return $this->builder->where('is_cdrom', '=', filter_var($value, FILTER_VALIDATE_BOOLEAN));
+    }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }
