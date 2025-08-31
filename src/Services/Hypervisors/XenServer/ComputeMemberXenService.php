@@ -84,6 +84,16 @@ class ComputeMemberXenService extends AbstractXenService
         return $computeMember->fresh();
     }
 
+    public static function setVmXenstoreData($key, $value, VirtualMachines $vm, ComputeMembers $computeMembers)
+    {
+        logger()->info('[ComputeMemberService@setXenstoreData] VM: ' . $vm->uuid . ' ' . $key . ': ' . $value);
+
+        $command = 'xe vm-param-set xenstore-data:' . $key . '="' . $value . '" uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMembers);
+
+        return true;
+    }
+
     public static function updateConnectionInformation(ComputeMembers $computeMembers) : ComputeMembers
     {
         $mgmtInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)

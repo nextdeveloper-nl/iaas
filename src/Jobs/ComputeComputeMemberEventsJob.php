@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -55,6 +56,22 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                 ->where('hypervisor_uuid', $event['snapshot']['uuid'])
                 ->withTrashed()
                 ->first();
+
+            if(!$this->vm->iam_user_id) {
+                Log::error( __METHOD__ . ': VM (' . $this->vm->uuid . ') does not have an associated user for event ID ' . $this->event->id);
+
+                $account = UserHelper::getAccountById($this->vm->iam_account_id);
+                if($account) {
+                    $this->vm->iam_user_id = UserHelper::getAccountOwner($this->vm->iam_account_id)->id;
+                    $this->vm->saveQuietly();
+                }
+
+                (new Communicate(UserHelper::getLeoOwner()))->sendNotification(
+                    subject: 'VM without user',
+                    message: 'The VM with UUID ' . $this->vm->uuid . ' does not have an associated user. We have' .
+                        ' assigned the account owner as the VM owner, but please check the VM settings to ensure' .
+                        ' everything is correct.');
+            }
 
             //  Because we need the users privileges to update the VM
             UserHelper::setUserById($this->vm->iam_user_id);
