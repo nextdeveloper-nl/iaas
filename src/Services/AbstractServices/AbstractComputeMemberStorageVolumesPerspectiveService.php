@@ -189,10 +189,10 @@ class AbstractComputeMemberStorageVolumesPerspectiveService
                 $data['iaas_storage_pool_id']
             );
         }
-        if (array_key_exists('iaas_storage_mamber_id', $data)) {
-            $data['iaas_storage_mamber_id'] = DatabaseHelper::uuidToId(
+        if (array_key_exists('iaas_storage_member_id', $data)) {
+            $data['iaas_storage_member_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\StorageMambers',
-                $data['iaas_storage_mamber_id']
+                $data['iaas_storage_member_id']
             );
         }
         if (array_key_exists('iaas_compute_member_id', $data)) {
@@ -279,10 +279,10 @@ class AbstractComputeMemberStorageVolumesPerspectiveService
                 $data['iaas_storage_pool_id']
             );
         }
-        if (array_key_exists('iaas_storage_mamber_id', $data)) {
-            $data['iaas_storage_mamber_id'] = DatabaseHelper::uuidToId(
+        if (array_key_exists('iaas_storage_member_id', $data)) {
+            $data['iaas_storage_member_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\StorageMambers',
-                $data['iaas_storage_mamber_id']
+                $data['iaas_storage_member_id']
             );
         }
         if (array_key_exists('iaas_compute_member_id', $data)) {

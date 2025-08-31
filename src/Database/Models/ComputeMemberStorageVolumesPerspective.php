@@ -24,7 +24,7 @@ use NextDeveloper\IAAS\Database\Observers\ComputeMemberStorageVolumesPerspective
  * @property string $storage_pool_name
  * @property integer $iaas_storage_pool_id
  * @property string $storage_member_name
- * @property integer $iaas_storage_mamber_id
+ * @property integer $iaas_storage_member_id
  * @property string $compute_member_name
  * @property integer $iaas_compute_member_id
  * @property string $maintainer
@@ -58,7 +58,7 @@ class ComputeMemberStorageVolumesPerspective extends Model
             'storage_pool_name',
             'iaas_storage_pool_id',
             'storage_member_name',
-            'iaas_storage_mamber_id',
+            'iaas_storage_member_id',
             'compute_member_name',
             'iaas_compute_member_id',
             'maintainer',
@@ -95,7 +95,7 @@ class ComputeMemberStorageVolumesPerspective extends Model
     'storage_pool_name' => 'string',
     'iaas_storage_pool_id' => 'integer',
     'storage_member_name' => 'string',
-    'iaas_storage_mamber_id' => 'integer',
+    'iaas_storage_member_id' => 'integer',
     'compute_member_name' => 'string',
     'iaas_compute_member_id' => 'integer',
     'maintainer' => 'string',

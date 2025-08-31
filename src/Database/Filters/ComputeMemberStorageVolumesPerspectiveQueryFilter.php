@@ -187,12 +187,12 @@ class ComputeMemberStorageVolumesPerspectiveQueryFilter extends AbstractQueryFil
             $iaasStorageMamber = \NextDeveloper\IAAS\Database\Models\StorageMambers::where('uuid', $value)->first();
 
         if($iaasStorageMamber) {
-            return $this->builder->where('iaas_storage_mamber_id', '=', $iaasStorageMamber->id);
+            return $this->builder->where('iaas_storage_member_id', '=', $iaasStorageMamber->id);
         }
     }
 
         //  This is an alias function of iaasStorageMamber
-    public function iaas_storage_mamber_id($value)
+    public function iaas_storage_member_id($value)
     {
         return $this->iaasStorageMamber($value);
     }
