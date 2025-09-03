@@ -391,12 +391,8 @@ class VirtualMachinesXenService extends AbstractXenService
             $command = 'rm -f config-iso/' . $vm->uuid . '/*.base64';
             $result = self::performCommand($command, $centralRepo);
 
-            //  Mount central repo to /mnt/plusclouds-config-repo
-            $command = 'mkdir /mnt/plusclouds-config-repo -p';
-            $result = self::performCommand($command, $centralRepo);
-
             //  Moving the iso to the central repository
-            $command = 'mv config-iso/' . $vm->uuid . '/config.iso /mnt/plusclouds-config-repo/config-' . $vm->uuid . '.iso';
+            $command = 'mv config-iso/' . $vm->uuid . '/config.iso ' . $centralRepo->iso_path . '/config-' . $vm->uuid . '.iso';
             $result = self::performCommand($command, $centralRepo);
 
             //  Removing the config-iso folder
