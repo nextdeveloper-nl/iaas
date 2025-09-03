@@ -37,6 +37,15 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
 {
     public static function getMetadata(VirtualMachines $vm) : array
     {
+        if(!$vm) {
+            return [
+                'error' =>  'Virtual machine not found. Please provide a valid virtual machine instance.'
+            ];
+        }
+
+        $vm = VirtualMachinesService::fixUsername($vm);
+        $vm = VirtualMachinesService::fixHostname($vm);
+
         $vdis = VirtualMachinesService::getVirtualDiskImages($vm);
         $vifs = VirtualMachinesService::getVirtualNetworkCards($vm);
 
@@ -96,20 +105,6 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'hypervisor_version' => $computePool->hypervisor_version,
         ];
 
-        $computeMember = VirtualMachinesService::getComputeMember($vm);
-        $computeMemberArray = [];
-
-        if($computeMember) {
-            $computeMemberArray = [
-                'id' => $computeMember->uuid,
-                'name' => $computeMember->name,
-                'ip_addr' => $computeMember->ip_addr,
-                'local_ip_addr' => $computeMember->local_ip_addr,
-                'is_behind_firewall' => $computeMember->is_behind_firewall,
-                'username' => $computeMember->username,
-            ];
-        }
-
         $cloudNode = VirtualMachinesService::getCloudPool($vm);
         $cloudPoolArray = [
             'id' => $cloudNode->uuid,
@@ -118,6 +113,9 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'provider' => $cloudNode->provider,
             'region' => $cloudNode->region,
         ];
+
+        //  We need to make the username fix
+        //  we need to make the hostname fix
 
         return [
             'hostname' => $vm->hostname,
@@ -128,11 +126,23 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'virtual_network_cards' => $vifConfiguration,
             'service_roles' => [
                 //  Here will be roles of the server
+                'zabbix_server' => [
+                    'is_zabbix_enabled' => true,
+                    'zabbix_server_ip'  => '185.255.172.221'
+                ],
             ],
-            'compute_member' => $computeMemberArray,
             'compute_pool' => $computePoolArray,
             'cloud_node' => $cloudPoolArray,
             'ssh_keys' => [],
         ];
+    }
+
+    public static function getCloudInitConfiguration($vm) : string
+    {
+        $data = [
+            'hostname'  =>  $vm->hostname,
+        ];
+
+        dd(yaml_emit($data));
     }
 }

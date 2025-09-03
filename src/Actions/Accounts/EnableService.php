@@ -7,8 +7,6 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\IAAS\Database\Models\Accounts;
 
 /**
- * Class EnableService
- *
  * This class handles the enabling of a service for an account.
  */
 class EnableService extends AbstractAction

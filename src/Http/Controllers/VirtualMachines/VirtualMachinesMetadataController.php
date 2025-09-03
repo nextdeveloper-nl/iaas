@@ -7,9 +7,11 @@ use NextDeveloper\IAAS\Http\Controllers\AbstractController;
 use NextDeveloper\Commons\Http\Response\ResponsableFactory;
 use NextDeveloper\IAAS\Http\Requests\VirtualMachines\VirtualMachinesUpdateRequest;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\VirtualMachinesMetadataService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\Commons\Http\Traits\Tags;
 use NextDeveloper\Commons\Http\Traits\Addresses;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 class VirtualMachinesMetadataController extends AbstractController
 {
@@ -28,12 +30,21 @@ class VirtualMachinesMetadataController extends AbstractController
      */
     public function getMetadata($uuid)
     {
-        $console = VirtualMachinesService::getConsoleDataFromVmId($virtualMachinesId);
+        $vm = VirtualMachinesService::getVirtualMachineByHypervisorUuid($uuid);
 
-        if(!$console) {
-            return ResponseHelper::error('Virtual machine console is not available at the moment. Please make sure that virtual machine is running. Otherwise please create a support ticket.');
-        }
+        UserHelper::setUserById($vm->iam_user_id);
+        UserHelper::setCurrentAccountById($vm->iam_account_id);
 
-        return ResponsableFactory::makeResponse($this, $console);
+        return VirtualMachinesMetadataService::getMetadata($vm);
+    }
+
+    public function getCloudInitConfiguration($uuid)
+    {
+        $vm = VirtualMachinesService::getVirtualMachineByHypervisorUuid($uuid);
+
+        UserHelper::setUserById($vm->iam_user_id);
+        UserHelper::setCurrentAccountById($vm->iam_account_id);
+
+        return VirtualMachinesMetadataService::getCloudInitConfiguration($vm);
     }
 }

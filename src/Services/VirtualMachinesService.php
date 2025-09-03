@@ -708,97 +708,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ];
         }
 
-        $vm = VirtualMachinesService::fixUsername($vm);
-        $vm = VirtualMachinesService::fixHostname($vm);
+        return VirtualMachinesMetadataService::getMetadata($vm);
+    }
 
-        $vdis = self::getVirtualDiskImages($vm);
-        $vifs = self::getVirtualNetworkCards($vm);
-
-        $diskConfiguration = [];
-
-        foreach ($vdis as $vdi) {
-            $diskConfiguration[] = [
-                'disk_type'     => $vdi->disk_type,
-                'device_number' => $vdi->device_number,
-                'total_disk'    => $vdi->size,
-            ];
-        }
-
-        $vifConfiguration = [];
-
-        foreach ($vifs as $vif) {
-            $data = [
-                'device_number' => $vif->device_number,
-                'mac_addr'      => $vif->mac_addr,
-//                'network'       => [
-//                    'ip_addr'           => $vif->ip_addr,
-//                    'ip_range_start'    => $vif->ip_range_start,
-//                    'ip_range_end'      => $vif->ip_range_end,
-//                    'gateway'           => $vif->gateway,
-//                    'subnet'            => $vif->subnet,
-//                    'netmask'           => $vif->netmask,
-//                    'network'           => $vif->network,
-//                    'dhcp_server'       => $vif->dhcp_server,
-//                    'dns_nameservers'   => $vif->dns_nameservers,
-//                    'mtu'               => $vif->mtu,
-//                ],
-            ];
-
-            if($vif->ipList) {
-                $data['ipList'] = [
-                    'data' => $vif->ipList->map(function ($ip) {
-                        return [
-                            'id'            => $ip->id,
-                            'ip_addr'      => $ip->ip_addr,
-                            'version'      => $ip->version,
-                            'is_reachable' => $ip->is_reachable
-                        ];
-                    }),
-                ];
-            }
-
-            $vifConfiguration[] = $data;
-        }
-
-        $computePool = self::getComputePool($vm);
-
-        $computePoolArray = [
-            'id' => $computePool->uuid,
-            'name' => $computePool->name,
-            'pool_type' => $computePool->pool_type,
-            'hypervisor_type' => $computePool->hypervisor_type,
-            'hypervisor_version' => $computePool->hypervisor_version,
-        ];
-
-        $cloudNode = self::getCloudPool($vm);
-        $cloudPoolArray = [
-            'id' => $cloudNode->uuid,
-            'name' => $cloudNode->name,
-            'location' => $cloudNode->location,
-            'provider' => $cloudNode->provider,
-            'region' => $cloudNode->region,
-        ];
-
-        //  We need to make the username fix
-        //  we need to make the hostname fix
-
-        return [
-            'hostname' => $vm->hostname,
-            'username' => $vm->username,
-            'password' => $vm->password,
-            'virtual_machine_id' => $vm->id_ref,
-            'virtual_disks' => $diskConfiguration,
-            'virtual_network_cards' => $vifConfiguration,
-            'service_roles' => [
-                //  Here will be roles of the server
-                'zabbix_server' => [
-                    'is_zabbix_enabled' => true,
-                    'zabbix_server_ip'  => '185.255.172.221'
-                ],
-            ],
-            'compute_pool' => $computePoolArray,
-            'cloud_node' => $cloudPoolArray,
-            'ssh_keys' => [],
-        ];
+    public static function getCloudInitConfiguration($vm)
+    {
+        return VirtualMachinesMetadataService::getCloudInitConfiguration($vm);
     }
 }
