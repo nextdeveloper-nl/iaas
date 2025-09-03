@@ -384,7 +384,7 @@ class VirtualMachinesXenService extends AbstractXenService
             $result = self::performCommand($command, $centralRepo);
 
             //  Creating the iso file
-            $command = 'genisoimage -output config-iso/' . $vm->uuid . '/config.iso -volid cidata -joliet -rock config-iso/' . $vm->uuid . '/user-data config-iso/' . $vm->uuid . '/meta-data';
+            $command = 'genisoimage -output config-iso/' . $vm->uuid . '/config.iso -volid CIDATA -joliet -rock config-iso/' . $vm->uuid . '/user-data config-iso/' . $vm->uuid . '/meta-data';
             $result = self::performCommand($command, $centralRepo);
 
             //  removing .base64 files
@@ -789,7 +789,7 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function performCommand($command, ComputeMembers $computeMember): ?array
+    public static function performCommand($command, Repositories|ComputeMembers $computeMember): ?array
     {
         try {
             if ($computeMember->is_management_agent_available == true) {
