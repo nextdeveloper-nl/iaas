@@ -806,7 +806,10 @@ class VirtualMachinesXenService extends AbstractXenService
             if($computeMember->is_management_agent_available == true) {
                 return $computeMember->performAgentCommand($command);
             } else {
-                return $computeMember->performSSHCommand($command);
+                logger()->debug('[' . __METHOD__ . '] Performing command via SSH: ' . $command);
+                $result = $computeMember->performSSHCommand($command);
+                logger()->debug('[' . __METHOD__ . '] Result: ' . print_r($result, true));
+                return $result;
             }
         } catch (CannotConnectWithSshException $exception) {
             Log::error(__METHOD__ . 'There is an error in performing the command: ' . $command .
