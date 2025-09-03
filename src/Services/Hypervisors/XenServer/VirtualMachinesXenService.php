@@ -396,7 +396,7 @@ class VirtualMachinesXenService extends AbstractXenService
             $result = self::performCommand($command, $centralRepo);
 
             //  Removing the config-iso folder
-            $command = 'rm -rf config-iso/' . $vm->uuid;
+            $command = 'rm -f config-iso/' . $vm->uuid . '/config.iso';
             $result = self::performCommand($command, $centralRepo);
 
             return true;
