@@ -806,9 +806,13 @@ class VirtualMachinesXenService extends AbstractXenService
             if($computeMember->is_management_agent_available == true) {
                 return $computeMember->performAgentCommand($command);
             } else {
-                logger()->debug('[' . __METHOD__ . '] Performing command via SSH: ' . $command);
+                if(config('leo.debug.iaas.compute_members'))
+                    logger()->debug('[' . __METHOD__ . '] Performing command via SSH: ' . $command);
+
                 $result = $computeMember->performSSHCommand($command);
-                logger()->debug('[' . __METHOD__ . '] Result: ' . print_r($result, true));
+
+                if(config('leo.debug.iaas.compute_members'))
+                    logger()->debug('[' . __METHOD__ . '] Result: ' . print_r($result, true));
                 return $result;
             }
         } catch (CannotConnectWithSshException $exception) {
