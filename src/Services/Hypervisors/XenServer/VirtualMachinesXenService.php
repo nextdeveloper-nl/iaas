@@ -15,6 +15,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
+use NextDeveloper\IAAS\Services\RepositoriesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -389,7 +390,31 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = 'rm -f config-iso/' . $vm->uuid . '/*.base64';
         $result = self::performCommand($command, $computeMember);
 
-        dd($userData);
+        //  Here if we have a central repository server we should move it to that repository
+        $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
+
+        if($centralRepo) {
+            //  Mount central repo to /mnt/plusclouds-config-repo
+            $command = 'mkdir /mnt/plusclouds-config-repo -p';
+            $result = self::performCommand($command, $computeMember);
+
+            $command = 'mount -t nfs ' . $centralRepo->local_ip_addr . ':' . $centralRepo->iso_path . ' /mnt/plusclouds-config-repo';
+            $result = self::performCommand($command, $computeMember);
+
+            //  Moving the iso to the central repository
+            $command = 'mv config-iso/' . $vm->uuid . '/config.iso /mnt/plusclouds-config-repo/config-' . $vm->uuid . '.iso';
+            $result = self::performCommand($command, $computeMember);
+
+            //  Unmounting the central repository
+            $command = 'umount /mnt/plusclouds-config-repo';
+            $result = self::performCommand($command, $computeMember);
+
+            //  Removing the config-iso folder
+            $command = 'rm -rf config-iso/' . $vm->uuid;
+            $result = self::performCommand($command, $computeMember);
+        }
+
+        return true;
     }
 
     public static function exportToRepository(VirtualMachines $vm, Repositories $repositories) : array
