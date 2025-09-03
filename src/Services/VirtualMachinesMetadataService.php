@@ -13,6 +13,8 @@ use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\IpAddresses;
+use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
@@ -139,8 +141,86 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
 
     public static function getCloudInitConfiguration($vm) : string
     {
+        //  For encryption of the password
+        $salt = substr(str_replace('+', '.', base64_encode(random_bytes(16))), 0, 16);
+        $hash = crypt($vm->password, '$6$' . $salt . '$');
+
+        $networkCards = VirtualMachinesService::getVirtualNetworkCards($vm);
+
+        $networkCardsArray = [];
+
+        foreach ($networkCards as $networkCard) {
+            $networkCardsArray[$networkCard->name] = [
+                'match' => [
+                    'macaddress' => $networkCard->mac_addr
+                ],
+                'set-name' => $networkCard->name,
+                'dhcp4' => true,
+            ];
+
+             $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $networkCard->iaas_network_id)
+                ->first();
+
+            $ips = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_network_card_id', $networkCard->id)
+                ->get();
+
+            if($ips) {
+                foreach ($ips as $ip) {
+                    //  /32 fix
+                    $subnet = explode('/', $network->cidr);
+
+                    $ipAddr = $ip->ip_addr;
+
+                    if (Str::contains($ipAddr, '/32')) {
+                        $ipAddr = Str::replace('/32', '/' . $subnet[1], $ipAddr);
+                    }
+
+                    $gateway = $subnet[0];
+                    $gateway = str_replace('.0', '.1', $gateway);
+
+                    $networkCardsArray[$networkCard->name]['addresses'][] = $ipAddr;
+                    $networkCardsArray[$networkCard->name]['gateway4'] = $gateway;
+
+                    if($network->dns_nameservers) {
+                        $nameServers = $network->dns_nameservers;
+
+                        foreach ($nameServers as $nameServer) {
+                            if(Str::contains($nameServer, '/32')) {
+                                $nameServer = Str::replace('/32', '', $nameServer);
+                            }
+
+                            $networkCardsArray[$networkCard->name]['nameservers'] = [
+                                'addresses' => $nameServer
+                            ];
+                        }
+                    }
+
+                    $networkCardsArray[$networkCard->name]['dhcp4'] = false;
+                }
+            }
+        }
+
         $data = [
+            'instance_id' => $vm->uuid,
             'hostname'  =>  $vm->hostname,
+            'manage_etc_hosts' => true,
+            'ssh_pwauth' => true,
+            'disable_root' => false,
+            'users' => [
+                [
+                    'name' => $vm->username,
+                    'gecos' => 'Superuser',
+                    'lock_passwd' => false,
+                    'shell' => '/bin/bash',
+                    'passwd' => $hash,
+                ]
+            ],
+            'network' => [
+                'version' => 2,
+                'ethernets' => $networkCardsArray
+            ],
         ];
 
         dd(yaml_emit($data));

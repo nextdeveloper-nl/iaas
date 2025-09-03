@@ -48,6 +48,9 @@ class Start extends AbstractAction
 
         (new Fix($this->model))->handle();
 
+        //  Here we need to deploy the configuration iso
+        VirtualMachinesXenService::updateConfigurationIso($this->model);
+
         $result = VirtualMachinesXenService::start($this->model);
 
         if($result['error'] != '') {

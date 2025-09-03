@@ -345,6 +345,53 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
+    public static function updateConfigurationIso(VirtualMachines $vm) : bool
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@updateConfigurationIso] I am updating the' .
+                ' configuration ISO of the VM (' . $vm->name. '/' . $vm->uuid . ')');
+
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        $command = 'xe vm-param-set other-config:cdrom-config-raw=true uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        //  Here we will write the user-data config to the xenserver before we create the iso
+        $userData = VirtualMachinesService::getCloudInitConfiguration($vm);
+        $base64UserData = base64_encode($userData);
+
+        //  Creating the configuration folder
+        $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
+        $result = self::performCommand($command, $computeMember);
+
+        //  Pushing the user-data file
+        $command = 'echo "' . $base64UserData . '" > config-iso/' . $vm->uuid . '/user-data.base64';
+        $result = self::performCommand($command, $computeMember);
+
+        //  Decoding the user-data file
+        $command = 'base64 -d config-iso/' . $vm->uuid . '/user-data.base64 > config-iso/' . $vm->uuid . '/user-data';
+        $result = self::performCommand($command, $computeMember);
+
+        //  Pushing the meta-data content to the file
+        $metaDataBase64 = base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n");
+        $command = 'echo "' . $metaDataBase64  . '" > config-iso/' . $vm->uuid . '/meta-data.base64';
+        $result = self::performCommand($command, $computeMember);
+
+        //  Decoding the meta-data file
+        $command = 'base64 -d config-iso/' . $vm->uuid . '/meta-data.base64 > config-iso/' . $vm->uuid . '/meta-data';
+        $result = self::performCommand($command, $computeMember);
+
+        //  Creating the iso file
+        $command = 'genisoimage -output config-iso/' . $vm->uuid . '/config.iso -volid cidata -joliet -rock config-iso/' . $vm->uuid . '/user-data config-iso/' . $vm->uuid . '/meta-data';
+        $result = self::performCommand($command, $computeMember);
+
+        //  removing .base64 files
+        $command = 'rm -f config-iso/' . $vm->uuid . '/*.base64';
+        $result = self::performCommand($command, $computeMember);
+
+        dd($userData);
+    }
+
     public static function exportToRepository(VirtualMachines $vm, Repositories $repositories) : array
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
