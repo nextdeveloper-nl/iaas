@@ -22,15 +22,15 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class VirtualMachinesXenService extends AbstractXenService
 {
-    public static function start(VirtualMachines $vm) : array
+    public static function start(VirtualMachines $vm): array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@start] I am starting the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-start uuid=' . $vm->hypervisor_uuid;
@@ -39,15 +39,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return $result;
     }
 
-    public static function restart(VirtualMachines $vm) : bool
+    public static function restart(VirtualMachines $vm): bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@restart] I am restarting the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-reboot uuid=' . $vm->hypervisor_uuid;
@@ -57,15 +57,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function unpause(VirtualMachines $vm) : bool
+    public static function unpause(VirtualMachines $vm): bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@pause] I am unpausing the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-unpause uuid=' . $vm->hypervisor_uuid;
@@ -75,15 +75,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function pause(VirtualMachines $vm) : bool
+    public static function pause(VirtualMachines $vm): bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@pause] I am pausing the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-pause uuid=' . $vm->hypervisor_uuid;
@@ -93,15 +93,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function forceRestart(VirtualMachines $vm) : bool
+    public static function forceRestart(VirtualMachines $vm): bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@restart] I am restarting the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-reboot force=true uuid=' . $vm->hypervisor_uuid;
@@ -111,15 +111,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function shutdown(VirtualMachines $vm) : bool
+    public static function shutdown(VirtualMachines $vm): bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@shutdown] I am shutting down the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-shutdown uuid=' . $vm->hypervisor_uuid;
@@ -129,15 +129,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function forceShutdown(VirtualMachines $vm) : bool
+    public static function forceShutdown(VirtualMachines $vm): bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@shutdown] I am shutting down the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-shutdown force=true uuid=' . $vm->hypervisor_uuid;
@@ -147,18 +147,18 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function takeSnapshot(VirtualMachines $vm, $name = null) : array
+    public static function takeSnapshot(VirtualMachines $vm, $name = null): array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@shutdown] I am taking snapshot of the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
-        if(!$name)
+        if (!$name)
             $name = 'ss-' . $vm->uuid;
 
         /*
@@ -171,18 +171,18 @@ class VirtualMachinesXenService extends AbstractXenService
         return $result;
     }
 
-    public static function convertSnapshotToVm(VirtualMachines $vm, $name = null) : array
+    public static function convertSnapshotToVm(VirtualMachines $vm, $name = null): array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[' . __METHOD__ . '] I am finding snapshots of the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
-        if(!$name)
+        if (!$name)
             $name = 'Converted ' . $vm->name;
 
         $command = 'xe snapshot-param-set is-a-template=false uuid=' . $vm->hypervisor_uuid;
@@ -191,15 +191,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return $result;
     }
 
-    public static function destroyVm(VirtualMachines $vm) : array
+    public static function destroyVm(VirtualMachines $vm): array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::info('[VirtualMachinesXenService@destroyVm] I am deleting the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-destroy uuid=' . $vm->hypervisor_uuid;
@@ -208,15 +208,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return $result;
     }
 
-    public static function cloneVm(VirtualMachines $vm) : array
+    public static function cloneVm(VirtualMachines $vm): array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::info('[VirtualMachinesXenService@cloneVm] I am cloning the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-clone vm=' . $vm->uuid . ' new-name-label=cloned-' . $vm->uuid;
@@ -225,14 +225,14 @@ class VirtualMachinesXenService extends AbstractXenService
         return $result;
     }
 
-    public static function fixName(VirtualMachines $vm) : bool
+    public static function fixName(VirtualMachines $vm): bool
     {
-        if(StateHelper::getState($vm, 'name') == 'fixed')
+        if (StateHelper::getState($vm, 'name') == 'fixed')
             return true;
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::info('[VirtualMachinesXenService@fixName] I am fixing the' .
-                ' name of the VM (' . $vm->name. '/' . $vm->uuid . ')');
+                ' name of the VM (' . $vm->name . '/' . $vm->uuid . ')');
 
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
@@ -244,7 +244,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         //  If the iso27001 is not enabled, we can set the name-label to the VM name
         //  Otherwise, we need to set the name-label to the VM uuid
-        if(!$computePool->is_iso27001_enabled)
+        if (!$computePool->is_iso27001_enabled)
             $command = 'xe vm-param-set name-label="' . $vm->name . '" uuid=' . $vm->hypervisor_uuid;
 
         $result = self::performCommand($command, $computeMember);
@@ -254,12 +254,12 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function mountCD(VirtualMachines $vm, RepositoryImages $image) : bool
+    public static function mountCD(VirtualMachines $vm, RepositoryImages $image): bool
     {
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@mountCD] I am mounting the' .
-                ' CD (' . $image->name. '/' . $image->uuid . ') to the VM (' .
-                $vm->name. '/' . $vm->uuid . ')');
+                ' CD (' . $image->name . '/' . $image->uuid . ') to the VM (' .
+                $vm->name . '/' . $vm->uuid . ')');
 
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
@@ -267,12 +267,12 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $command = 'xe vm-cd-insert vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename;
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::debug('[VirtualMachinesXenService@mountCD] Mount command: ' . $command);
 
         $command = self::performCommand($command, $computeMember);
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::debug('[VirtualMachinesXenService@mountCD] Mount command result: ' .
                 json_encode($command));
 
@@ -280,7 +280,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command = self::performCommand($checkCommand, $computeMember);
         $result = self::parseListResult($command['output']);
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::debug('[VirtualMachinesXenService@mountCD] Check command result: ' .
                 json_encode($result));
 
@@ -289,12 +289,12 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('iaas_virtual_machine_id', $vm->id)
             ->first();
 
-        if(count($result)>1) {
-            if(array_key_exists('CD 0 VDI', $result[1])) {
+        if (count($result) > 1) {
+            if (array_key_exists('CD 0 VDI', $result[1])) {
                 $cdrom->update([
-                    'hypervisor_uuid'   =>  $result[1]['uuid'],
-                    'name'     =>   'CD: ' . $result[1]['name-label'],
-                    'size'      =>  $result[1]['virtual-size']
+                    'hypervisor_uuid' => $result[1]['uuid'],
+                    'name' => 'CD: ' . $result[1]['name-label'],
+                    'size' => $result[1]['virtual-size']
                 ]);
 
                 return true;
@@ -302,9 +302,9 @@ class VirtualMachinesXenService extends AbstractXenService
         }
 
         $cdrom->update([
-            'hypervisor_uuid'   =>  null,
-            'name'     =>   'CDROM',
-            'size'      =>  0
+            'hypervisor_uuid' => null,
+            'name' => 'CDROM',
+            'size' => 0
         ]);
 
         return false;
@@ -312,9 +312,9 @@ class VirtualMachinesXenService extends AbstractXenService
 
     public static function unmountCD(VirtualMachines $vm)
     {
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@unmountCD] I am unmounting the' .
-                ' CD from the VM (' . $vm->name. '/' . $vm->uuid . ')');
+                ' CD from the VM (' . $vm->name . '/' . $vm->uuid . ')');
 
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
@@ -332,100 +332,92 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('iaas_virtual_machine_id', $vm->id)
             ->first();
 
-        if(count($result)>1) {
-            if(array_key_exists('CD 0 VDI', $result[1]))
+        if (count($result) > 1) {
+            if (array_key_exists('CD 0 VDI', $result[1]))
                 return false;
         }
 
         $cdrom->update([
-            'hypervisor_uuid'   =>  null,
-            'name'     =>   'CDROM',
-            'size'      =>  0
+            'hypervisor_uuid' => null,
+            'name' => 'CDROM',
+            'size' => 0
         ]);
 
         return true;
     }
 
-    public static function updateConfigurationIso(VirtualMachines $vm) : bool
+    public static function updateConfigurationIso(VirtualMachines $vm): bool
     {
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@updateConfigurationIso] I am updating the' .
-                ' configuration ISO of the VM (' . $vm->name. '/' . $vm->uuid . ')');
+                ' configuration ISO of the VM (' . $vm->name . '/' . $vm->uuid . ')');
 
         $computeMember = VirtualMachinesService::getComputeMember($vm);
-
-        $command = 'xe vm-param-set other-config:cdrom-config-raw=true uuid=' . $vm->hypervisor_uuid;
-        $result = self::performCommand($command, $computeMember);
-
-        //  Here we will write the user-data config to the xenserver before we create the iso
-        $userData = VirtualMachinesService::getCloudInitConfiguration($vm);
-        $base64UserData = base64_encode($userData);
-
-        //  Creating the configuration folder
-        $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
-        $result = self::performCommand($command, $computeMember);
-
-        //  Pushing the user-data file
-        $command = 'echo "' . $base64UserData . '" > config-iso/' . $vm->uuid . '/user-data.base64';
-        $result = self::performCommand($command, $computeMember);
-
-        //  Decoding the user-data file
-        $command = 'base64 -d config-iso/' . $vm->uuid . '/user-data.base64 > config-iso/' . $vm->uuid . '/user-data';
-        $result = self::performCommand($command, $computeMember);
-
-        //  Pushing the meta-data content to the file
-        $metaDataBase64 = base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n");
-        $command = 'echo "' . $metaDataBase64  . '" > config-iso/' . $vm->uuid . '/meta-data.base64';
-        $result = self::performCommand($command, $computeMember);
-
-        //  Decoding the meta-data file
-        $command = 'base64 -d config-iso/' . $vm->uuid . '/meta-data.base64 > config-iso/' . $vm->uuid . '/meta-data';
-        $result = self::performCommand($command, $computeMember);
-
-        //  Creating the iso file
-        $command = 'genisoimage -output config-iso/' . $vm->uuid . '/config.iso -volid cidata -joliet -rock config-iso/' . $vm->uuid . '/user-data config-iso/' . $vm->uuid . '/meta-data';
-        $result = self::performCommand($command, $computeMember);
-
-        //  removing .base64 files
-        $command = 'rm -f config-iso/' . $vm->uuid . '/*.base64';
-        $result = self::performCommand($command, $computeMember);
 
         //  Here if we have a central repository server we should move it to that repository
         $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
 
-        if($centralRepo) {
+        if ($centralRepo) {
+            //  Here we will write the user-data config to the xenserver before we create the iso
+            $userData = VirtualMachinesService::getCloudInitConfiguration($vm);
+            $base64UserData = base64_encode($userData);
+
+            //  Creating the configuration folder
+            $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
+            $result = self::performCommand($command, $centralRepo);
+
+            //  Pushing the user-data file
+            $command = 'echo "' . $base64UserData . '" > config-iso/' . $vm->uuid . '/user-data.base64';
+            $result = self::performCommand($command, $centralRepo);
+
+            //  Decoding the user-data file
+            $command = 'base64 -d config-iso/' . $vm->uuid . '/user-data.base64 > config-iso/' . $vm->uuid . '/user-data';
+            $result = self::performCommand($command, $centralRepo);
+
+            //  Pushing the meta-data content to the file
+            $metaDataBase64 = base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n");
+            $command = 'echo "' . $metaDataBase64 . '" > config-iso/' . $vm->uuid . '/meta-data.base64';
+            $result = self::performCommand($command, $centralRepo);
+
+            //  Decoding the meta-data file
+            $command = 'base64 -d config-iso/' . $vm->uuid . '/meta-data.base64 > config-iso/' . $vm->uuid . '/meta-data';
+            $result = self::performCommand($command, $centralRepo);
+
+            //  Creating the iso file
+            $command = 'genisoimage -output config-iso/' . $vm->uuid . '/config.iso -volid cidata -joliet -rock config-iso/' . $vm->uuid . '/user-data config-iso/' . $vm->uuid . '/meta-data';
+            $result = self::performCommand($command, $centralRepo);
+
+            //  removing .base64 files
+            $command = 'rm -f config-iso/' . $vm->uuid . '/*.base64';
+            $result = self::performCommand($command, $centralRepo);
+
             //  Mount central repo to /mnt/plusclouds-config-repo
             $command = 'mkdir /mnt/plusclouds-config-repo -p';
-            $result = self::performCommand($command, $computeMember);
-
-            $command = 'mount -t nfs ' . $centralRepo->local_ip_addr . ':' . $centralRepo->iso_path . ' /mnt/plusclouds-config-repo';
-            $result = self::performCommand($command, $computeMember);
+            $result = self::performCommand($command, $centralRepo);
 
             //  Moving the iso to the central repository
             $command = 'mv config-iso/' . $vm->uuid . '/config.iso /mnt/plusclouds-config-repo/config-' . $vm->uuid . '.iso';
-            $result = self::performCommand($command, $computeMember);
-
-            //  Unmounting the central repository
-            $command = 'umount /mnt/plusclouds-config-repo';
-            $result = self::performCommand($command, $computeMember);
+            $result = self::performCommand($command, $centralRepo);
 
             //  Removing the config-iso folder
             $command = 'rm -rf config-iso/' . $vm->uuid;
-            $result = self::performCommand($command, $computeMember);
+            $result = self::performCommand($command, $centralRepo);
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
-    public static function exportToRepository(VirtualMachines $vm, Repositories $repositories) : array
+    public static function exportToRepository(VirtualMachines $vm, Repositories $repositories): array
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
         $exportName = $vm->uuid . '.' . (new Carbon($vm->created_at))->timestamp . '.pvm';
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@export] I am exporting the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') to default repo under name ' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') to default repo under name ' .
                 $exportName . '.backup from compute member' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
@@ -437,20 +429,20 @@ class VirtualMachinesXenService extends AbstractXenService
         $result = self::performCommand($command, $computeMember);
 
         $result['filename'] = $exportName;
-        $result['path']  =   $repositories->local_ip_addr . ':' . $repositories->vm_path . '/' . $exportName;
+        $result['path'] = $repositories->local_ip_addr . ':' . $repositories->vm_path . '/' . $exportName;
 
         return $result;
     }
 
-    public static function exportToDefaultBackupRepository(VirtualMachines $vm) : array
+    public static function exportToDefaultBackupRepository(VirtualMachines $vm): array
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
         $backupName = $vm->uuid . '.' . (new Carbon($vm->created_at))->timestamp . '.backup';
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@export] I am exporting the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') to default repo under name ' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') to default repo under name ' .
                 $backupName . '.backup from compute member' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
@@ -460,41 +452,41 @@ class VirtualMachinesXenService extends AbstractXenService
         $result = self::performCommand($command, $computeMember);
 
         $result['filename'] = $backupName;
-        $result['path']  =   'default-backup-repo://' . $backupName;
+        $result['path'] = 'default-backup-repo://' . $backupName;
 
         return $result;
     }
 
-    public static function export(VirtualMachines $vm, Repositories $repo) : string
+    public static function export(VirtualMachines $vm, Repositories $repo): string
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@export] I am exporting the' .
-                ' VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $newUuid = uuid_create(UUID_TYPE_DEFAULT);
 
         $command = 'xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
-            'filename=/mnt/plusclouds-repo/' . $repo->uuid . '/' . $newUuid. '.pvm';
+            'filename=/mnt/plusclouds-repo/' . $repo->uuid . '/' . $newUuid . '.pvm';
         $result = self::performCommand($command, $computeMember);
         $result = $result['output'];
 
         return $newUuid;
     }
 
-    public static function getVmParameters(VirtualMachines $vm) : array
+    public static function getVmParameters(VirtualMachines $vm): array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@getVmParameters] I am taking the' .
-                ' parameters of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' parameters of the VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-param-list uuid=' . $vm->hypervisor_uuid;
@@ -510,28 +502,28 @@ class VirtualMachinesXenService extends AbstractXenService
             ->first();
 
         //  This means that we dont have the compute member. So we return false.
-        if(!$computeMember)
+        if (!$computeMember)
             return false;
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@getVmParameters] I am taking the' .
-                ' parameters of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' parameters of the VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-param-list uuid=' . $vm->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
 
-        if(Str::contains($result['error'], 'The uuid you supplied was invalid'))
+        if (Str::contains($result['error'], 'The uuid you supplied was invalid'))
             return false;
 
         return true;
     }
 
-    public static function getVmParametersByUuid(ComputeMembers $computeMember, $vmUuid) : array
+    public static function getVmParametersByUuid(ComputeMembers $computeMember, $vmUuid): array
     {
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@getVmParametersByUuid] I am taking the' .
-                ' parameters of the VM (' . $vmUuid. ') from the compute' .
+                ' parameters of the VM (' . $vmUuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vm-param-list uuid=' . $vmUuid;
@@ -540,15 +532,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return self::parseResult($result['output']);
     }
 
-    public static function getVmDisks(VirtualMachines $vm) : array
+    public static function getVmDisks(VirtualMachines $vm): array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@getVmDisks] I am taking the' .
-                ' disks of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' disks of the VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vbd-list vm-uuid=' . $vm->hypervisor_uuid;
@@ -558,15 +550,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return $list;
     }
 
-    public static function getVifs(VirtualMachines $vm) : array
+    public static function getVifs(VirtualMachines $vm): array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@getVmDisks] I am taking the' .
-                ' vifs of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' vifs of the VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vif-list vm-uuid=' . $vm->hypervisor_uuid;
@@ -582,9 +574,9 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@getVmDisks] I am taking the' .
-                ' vif params of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' vif params of the VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe vif-param-list uuid=' . $uuid;
@@ -596,9 +588,9 @@ class VirtualMachinesXenService extends AbstractXenService
 
     public static function createVif(VirtualMachines $vm, $networkUuid, $device)
     {
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@createVif] I am creating the' .
-                ' vif from network (' . $networkUuid . ') for the VM (' . $vm->name. '/' . $vm->uuid . ')');
+                ' vif from network (' . $networkUuid . ') for the VM (' . $vm->name . '/' . $vm->uuid . ')');
 
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
@@ -616,9 +608,9 @@ class VirtualMachinesXenService extends AbstractXenService
 
     public static function destroyVif(VirtualMachines $vm, $uuid)
     {
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@destroyVif] I am destroying the' .
-                ' vif (' . $uuid . ') of the VM (' . $vm->name. '/' . $vm->uuid . ')');
+                ' vif (' . $uuid . ') of the VM (' . $vm->name . '/' . $vm->uuid . ')');
 
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
@@ -638,15 +630,15 @@ class VirtualMachinesXenService extends AbstractXenService
      * @param int $corePerSocket If not given we will distribute cores evenly
      * @return VirtualMachines
      */
-    public static function setCPUCore(VirtualMachines $vm, $coreCount, $corePerSocket = null) : bool
+    public static function setCPUCore(VirtualMachines $vm, $coreCount, $corePerSocket = null): bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@setCPUCore] I am updating the' .
-                ' CPU of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' CPU of the VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         //  Setting vCPU max
@@ -680,15 +672,15 @@ class VirtualMachinesXenService extends AbstractXenService
      * @param int $ram MB of ram requestes
      * @return VirtualMachines
      */
-    public static function setRam(VirtualMachines $vm, $ram) : bool
+    public static function setRam(VirtualMachines $vm, $ram): bool
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@setRam] I am updating the' .
-                ' CPU of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' CPU of the VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         //  Converting GB to Bytes
@@ -701,7 +693,7 @@ class VirtualMachinesXenService extends AbstractXenService
         $command .= ' static-max=' . $ramBytes;
         $command .= ' uuid=' . $vm->hypervisor_uuid;
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             logger()->info('[VirtualMachineService@setRam] Executing command: ' . $command);
 
         $result = self::performCommand($command, $computeMember);
@@ -710,15 +702,15 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function getConsoleParameters(VirtualMachines $vm) : array
+    public static function getConsoleParameters(VirtualMachines $vm): array
     {
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
-        if(config('leo.debug.iaas.compute_members'))
+        if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@getConsoleParameters] I am taking the' .
-                ' console parameters of the VM (' . $vm->name. '/' . $vm->uuid . ') from the compute' .
+                ' console parameters of the VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
         $command = 'xe console-list vm-uuid=' . $vm->hypervisor_uuid;
@@ -727,16 +719,17 @@ class VirtualMachinesXenService extends AbstractXenService
         return self::parseListResult($result['output']);
     }
 
-    public static function syncVirtualNetworkCards(VirtualMachines $vm) :bool {
+    public static function syncVirtualNetworkCards(VirtualMachines $vm): bool
+    {
         $vifs = VirtualMachinesXenService::getVifs($vm);
 
         foreach ($vifs as $vif) {
-            if($vif == [])
+            if ($vif == [])
                 continue;
 
             $vifParams = VirtualMachinesXenService::getVifParams($vm, $vif['uuid']);
 
-            if(array_key_exists(0, $vifParams))
+            if (array_key_exists(0, $vifParams))
                 $vifParams = $vifParams[0];
 
             $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
@@ -747,7 +740,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 ->where('network_uuid', $vifParams['network-uuid'])
                 ->first();
 
-            if(!$connectedInterface) {
+            if (!$connectedInterface) {
                 $computeMember = VirtualMachinesService::getComputeMember($vm);
                 //  Here we will add another trigger to scan all compute member network interfaces
                 StateHelper::setState($computeMember, 'needs_scan', true);
@@ -766,7 +759,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 ->where('iaas_cloud_node_id', $computePool->iaas_cloud_node_id)
                 ->first();
 
-            if(!$network) {
+            if (!$network) {
                 //  Here we need to create another scan and create the related network
                 StateHelper::setState($computeMember, 'needs_scan', true);
 
@@ -778,20 +771,20 @@ class VirtualMachinesXenService extends AbstractXenService
             }
 
             $data = [
-                'name'          =>  'eth' . $vifParams['device'],
+                'name' => 'eth' . $vifParams['device'],
                 'device_number' => $vifParams['device'],
-                'mac_addr'      => $vifParams['MAC'],
-                'bandwidth_limit'   => '-1', //$vifParams['qos_algorithm_params']['kbps'],
-                'iaas_network_id'       => $network->id,
-                'hypervisor_uuid'   => $vif['uuid'],
-                'hypervisor_data'   => $vif,
-                'iam_account_id'    => $vm->iam_account_id,
-                'iam_user_id'       => $vm->iam_user_id,
-                'is_draft'          => false,
-                'iaas_virtual_machine_id'   =>  $vm->id
+                'mac_addr' => $vifParams['MAC'],
+                'bandwidth_limit' => '-1', //$vifParams['qos_algorithm_params']['kbps'],
+                'iaas_network_id' => $network->id,
+                'hypervisor_uuid' => $vif['uuid'],
+                'hypervisor_data' => $vif,
+                'iam_account_id' => $vm->iam_account_id,
+                'iam_user_id' => $vm->iam_user_id,
+                'is_draft' => false,
+                'iaas_virtual_machine_id' => $vm->id
             ];
 
-            if($dbVif)
+            if ($dbVif)
                 $dbVif->update($data);
             else
                 VirtualNetworkCardsService::create($data);
@@ -800,18 +793,18 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function performCommand($command, ComputeMembers $computeMember) : ?array
+    public static function performCommand($command, ComputeMembers $computeMember): ?array
     {
         try {
-            if($computeMember->is_management_agent_available == true) {
+            if ($computeMember->is_management_agent_available == true) {
                 return $computeMember->performAgentCommand($command);
             } else {
-                if(config('leo.debug.iaas.compute_members'))
+                if (config('leo.debug.iaas.compute_members'))
                     logger()->debug('[' . __METHOD__ . '] Performing command via SSH: ' . $command);
 
                 $result = $computeMember->performSSHCommand($command);
 
-                if(config('leo.debug.iaas.compute_members'))
+                if (config('leo.debug.iaas.compute_members'))
                     logger()->debug('[' . __METHOD__ . '] Result: ' . print_r($result, true));
                 return $result;
             }
