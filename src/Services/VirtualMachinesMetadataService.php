@@ -223,6 +223,6 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             ],
         ];
 
-        dd(yaml_emit($data));
+        return yaml_emit($data);
     }
 }
