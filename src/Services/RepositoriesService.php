@@ -28,4 +28,12 @@ class RepositoriesService extends AbstractRepositoriesService
 
         return $repository;
     }
+
+    public static function getDefaultRepositoryOfVirtualMachine(VirtualMachines $vm)
+    {
+        return Repositories::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_cloud_node_id', $vm->iaas_cloud_node_id)
+            ->where('is_backup_repository', false)
+            ->first();
+    }
 }

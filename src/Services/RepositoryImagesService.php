@@ -37,8 +37,10 @@ class RepositoryImagesService extends AbstractRepositoryImagesService
 
     public static function getCloudInitImage(VirtualMachines $vm)
     {
+        $repository = RepositoriesService::getDefaultRepositoryOfVirtualMachine($vm);
+
         return RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
-            ->where('iaas_repository_id', $vm->iaas_cloud_node->iaas_cloud_node_repository_id)
+            ->where('iaas_repository_id', $repository->id)
             ->where('filename', 'config-' . $vm->uuid . '.iso')
             ->where('is_cloudinit_image', true)
             ->where('is_active', true)

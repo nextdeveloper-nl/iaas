@@ -51,7 +51,8 @@ class Start extends AbstractAction
 
         (new Fix($this->model))->handle();
 
-        if(config('leo.cloud-init.available')) {
+        if(config('iaas.cloud-init.available')) {
+            Log::info('[Start@handle] . Cloud init is available. So I am moving to configuration iso update.');
             //  Here we need to deploy the configuration iso
             VirtualMachinesXenService::updateConfigurationIso($this->model);
 
