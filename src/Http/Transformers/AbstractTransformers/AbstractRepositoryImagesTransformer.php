@@ -77,6 +77,7 @@ class AbstractRepositoryImagesTransformer extends AbstractTransformer
             'version'  =>  $model->version,
             'release_version'  =>  $model->release_version,
             'is_latest'  =>  $model->is_latest,
+            'is_cloudinit_image'    =>  $model->is_cloudinit_image,
             'extra'  =>  $model->extra,
             'cpu_type'  =>  $model->cpu_type,
             'supported_virtualizations'  =>  $model->supported_virtualizations,

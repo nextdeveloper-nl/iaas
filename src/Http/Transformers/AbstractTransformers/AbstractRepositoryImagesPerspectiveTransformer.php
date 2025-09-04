@@ -70,6 +70,7 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
                 'extra' => $model->extra,
                 'release_version' => $model->release_version,
                 'is_latest' => $model->is_latest,
+                'is_cloudinit_image'    =>  $model->is_cloudinit_image,
                 'supported_virtualizations' => $model->supported_virtualizations,
                 'cpu' => $model->cpu,
                 'ram' => $model->ram,

@@ -40,7 +40,7 @@ class RepositoryImagesService extends AbstractRepositoryImagesService
         return RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_repository_id', $vm->iaas_cloud_node->iaas_cloud_node_repository_id)
             ->where('filename', 'config-' . $vm->uuid . '.iso')
-            ->where('type', 'iso')
+            ->where('is_cloudinit_image', true)
             ->where('is_active', true)
             ->first();
     }
@@ -52,7 +52,7 @@ class RepositoryImagesService extends AbstractRepositoryImagesService
         return RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_repository_id', $repo->id)
             ->where('filename', $filename)
-            ->where('type', $type)
+            ->where('is_cloudinit_image', true)
             ->first();
     }
 }

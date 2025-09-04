@@ -105,6 +105,7 @@ class SynchronizeIsos extends AbstractAction
                     'filename'              =>  $image,
                     'path'                  =>  $this->model->iso_path . '/' . $image,
                     'is_iso'                =>  true,
+                    'is_cloudinit_image'         =>  Str::startsWith($image, 'config-'),
                     'is_public'             =>  $isPublic,
                     'ram'                   =>  1,
                     'cpu'                   =>  2,

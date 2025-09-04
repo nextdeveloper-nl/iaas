@@ -28,6 +28,7 @@ use NextDeveloper\IAAS\Database\Observers\RepositoryImagesPerspectiveObserver;
  * @property boolean $is_public
  * @property boolean $is_virtual_machine_image
  * @property boolean $is_docker_image
+ * @property boolean $is_cloudinit_image
  * @property integer $iaas_repository_id
  * @property integer $cpu
  * @property integer $ram
@@ -67,6 +68,7 @@ class RepositoryImagesPerspective extends Model
         'supported_virtualizations',
         'is_iso',
         'is_public',
+        'is_cloudinit_image',
         'cpu',
         'ram',
         'size',
