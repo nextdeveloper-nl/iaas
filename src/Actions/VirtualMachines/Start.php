@@ -6,9 +6,12 @@ use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\RepositoryImagesService;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
 /**
  * This action starts the Virtual Machine
@@ -48,8 +51,25 @@ class Start extends AbstractAction
 
         (new Fix($this->model))->handle();
 
-        //  Here we need to deploy the configuration iso
-        VirtualMachinesXenService::updateConfigurationIso($this->model);
+        if(config('leo.cloud-init.available')) {
+            //  Here we need to deploy the configuration iso
+            VirtualMachinesXenService::updateConfigurationIso($this->model);
+
+            $configImage = RepositoryImagesService::getCloudInitImage($this->model);
+
+            //  Check if the CDROM is mounted, if not we will mount and add the configuration iso
+            $cdrom = VirtualMachinesService::getCdrom($this->model);
+
+            if($cdrom == null) {
+                VirtualMachinesXenService::mountCD($this->model, $configImage);
+            } else {
+                if($cdrom->size == 0) {
+                    VirtualMachinesXenService::mountCD($this->model, $configImage);
+                } else {
+                    Log::info(__METHOD__ . ' CDROM is already mounted. Not remounting.');
+                }
+            }
+        }
 
         $result = VirtualMachinesXenService::start($this->model);
 

@@ -79,17 +79,37 @@ class SynchronizeIsos extends AbstractAction
                 ->first();
 
             if(!$dbImage) {
+                $iamAccountId = $this->model->iam_account_id;
+                $iamUserId = $this->model->iam_user_id;
+
+                $isPublic = $this->model->is_public;
+
+                if(Str::startsWith($image, 'config-')) {
+                    $uuid = str_replace('config-', '', $image);
+                    $uuid = str_replace('.iso', '', $uuid);
+
+                    $vm = \NextDeveloper\IAAS\Database\Models\VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('uuid', $uuid)
+                        ->first();
+
+                    if($vm) {
+                        $iamAccountId = $vm->iam_account_id;
+                        $iamUserId = $vm->iam_user_id;
+                        $isPublic = false;
+                    }
+                }
+
                 $dbImage = RepositoryImagesService::create([
                     'iaas_repository_id'    =>  $this->model->id,
                     'name'                  =>  Str::remove('.iso', $image),
                     'filename'              =>  $image,
                     'path'                  =>  $this->model->iso_path . '/' . $image,
                     'is_iso'                =>  true,
-                    'is_public'             =>  $this->model->is_public,
+                    'is_public'             =>  $isPublic,
                     'ram'                   =>  1,
                     'cpu'                   =>  2,
-                    'iam_account_id'        =>  $this->model->iam_account_id,
-                    'iam_user_id'           =>  $this->model->iam_user_id
+                    'iam_account_id'        =>  $iamAccountId,
+                    'iam_user_id'           =>  $iamUserId
                 ]);
             }
 

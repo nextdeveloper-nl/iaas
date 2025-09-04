@@ -25,6 +25,10 @@ return [
         ]
     ],
 
+    'cloud-init'    =>  [
+        'available' =>  env('IAAS_CLOUD_INIT_AVAILABLE', false),
+    ],
+
     'console'   =>  [
         //  Due to security there items should not have default values
         'key'   =>  env('IAAS_CONSOLE_KEY' ),

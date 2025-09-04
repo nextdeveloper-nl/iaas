@@ -48,6 +48,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    public static function getCdrom(VirtualMachines $vm) : ?VirtualDiskImages
+    {
+        return VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->where('is_cdrom', true)
+            ->first();
+    }
+
     public static function getAvailableMetrics(VirtualMachines $vm)
     {
         $metrics = VirtualMachineMetrics::withoutGlobalScopes()

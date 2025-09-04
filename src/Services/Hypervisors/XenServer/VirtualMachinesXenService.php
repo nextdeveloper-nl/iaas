@@ -16,6 +16,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAAS\Services\RepositoriesService;
+use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -398,6 +399,17 @@ class VirtualMachinesXenService extends AbstractXenService
             //  Removing the config-iso folder
             $command = 'rm -f config-iso/' . $vm->uuid . '/config.iso';
             $result = self::performCommand($command, $centralRepo);
+
+            $configImage = RepositoryImagesService::getCloudInitImage($vm);
+
+            if(!$configImage) {
+                RepositoryImagesService::syncRepoImageByFilename(
+                    filename: 'config-' . $vm->uuid . '.iso',
+                    repo: $centralRepo,
+                    type: 'iso',
+                    isActive: true
+                );
+            }
 
             return true;
         }
