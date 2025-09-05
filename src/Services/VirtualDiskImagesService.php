@@ -241,7 +241,7 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
                     return $vdi;
                 }
             } else {
-                throw new CannotContinueException('Cannot find the storage volume for this VDI. You need to check this out or fix this problem in the database.', '1');
+                throw new CannotContinueException('Cannot find the storage volume for this VDI. You need to check this out or fix this problem in the database. The VDI uuid is: ' . $vdi->uuid, '1');
             }
         }
 
