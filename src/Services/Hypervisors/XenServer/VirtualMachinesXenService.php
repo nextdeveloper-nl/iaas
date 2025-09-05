@@ -278,7 +278,17 @@ class VirtualMachinesXenService extends AbstractXenService
         if (config('leo.debug.iaas.compute_members'))
             Log::debug('[VirtualMachinesXenService@mountCD] Mount command: ' . $command);
 
-        $command = self::performCommand($command, $computeMember);
+        $result = self::performCommand($command, $computeMember);
+
+        if($result['output'] == '') {
+            //  This means that we dont have CD mounted on the server. We will mount a cdrom with device number default 255
+            $command = 'xe vm-cd-insert vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename . ' device=255';
+
+            if (config('leo.debug.iaas.compute_members'))
+                Log::debug('[VirtualMachinesXenService@mountCD] Mount command: ' . $command);
+
+            $result = self::performCommand($command, $computeMember);
+        }
 
         if (config('leo.debug.iaas.compute_members'))
             Log::debug('[VirtualMachinesXenService@mountCD] Mount command result: ' .
@@ -309,11 +319,13 @@ class VirtualMachinesXenService extends AbstractXenService
             }
         }
 
-        $cdrom->update([
-            'hypervisor_uuid' => null,
-            'name' => 'CDROM',
-            'size' => 0
-        ]);
+        if($cdrom) {
+            $cdrom->update([
+                'hypervisor_uuid' => null,
+                'name' => 'CDROM',
+                'size' => 0
+            ]);
+        }
 
         return false;
     }
