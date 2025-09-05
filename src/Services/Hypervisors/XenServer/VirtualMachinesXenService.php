@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\IAAS\Actions\VirtualMachines\Sync;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Networks;
@@ -249,6 +250,12 @@ class VirtualMachinesXenService extends AbstractXenService
             $command = 'xe vm-param-set name-label="' . $vm->name . '" uuid=' . $vm->hypervisor_uuid;
 
         $result = self::performCommand($command, $computeMember);
+
+        $hypervisorParams = self::getVmParameters($vm);
+
+        $vm->update([
+            'hypervisor_data'   =>  $hypervisorParams
+        ]);
 
         StateHelper::setState($vm, 'name', 'fixed');
 
