@@ -11,6 +11,7 @@ use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action will scan compute member and sync all findings
@@ -53,11 +54,17 @@ class SynchronizeIsos extends AbstractAction
             return;
         }
 
-        $this->model->update([
-            'is_iso_repo'   =>  true
-        ]);
+        if(!$this->model->iso_repo) {
+            $this->model->update([
+                'is_iso_repo'   =>  true
+            ]);
 
-        StateHelper::setState($this->model, 'iso_repo', 'Iso repository is configured');
+            StateHelper::setState($this->model, 'iso_repo', 'Iso repository is configured');
+        } else {
+            StateHelper::setState($this->model, 'iso_repo', 'This repo is not configured as iso repository');
+
+            $this->setFinishedWithError('This repository is not configured as ISO repository.');
+        }
 
         $this->setProgress(20, 'Retrieving ISO images in repository.');
 

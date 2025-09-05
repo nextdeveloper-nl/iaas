@@ -203,6 +203,7 @@ class AbstractRepositoryImagesService
         if(!array_key_exists('iam_user_id', $data)) {
             $data['iam_user_id']    = UserHelper::me()->id;
         }
+
         if (array_key_exists('iaas_virtual_machine_id', $data)) {
             $data['iaas_virtual_machine_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\VirtualMachines',
