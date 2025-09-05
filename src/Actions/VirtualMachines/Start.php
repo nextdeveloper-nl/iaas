@@ -62,7 +62,7 @@ class Start extends AbstractAction
             $cdrom = VirtualMachinesService::getCdrom($this->model);
 
             if($cdrom == null) {
-                VirtualMachinesXenService::mountCD($this->model, $configImage);
+                VirtualMachinesXenService::mountCD($this->model, $configImage, true);
             } else {
                 if($cdrom->size == 0) {
                     VirtualMachinesXenService::mountCD($this->model, $configImage);

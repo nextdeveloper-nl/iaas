@@ -339,7 +339,7 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
-    public static function mountCD(VirtualMachines $vm, RepositoryImages $image): bool
+    public static function mountCD(VirtualMachines $vm, RepositoryImages $image, $isRawImage = true): bool
     {
         if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@mountCD] I am mounting the' .
@@ -367,6 +367,11 @@ class VirtualMachinesXenService extends AbstractXenService
             $result = self::performCommand($command, $computeMember);
 
             self::syncVmDisks($vm);
+        }
+
+        if($isRawImage) {
+            $command = 'xe vm-param-set uuid=' . $vm->hypervisor_data['name-label'] . ' other-config:cdrom-config-raw=true';
+            $result = self::performCommand($command, $computeMember);
         }
 
         if (config('leo.debug.iaas.compute_members'))
@@ -905,13 +910,18 @@ class VirtualMachinesXenService extends AbstractXenService
             if ($computeMember->is_management_agent_available == true) {
                 return $computeMember->performAgentCommand($command);
             } else {
-                if (config('leo.debug.iaas.compute_members'))
-                    logger()->debug('[' . __METHOD__ . '] Performing command via SSH: ' . $command);
+                $log = [
+                    'command'   =>  $command,
+                    'member'    =>  $computeMember->name
+                ];
 
                 $result = $computeMember->performSSHCommand($command);
 
-                if (config('leo.debug.iaas.compute_members'))
-                    logger()->debug('[' . __METHOD__ . '] Result: ' . print_r($result, true));
+                $log['output'] = $result['output'];
+                $log['error'] = $result['error'];
+
+                Log::debug(print_r($log, true));
+
                 return $result;
             }
         } catch (CannotConnectWithSshException $exception) {
