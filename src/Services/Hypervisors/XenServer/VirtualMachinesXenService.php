@@ -6,9 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
-use NextDeveloper\IAAS\Actions\VirtualMachines\Sync;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
@@ -229,9 +229,6 @@ class VirtualMachinesXenService extends AbstractXenService
 
     public static function fixName(VirtualMachines $vm): bool
     {
-        if (StateHelper::getState($vm, 'name') == 'fixed')
-            return true;
-
         if (config('leo.debug.iaas.compute_members'))
             Log::info('[VirtualMachinesXenService@fixName] I am fixing the' .
                 ' name of the VM (' . $vm->name . '/' . $vm->uuid . ')');
@@ -262,6 +259,86 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
+    public static function syncVmDisks(VirtualMachines $vm): bool
+    {
+        $vbds = self::getVmDisks($vm);
+
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        foreach ($vbds as $vbd) {
+            //  Sometimes we get null values, we are skipping them (I dont know why)
+            if($vbd == [])
+                continue;
+
+            if(array_key_exists('vdi-uuid', $vbd)) {
+                $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($vbd['vdi-uuid'], $computeMember);
+            }
+
+            $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($vbd['uuid'], $computeMember);
+
+            //  We are taking CDROM if the vbd type is CDROM
+            if($vbdParams['type'] === 'CD') {
+                $dbVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('is_cdrom', true)
+                    ->where('iaas_virtual_machine_id', $vm->id)
+                    ->first();
+            } else {
+                $dbVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('hypervisor_uuid', $diskParams['uuid'])
+                    ->first();
+            }
+
+            //  We are taking the volume if the VDI is CDROM
+            if($vbdParams['type'] !== 'CD') {
+                $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('hypervisor_uuid', $diskParams['sr-uuid'])
+                    ->first();
+
+                if(!$diskVolume) {
+                    //  This means that there is a volume but we cannot find it. We need to make sync of this Volume
+                }
+            }
+
+            $data = [
+                'name'                      =>  $vbdParams['type'] !== 'CD' ? 'Disk of: ' . $vm->name : 'CDROM',
+                'size'                      =>  $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
+                'physical_utilisation'      =>  $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
+                'iaas_storage_volume_id'    =>  $vbdParams['type'] !== 'CD' ? $diskVolume->iaas_storage_volume_id : null,
+                'iaas_virtual_machine_id'   =>  $vm->id,
+                'device_number'             =>  $vbdParams['userdevice'],
+                'is_cdrom'                  =>  $vbdParams['type'] === 'CD',
+                'hypervisor_uuid'       =>  $vbdParams['vdi-uuid'],
+                'hypervisor_data'       =>  $diskParams ?? [],
+                'iam_account_id'        =>  $vm->iam_account_id,
+                'iam_user_id'           =>  $vm->iam_user_id,
+                'is_draft'              =>  false,
+                'vbd_hypervisor_uuid'   =>  $vbd['uuid'],
+                'vbd_hypervisor_data'   =>  $vbdParams
+            ];
+
+            if($dbVdi)
+                $dbVdi->updateQuietly($data);
+            else {
+                //  We need to check if we already have a record with the iaas_virtual_machine_id and device_number
+                //  If we have, we will update it, if not we will create a new one
+                $checkVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_virtual_machine_id', $vm->id)
+                    ->where('device_number', $vbdParams['userdevice'])
+                    ->first();
+
+                //  This happens when the VDI is migrated to another storage. We need to update the hypervisor_uuid
+                if($checkVdi) {
+                    $checkVdi->updateQuietly($data);
+                    $dbVdi = $checkVdi;
+                }
+                else
+                    $dbVdi = VirtualDiskImages::create($data);
+            }
+        }
+
+        return true;
+    }
+
     public static function mountCD(VirtualMachines $vm, RepositoryImages $image): bool
     {
         if (config('leo.debug.iaas.compute_members'))
@@ -282,12 +359,14 @@ class VirtualMachinesXenService extends AbstractXenService
 
         if($result['output'] == '') {
             //  This means that we dont have CD mounted on the server. We will mount a cdrom with device number default 255
-            $command = 'xe vm-cd-insert vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename . ' device=255';
+            $command = 'xe vm-cd-add vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename . ' device=255';
 
             if (config('leo.debug.iaas.compute_members'))
                 Log::debug('[VirtualMachinesXenService@mountCD] Mount command: ' . $command);
 
             $result = self::performCommand($command, $computeMember);
+
+            self::syncVmDisks($vm);
         }
 
         if (config('leo.debug.iaas.compute_members'))
