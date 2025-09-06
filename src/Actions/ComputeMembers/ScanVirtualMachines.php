@@ -252,6 +252,13 @@ class ScanVirtualMachines extends AbstractAction
                     ->where('hypervisor_uuid', $vif['uuid'])
                     ->first();
 
+                if(!$dbVif) {
+                    $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_virtual_machine_id', $dbVm->id)
+                        ->where('mac_addr', $vifParams['MAC'])
+                        ->first();
+                }
+
                 $connectedInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
                     ->where('network_uuid', $vifParams['network-uuid'])
                     ->first();

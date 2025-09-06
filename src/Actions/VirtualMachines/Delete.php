@@ -4,6 +4,8 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\IpAddresses;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
@@ -59,6 +61,26 @@ class Delete extends AbstractAction
             VirtualMachinesXenService::destroyVm($this->model);
 
             //VirtualMachinesService::delete($this->model->uuid);
+
+            $vdis = VirtualDiskImages::withoutGlobalScope(\NextDeveloper\IAM\Database\Scopes\AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $this->model->id)
+                ->delete();
+
+            //  We also need to delete all the disks that are attached to this VM physically. This will be implemented in the future.
+
+            $vifs = \NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::withoutGlobalScope(\NextDeveloper\IAM\Database\Scopes\AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $this->model->id)
+                ->get();
+
+            foreach ($vifs as $if) {
+                $ips = IpAddresses::withoutGlobalScope(\NextDeveloper\IAM\Database\Scopes\AuthorizationScope::class)
+                    ->where('iaas_virtual_network_card_id', $if->id)
+                    ->delete();
+
+                //  We need to sync the dhcp service on the network also but this will be implemented in the future.
+
+                $if->delete();
+            }
 
             $this->model->delete();
         } catch (\Exception $e) {
