@@ -370,7 +370,7 @@ class VirtualMachinesXenService extends AbstractXenService
         }
 
         if($isRawImage) {
-            $command = 'xe vm-param-set uuid=' . $vm->hypervisor_data['name-label'] . ' other-config:cdrom-config-raw=true';
+            $command = 'xe vm-param-set uuid=' . $vm->hypervisor_data['uuid'] . ' other-config:cdrom-config-raw=true';
             $result = self::performCommand($command, $computeMember);
         }
 
