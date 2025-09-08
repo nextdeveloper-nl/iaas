@@ -80,8 +80,10 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
         $vifs = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
 
         foreach ($vifs as $vif) {
-            if($vif->mac_addr === $data['mac_addr'] && $vif->iaas_virtual_machine_id === $vm->id) {
-                return $vif;
+            if(array_key_exists('mac_addr', $data)) {
+                if($vif->mac_addr === $data['mac_addr'] && $vif->iaas_virtual_machine_id === $vm->id) {
+                    return $vif;
+                }
             }
         }
 

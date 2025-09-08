@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
@@ -23,8 +24,18 @@ class NetworkPoolsService extends AbstractNetworkPoolsService
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-    public static function getNetworkPool(Networks $network) : NetworkPools
+    public static function getNetworkPool(string|Networks $network) : NetworkPools
     {
+        if(Str::isUuid($network)) {
+            $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $network)
+                ->first();
+
+            if(!$network) {
+                throw new \InvalidArgumentException('Network with specified UUID does not exist.');
+            }
+        }
+
         $networkPools = NetworkPools::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $network->iaas_network_pool_id)
             ->first();
