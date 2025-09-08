@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Actions\DhcpServers\UpdateConfiguration;
+use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
 use NextDeveloper\IAAS\Database\Models\DhcpServers;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
@@ -91,6 +92,8 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
         $data['device_number']  =  count($vifs);
 
         $vif = parent::create($data);
+
+        (new Attach($vif))->handle();
 
         return $vif;
     }

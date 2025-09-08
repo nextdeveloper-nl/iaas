@@ -221,7 +221,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
-        $command = 'xe vm-clone vm=' . $vm->uuid . ' new-name-label=cloned-' . $vm->uuid;
+        $command = 'xe vm-clone vm=' . $vm->hypervisor_data['name-label'] . ' new-name-label=cloned-' . $vm->uuid;
         $result = self::performCommand($command, $computeMember);
 
         return $result;
