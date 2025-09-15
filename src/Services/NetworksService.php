@@ -2,12 +2,15 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use NextDeveloper\IAAS\Database\Filters\NetworksQueryFilter;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\NetworkPools;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractNetworksService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use \Illuminate\Database\Eloquent\Collection;
 
 /**
  * This class is responsible from managing the data for Networks
@@ -19,6 +22,11 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 class NetworksService extends AbstractNetworksService
 {
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    public static function get(NetworksQueryFilter $filter = null, array $params = []) : LengthAwarePaginator|Collection
+    {
+        return parent::get($filter, $params);
+    }
 
     public static function create($data) : Networks {
         if(!array_key_exists('vlan', $data)) {
