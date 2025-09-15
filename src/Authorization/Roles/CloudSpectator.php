@@ -13,7 +13,7 @@ use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
-class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
+class CloudSpectator extends AbstractRole implements IAuthorizationRole
 {
     public const NAME = 'cloud-resource-owner';
 
