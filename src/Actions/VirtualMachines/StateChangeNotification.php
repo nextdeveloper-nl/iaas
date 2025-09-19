@@ -21,16 +21,46 @@ class StateChangeNotification extends AbstractAction
      * The token `:vm_name` will be replaced with the display name of the VM.
      */
     private const EVENT_MESSAGES = [
-        'paused:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has been completed successfully. Your virtual machine is now paused. \n\n Virtual machine name: :vm_name",
-        'pause-failed:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has failed. Your virtual machine could not be paused. \n\n Virtual machine name: :vm_name",
-        'restarted:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has been completed successfully. Your virtual machine has been restarted. \n\n Virtual machine name: :vm_name",
-        'restart-failed:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has failed. Your virtual machine could not be restarted. \n\n Virtual machine name: :vm_name",
-        'started:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has been completed successfully. Your virtual machine has been started. \n\n Virtual machine name: :vm_name",
-        'start-failed:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has failed. Your virtual machine could not be started. \n\n Virtual machine name: :vm_name",
-        'backed-up:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has been completed successfully. Your virtual machine has been backed up. \n\n Virtual machine name: :vm_name",
-        'backup-failed:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has failed. Your virtual machine could not be backed up. \n\n Virtual machine name: :vm_name",
-        'committed:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has been completed successfully. Your virtual machine has been committed. \n\n Virtual machine name: :vm_name",
-        'commit-failed:NextDeveloper\IAAS\VirtualMachines' => "The action you requested has failed. Your virtual machine could not be committed. \n\n Virtual machine name: :vm_name",
+        'paused:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  true,
+            'message'   =>  "Your virtual machine is now <b>PAUSED</b>"
+        ],
+        'pause-failed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  false,
+            'message'   =>  "Your virtual machine could not be <b>PAUSED</b>"
+        ],
+        'restarted:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  true,
+            'message'   =>  "Your virtual machine has been <b>RESTARTED</b>"
+        ],
+        'restart-failed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  false,
+            'message'   =>  "Your virtual machine could not be <b>RESTARTED</b>"
+        ],
+        'started:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  true,
+            'message'   =>  "Your virtual machine has been <b>STARTED</b>"
+        ],
+        'start-failed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  false,
+            'message'   =>  "Your virtual machine could not be <b>STARTED</b>."
+        ],
+        'backed-up:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  true,
+            'message'   =>  "Your virtual machine has been <b>BACKED UP</b>."
+        ],
+        'backup-failed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  false,
+            'message'   =>  "Your virtual machine could not be <b>BACKED UP</b>."
+        ],
+        'committed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  true,
+            'message'   =>  "Your virtual machine has been <b>COMMITTED</b>."
+        ],
+        'commit-failed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  false,
+            'message'   =>  "Your virtual machine could not be <b>COMMITTED</b>."
+        ],
     ];
 
     /**
@@ -67,7 +97,6 @@ class StateChangeNotification extends AbstractAction
         try {
             $bodyString = str_replace(':vm_name', $this->getVmDisplayName(), $this->resolveEventBody());
 
-
             $this->setProgress(70, 'Dispatching notification email.');
             (new Communicate($user))
                 ->sendEnvelopeNow(new SendStateChangeNotification($this->model, $user, $bodyString));
@@ -85,9 +114,12 @@ class StateChangeNotification extends AbstractAction
      */
     private function resolveEventBody(): string
     {
-        return self::EVENT_MESSAGES[$this->eventName] ?? "The status of your virtual machine has changed. \n\n Virtual machine name: :vm_name";
-    }
+        $event =  self::EVENT_MESSAGES[$this->eventName];
 
+        return $event['success']
+           ?  "The action you requested has been completed successfully. {$event['message']}. \n\n The affected Virtual machine is: <b>:vm_name</b>"
+           : "The action you requested has failed. {$event['message']}. \n\n Please try again later. if the problem persists, contact support. \n\n The affected Virtual machine is: <b>:vm_name</b>";
+    }
 
     /**
      * Get a friendly VM display name
