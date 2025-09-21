@@ -61,6 +61,10 @@ class StateChangeNotification extends AbstractAction
             'success'    =>  false,
             'message'   =>  "Your virtual machine could not be <b>COMMITTED</b>."
         ],
+        'health-check-failed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  false,
+            'message'   =>  "Your virtual machine has failed the health check."
+        ],
     ];
 
     /**
