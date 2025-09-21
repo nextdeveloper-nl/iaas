@@ -61,6 +61,11 @@ class Attach extends AbstractAction
             ->where('id', $vif->iaas_virtual_machine_id)
             ->first();
 
+        if($vm->hypervisor_data == null) {
+            Log::info('[VirtualNetworkCards@Attach] Seems like VM is still in draft state, this means we dont have vm present.');
+            return;
+        }
+
         $computeMember = VirtualMachinesService::getComputeMember($vm);
         $network = Networks::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vif->iaas_network_id)
