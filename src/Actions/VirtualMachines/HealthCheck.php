@@ -86,7 +86,11 @@ class HealthCheck extends AbstractAction
 
             CommentsService::createSystemComment('Virtual machine health check failed because compute members seems like not alive.', $this->model);
 
-            IaasHelper::notifyObjectOwner('Virtual machine with id: ' . $this->model->uuid . ' is lost.' , $computeMember);
+            IaasHelper::notifyCloudMaintainer(
+                subject: 'VM is lost',
+                notification: 'Virtual machine with id: ' . $this->model->uuid . ' is lost.' ,
+                object: $computeMember
+            );
 
             StateHelper::setState($this->model, 'unhealthy', 'The compute member is not alive');
 

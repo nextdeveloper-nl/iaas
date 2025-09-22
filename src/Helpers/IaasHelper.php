@@ -2,6 +2,8 @@
 
 namespace NextDeveloper\IAAS\Helpers;
 
+use Illuminate\Support\Facades\Log;
+use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\IAAS\Database\Models\Accounts;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -31,10 +33,21 @@ class IaasHelper
         return $accounts->fresh()->limits;
     }
 
-    public static function notifyObjectOwner($notification, $object)
+    public static function notifyCloudMaintainer($subject = '', $notification = '', $object)
     {
-        $user = UserHelper::
+        if(!$object) {
+            Log::error('Cannot make notification because object is empty');
+            return null;
+        }
 
-        $object->iam_user_id
+        $user = UserHelper::getUserWithId(
+            userId: $object->iam_user_id,
+            skipAccessCheck: true
+        );
+
+        (new Communicate($user))->sendNotification(
+            subject: $subject,
+            message: $notification
+        );
     }
 }
