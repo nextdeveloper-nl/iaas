@@ -30,4 +30,11 @@ class IaasHelper
 
         return $accounts->fresh()->limits;
     }
+
+    public static function notifyObjectOwner($notification, $object)
+    {
+        $user = UserHelper::
+
+        $object->iam_user_id
+    }
 }
