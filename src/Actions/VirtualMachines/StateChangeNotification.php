@@ -65,6 +65,11 @@ class StateChangeNotification extends AbstractAction
             'success'    =>  false,
             'message'   =>  "Your virtual machine has failed the health check."
         ],
+        'cleaned-up:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'   =>  false,
+            'message'   =>  'Your virtual machine was in a draft state for more than 15 minutes. ' .
+                'Therefore it is marked at garbage and marked as deleted.'
+        ]
     ];
 
     /**

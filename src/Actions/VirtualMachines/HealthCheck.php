@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
@@ -52,6 +53,18 @@ class HealthCheck extends AbstractAction
 
         if($this->model->is_lost) {
             $this->setFinished('Virtual machine is a draft. Skipping health check.');
+            return;
+        }
+
+        if(
+            $this->model->is_draft &&
+            $this->model->created_at->isBefore(
+                Carbon::now()->subMinutes(15)
+            )) {
+            //  If the virtual machine is in draft position for more than 15 minutes. We are deleting it.
+            $this->model->delete();
+
+            Events::fire('cleaned-up', $this->model);
             return;
         }
 
