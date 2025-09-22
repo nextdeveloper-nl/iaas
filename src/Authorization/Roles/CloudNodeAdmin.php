@@ -83,6 +83,7 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_virtual_machines:read',
             'iaas_virtual_machines:create',
             'iaas_virtual_machines:update',
+            'iaas_virtual_machines:delete',
 
             'iaas_virtual_disk_images:read',
             'iaas_virtual_disk_images:create',
