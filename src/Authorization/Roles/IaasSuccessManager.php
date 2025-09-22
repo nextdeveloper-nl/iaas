@@ -119,6 +119,11 @@ class IaasSuccessManager extends AbstractRole implements IAuthorizationRole
             'iaas_ip_addresses:create',
             'iaas_ip_addresses:update',
             'iaas_ip_addresses:delete',
+
+            'iaas_repositories:read',
+            'iaas_repositories:create',
+            'iaas_repositories:update',
+            'iaas_repositories:delete'
         ];
     }
 

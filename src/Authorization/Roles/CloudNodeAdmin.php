@@ -149,7 +149,6 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_storage_members:update',
             'iaas_storage_members:delete',
 
-
             'iaas_ip_addresses:read',
             'iaas_ip_addresses:create',
             'iaas_ip_addresses:update',
@@ -159,6 +158,16 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_dhcp_servers:create',
             'iaas_dhcp_servers:update',
             'iaas_dhcp_servers:delete',
+
+            'iaas_repositories:read',
+            'iaas_repositories:create',
+            'iaas_repositories:update',
+            'iaas_repositories:delete',
+
+            'iaas_repository_images:read',
+            'iaas_repository_images:create',
+            'iaas_repository_images:update',
+            'iaas_repository_images:delete'
         ];
     }
 
