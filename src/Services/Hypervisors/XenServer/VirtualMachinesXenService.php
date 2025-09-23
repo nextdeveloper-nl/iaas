@@ -167,7 +167,7 @@ class VirtualMachinesXenService extends AbstractXenService
          * Take the virtual machine name from hypervisor and then use that name in take snapshot command
          */
 
-        $command = 'xe vm-snapshot vm=' . $vm->hypervisor_data['name-label'] . ' new-name-label=' . $name;
+        $command = 'xe vm-snapshot vm="' . $vm->hypervisor_data['name-label'] . '" new-name-label=' . $name;
         $result = self::performCommand($command, $computeMember);
 
         return $result;
@@ -221,7 +221,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 ' VM (' . $vm->name . '/' . $vm->uuid . ') from the compute' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
-        $command = 'xe vm-clone vm=' . $vm->hypervisor_data['name-label'] . ' new-name-label=cloned-' . $vm->uuid;
+        $command = 'xe vm-clone vm="' . $vm->hypervisor_data['name-label'] . '" new-name-label=cloned-' . $vm->uuid;
         $result = self::performCommand($command, $computeMember);
 
         return $result;

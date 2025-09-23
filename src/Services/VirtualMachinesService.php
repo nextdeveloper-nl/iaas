@@ -683,18 +683,23 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->get()
             ->toArray();
 
-        $averageCpu = array_sum(array_column($cpuLoad, 'value')) / count($cpuLoad) * 100; //  Convert to percentage
+        $averageCpu = 0;
+        $averageRam = 0;
 
-        $ramLoad = VirtualMachineMetrics::withoutGlobalScopes()
-            ->select(['parameter', 'value', 'timestamp'])
-            ->where('iaas_virtual_machine_id', $vm->id)
-            ->where('parameter', 'memory')
-            ->orderBy('created_at', 'desc')
-            ->take(1) //  We are taking the latest value
-            ->get()
-            ->toArray();
+        if($cpuCount($cpuLoad)) {
+            $averageCpu = array_sum(array_column($cpuLoad, 'value')) / count($cpuLoad) * 100; //  Convert to percentage
 
-        $averageRam = $ramLoad[0]['value'] / 1024 / 1024; // Convert to MB
+            $ramLoad = VirtualMachineMetrics::withoutGlobalScopes()
+                ->select(['parameter', 'value', 'timestamp'])
+                ->where('iaas_virtual_machine_id', $vm->id)
+                ->where('parameter', 'memory')
+                ->orderBy('created_at', 'desc')
+                ->take(1) //  We are taking the latest value
+                ->get()
+                ->toArray();
+
+            $averageRam = $ramLoad[0]['value'] / 1024 / 1024; // Convert to MB
+        }
 
         $vdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_virtual_machine_id', $vm->id)

@@ -2,15 +2,19 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
+use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action converts the virtual machine into a template
@@ -47,11 +51,25 @@ class HealthCheck extends AbstractAction
 
         if($this->model->is_draft) {
             $this->setFinished('Virtual machine is a draft. Skipping health check.');
+            CommentsService::createSystemComment('Virtual machine is in draft state. Skipping health check.', $this->model);
             return;
         }
 
         if($this->model->is_lost) {
-            $this->setFinished('Virtual machine is a draft. Skipping health check.');
+            $this->setFinished('Virtual machine is lost. Skipping health check.');
+            CommentsService::createSystemComment('Virtual machine is lost. Skipping health check.', $this->model);
+            return;
+        }
+
+        if(
+            $this->model->is_draft &&
+            $this->model->created_at->isBefore(
+                Carbon::now()->subMinutes(15)
+            )) {
+            //  If the virtual machine is in draft position for more than 15 minutes. We are deleting it.
+            $this->model->delete();
+
+            Events::fire('cleaned-up', $this->model);
             return;
         }
 
@@ -66,12 +84,22 @@ class HealthCheck extends AbstractAction
 
             Events::fire('health-check-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
+            CommentsService::createSystemComment('Virtual machine health check failed because compute members seems like not alive.', $this->model);
+
+            IaasHelper::notifyCloudMaintainer(
+                subject: 'VM is lost',
+                notification: 'Virtual machine with id: ' . $this->model->uuid . ' is lost.' ,
+                object: $computeMember
+            );
+
             StateHelper::setState($this->model, 'unhealthy', 'The compute member is not alive');
 
             Events::fire('marked-as-lost:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
             $this->model->update([
-                'is_lost'   =>  true
+                'is_lost'   =>  true,
+                'deleted_at' => Carbon::now(),
+                'status'    =>  'lost'
             ]);
 
             $this->setFinishedWithError('Virtual machine health check failed. Please consult to your' .

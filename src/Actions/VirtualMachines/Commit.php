@@ -165,10 +165,16 @@ class Commit extends AbstractAction
 
             $addIp = MetaHelper::get($vif, 'auto_add_ip_v4');
 
-            Log::info('[VM Commit][Setup IP] IP count for VIF:' . count($ipList)
-                . ' auto_add_ip_v4: ' . $addIp);
+            $addRandomIp = false;
 
-            Log::debug('[VM Commit][Setup IP] The VIF is: ' . $vif->id . ' and the AddIp directive for this VIF is ' . $addIp . '. The network is: ' . $vif->iaas_network_id);
+            if(array_key_exists('enabled', $addIp)) {
+                $addRandomIp = $addIp['enabled'];
+            }
+
+            Log::info('[VM Commit][Setup IP] IP count for VIF:' . count($ipList)
+                . ' auto_add_ip_v4: ' . $addRandomIp);
+
+            Log::debug('[VM Commit][Setup IP] The VIF is: ' . $vif->id . ' and the AddIp directive for this VIF is ' . $addRandomIp . '. The network is: ' . $vif->iaas_network_id);
 
             //  If there is no IP in the card and auto_add_ip_v4 is true
             if($addIp && !count($ipList)) {

@@ -1302,6 +1302,8 @@ physical interfaces and vlans of compute member');
 
             $connectionProblemCount++;
 
+            Events::fire('connection-problem', $computeMember);
+
             StateHelper::setState(
                 $computeMember,
                 'connection_problem_count',
@@ -1325,6 +1327,8 @@ physical interfaces and vlans of compute member');
                     'is_alive' => false,
                     'has_error' => true
                 ]);
+
+                Events::fire('compute-member-died', $computeMember);
             }
 
             return null;

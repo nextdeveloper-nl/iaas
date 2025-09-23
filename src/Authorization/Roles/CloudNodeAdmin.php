@@ -55,34 +55,42 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_cloud_nodes:read',
             'iaas_cloud_nodes:update',
             'iaas_cloud_nodes:create',
+            'iaas_cloud_nodes:delete',
 
             'iaas_compute_members:read',
             'iaas_compute_members:create',
             'iaas_compute_members:update',
+            'iaas_compute_members:delete',
 
             'iaas_compute_pools:read',
             'iaas_compute_pools:create',
             'iaas_compute_pools:update',
+            'iaas_compute_pools:delete',
 
             'iaas_network_pools:read',
             'iaas_network_pools:create',
             'iaas_network_pools:update',
+            'iaas_network_pools:delete',
 
             'iaas_storage_pools:read',
             'iaas_storage_pools:create',
             'iaas_storage_pools:update',
+            'iaas_storage_pools:delete',
 
             'iaas_storage_volumes:read',
             'iaas_storage_volumes:create',
             'iaas_storage_volumes:update',
+            'iaas_storage_volumes:delete',
 
             'iaas_networks:read',
             'iaas_networks:create',
             'iaas_networks:update',
+            'iaas_networks:delete',
 
             'iaas_virtual_machines:read',
             'iaas_virtual_machines:create',
             'iaas_virtual_machines:update',
+            'iaas_virtual_machines:delete',
 
             'iaas_virtual_disk_images:read',
             'iaas_virtual_disk_images:create',
@@ -149,7 +157,6 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_storage_members:update',
             'iaas_storage_members:delete',
 
-
             'iaas_ip_addresses:read',
             'iaas_ip_addresses:create',
             'iaas_ip_addresses:update',
@@ -159,6 +166,16 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_dhcp_servers:create',
             'iaas_dhcp_servers:update',
             'iaas_dhcp_servers:delete',
+
+            'iaas_repositories:read',
+            'iaas_repositories:create',
+            'iaas_repositories:update',
+            'iaas_repositories:delete',
+
+            'iaas_repository_images:read',
+            'iaas_repository_images:create',
+            'iaas_repository_images:update',
+            'iaas_repository_images:delete'
         ];
     }
 
