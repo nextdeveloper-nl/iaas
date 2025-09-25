@@ -67,8 +67,31 @@ class StateChangeNotification extends AbstractAction
         ],
         'cleaned-up:NextDeveloper\IAAS\VirtualMachines' => [
             'success'   =>  false,
-            'message'   =>  'Your virtual machine was in a draft state for more than 15 minutes. ' .
-                'Therefore it is marked at garbage and marked as deleted.'
+            'message'   =>  'Your virtual machine has been cleaned up due to inactivity.'
+        ],
+        'halted:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  true,
+            'message'   =>  "Your virtual machine is now <b>HALTED</b>."
+        ],
+        'shutdown-failed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  false,
+            'message'   =>  "Your virtual machine could not be <b>HALTED</b>."
+        ],
+        'unpaused:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  true,
+            'message'   =>  "Your virtual machine is now <b>RUNNING</b> after being unpaused."
+        ],
+        'unpause-failed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  false,
+            'message'   =>  "Your virtual machine could not be <b>UNPAUSED</b>."
+        ],
+        'deleted:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  true,
+            'message'   =>  "Your virtual machine has been <b>DELETED</b>."
+        ],
+        'delete-failed:NextDeveloper\IAAS\VirtualMachines' => [
+            'success'    =>  false,
+            'message'   =>  "Your virtual machine could not be <b>DELETED</b>."
         ]
     ];
 
@@ -136,5 +159,14 @@ class StateChangeNotification extends AbstractAction
     private function getVmDisplayName(): string
     {
         return (string) ($this->model->name ?? 'your virtual machine');
+    }
+
+    /**
+     * Returns the list of fully-qualified event keys this action can handle.
+     * Keeping this logic here prevents duplication elsewhere when binding events.
+     */
+   public static function getSupportedEvents(): array
+    {
+        return array_keys(self::EVENT_MESSAGES);
     }
 }
