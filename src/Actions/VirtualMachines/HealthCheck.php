@@ -73,7 +73,7 @@ class HealthCheck extends AbstractAction
             return;
         }
 
-        $this->model->status = 'checking-health';
+        //$this->model->status = 'checking-health';
         $this->model->save();
 
         $this->setProgress(25, 'Checking the environment of the virtual machine.');

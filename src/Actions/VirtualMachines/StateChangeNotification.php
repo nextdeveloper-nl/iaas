@@ -67,7 +67,7 @@ class StateChangeNotification extends AbstractAction
         ],
         'cleaned-up:NextDeveloper\IAAS\VirtualMachines' => [
             'success'   =>  false,
-            'message'   =>  'Your virtual machine has been cleaned up due to inactivity.'
+            'message'   =>  'Your virtual machine has been cleaned up due to falty state.'
         ],
         'halted:NextDeveloper\IAAS\VirtualMachines' => [
             'success'    =>  true,
