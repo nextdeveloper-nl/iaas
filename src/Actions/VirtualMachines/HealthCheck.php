@@ -144,22 +144,27 @@ class HealthCheck extends AbstractAction
 
         $this->setProgress(75, 'Marking the server power state as: ' . $vmParams['power-state']);
 
-        $this->model->updateQuietly([
-            'status'    =>  $vmParams['power-state'],
+        $dataToUpdate = [
             'console_data'  =>  $consoleParams[0]
-        ]);
+        ];
 
-        switch ($vmParams['power-state']) {
-            case 'running':
-                Events::fire('running:NextDeveloper\IAAS\VirtualMachines', $this->model);
-                break;
-            case 'halted':
-                Events::fire('halted:NextDeveloper\IAAS\VirtualMachines', $this->model);
-                break;
-            case 'paused':
-                Events::fire('paused:NextDeveloper\IAAS\VirtualMachines', $this->model);
-                break;
+        if($this->model->status != $vmParams['power-state']) {
+            $dataToUpdate['status'] = $vmParams['power-state'];
+
+            switch ($vmParams['power-state']) {
+                case 'running':
+                    Events::fire('running:NextDeveloper\IAAS\VirtualMachines', $this->model);
+                    break;
+                case 'halted':
+                    Events::fire('halted:NextDeveloper\IAAS\VirtualMachines', $this->model);
+                    break;
+                case 'paused':
+                    Events::fire('paused:NextDeveloper\IAAS\VirtualMachines', $this->model);
+                    break;
+            }
         }
+
+        $this->model->updateQuietly($dataToUpdate);
 
         Events::fire('healthy:NextDeveloper\IAAS\VirtualMachines', $this->model);
         Events::fire('checked:NextDeveloper\IAAS\VirtualMachines', $this->model);
