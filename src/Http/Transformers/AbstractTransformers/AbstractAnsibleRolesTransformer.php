@@ -57,7 +57,7 @@ class AbstractAnsibleRolesTransformer extends AbstractTransformer
                                                 $iaasAnsibleServerId = \NextDeveloper\IAAS\Database\Models\AnsibleServers::where('id', $model->iaas_ansible_server_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -164,6 +164,8 @@ class AbstractAnsibleRolesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

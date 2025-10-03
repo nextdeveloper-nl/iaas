@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\AnsibleSystemPlaybookExecutionsObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * AnsibleSystemPlaybookExecutions model.
@@ -38,7 +40,7 @@ use NextDeveloper\IAAS\Database\Observers\AnsibleSystemPlaybookExecutionsObserve
  */
 class AnsibleSystemPlaybookExecutions extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -171,18 +173,20 @@ class AnsibleSystemPlaybookExecutions extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-
+    
     public function ansibleSystemPlaybooks() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\AnsibleSystemPlaybooks::class);
     }
-
+    
+    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

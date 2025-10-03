@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+            
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,13 +17,13 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function sshUsername($value)
     {
         return $this->builder->where('ssh_username', 'ilike', '%' . $value . '%');
@@ -34,7 +34,7 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshUsername($value);
     }
-
+        
     public function sshPassword($value)
     {
         return $this->builder->where('ssh_password', 'ilike', '%' . $value . '%');
@@ -45,7 +45,7 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPassword($value);
     }
-
+        
     public function apiToken($value)
     {
         return $this->builder->where('api_token', 'ilike', '%' . $value . '%');
@@ -56,7 +56,7 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
     {
         return $this->apiToken($value);
     }
-
+        
     public function apiUrl($value)
     {
         return $this->builder->where('api_url', 'ilike', '%' . $value . '%');
@@ -67,7 +67,7 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
     {
         return $this->apiUrl($value);
     }
-
+        
     public function serverType($value)
     {
         return $this->builder->where('server_type', 'ilike', '%' . $value . '%');
@@ -78,7 +78,7 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
     {
         return $this->serverType($value);
     }
-
+    
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -159,7 +159,7 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -169,7 +169,7 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -179,8 +179,10 @@ class DhcpServersQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

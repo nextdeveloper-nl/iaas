@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,19 +17,19 @@ class NetworkMembersInterfacesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function configuration($value)
     {
         return $this->builder->where('configuration', 'ilike', '%' . $value . '%');
     }
 
-
+    
     public function isUp($value)
     {
         return $this->builder->where('is_up', $value);
@@ -40,7 +40,7 @@ class NetworkMembersInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->isUp($value);
     }
-
+     
     public function isShutdown($value)
     {
         return $this->builder->where('is_shutdown', $value);
@@ -51,7 +51,7 @@ class NetworkMembersInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->isShutdown($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -132,7 +132,7 @@ class NetworkMembersInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetworkMember($value);
     }
-
+    
     public function iaasNetworkId($value)
     {
             $iaasNetwork = \NextDeveloper\IAAS\Database\Models\Networks::where('uuid', $value)->first();
@@ -147,7 +147,7 @@ class NetworkMembersInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetwork($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -157,7 +157,7 @@ class NetworkMembersInterfacesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -167,8 +167,10 @@ class NetworkMembersInterfacesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

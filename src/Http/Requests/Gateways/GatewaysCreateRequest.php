@@ -19,7 +19,7 @@ class GatewaysCreateRequest extends AbstractFormRequest
         'is_public' => 'boolean',
         'ssh_username' => 'nullable|string',
         'ssh_password' => 'nullable|string',
-        'ip_addr' => 'required',
+        'ip_addr' => 'nullable',
         'api_token' => 'nullable|string',
         'api_url' => 'nullable|string',
         'gateway_type' => 'string',

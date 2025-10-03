@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\StoragePoolsObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * StoragePools model.
@@ -34,7 +36,7 @@ use NextDeveloper\IAAS\Database\Observers\StoragePoolsObserver;
  */
 class StoragePools extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -152,9 +154,9 @@ class StoragePools extends Model
         }
     }
 
-    public function computeMemberStorageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function storageMembers() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageMembers::class);
     }
 
     public function storageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
@@ -162,22 +164,24 @@ class StoragePools extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
     }
 
+    public function computeMemberStorageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes::class);
+    }
+
     public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
     }
-
+    
     public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
     }
-
-    public function storageMembers() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageMembers::class);
-    }
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

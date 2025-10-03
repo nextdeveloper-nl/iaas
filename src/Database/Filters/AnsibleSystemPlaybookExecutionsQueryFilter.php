@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,13 +17,13 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function package($value)
     {
         return $this->builder->where('package', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function lastOutput($value)
     {
         return $this->builder->where('last_output', 'ilike', '%' . $value . '%');
@@ -34,7 +34,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->lastOutput($value);
     }
-
+    
     public function executionTotalTime($value)
     {
         $operator = substr($value, 0, 1);
@@ -53,7 +53,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->executionTotalTime($value);
     }
-
+    
     public function resultOk($value)
     {
         $operator = substr($value, 0, 1);
@@ -72,7 +72,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->resultOk($value);
     }
-
+    
     public function resultUnreachable($value)
     {
         $operator = substr($value, 0, 1);
@@ -91,7 +91,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->resultUnreachable($value);
     }
-
+    
     public function resultFailed($value)
     {
         $operator = substr($value, 0, 1);
@@ -110,7 +110,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->resultFailed($value);
     }
-
+    
     public function resultSkipped($value)
     {
         $operator = substr($value, 0, 1);
@@ -129,7 +129,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->resultSkipped($value);
     }
-
+    
     public function resultRescued($value)
     {
         $operator = substr($value, 0, 1);
@@ -148,7 +148,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->resultRescued($value);
     }
-
+    
     public function resultIgnored($value)
     {
         $operator = substr($value, 0, 1);
@@ -167,7 +167,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->resultIgnored($value);
     }
-
+    
     public function lastExecutionTimeStart($date)
     {
         return $this->builder->where('last_execution_time', '>=', $date);
@@ -270,7 +270,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasAnsibleSystemPlays($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -280,7 +280,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -290,7 +290,7 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iaasAnsibleSystemPlaybookId($value)
     {
             $iaasAnsibleSystemPlaybook = \NextDeveloper\IAAS\Database\Models\AnsibleSystemPlaybooks::where('uuid', $value)->first();
@@ -305,8 +305,10 @@ class AnsibleSystemPlaybookExecutionsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasAnsibleSystemPlaybook($value);
     }
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

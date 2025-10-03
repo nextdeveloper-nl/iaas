@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+            
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,13 +17,13 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function device($value)
     {
         return $this->builder->where('device', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function hypervisorUuid($value)
     {
         return $this->builder->where('hypervisor_uuid', 'ilike', '%' . $value . '%');
@@ -34,7 +34,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->hypervisorUuid($value);
     }
-
+        
     public function networkUuid($value)
     {
         return $this->builder->where('network_uuid', 'ilike', '%' . $value . '%');
@@ -45,7 +45,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->networkUuid($value);
     }
-
+        
     public function networkName($value)
     {
         return $this->builder->where('network_name', 'ilike', '%' . $value . '%');
@@ -56,7 +56,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->networkName($value);
     }
-
+    
     public function vlan($value)
     {
         $operator = substr($value, 0, 1);
@@ -70,7 +70,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('vlan', $operator, $value);
     }
 
-
+    
     public function mtu($value)
     {
         $operator = substr($value, 0, 1);
@@ -84,7 +84,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('mtu', $operator, $value);
     }
 
-
+    
     public function isManagement($value)
     {
         return $this->builder->where('is_management', $value);
@@ -95,7 +95,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->isManagement($value);
     }
-
+     
     public function isDefault($value)
     {
         return $this->builder->where('is_default', $value);
@@ -106,7 +106,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->isDefault($value);
     }
-
+     
     public function isConnected($value)
     {
         return $this->builder->where('is_connected', $value);
@@ -117,7 +117,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->isConnected($value);
     }
-
+     
     public function isBridge($value)
     {
         return $this->builder->where('is_bridge', $value);
@@ -128,7 +128,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->isBridge($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -209,7 +209,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasComputeMember($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -219,7 +219,7 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -229,8 +229,10 @@ class ComputeMemberNetworkInterfacesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

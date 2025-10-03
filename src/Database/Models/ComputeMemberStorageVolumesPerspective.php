@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\ComputeMemberStorageVolumesPerspectiveObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * ComputeMemberStorageVolumesPerspective model.
@@ -31,13 +33,21 @@ use NextDeveloper\IAAS\Database\Observers\ComputeMemberStorageVolumesPerspective
  * @property string $responsible
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property integer $used_hdd
+ * @property integer $free_hdd
+ * @property string $disk_physical_type
+ * @property boolean $is_storage
+ * @property boolean $is_alive
+ * @property boolean $is_cdrom
+ * @property integer $total_hdd
+ * @property integer $virtual_allocation
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  */
 class ComputeMemberStorageVolumesPerspective extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -65,6 +75,14 @@ class ComputeMemberStorageVolumesPerspective extends Model
             'responsible',
             'iam_account_id',
             'iam_user_id',
+            'used_hdd',
+            'free_hdd',
+            'disk_physical_type',
+            'is_storage',
+            'is_alive',
+            'is_cdrom',
+            'total_hdd',
+            'virtual_allocation',
     ];
 
     /**
@@ -100,6 +118,14 @@ class ComputeMemberStorageVolumesPerspective extends Model
     'iaas_compute_member_id' => 'integer',
     'maintainer' => 'string',
     'responsible' => 'string',
+    'used_hdd' => 'integer',
+    'free_hdd' => 'integer',
+    'disk_physical_type' => 'string',
+    'is_storage' => 'boolean',
+    'is_alive' => 'boolean',
+    'is_cdrom' => 'boolean',
+    'total_hdd' => 'integer',
+    'virtual_allocation' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -164,6 +190,8 @@ class ComputeMemberStorageVolumesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

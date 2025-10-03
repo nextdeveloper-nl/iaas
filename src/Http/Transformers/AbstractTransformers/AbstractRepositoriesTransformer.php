@@ -57,7 +57,8 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
                                                 $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                                                             $commonCurrencyId = \NextDeveloper\Commons\Database\Models\Currencies::where('id', $model->common_currency_id)->first();
-
+                                                            $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -87,6 +88,7 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
             'is_backup_repository'  =>  $model->is_backup_repository,
             'price_pergb'  =>  $model->price_pergb,
             'common_currency_id'  =>  $commonCurrencyId ? $commonCurrencyId->uuid : null,
+            'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
             ]
         );
     }
@@ -175,6 +177,8 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

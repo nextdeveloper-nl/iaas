@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,13 +37,13 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function resourceValidator($value)
     {
         return $this->builder->where('resource_validator', 'ilike', '%' . $value . '%');
@@ -54,7 +54,7 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->resourceValidator($value);
     }
-
+        
     public function provisioningAlg($value)
     {
         return $this->builder->where('provisioning_alg', 'ilike', '%' . $value . '%');
@@ -65,19 +65,19 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->provisioningAlg($value);
     }
-
+        
     public function currency($value)
     {
         return $this->builder->where('currency', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function datacenter($value)
     {
         return $this->builder->where('datacenter', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function cloudNode($value)
     {
         return $this->builder->where('cloud_node', 'ilike', '%' . $value . '%');
@@ -88,19 +88,19 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->cloudNode($value);
     }
-
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'ilike', '%' . $value . '%');
     }
 
-
+    
     public function vlanStart($value)
     {
         $operator = substr($value, 0, 1);
@@ -119,7 +119,7 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->vlanStart($value);
     }
-
+    
     public function vlanEnd($value)
     {
         $operator = substr($value, 0, 1);
@@ -138,7 +138,7 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->vlanEnd($value);
     }
-
+    
     public function vxlanStart($value)
     {
         $operator = substr($value, 0, 1);
@@ -157,7 +157,7 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->vxlanStart($value);
     }
-
+    
     public function vxlanEnd($value)
     {
         $operator = substr($value, 0, 1);
@@ -176,7 +176,7 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->vxlanEnd($value);
     }
-
+    
     public function totalNetworks($value)
     {
         $operator = substr($value, 0, 1);
@@ -195,7 +195,7 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalNetworks($value);
     }
-
+    
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -206,7 +206,7 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -282,7 +282,7 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -292,8 +292,10 @@ class NetworkPoolsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

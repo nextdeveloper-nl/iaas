@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasGatewayQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasGatewayService;
+use Tests\TestCase;
 
 trait IaasGatewayTestTraits
 {
@@ -633,4 +634,5 @@ trait IaasGatewayTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

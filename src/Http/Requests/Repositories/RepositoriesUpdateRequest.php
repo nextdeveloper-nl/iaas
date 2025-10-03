@@ -33,6 +33,7 @@ class RepositoriesUpdateRequest extends AbstractFormRequest
         'is_backup_repository' => 'boolean',
         'price_pergb' => 'nullable',
         'common_currency_id' => 'nullable|exists:common_currencies,uuid|uuid',
+        'iaas_cloud_node_id' => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\VirtualMachineBackupsObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * VirtualMachineBackups model.
@@ -41,7 +43,7 @@ use NextDeveloper\IAAS\Database\Observers\VirtualMachineBackupsObserver;
  */
 class VirtualMachineBackups extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -187,4 +189,6 @@ class VirtualMachineBackups extends Model
             },
         );
     }
+
+
 }

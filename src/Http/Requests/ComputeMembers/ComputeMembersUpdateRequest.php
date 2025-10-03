@@ -26,6 +26,8 @@ class ComputeMembersUpdateRequest extends AbstractFormRequest
         'is_alive' => 'boolean',
         'iaas_compute_pool_id' => 'nullable|exists:iaas_compute_pools,uuid|uuid',
         'tags' => '',
+        'events_token' => 'nullable|string',
+        'is_event_service_running' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

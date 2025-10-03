@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasVirtualDiskImageQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasVirtualDiskImageService;
+use Tests\TestCase;
 
 trait IaasVirtualDiskImageTestTraits
 {
@@ -63,6 +64,7 @@ trait IaasVirtualDiskImageTestTraits
                 'size'  =>  '1',
                 'physical_utilisation'  =>  '1',
                 'device_number'  =>  '1',
+                'utilization'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -459,6 +461,25 @@ trait IaasVirtualDiskImageTestTraits
         $this->assertTrue(true);
     }
 
+    public function test_iaasvirtualdiskimage_event_utilization_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'utilization'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasVirtualDiskImageQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualDiskImage::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
     public function test_iaasvirtualdiskimage_event_created_at_filter_start()
     {
         try {
@@ -633,4 +654,5 @@ trait IaasVirtualDiskImageTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

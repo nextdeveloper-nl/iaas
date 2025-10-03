@@ -57,7 +57,7 @@ class AbstractNetworkMembersTransformer extends AbstractTransformer
                                                 $iaasNetworkPoolId = \NextDeveloper\IAAS\Database\Models\NetworkPools::where('id', $model->iaas_network_pool_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -76,6 +76,7 @@ class AbstractNetworkMembersTransformer extends AbstractTransformer
             'local_ip_addr'  =>  $model->local_ip_addr,
             'is_behind_firewall'  =>  $model->is_behind_firewall,
             'switch_type'  =>  $model->switch_type,
+            'is_root_switch'  =>  $model->is_root_switch,
             ]
         );
     }
@@ -164,6 +165,8 @@ class AbstractNetworkMembersTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

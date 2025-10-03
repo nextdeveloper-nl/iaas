@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasAnsibleServerQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasAnsibleServerService;
+use Tests\TestCase;
 
 trait IaasAnsibleServerTestTraits
 {
@@ -673,4 +674,5 @@ trait IaasAnsibleServerTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

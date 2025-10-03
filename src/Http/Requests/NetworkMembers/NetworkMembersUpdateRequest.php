@@ -23,6 +23,7 @@ class NetworkMembersUpdateRequest extends AbstractFormRequest
         'local_ip_addr' => 'nullable',
         'is_behind_firewall' => 'boolean',
         'switch_type' => 'nullable|string',
+        'is_root_switch' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

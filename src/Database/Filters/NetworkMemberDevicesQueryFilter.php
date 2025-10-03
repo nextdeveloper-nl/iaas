@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+            
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,13 +17,13 @@ class NetworkMemberDevicesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function deviceIdentification($value)
     {
         return $this->builder->where('device_identification', 'ilike', '%' . $value . '%');
@@ -34,7 +34,7 @@ class NetworkMemberDevicesQueryFilter extends AbstractQueryFilter
     {
         return $this->deviceIdentification($value);
     }
-
+        
     public function deviceType($value)
     {
         return $this->builder->where('device_type', 'ilike', '%' . $value . '%');
@@ -45,7 +45,7 @@ class NetworkMemberDevicesQueryFilter extends AbstractQueryFilter
     {
         return $this->deviceType($value);
     }
-
+    
     public function isHealthy($value)
     {
         return $this->builder->where('is_healthy', $value);
@@ -56,7 +56,7 @@ class NetworkMemberDevicesQueryFilter extends AbstractQueryFilter
     {
         return $this->isHealthy($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -137,7 +137,7 @@ class NetworkMemberDevicesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetworkMember($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -147,7 +147,7 @@ class NetworkMemberDevicesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -157,8 +157,10 @@ class NetworkMemberDevicesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

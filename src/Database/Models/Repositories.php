@@ -12,6 +12,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\RepositoriesObserver;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * Repositories model.
@@ -45,10 +47,11 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  * @property boolean $is_backup_repository
  * @property $price_pergb
  * @property integer $common_currency_id
+ * @property integer $iaas_cloud_node_id
  */
 class Repositories extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
     use SSHable, Agentable;
 
@@ -86,6 +89,7 @@ class Repositories extends Model
             'is_backup_repository',
             'price_pergb',
             'common_currency_id',
+            'iaas_cloud_node_id',
     ];
 
     /**
@@ -130,6 +134,7 @@ class Repositories extends Model
     'ssh_port' => 'integer',
     'is_backup_repository' => 'boolean',
     'common_currency_id' => 'integer',
+    'iaas_cloud_node_id' => 'integer',
     ];
 
     /**
@@ -194,12 +199,12 @@ class Repositories extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-
+    
     public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
-
+    
     public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
@@ -215,6 +220,8 @@ class Repositories extends Model
             },
         );
     }
+
+
 
 
 

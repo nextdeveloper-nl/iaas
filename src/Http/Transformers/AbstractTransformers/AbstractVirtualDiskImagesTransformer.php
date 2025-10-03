@@ -54,38 +54,38 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
      */
     public function transform(VirtualDiskImages $model)
     {
-        $iaasStorageVolumeId = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('id', $model->iaas_storage_volume_id)->first();
-        $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
-        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-        $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
-        $iaasStoragePoolId = \NextDeveloper\IAAS\Database\Models\StoragePools::where('id', $model->iaas_storage_pool_id)->first();
-
+                                                $iaasStorageVolumeId = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('id', $model->iaas_storage_volume_id)->first();
+                                                            $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                                                            $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
+                                                            $iaasStoragePoolId = \NextDeveloper\IAAS\Database\Models\StoragePools::where('id', $model->iaas_storage_pool_id)->first();
+                        
         return $this->buildPayload(
             [
-                'id' => $model->uuid,
-                'name' => $model->name,
-                'size' => $model->size,
-                'physical_utilisation' => $model->physical_utilisation,
-                'available_operations' => $model->available_operations,
-                'current_operations' => $model->current_operations,
-                'is_cdrom' => $model->is_cdrom,
-                'hypervisor_uuid' => $model->hypervisor_uuid,
-                'hypervisor_data' => $model->hypervisor_data,
-                'iaas_storage_volume_id' => $iaasStorageVolumeId ? $iaasStorageVolumeId->uuid : null,
-                'iaas_virtual_machine_id' => $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
-                'device_number' => $model->device_number,
-                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
-                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
-                'created_at' => $model->created_at,
-                'updated_at' => $model->updated_at,
-                'deleted_at' => $model->deleted_at,
-                'is_draft' => $model->is_draft,
-                'iaas_repository_image_id' => $iaasRepositoryImageId ? $iaasRepositoryImageId->uuid : null,
-                'iaas_storage_pool_id' => $iaasStoragePoolId ? $iaasStoragePoolId->uuid : null,
-                'vbd_hypervisor_data' => $model->vbd_hypervisor_data,
-                'vbd_hypervisor_uuid' => $model->vbd_hypervisor_uuid,
-                'utilization'   =>  $model->utilization
+            'id'  =>  $model->uuid,
+            'name'  =>  $model->name,
+            'size'  =>  $model->size,
+            'physical_utilisation'  =>  $model->physical_utilisation,
+            'available_operations'  =>  $model->available_operations,
+            'current_operations'  =>  $model->current_operations,
+            'is_cdrom'  =>  $model->is_cdrom,
+            'hypervisor_uuid'  =>  $model->hypervisor_uuid,
+            'hypervisor_data'  =>  $model->hypervisor_data,
+            'iaas_storage_volume_id'  =>  $iaasStorageVolumeId ? $iaasStorageVolumeId->uuid : null,
+            'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
+            'device_number'  =>  $model->device_number,
+            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
+            'is_draft'  =>  $model->is_draft,
+            'iaas_repository_image_id'  =>  $iaasRepositoryImageId ? $iaasRepositoryImageId->uuid : null,
+            'iaas_storage_pool_id'  =>  $iaasStoragePoolId ? $iaasStoragePoolId->uuid : null,
+            'vbd_hypervisor_data'  =>  $model->vbd_hypervisor_data,
+            'vbd_hypervisor_uuid'  =>  $model->vbd_hypervisor_uuid,
+            'utilization'  =>  $model->utilization,
             ]
         );
     }
@@ -174,6 +174,8 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 }

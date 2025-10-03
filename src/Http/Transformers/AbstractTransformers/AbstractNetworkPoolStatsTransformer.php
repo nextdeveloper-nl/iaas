@@ -55,7 +55,7 @@ class AbstractNetworkPoolStatsTransformer extends AbstractTransformer
     public function transform(NetworkPoolStats $model)
     {
                                                 $iaasNetworkPoolId = \NextDeveloper\IAAS\Database\Models\NetworkPools::where('id', $model->iaas_network_pool_id)->first();
-
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -153,6 +153,8 @@ class AbstractNetworkPoolStatsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

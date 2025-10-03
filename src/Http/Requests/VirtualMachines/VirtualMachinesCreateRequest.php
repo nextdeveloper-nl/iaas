@@ -24,6 +24,7 @@ class VirtualMachinesCreateRequest extends AbstractFormRequest
         'auto_backup_interval' => 'string',
         'auto_backup_time' => 'string',
         'snapshot_of_virtual_machine' => 'nullable|integer',
+        'backup_repository_id' => 'nullable|exists:iaas_repositories,uuid|uuid',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

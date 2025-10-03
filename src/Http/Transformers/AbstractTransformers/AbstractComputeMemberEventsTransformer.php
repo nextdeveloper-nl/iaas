@@ -57,7 +57,7 @@ class AbstractComputeMemberEventsTransformer extends AbstractTransformer
                                                 $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -71,6 +71,8 @@ class AbstractComputeMemberEventsTransformer extends AbstractTransformer
             'deleted_at'  =>  $model->deleted_at,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'is_flagged'  =>  $model->is_flagged,
+            'results'  =>  $model->results,
             ]
         );
     }
@@ -159,6 +161,8 @@ class AbstractComputeMemberEventsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

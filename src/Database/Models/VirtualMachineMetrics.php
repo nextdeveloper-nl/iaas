@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\VirtualMachineMetricsObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * VirtualMachineMetrics model.
@@ -28,7 +30,7 @@ use NextDeveloper\IAAS\Database\Observers\VirtualMachineMetricsObserver;
  */
 class VirtualMachineMetrics extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -143,8 +145,10 @@ class VirtualMachineMetrics extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

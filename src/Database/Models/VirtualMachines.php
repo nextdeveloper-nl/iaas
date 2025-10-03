@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\VirtualMachinesObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * VirtualMachines model.
@@ -59,10 +61,11 @@ use NextDeveloper\IAAS\Database\Observers\VirtualMachinesObserver;
  * @property string $auto_backup_interval
  * @property string $auto_backup_time
  * @property integer $snapshot_of_virtual_machine
+ * @property integer $backup_repository_id
  */
 class VirtualMachines extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -115,6 +118,7 @@ class VirtualMachines extends Model
             'auto_backup_interval',
             'auto_backup_time',
             'snapshot_of_virtual_machine',
+            'backup_repository_id',
     ];
 
     /**
@@ -177,6 +181,7 @@ class VirtualMachines extends Model
     'auto_backup_interval' => 'string',
     'auto_backup_time' => 'string',
     'snapshot_of_virtual_machine' => 'integer',
+    'backup_repository_id' => 'integer',
     ];
 
     /**
@@ -238,31 +243,6 @@ class VirtualMachines extends Model
         }
     }
 
-    public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
-    }
-
-    public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
-    }
-
-    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
-    }
-
-    public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
-    }
-
-    public function computeMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
-    }
-
     public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
@@ -278,6 +258,31 @@ class VirtualMachines extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class);
     }
 
+    public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
+    }
+
+    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
+    }
+    
+    public function computeMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
+    }
+    
+    public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
+    }
+    
+    public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
@@ -287,4 +292,6 @@ class VirtualMachines extends Model
             },
         );
     }
+
+
 }

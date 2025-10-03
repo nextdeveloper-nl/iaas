@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+            
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,37 +17,37 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function slug($value)
     {
         return $this->builder->where('slug', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function description($value)
     {
         return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function package($value)
     {
         return $this->builder->where('package', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function path($value)
     {
         return $this->builder->where('path', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function playbookFilename($value)
     {
         return $this->builder->where('playbook_filename', 'ilike', '%' . $value . '%');
@@ -58,7 +58,7 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
     {
         return $this->playbookFilename($value);
     }
-
+    
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -69,7 +69,7 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-
+     
     public function isProcedure($value)
     {
         return $this->builder->where('is_procedure', $value);
@@ -80,7 +80,7 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
     {
         return $this->isProcedure($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -156,7 +156,7 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -166,7 +166,7 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iaasAnsibleServerId($value)
     {
             $iaasAnsibleServer = \NextDeveloper\IAAS\Database\Models\AnsibleServers::where('uuid', $value)->first();
@@ -181,8 +181,10 @@ class AnsibleSystemPlaybooksQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasAnsibleServer($value);
     }
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

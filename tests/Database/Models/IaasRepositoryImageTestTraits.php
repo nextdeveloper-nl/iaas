@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasRepositoryImageQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasRepositoryImageService;
+use Tests\TestCase;
 
 trait IaasRepositoryImageTestTraits
 {
@@ -833,4 +834,5 @@ trait IaasRepositoryImageTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasLicenceQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasLicenceService;
+use Tests\TestCase;
 
 trait IaasLicenceTestTraits
 {
@@ -533,4 +534,5 @@ trait IaasLicenceTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,25 +37,25 @@ class StoragePoolsPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function currency($value)
     {
         return $this->builder->where('currency', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function datacenter($value)
     {
         return $this->builder->where('datacenter', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function cloudNode($value)
     {
         return $this->builder->where('cloud_node', 'ilike', '%' . $value . '%');
@@ -66,19 +66,19 @@ class StoragePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->cloudNode($value);
     }
-
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'ilike', '%' . $value . '%');
     }
 
-
+    
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -89,7 +89,7 @@ class StoragePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -165,7 +165,7 @@ class StoragePoolsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -175,8 +175,10 @@ class StoragePoolsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

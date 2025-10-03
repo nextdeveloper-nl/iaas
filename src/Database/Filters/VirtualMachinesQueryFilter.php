@@ -445,6 +445,23 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
         return $this->iaasComputePool($value);
     }
 
+    public function backupRepositoryId($value)
+    {
+            $backupRepository = \NextDeveloper\IAAS\Database\Models\Repositories::where('uuid', $value)->first();
+
+        if($backupRepository) {
+            return $this->builder->where('backup_repository_id', '=', $backupRepository->id);
+        }
+    }
+
+        //  This is an alias function of backupRepository
+    public function backup_repository_id($value)
+    {
+        return $this->backupRepository($value);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 }

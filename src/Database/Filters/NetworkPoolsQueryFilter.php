@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+                    
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,13 +37,13 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function provisioningAlg($value)
     {
         return $this->builder->where('provisioning_alg', 'ilike', '%' . $value . '%');
@@ -54,7 +54,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->provisioningAlg($value);
     }
-
+        
     public function resourceValidator($value)
     {
         return $this->builder->where('resource_validator', 'ilike', '%' . $value . '%');
@@ -65,7 +65,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->resourceValidator($value);
     }
-
+    
     public function vlanStart($value)
     {
         $operator = substr($value, 0, 1);
@@ -84,7 +84,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->vlanStart($value);
     }
-
+    
     public function vlanEnd($value)
     {
         $operator = substr($value, 0, 1);
@@ -103,7 +103,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->vlanEnd($value);
     }
-
+    
     public function vxlanStart($value)
     {
         $operator = substr($value, 0, 1);
@@ -122,7 +122,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->vxlanStart($value);
     }
-
+    
     public function vxlanEnd($value)
     {
         $operator = substr($value, 0, 1);
@@ -141,7 +141,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->vxlanEnd($value);
     }
-
+    
     public function isVlanAvailable($value)
     {
         return $this->builder->where('is_vlan_available', $value);
@@ -152,7 +152,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->isVlanAvailable($value);
     }
-
+     
     public function isVxlanAvailable($value)
     {
         return $this->builder->where('is_vxlan_available', $value);
@@ -163,7 +163,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->isVxlanAvailable($value);
     }
-
+     
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -174,7 +174,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -255,7 +255,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasDatacenter($value);
     }
-
+    
     public function iaasCloudNodeId($value)
     {
             $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
@@ -270,7 +270,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasCloudNode($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -280,7 +280,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -290,7 +290,7 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function commonCurrencyId($value)
     {
             $commonCurrency = \NextDeveloper\Commons\Database\Models\Currencies::where('uuid', $value)->first();
@@ -305,8 +305,10 @@ class NetworkPoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->commonCurrency($value);
     }
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

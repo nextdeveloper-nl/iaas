@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+            
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,19 +37,19 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function sshUsername($value)
     {
         return $this->builder->where('ssh_username', 'ilike', '%' . $value . '%');
@@ -60,7 +60,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->sshUsername($value);
     }
-
+        
     public function sshPassword($value)
     {
         return $this->builder->where('ssh_password', 'ilike', '%' . $value . '%');
@@ -71,7 +71,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPassword($value);
     }
-
+        
     public function computePoolName($value)
     {
         return $this->builder->where('compute_pool_name', 'ilike', '%' . $value . '%');
@@ -82,19 +82,19 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->computePoolName($value);
     }
-
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'ilike', '%' . $value . '%');
     }
 
-
+    
     public function sshPort($value)
     {
         $operator = substr($value, 0, 1);
@@ -113,7 +113,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPort($value);
     }
-
+    
     public function totalSocket($value)
     {
         $operator = substr($value, 0, 1);
@@ -132,7 +132,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalSocket($value);
     }
-
+    
     public function totalCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -151,7 +151,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalCpu($value);
     }
-
+    
     public function totalRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -170,7 +170,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalRam($value);
     }
-
+    
     public function usedCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -189,7 +189,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->usedCpu($value);
     }
-
+    
     public function usedRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -208,7 +208,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->usedRam($value);
     }
-
+    
     public function freeCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -227,7 +227,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->freeCpu($value);
     }
-
+    
     public function runningVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -246,7 +246,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->runningVm($value);
     }
-
+    
     public function haltedVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -265,7 +265,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->haltedVm($value);
     }
-
+    
     public function totalVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -284,7 +284,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalVm($value);
     }
-
+    
     public function benchmarkScore($value)
     {
         $operator = substr($value, 0, 1);
@@ -303,7 +303,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->benchmarkScore($value);
     }
-
+    
     public function isInMaintenance($value)
     {
         return $this->builder->where('is_in_maintenance', $value);
@@ -314,7 +314,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isInMaintenance($value);
     }
-
+     
     public function isAlive($value)
     {
         return $this->builder->where('is_alive', $value);
@@ -325,7 +325,18 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isAlive($value);
     }
+     
+    public function isEventServiceRunning($value)
+    {
+        return $this->builder->where('is_event_service_running', $value);
+    }
 
+        //  This is an alias function of isEventServiceRunning
+    public function is_event_service_running($value)
+    {
+        return $this->isEventServiceRunning($value);
+    }
+     
     public function uptimeStart($date)
     {
         return $this->builder->where('uptime', '>=', $date);
@@ -370,6 +381,72 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->idleTimeEnd($value);
     }
 
+    public function createdAtStart($date)
+    {
+        return $this->builder->where('created_at', '>=', $date);
+    }
+
+    public function createdAtEnd($date)
+    {
+        return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
+    }
+
+    public function updatedAtStart($date)
+    {
+        return $this->builder->where('updated_at', '>=', $date);
+    }
+
+    public function updatedAtEnd($date)
+    {
+        return $this->builder->where('updated_at', '<=', $date);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
+    public function deletedAtStart($date)
+    {
+        return $this->builder->where('deleted_at', '>=', $date);
+    }
+
+    public function deletedAtEnd($date)
+    {
+        return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
+    }
+
     public function iaasComputePoolId($value)
     {
             $iaasComputePool = \NextDeveloper\IAAS\Database\Models\ComputePools::where('uuid', $value)->first();
@@ -384,7 +461,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasComputePool($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -394,7 +471,7 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -404,8 +481,10 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

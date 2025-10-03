@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\VirtualNetworkCardsObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * VirtualNetworkCards model.
@@ -35,7 +37,7 @@ use NextDeveloper\IAAS\Database\Observers\VirtualNetworkCardsObserver;
  */
 class VirtualNetworkCards extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -156,27 +158,29 @@ class VirtualNetworkCards extends Model
         }
     }
 
-    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);
     }
 
     public function networks() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
     }
-
-    public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\HasMany
+    
+    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
-
+    
     public function virtualNetworkCardStats() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCardStats::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

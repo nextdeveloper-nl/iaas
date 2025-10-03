@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasVirtualMachineMetricQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasVirtualMachineMetricService;
+use Tests\TestCase;
 
 trait IaasVirtualMachineMetricTestTraits
 {
@@ -632,4 +633,5 @@ trait IaasVirtualMachineMetricTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

@@ -58,7 +58,7 @@ class AbstractRepositoryImagesTransformer extends AbstractTransformer
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                                                             $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
-
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -77,7 +77,6 @@ class AbstractRepositoryImagesTransformer extends AbstractTransformer
             'version'  =>  $model->version,
             'release_version'  =>  $model->release_version,
             'is_latest'  =>  $model->is_latest,
-            'is_cloudinit_image'    =>  $model->is_cloudinit_image,
             'extra'  =>  $model->extra,
             'cpu_type'  =>  $model->cpu_type,
             'supported_virtualizations'  =>  $model->supported_virtualizations,
@@ -93,6 +92,8 @@ class AbstractRepositoryImagesTransformer extends AbstractTransformer
             'cpu'  =>  $model->cpu,
             'is_public'  =>  $model->is_public,
             'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
+            'has_plusclouds_service'  =>  $model->has_plusclouds_service,
+            'is_cloudinit_image'  =>  $model->is_cloudinit_image,
             ]
         );
     }
@@ -181,6 +182,8 @@ class AbstractRepositoryImagesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

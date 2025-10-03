@@ -57,7 +57,7 @@ class AbstractComputeMemberNetworkInterfacesTransformer extends AbstractTransfor
                                                 $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -79,6 +79,7 @@ class AbstractComputeMemberNetworkInterfacesTransformer extends AbstractTransfor
             'hypervisor_uuid'  =>  $model->hypervisor_uuid,
             'network_uuid'  =>  $model->network_uuid,
             'network_name'  =>  $model->network_name,
+            'vlan_data'  =>  $model->vlan_data,
             ]
         );
     }
@@ -167,6 +168,8 @@ class AbstractComputeMemberNetworkInterfacesTransformer extends AbstractTransfor
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

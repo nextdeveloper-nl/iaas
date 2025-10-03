@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+            
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,19 +17,19 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function description($value)
     {
         return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function repositoryMaintainer($value)
     {
         return $this->builder->where('repository_maintainer', 'ilike', '%' . $value . '%');
@@ -40,7 +40,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->repositoryMaintainer($value);
     }
-
+    
     public function isoImageCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -59,7 +59,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isoImageCount($value);
     }
-
+    
     public function vmImageCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -78,7 +78,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->vmImageCount($value);
     }
-
+    
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -89,7 +89,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-
+     
     public function isVmRepo($value)
     {
         return $this->builder->where('is_vm_repo', $value);
@@ -100,7 +100,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isVmRepo($value);
     }
-
+     
     public function isIsoRepo($value)
     {
         return $this->builder->where('is_iso_repo', $value);
@@ -111,7 +111,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isIsoRepo($value);
     }
-
+     
     public function isDockerRegistry($value)
     {
         return $this->builder->where('is_docker_registry', $value);
@@ -122,7 +122,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isDockerRegistry($value);
     }
-
+     
     public function isBackupRepository($value)
     {
         return $this->builder->where('is_backup_repository', $value);
@@ -133,7 +133,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isBackupRepository($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -209,7 +209,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -219,7 +219,7 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function commonCurrencyId($value)
     {
             $commonCurrency = \NextDeveloper\Commons\Database\Models\Currencies::where('uuid', $value)->first();
@@ -234,8 +234,10 @@ class RepositoriesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->commonCurrency($value);
     }
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

@@ -24,6 +24,7 @@ class ComputeMemberNetworkInterfacesCreateRequest extends AbstractFormRequest
         'iaas_compute_member_id' => 'required|exists:iaas_compute_members,uuid|uuid',
         'is_bridge' => 'boolean',
         'network_name' => 'nullable|string',
+        'vlan_data' => 'nullable',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

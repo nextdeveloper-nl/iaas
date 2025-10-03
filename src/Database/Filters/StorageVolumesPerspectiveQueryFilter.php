@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,13 +17,13 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function diskPhysicalType($value)
     {
         return $this->builder->where('disk_physical_type', 'ilike', '%' . $value . '%');
@@ -34,7 +34,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->diskPhysicalType($value);
     }
-
+        
     public function storagePool($value)
     {
         return $this->builder->where('storage_pool', 'ilike', '%' . $value . '%');
@@ -45,7 +45,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->storagePool($value);
     }
-
+        
     public function storageMember($value)
     {
         return $this->builder->where('storage_member', 'ilike', '%' . $value . '%');
@@ -56,19 +56,19 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->storageMember($value);
     }
-
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'ilike', '%' . $value . '%');
     }
 
-
+    
     public function totalHdd($value)
     {
         $operator = substr($value, 0, 1);
@@ -87,7 +87,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalHdd($value);
     }
-
+    
     public function freeHdd($value)
     {
         $operator = substr($value, 0, 1);
@@ -106,7 +106,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->freeHdd($value);
     }
-
+    
     public function virtualAllocation($value)
     {
         $operator = substr($value, 0, 1);
@@ -125,7 +125,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->virtualAllocation($value);
     }
-
+    
     public function isStorage($value)
     {
         return $this->builder->where('is_storage', $value);
@@ -136,7 +136,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isStorage($value);
     }
-
+     
     public function isRepo($value)
     {
         return $this->builder->where('is_repo', $value);
@@ -147,7 +147,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isRepo($value);
     }
-
+     
     public function isCdrom($value)
     {
         return $this->builder->where('is_cdrom', $value);
@@ -158,7 +158,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isCdrom($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -239,7 +239,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStoragePool($value);
     }
-
+    
     public function iaasStorageMemberId($value)
     {
             $iaasStorageMember = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('uuid', $value)->first();
@@ -254,7 +254,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStorageMember($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -264,7 +264,7 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -274,8 +274,10 @@ class StorageVolumesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\StoragePoolsPerspectiveObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * StoragePoolsPerspective model.
@@ -28,13 +30,17 @@ use NextDeveloper\IAAS\Database\Observers\StoragePoolsPerspectiveObserver;
  * @property string $responsible
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property $total_hdd
+ * @property $used_hdd
+ * @property $free_hdd
+ * @property $virtual_allocation
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  */
 class StoragePoolsPerspective extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -43,87 +49,87 @@ class StoragePoolsPerspective extends Model
 
 
     /**
-     * @var array
+     @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-        'name',
-        'price_pergb',
-        'is_active',
-        'currency',
-        'datacenter',
-        'cloud_node',
-        'tags',
-        'total_hdd',
-        'used_hdd',
-        'free_hdd',
-        'virtual_allocation',
-        'maintainer',
-        'responsible',
-        'iam_account_id',
-        'iam_user_id',
+            'name',
+            'price_pergb',
+            'is_active',
+            'currency',
+            'datacenter',
+            'cloud_node',
+            'tags',
+            'maintainer',
+            'responsible',
+            'iam_account_id',
+            'iam_user_id',
+            'total_hdd',
+            'used_hdd',
+            'free_hdd',
+            'virtual_allocation',
     ];
 
     /**
-     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
+      Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     * We are casting fields to objects so that we can work on them better
+     We are casting fields to objects so that we can work on them better
      *
-     * @var array
+     @var array
      */
     protected $casts = [
-        'id' => 'integer',
-        'name' => 'string',
-        'is_active' => 'boolean',
-        'currency' => 'string',
-        'datacenter' => 'string',
-        'cloud_node' => 'string',
-        'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
-        'maintainer' => 'string',
-        'responsible' => 'string',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+    'id' => 'integer',
+    'name' => 'string',
+    'is_active' => 'boolean',
+    'currency' => 'string',
+    'datacenter' => 'string',
+    'cloud_node' => 'string',
+    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'maintainer' => 'string',
+    'responsible' => 'string',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
-     * We are casting data fields.
+     We are casting data fields.
      *
-     * @var array
+     @var array
      */
     protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $with = [
 
     ];
 
     /**
-     * @var int
+     @var int
      */
     protected $perPage = 20;
 
     /**
-     * @return void
+     @return void
      */
     public static function boot()
     {
@@ -140,11 +146,9 @@ class StoragePoolsPerspective extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_storage_pools_perspective');
 
-        if (!$modelScopes) {
-            $modelScopes = [];
+        if(!$modelScopes) { $modelScopes = [];
         }
-        if (!$globalScopes) {
-            $globalScopes = [];
+        if (!$globalScopes) { $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -152,7 +156,7 @@ class StoragePoolsPerspective extends Model
             $modelScopes
         );
 
-        if ($scopes) {
+        if($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
@@ -160,6 +164,8 @@ class StoragePoolsPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 }

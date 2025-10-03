@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\ComputePoolsPerspectiveObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * ComputePoolsPerspective model.
@@ -34,7 +36,6 @@ use NextDeveloper\IAAS\Database\Observers\ComputePoolsPerspectiveObserver;
  * @property string $responsible
  * @property array $tags
  * @property string $pool_type
- * @property boolean $is_iso27001_enabled
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
@@ -43,7 +44,7 @@ use NextDeveloper\IAAS\Database\Observers\ComputePoolsPerspectiveObserver;
  */
 class ComputePoolsPerspective extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -76,7 +77,6 @@ class ComputePoolsPerspective extends Model
             'pool_type',
             'iam_account_id',
             'iam_user_id',
-        'is_iso27001_enabled',
     ];
 
     /**
@@ -180,6 +180,8 @@ class ComputePoolsPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

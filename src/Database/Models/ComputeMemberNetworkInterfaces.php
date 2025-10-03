@@ -11,6 +11,7 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\ComputeMemberNetworkInterfacesObserver;
+use Illuminate\Notifications\Notifiable;
 
 /**
  * ComputeMemberNetworkInterfaces model.
@@ -36,11 +37,11 @@ use NextDeveloper\IAAS\Database\Observers\ComputeMemberNetworkInterfacesObserver
  * @property string $hypervisor_uuid
  * @property string $network_uuid
  * @property string $network_name
+ * @property $vlan_data
  */
 class ComputeMemberNetworkInterfaces extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
-    use RunAsAdministrator;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -69,7 +70,7 @@ class ComputeMemberNetworkInterfaces extends Model
             'hypervisor_uuid',
             'network_uuid',
             'network_name',
-        'vlan_data'
+            'vlan_data',
     ];
 
     /**
@@ -100,7 +101,6 @@ class ComputeMemberNetworkInterfaces extends Model
     'is_default' => 'boolean',
     'is_connected' => 'boolean',
     'hypervisor_data' => 'array',
-        'vlan_data' =>  'array',
     'iaas_compute_member_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
@@ -109,6 +109,7 @@ class ComputeMemberNetworkInterfaces extends Model
     'hypervisor_uuid' => 'string',
     'network_uuid' => 'string',
     'network_name' => 'string',
+    'vlan_data' => 'array',
     ];
 
     /**
@@ -173,18 +174,20 @@ class ComputeMemberNetworkInterfaces extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-
+    
     public function computeMembers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
     }
-
+    
+    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

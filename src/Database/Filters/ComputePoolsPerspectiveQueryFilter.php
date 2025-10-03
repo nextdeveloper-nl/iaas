@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,19 +37,19 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function virtualization($value)
     {
         return $this->builder->where('virtualization', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function resourceValidator($value)
     {
         return $this->builder->where('resource_validator', 'ilike', '%' . $value . '%');
@@ -60,25 +60,25 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->resourceValidator($value);
     }
-
+        
     public function currency($value)
     {
         return $this->builder->where('currency', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function poolType($value)
     {
         return $this->builder->where('pool_type', 'ilike', '%' . $value . '%');
@@ -89,7 +89,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->poolType($value);
     }
-
+    
     public function totalRamInPool($value)
     {
         $operator = substr($value, 0, 1);
@@ -108,7 +108,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalRamInPool($value);
     }
-
+    
     public function totalCpuInPool($value)
     {
         $operator = substr($value, 0, 1);
@@ -127,7 +127,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalCpuInPool($value);
     }
-
+    
     public function usedRamInPool($value)
     {
         $operator = substr($value, 0, 1);
@@ -146,7 +146,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->usedRamInPool($value);
     }
-
+    
     public function usedCpuInPool($value)
     {
         $operator = substr($value, 0, 1);
@@ -165,7 +165,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->usedCpuInPool($value);
     }
-
+    
     public function totalVmInPool($value)
     {
         $operator = substr($value, 0, 1);
@@ -184,7 +184,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->totalVmInPool($value);
     }
-
+    
     public function runningRamInPool($value)
     {
         $operator = substr($value, 0, 1);
@@ -203,7 +203,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->runningRamInPool($value);
     }
-
+    
     public function haltedRamInPool($value)
     {
         $operator = substr($value, 0, 1);
@@ -222,7 +222,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->haltedRamInPool($value);
     }
-
+    
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -233,7 +233,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -309,7 +309,7 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -319,8 +319,10 @@ class ComputePoolsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

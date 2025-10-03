@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+    
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,13 +17,13 @@ class VirtualMachineStatsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function status($value)
     {
         return $this->builder->where('status', 'ilike', '%' . $value . '%');
     }
 
-
+    
     public function cpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -37,7 +37,7 @@ class VirtualMachineStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
-
+    
     public function ram($value)
     {
         $operator = substr($value, 0, 1);
@@ -51,7 +51,7 @@ class VirtualMachineStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
-
+    
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -132,8 +132,10 @@ class VirtualMachineStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\LicencesObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * Licences model.
@@ -20,13 +22,15 @@ use NextDeveloper\IAAS\Database\Observers\LicencesObserver;
  * @property string $object_type
  * @property integer $object_id
  * @property integer $subscription_id
+ * @property integer $iam_account_id
+ * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  */
 class Licences extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -43,6 +47,8 @@ class Licences extends Model
             'object_type',
             'object_id',
             'subscription_id',
+            'iam_account_id',
+            'iam_user_id',
     ];
 
     /**
@@ -133,4 +139,6 @@ class Licences extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 }

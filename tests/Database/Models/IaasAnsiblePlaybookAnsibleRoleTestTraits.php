@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasAnsiblePlaybookAnsibleRoleQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasAnsiblePlaybookAnsibleRoleService;
+use Tests\TestCase;
 
 trait IaasAnsiblePlaybookAnsibleRoleTestTraits
 {
@@ -533,4 +534,5 @@ trait IaasAnsiblePlaybookAnsibleRoleTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

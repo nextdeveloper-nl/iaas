@@ -55,7 +55,7 @@ class AbstractVirtualMachineStatsTransformer extends AbstractTransformer
     public function transform(VirtualMachineStats $model)
     {
                                                 $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
-
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -154,6 +154,8 @@ class AbstractVirtualMachineStatsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

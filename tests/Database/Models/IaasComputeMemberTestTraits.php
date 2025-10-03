@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasComputeMemberQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasComputeMemberService;
+use Tests\TestCase;
 
 trait IaasComputeMemberTestTraits
 {
@@ -62,6 +63,7 @@ trait IaasComputeMemberTestTraits
                 'ssh_username'  =>  'a',
                 'ssh_password'  =>  'a',
                 'hypervisor_model'  =>  'a',
+                'events_token'  =>  'a',
                 'ssh_port'  =>  '1',
                 'total_socket'  =>  '1',
                 'total_cpu'  =>  '1',
@@ -440,6 +442,25 @@ trait IaasComputeMemberTestTraits
             $request = new Request(
                 [
                 'hypervisor_model'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasComputeMemberQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMember::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemember_event_events_token_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'events_token'  =>  'a'
                 ]
             );
 
@@ -971,5 +992,6 @@ trait IaasComputeMemberTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

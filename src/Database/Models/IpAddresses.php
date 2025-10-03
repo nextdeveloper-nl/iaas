@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\IpAddressesObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * IpAddresses model.
@@ -30,7 +32,7 @@ use NextDeveloper\IAAS\Database\Observers\IpAddressesObserver;
  */
 class IpAddresses extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -140,22 +142,24 @@ class IpAddresses extends Model
         }
     }
 
-    public function networks() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function ipAddressHistories() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddressHistories::class);
     }
 
     public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
     }
-
-    public function ipAddressHistories() : \Illuminate\Database\Eloquent\Relations\HasMany
+    
+    public function networks() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddressHistories::class);
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
     }
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

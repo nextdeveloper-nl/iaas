@@ -38,6 +38,8 @@ class RepositoryImagesCreateRequest extends AbstractFormRequest
         'cpu' => 'integer',
         'is_public' => 'boolean',
         'iaas_virtual_machine_id' => 'nullable|exists:iaas_virtual_machines,uuid|uuid',
+        'has_plusclouds_service' => 'boolean',
+        'is_cloudinit_image' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

@@ -12,6 +12,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\NetworkMembersObserver;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * NetworkMembers model.
@@ -34,10 +36,11 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  * @property $local_ip_addr
  * @property boolean $is_behind_firewall
  * @property string $switch_type
+ * @property boolean $is_root_switch
  */
 class NetworkMembers extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
     use SSHable, Agentable;
 
@@ -64,6 +67,7 @@ class NetworkMembers extends Model
             'local_ip_addr',
             'is_behind_firewall',
             'switch_type',
+            'is_root_switch',
     ];
 
     /**
@@ -98,6 +102,7 @@ class NetworkMembers extends Model
     'ssh_port' => 'integer',
     'is_behind_firewall' => 'boolean',
     'switch_type' => 'string',
+    'is_root_switch' => 'boolean',
     ];
 
     /**
@@ -158,31 +163,31 @@ class NetworkMembers extends Model
         }
     }
 
-    public function networkMembersInterfaces() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces::class);
-    }
-
     public function networkMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMemberDevices::class);
+    }
+
+    public function networkMembersInterfaces() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces::class);
     }
 
     public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
-    }
-
+    
     public function networkPools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
     }
-
+    
+    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 
@@ -194,6 +199,8 @@ class NetworkMembers extends Model
             },
         );
     }
+
+
 
 
 

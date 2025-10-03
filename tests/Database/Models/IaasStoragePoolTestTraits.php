@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasStoragePoolQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasStoragePoolService;
+use Tests\TestCase;
 
 trait IaasStoragePoolTestTraits
 {
@@ -553,5 +554,6 @@ trait IaasStoragePoolTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

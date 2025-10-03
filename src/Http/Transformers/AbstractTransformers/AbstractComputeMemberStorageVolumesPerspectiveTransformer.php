@@ -54,41 +54,41 @@ class AbstractComputeMemberStorageVolumesPerspectiveTransformer extends Abstract
      */
     public function transform(ComputeMemberStorageVolumesPerspective $model)
     {
-        $iaasStorageVolumeId = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('id', $model->iaas_storage_volume_id)->first();
-        $iaasStoragePoolId = \NextDeveloper\IAAS\Database\Models\StoragePools::where('id', $model->iaas_storage_pool_id)->first();
-        $iaasStorageMamberId = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('id', $model->iaas_storage_member_id)->first();
-        $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
-        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-
+                                                $iaasStorageVolumeId = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('id', $model->iaas_storage_volume_id)->first();
+                                                            $iaasStoragePoolId = \NextDeveloper\IAAS\Database\Models\StoragePools::where('id', $model->iaas_storage_pool_id)->first();
+                                                            $iaasStorageMemberId = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('id', $model->iaas_storage_member_id)->first();
+                                                            $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                        
         return $this->buildPayload(
             [
-                'id' => $model->uuid,
-                'name' => $model->name,
-                'description' => $model->description,
-                'volume_name' => $model->volume_name,
-                'iaas_storage_volume_id' => $iaasStorageVolumeId ? $iaasStorageVolumeId->uuid : null,
-                'storage_pool_name' => $model->storage_pool_name,
-                'iaas_storage_pool_id' => $iaasStoragePoolId ? $iaasStoragePoolId->uuid : null,
-                'storage_member_name' => $model->storage_member_name,
-                'iaas_storage_member_id' => $iaasStorageMamberId ? $iaasStorageMamberId->uuid : null,
-                'compute_member_name' => $model->compute_member_name,
-                'iaas_compute_member_id' => $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
-                'maintainer' => $model->maintainer,
-                'responsible' => $model->responsible,
-                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
-                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
-                'used_hdd' => $model->used_hdd,
-                'free_hdd' => $model->free_hdd,
-                'disk_physical_type' => $model->disk_physical_type,
-                'is_storage'  => $model->is_storage,
-                'is_alive'  =>  $model->is_alive,
-                'is_cdrom' => $model->is_cdrom,
-                'total_hdd' => $model->total_hdd,
-                'virtual_allocation'    => $model->virtual_allocation,
-                'created_at' => $model->created_at,
-                'updated_at' => $model->updated_at,
-                'deleted_at' => $model->deleted_at,
+            'id'  =>  $model->uuid,
+            'name'  =>  $model->name,
+            'description'  =>  $model->description,
+            'volume_name'  =>  $model->volume_name,
+            'iaas_storage_volume_id'  =>  $iaasStorageVolumeId ? $iaasStorageVolumeId->uuid : null,
+            'storage_pool_name'  =>  $model->storage_pool_name,
+            'iaas_storage_pool_id'  =>  $iaasStoragePoolId ? $iaasStoragePoolId->uuid : null,
+            'storage_member_name'  =>  $model->storage_member_name,
+            'iaas_storage_member_id'  =>  $iaasStorageMemberId ? $iaasStorageMemberId->uuid : null,
+            'compute_member_name'  =>  $model->compute_member_name,
+            'iaas_compute_member_id'  =>  $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
+            'maintainer'  =>  $model->maintainer,
+            'responsible'  =>  $model->responsible,
+            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'used_hdd'  =>  $model->used_hdd,
+            'free_hdd'  =>  $model->free_hdd,
+            'disk_physical_type'  =>  $model->disk_physical_type,
+            'is_storage'  =>  $model->is_storage,
+            'is_alive'  =>  $model->is_alive,
+            'is_cdrom'  =>  $model->is_cdrom,
+            'total_hdd'  =>  $model->total_hdd,
+            'virtual_allocation'  =>  $model->virtual_allocation,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
@@ -177,6 +177,8 @@ class AbstractComputeMemberStorageVolumesPerspectiveTransformer extends Abstract
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 }

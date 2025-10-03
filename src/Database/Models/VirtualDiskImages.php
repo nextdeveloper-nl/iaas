@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\VirtualDiskImagesObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * VirtualDiskImages model.
@@ -36,13 +38,13 @@ use NextDeveloper\IAAS\Database\Observers\VirtualDiskImagesObserver;
  * @property boolean $is_draft
  * @property integer $iaas_repository_image_id
  * @property integer $iaas_storage_pool_id
- * @property float $utilization
  * @property $vbd_hypervisor_data
  * @property string $vbd_hypervisor_uuid
+ * @property $utilization
  */
 class VirtualDiskImages extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -74,6 +76,7 @@ class VirtualDiskImages extends Model
             'iaas_storage_pool_id',
             'vbd_hypervisor_data',
             'vbd_hypervisor_uuid',
+            'utilization',
     ];
 
     /**
@@ -116,6 +119,7 @@ class VirtualDiskImages extends Model
     'iaas_storage_pool_id' => 'integer',
     'vbd_hypervisor_data' => 'array',
     'vbd_hypervisor_uuid' => 'string',
+    'utilization' => 'double',
     ];
 
     /**
@@ -177,6 +181,8 @@ class VirtualDiskImages extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

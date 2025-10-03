@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,13 +17,13 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function networkPoolName($value)
     {
         return $this->builder->where('network_pool_name', 'ilike', '%' . $value . '%');
@@ -34,7 +34,7 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->networkPoolName($value);
     }
-
+        
     public function cloudPoolName($value)
     {
         return $this->builder->where('cloud_pool_name', 'ilike', '%' . $value . '%');
@@ -45,7 +45,7 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->cloudPoolName($value);
     }
-
+    
     public function bandwidth($value)
     {
         $operator = substr($value, 0, 1);
@@ -59,7 +59,7 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('bandwidth', $operator, $value);
     }
 
-
+    
     public function speedLimit($value)
     {
         $operator = substr($value, 0, 1);
@@ -78,7 +78,7 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->speedLimit($value);
     }
-
+    
     public function isDmz($value)
     {
         return $this->builder->where('is_dmz', $value);
@@ -89,7 +89,7 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isDmz($value);
     }
-
+     
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -100,7 +100,7 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -176,7 +176,7 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -186,8 +186,10 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

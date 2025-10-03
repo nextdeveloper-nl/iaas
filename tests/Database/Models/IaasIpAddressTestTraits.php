@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasIpAddressQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasIpAddressService;
+use Tests\TestCase;
 
 trait IaasIpAddressTestTraits
 {
@@ -513,4 +514,5 @@ trait IaasIpAddressTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

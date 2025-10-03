@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasAnsibleSystemPlaybookExecutionQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasAnsibleSystemPlaybookExecutionService;
+use Tests\TestCase;
 
 trait IaasAnsibleSystemPlaybookExecutionTestTraits
 {
@@ -752,4 +753,5 @@ trait IaasAnsibleSystemPlaybookExecutionTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

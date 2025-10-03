@@ -18,6 +18,8 @@ class ComputeMemberEventsCreateRequest extends AbstractFormRequest
         'event' => 'nullable|string',
         'iaas_compute_member_id' => 'nullable|exists:iaas_compute_members,uuid|uuid',
         'is_executed' => 'boolean',
+        'is_flagged' => 'nullable|boolean',
+        'results' => 'nullable',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

@@ -11,6 +11,9 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\ComputeMembersPerspectiveObserver;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * ComputeMembersPerspective model.
@@ -48,13 +51,18 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  * @property array $tags
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property boolean $is_event_service_running
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class ComputeMembersPerspective extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
+    use SoftDeletes;
     use SSHable, Agentable;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $table = 'iaas_compute_members_perspective';
 
@@ -95,6 +103,7 @@ class ComputeMembersPerspective extends Model
             'tags',
             'iam_account_id',
             'iam_user_id',
+            'is_event_service_running',
     ];
 
     /**
@@ -145,6 +154,10 @@ class ComputeMembersPerspective extends Model
     'responsible' => 'string',
     'states' => 'array',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'is_event_service_running' => 'boolean',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -155,6 +168,9 @@ class ComputeMembersPerspective extends Model
     protected $dates = [
     'uptime',
     'idle_time',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
@@ -205,6 +221,8 @@ class ComputeMembersPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

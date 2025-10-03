@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+            
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,19 +17,19 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function hash($value)
     {
         return $this->builder->where('hash', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function minAnsibleVersion($value)
     {
         return $this->builder->where('min_ansible_version', 'ilike', '%' . $value . '%');
@@ -40,13 +40,13 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
     {
         return $this->minAnsibleVersion($value);
     }
-
+        
     public function prerequisites($value)
     {
         return $this->builder->where('prerequisites', 'ilike', '%' . $value . '%');
     }
 
-
+    
     public function version($value)
     {
         $operator = substr($value, 0, 1);
@@ -60,7 +60,7 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
         return $this->builder->where('version', $operator, $value);
     }
 
-
+    
     public function releaseNumber($value)
     {
         $operator = substr($value, 0, 1);
@@ -79,7 +79,7 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
     {
         return $this->releaseNumber($value);
     }
-
+    
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -90,7 +90,7 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-
+     
     public function isProcedure($value)
     {
         return $this->builder->where('is_procedure', $value);
@@ -101,7 +101,7 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
     {
         return $this->isProcedure($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -182,7 +182,7 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasAnsibleServer($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -192,7 +192,7 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -202,8 +202,10 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

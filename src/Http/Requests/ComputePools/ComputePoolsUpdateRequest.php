@@ -30,6 +30,8 @@ class ComputePoolsUpdateRequest extends AbstractFormRequest
         'price_pergb_month' => 'nullable',
         'disk_ram_ratio' => '',
         'code_name' => 'string',
+        'is_default' => 'boolean',
+        'is_iso27001_enabled' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

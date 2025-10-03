@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+        
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,13 +17,13 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function datacenterName($value)
     {
         return $this->builder->where('datacenter_name', 'ilike', '%' . $value . '%');
@@ -34,19 +34,19 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->datacenterName($value);
     }
-
+        
     public function maintainer($value)
     {
         return $this->builder->where('maintainer', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function responsible($value)
     {
         return $this->builder->where('responsible', 'ilike', '%' . $value . '%');
     }
 
-
+    
     public function computePoolCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -65,7 +65,7 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->computePoolCount($value);
     }
-
+    
     public function storagePoolCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -84,7 +84,7 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->storagePoolCount($value);
     }
-
+    
     public function networkPoolCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -103,7 +103,7 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->networkPoolCount($value);
     }
-
+    
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -114,7 +114,7 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-
+     
     public function isAlive($value)
     {
         return $this->builder->where('is_alive', $value);
@@ -125,7 +125,7 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isAlive($value);
     }
-
+     
     public function isInMaintenance($value)
     {
         return $this->builder->where('is_in_maintenance', $value);
@@ -136,7 +136,7 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isInMaintenance($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -212,7 +212,7 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -222,8 +222,10 @@ class CloudNodesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

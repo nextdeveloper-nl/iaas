@@ -10,6 +10,8 @@ use NextDeveloper\Commons\Database\Traits\HasStates;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\ComputePoolsObserver;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * ComputePools model.
@@ -36,16 +38,17 @@ use NextDeveloper\IAAS\Database\Observers\ComputePoolsObserver;
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  * @property string $pool_type
- * @property boolean $is_iso27001_enabled
  * @property integer $total_cpu
  * @property integer $total_ram
  * @property $price_pergb_month
  * @property $disk_ram_ratio
  * @property string $code_name
+ * @property boolean $is_default
+ * @property boolean $is_iso27001_enabled
  */
 class ComputePools extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -54,102 +57,105 @@ class ComputePools extends Model
 
 
     /**
-     * @var array
+     @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-        'name',
-        'resource_validator',
-        'pool_data',
-        'virtualization',
-        'provisioning_alg',
-        'is_active',
-        'is_alive',
-        'is_public',
-        'iaas_datacenter_id',
-        'iaas_cloud_node_id',
-        'iam_account_id',
-        'iam_user_id',
-        'tags',
-        'price_pergb',
-        'common_currency_id',
-        'pool_type',
-        'total_cpu',
-        'total_ram',
-        'price_pergb_month',
-        'disk_ram_ratio',
-        'code_name',
-        'is_iso27001_enabled'
+            'name',
+            'resource_validator',
+            'pool_data',
+            'virtualization',
+            'provisioning_alg',
+            'is_active',
+            'is_alive',
+            'is_public',
+            'iaas_datacenter_id',
+            'iaas_cloud_node_id',
+            'iam_account_id',
+            'iam_user_id',
+            'tags',
+            'price_pergb',
+            'common_currency_id',
+            'pool_type',
+            'total_cpu',
+            'total_ram',
+            'price_pergb_month',
+            'disk_ram_ratio',
+            'code_name',
+            'is_default',
+            'is_iso27001_enabled',
     ];
 
     /**
-     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
+      Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     * We are casting fields to objects so that we can work on them better
+     We are casting fields to objects so that we can work on them better
      *
-     * @var array
+     @var array
      */
     protected $casts = [
-        'id' => 'integer',
-        'name' => 'string',
-        'resource_validator' => 'string',
-        'pool_data' => 'array',
-        'virtualization' => 'string',
-        'provisioning_alg' => 'string',
-        'is_active' => 'boolean',
-        'is_alive' => 'boolean',
-        'is_public' => 'boolean',
-        'iaas_datacenter_id' => 'integer',
-        'iaas_cloud_node_id' => 'integer',
-        'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
-        'common_currency_id' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
-        'pool_type' => 'string',
-        'total_cpu' => 'integer',
-        'total_ram' => 'integer',
-        'code_name' => 'string',
+    'id' => 'integer',
+    'name' => 'string',
+    'resource_validator' => 'string',
+    'pool_data' => 'array',
+    'virtualization' => 'string',
+    'provisioning_alg' => 'string',
+    'is_active' => 'boolean',
+    'is_alive' => 'boolean',
+    'is_public' => 'boolean',
+    'iaas_datacenter_id' => 'integer',
+    'iaas_cloud_node_id' => 'integer',
+    'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'common_currency_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
+    'pool_type' => 'string',
+    'total_cpu' => 'integer',
+    'total_ram' => 'integer',
+    'code_name' => 'string',
+    'is_default' => 'boolean',
+    'is_iso27001_enabled' => 'boolean',
     ];
 
     /**
-     * We are casting data fields.
+     We are casting data fields.
      *
-     * @var array
+     @var array
      */
     protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $with = [
 
     ];
 
     /**
-     * @var int
+     @var int
      */
     protected $perPage = 20;
 
     /**
-     * @return void
+     @return void
      */
     public static function boot()
     {
@@ -166,11 +172,9 @@ class ComputePools extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_compute_pools');
 
-        if (!$modelScopes) {
-            $modelScopes = [];
+        if(!$modelScopes) { $modelScopes = [];
         }
-        if (!$globalScopes) {
-            $globalScopes = [];
+        if (!$globalScopes) { $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -178,34 +182,36 @@ class ComputePools extends Model
             $modelScopes
         );
 
-        if ($scopes) {
+        if($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
         }
     }
 
-    public function computeMembers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
+    }
+    
+    public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
+    }
+    
+    public function computeMembers() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMembers::class);
     }
 
-    public function datacenters(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
-    }
-
-    public function cloudNodes(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
-    }
-
-    public function virtualMachines(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 }

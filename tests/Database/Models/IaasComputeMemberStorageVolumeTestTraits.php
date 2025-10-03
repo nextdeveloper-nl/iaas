@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use League\Fractal\Resource\Collection;
 use NextDeveloper\IAAS\Database\Filters\IaasComputeMemberStorageVolumeQueryFilter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIaasComputeMemberStorageVolumeService;
+use Tests\TestCase;
 
 trait IaasComputeMemberStorageVolumeTestTraits
 {
@@ -573,4 +574,5 @@ trait IaasComputeMemberStorageVolumeTestTraits
         $this->assertTrue(true);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

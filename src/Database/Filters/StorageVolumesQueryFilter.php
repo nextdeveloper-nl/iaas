@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-
+                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -37,13 +37,13 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-
+    
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-
+        
     public function diskPhysicalType($value)
     {
         return $this->builder->where('disk_physical_type', 'ilike', '%' . $value . '%');
@@ -54,7 +54,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->diskPhysicalType($value);
     }
-
+    
     public function totalHdd($value)
     {
         $operator = substr($value, 0, 1);
@@ -73,7 +73,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->totalHdd($value);
     }
-
+    
     public function usedHdd($value)
     {
         $operator = substr($value, 0, 1);
@@ -92,7 +92,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->usedHdd($value);
     }
-
+    
     public function freeHdd($value)
     {
         $operator = substr($value, 0, 1);
@@ -111,7 +111,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->freeHdd($value);
     }
-
+    
     public function virtualAllocation($value)
     {
         $operator = substr($value, 0, 1);
@@ -130,7 +130,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->virtualAllocation($value);
     }
-
+    
     public function isStorage($value)
     {
         return $this->builder->where('is_storage', $value);
@@ -141,7 +141,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->isStorage($value);
     }
-
+     
     public function isRepo($value)
     {
         return $this->builder->where('is_repo', $value);
@@ -152,7 +152,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->isRepo($value);
     }
-
+     
     public function isCdrom($value)
     {
         return $this->builder->where('is_cdrom', $value);
@@ -163,7 +163,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->isCdrom($value);
     }
-
+     
     public function isAlive($value)
     {
         return $this->builder->where('is_alive', $value);
@@ -174,7 +174,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->isAlive($value);
     }
-
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -255,7 +255,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStoragePool($value);
     }
-
+    
     public function iaasStorageMemberId($value)
     {
             $iaasStorageMember = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('uuid', $value)->first();
@@ -270,7 +270,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStorageMember($value);
     }
-
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -280,7 +280,7 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -290,8 +290,10 @@ class StorageVolumesQueryFilter extends AbstractQueryFilter
         }
     }
 
-
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

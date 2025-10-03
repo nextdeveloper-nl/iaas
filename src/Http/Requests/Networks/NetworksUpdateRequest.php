@@ -26,6 +26,7 @@ class NetworksUpdateRequest extends AbstractFormRequest
         'iaas_network_pool_id' => 'nullable|exists:iaas_network_pools,uuid|uuid',
         'iaas_cloud_node_id' => 'nullable|exists:iaas_cloud_nodes,uuid|uuid',
         'cidr' => 'nullable',
+        'iaas_datacenter_id' => 'nullable|exists:iaas_datacenters,uuid|uuid',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

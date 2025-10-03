@@ -55,7 +55,7 @@ class AbstractComputeMemberMetricsTransformer extends AbstractTransformer
     public function transform(ComputeMemberMetrics $model)
     {
                                                 $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
-
+                        
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -155,6 +155,8 @@ class AbstractComputeMemberMetricsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

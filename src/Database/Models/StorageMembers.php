@@ -12,6 +12,8 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\StorageMembersObserver;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * StorageMembers model.
@@ -54,7 +56,7 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
  */
 class StorageMembers extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
     use SoftDeletes;
     use SSHable, Agentable;
 
@@ -213,9 +215,14 @@ class StorageMembers extends Model
         }
     }
 
-    public function storageMemberStats() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function storagePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageMemberStats::class);
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
+    }
+    
+    public function storageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
     }
 
     public function computeMemberStorageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
@@ -223,19 +230,14 @@ class StorageMembers extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes::class);
     }
 
-    public function storageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
-    }
-
     public function storageMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageMemberDevices::class);
     }
 
-    public function storagePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function storageMemberStats() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageMemberStats::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
@@ -249,6 +251,8 @@ class StorageMembers extends Model
             },
         );
     }
+
+
 
 
 
