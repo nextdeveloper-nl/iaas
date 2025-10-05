@@ -32,16 +32,6 @@ class CloudSpectator extends AbstractRole implements IAuthorizationRole
      */
     public function apply(Builder $builder, Model $model)
     {
-        if(
-            $model->getTable() == 'iaas_compute_pools' ||
-            $model->getTable() == 'iaas_compute_pools_perspective' ||
-            $model->getTable() == 'iaas_networks' ||
-            $model->getTable() == 'iaas_networks_perspective'
-        ) {
-            $builder->where('iam_account_id', UserHelper::currentAccount()->id)
-                ->orWhere('is_public', true);
-        }
-
         $isPublicExists = DatabaseHelper::isColumnExists($model->getTable(), 'is_public');
 
         /**
@@ -100,7 +90,10 @@ class CloudSpectator extends AbstractRole implements IAuthorizationRole
             'iaas_ip_gateways:read',
             'iaas_ip_addresses:read',
             'iaas_repository_images:read',
-            'iaas_gateways:read'
+            'iaas_gateways:read',
+            'iaas_backup_retention_policies:read',
+            'iaas_backup_schedules:read',
+            'iaas_backup_jobs:read',
         ];
     }
 

@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Authorization\Roles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
 use NextDeveloper\IAM\Database\Models\Users;
@@ -31,12 +32,17 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
      */
     public function apply(Builder $builder, Model $model)
     {
+        $isPublicExists = DatabaseHelper::isColumnExists($model->getTable(), 'is_public');
+
         /**
          * Here user will be able to list all models, because by default, sales manager can see everybody.
          */
         $builder->where([
             'iam_account_id'    =>  UserHelper::currentAccount()->id
         ]);
+
+        if($isPublicExists)
+            $builder->orWhere('is_public', true);
     }
 
     public function checkPrivileges(Users $users = null)
@@ -175,7 +181,22 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_repository_images:read',
             'iaas_repository_images:create',
             'iaas_repository_images:update',
-            'iaas_repository_images:delete'
+            'iaas_repository_images:delete',
+
+            'iaas_backup_retention_policies:read',
+            'iaas_backup_retention_policies:create',
+            'iaas_backup_retention_policies:update',
+            'iaas_backup_retention_policies:delete',
+
+            'iaas_backup_schedules:read',
+            'iaas_backup_schedules:create',
+            'iaas_backup_schedules:update',
+            'iaas_backup_schedules:delete',
+
+            'iaas_backup_jobs:read',
+            'iaas_backup_jobs:create',
+            'iaas_backup_jobs:update',
+            'iaas_backup_jobs:delete',
         ];
     }
 

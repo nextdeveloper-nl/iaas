@@ -32,16 +32,6 @@ class IaasSuccessManager extends AbstractRole implements IAuthorizationRole
      */
     public function apply(Builder $builder, Model $model)
     {
-        if(
-            $model->getTable() == 'iaas_compute_pools' ||
-            $model->getTable() == 'iaas_compute_pools_perspective' ||
-            $model->getTable() == 'iaas_networks' ||
-            $model->getTable() == 'iaas_networks_perspective'
-        ) {
-            $builder->where('iam_account_id', UserHelper::currentAccount()->id)
-                ->orWhere('is_public', true);
-        }
-
         $isPublicExists = DatabaseHelper::isColumnExists($model->getTable(), 'is_public');
 
         /**
@@ -123,7 +113,22 @@ class IaasSuccessManager extends AbstractRole implements IAuthorizationRole
             'iaas_repositories:read',
             'iaas_repositories:create',
             'iaas_repositories:update',
-            'iaas_repositories:delete'
+            'iaas_repositories:delete',
+
+            'iaas_backup_retention_policies:read',
+            'iaas_backup_retention_policies:create',
+            'iaas_backup_retention_policies:update',
+            'iaas_backup_retention_policies:delete',
+
+            'iaas_backup_schedules:read',
+            'iaas_backup_schedules:create',
+            'iaas_backup_schedules:update',
+            'iaas_backup_schedules:delete',
+
+            'iaas_backup_jobs:read',
+            'iaas_backup_jobs:create',
+            'iaas_backup_jobs:update',
+            'iaas_backup_jobs:delete',
         ];
     }
 
