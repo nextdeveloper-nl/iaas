@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use NextDeveloper\IAAS\Database\Models\BackupRetentionPolicies;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractBackupRetentionPoliciesService;
 
 /**
@@ -15,4 +16,9 @@ class BackupRetentionPoliciesService extends AbstractBackupRetentionPoliciesServ
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    public static function getDefault() :BackupRetentionPolicies
+    {
+        return BackupRetentionPolicies::where('name', 'Never delete (Archive forever)')->first();
+    }
 }
