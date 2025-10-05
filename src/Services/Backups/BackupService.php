@@ -64,10 +64,8 @@ class BackupService
         ]);
     }
 
-    public static function setBackupState(VirtualMachines $vm, $state) : VirtualMachineBackups
+    public static function setBackupState(VirtualMachineBackups $backup, $state) : VirtualMachineBackups
     {
-        $backup = self::getPendingBackup($vm);
-
         $backup->update([
             'status'    =>  $state
         ]);

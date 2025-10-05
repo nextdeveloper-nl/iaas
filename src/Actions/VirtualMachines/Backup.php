@@ -45,7 +45,7 @@ class Backup extends AbstractAction
         $this->setProgress(0, 'Backup virtual machine action started.');
 
         if(array_key_exists('iaas_backup_job_id', $this->params)) {
-            $backupJob = BackupJobs::where('id', $this->params->iaas_backup_job_id)->first();
+            $backupJob = BackupJobs::where('id', $this->params['iaas_backup_job_id'])->first();
 
             if(!$backupJob) {
                 $backupJob = BackupJobsService::createDefaultVmBackupJob($this->model);
@@ -56,10 +56,10 @@ class Backup extends AbstractAction
 
         if(!$vmBackup) {
             $vmBackup = BackupService::createPendingBackup($this->model, $backupJob);
-            BackupService::setBackupState($this->model, 'initiated');
+            BackupService::setBackupState($vmBackup, 'initiated');
         }
         else {
-            BackupService::setBackupState($this->model, 'restarting');
+            BackupService::setBackupState($vmBackup, 'restarting');
         }
 
         $backupStarts = Carbon::now();
@@ -168,11 +168,11 @@ class Backup extends AbstractAction
 
         $this->setProgress(80, 'Exporting to the default backup repository.');
 
-        BackupService::setBackupState($this->model, 'running');
+        BackupService::setBackupState($vmBackup, 'running');
 
         $backupResult = VirtualMachinesXenService::exportToRepository($clonedVm, $backupRepo);
 
-        BackupService::setBackupState($this->model, 'backed-up');
+        BackupService::setBackupState($vmBackup, 'backed-up');
 
         $backupEnds = Carbon::now();
         $backupDiff = $backupEnds->diffInSeconds($backupStarts);

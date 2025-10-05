@@ -68,6 +68,7 @@ class BackupJobsService extends AbstractBackupJobsService
 
         $defaultBackupJob = \NextDeveloper\IAAS\Database\Models\BackupJobs::where('object_type', $object)
             ->where('object_id', $vm->id)
+            ->where('name', 'Default backup job')
             ->first();
 
         if(!$defaultBackupJob) {
