@@ -29,7 +29,7 @@ class BackupJobsTransformer extends AbstractBackupJobsTransformer
         );
 
         if($transformed) {
-            //return $transformed;
+            return $transformed;
         }
 
         $transformed = parent::transform($model);

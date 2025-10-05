@@ -6,7 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Database\Models\BackupJobs;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\BackupJobsService;
 use NextDeveloper\IAAS\Services\Backups\BackupService;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
@@ -25,23 +27,35 @@ class Backup extends AbstractAction
         'backup-failed:NextDeveloper\IAAS\VirtualMachines'
     ];
 
-    public function __construct(VirtualMachines $vm)
+    public const PARAMS = [
+        'iaas_backup_job_id'  =>  'required|exists:iaas_backup_jobs,id',
+    ];
+
+    public function __construct(VirtualMachines $vm, $params = null, $previous = null)
     {
         $this->model = $vm;
 
         $this->queue = 'iaas';
 
-        parent::__construct();
+        parent::__construct($params, $previous);
     }
 
     public function handle()
     {
         $this->setProgress(0, 'Backup virtual machine action started.');
 
-        $vmBackup = BackupService::getPendingBackup($this->model);
+        if(array_key_exists('iaas_backup_job_id', $this->params)) {
+            $backupJob = BackupJobs::where('id', $this->params->iaas_backup_job_id)->first();
+
+            if(!$backupJob) {
+                $backupJob = BackupJobsService::createDefaultVmBackupJob($this->model);
+            }
+        }
+
+        $vmBackup = BackupService::getPendingBackup($this->model, $backupJob);
 
         if(!$vmBackup) {
-            $vmBackup = BackupService::createPendingBackup($this->model);
+            $vmBackup = BackupService::createPendingBackup($this->model, $backupJob);
             BackupService::setBackupState($this->model, 'initiated');
         }
         else {

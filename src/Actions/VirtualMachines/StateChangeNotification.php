@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\Communication\Helpers\Communicate;
@@ -98,7 +99,7 @@ class StateChangeNotification extends AbstractAction
     /**
      * @throws NotAllowedException
      */
-    public function __construct($model, array $params = [], $previous = null)
+    public function __construct(VirtualMachines $model, array $params = [], $previous = null)
     {
         $this->model = $model;
         $this->eventName = $params['event'] ?? null;

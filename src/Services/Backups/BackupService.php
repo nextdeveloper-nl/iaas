@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Services\Backups;
 
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
+use NextDeveloper\IAAS\Database\Models\BackupJobs;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -32,18 +33,19 @@ class BackupService
         return count(self::getRunningBackups($members)) > 0;
     }
 
-    public static function getPendingBackup(VirtualMachines $vm) : ?VirtualMachineBackups
+    public static function getPendingBackup(VirtualMachines $vm, BackupJobs $job) : ?VirtualMachineBackups
     {
         $backup = VirtualMachineBackups::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
             ->where('iaas_virtual_machine_id', $vm->id)
             ->where('status', '!=', 'backed-up')
+            ->where('iaas_backup_job_id', $job->id)
             ->first();
 
         return $backup;
     }
 
-    public static function createPendingBackup(VirtualMachines $vm) : VirtualMachineBackups
+    public static function createPendingBackup(VirtualMachines $vm, BackupJobs $job) : VirtualMachineBackups
     {
         return VirtualMachineBackups::create([
             'name'  =>  'Backup of ' . $vm->name,
@@ -56,6 +58,7 @@ class BackupService
             'status'    =>  'pending',
             'backup-type'   =>  'full-backup',
             'iaas_virtual_machine_id'   =>  $vm->id,
+            'iaas_backup_job_id' => $job->id,
             'iam_account_id'    =>  UserHelper::currentAccount()->id,
             'iam_user_id'   =>  UserHelper::currentUser()->id,
         ]);
