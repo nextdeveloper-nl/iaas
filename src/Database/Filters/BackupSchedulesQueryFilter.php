@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-        
+            
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -18,15 +18,15 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
      */
     protected $builder;
     
-    public function objectType($value)
+    public function scheduleType($value)
     {
-        return $this->builder->where('object_type', 'ilike', '%' . $value . '%');
+        return $this->builder->where('schedule_type', 'ilike', '%' . $value . '%');
     }
 
-        //  This is an alias function of objectType
-    public function object_type($value)
+        //  This is an alias function of scheduleType
+    public function schedule_type($value)
     {
-        return $this->objectType($value);
+        return $this->scheduleType($value);
     }
     
     public function dayOfMonth($value)
@@ -155,6 +155,21 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
         return $this->deletedAtEnd($value);
     }
 
+    public function iaasBackupJobId($value)
+    {
+            $iaasBackupJob = \NextDeveloper\IAAS\Database\Models\BackupJobs::where('uuid', $value)->first();
+
+        if($iaasBackupJob) {
+            return $this->builder->where('iaas_backup_job_id', '=', $iaasBackupJob->id);
+        }
+    }
+
+        //  This is an alias function of iaasBackupJob
+    public function iaas_backup_job_id($value)
+    {
+        return $this->iaasBackupJob($value);
+    }
+    
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -176,5 +191,6 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
 
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

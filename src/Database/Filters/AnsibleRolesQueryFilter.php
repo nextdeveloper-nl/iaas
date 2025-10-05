@@ -245,4 +245,5 @@ class AnsibleRolesQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

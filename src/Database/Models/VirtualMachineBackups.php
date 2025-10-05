@@ -40,6 +40,7 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  * @property \Carbon\Carbon $deleted_at
  * @property string $status
  * @property integer $iaas_repository_image_id
+ * @property integer $iaas_backup_job_id
  */
 class VirtualMachineBackups extends Model
 {
@@ -75,6 +76,7 @@ class VirtualMachineBackups extends Model
             'iam_user_id',
             'status',
             'iaas_repository_image_id',
+            'iaas_backup_job_id',
     ];
 
     /**
@@ -117,6 +119,7 @@ class VirtualMachineBackups extends Model
     'deleted_at' => 'datetime',
     'status' => 'string',
     'iaas_repository_image_id' => 'integer',
+    'iaas_backup_job_id' => 'integer',
     ];
 
     /**
@@ -189,6 +192,7 @@ class VirtualMachineBackups extends Model
             },
         );
     }
+
 
 
 }

@@ -686,7 +686,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $averageCpu = 0;
         $averageRam = 0;
 
-        if($cpuCount($cpuLoad)) {
+        if(count($cpuLoad)) {
             $averageCpu = array_sum(array_column($cpuLoad, 'value')) / count($cpuLoad) * 100; //  Convert to percentage
 
             $ramLoad = VirtualMachineMetrics::withoutGlobalScopes()
@@ -707,9 +707,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->first();
 
         return [
-            'average_cpu' => round($averageCpu, 2),
-            'average_ram' => round($averageRam, 2),
-            'disk_utilisation' => $vdi ? round($vdi->physical_utilisation / $vdi->size * 100, 0) : 100,
+            'average_cpu' => ceil($averageCpu),
+            'average_ram' => ceil($averageRam),
+            'disk_utilisation' => $vdi ? ceil($vdi->physical_utilisation / $vdi->size * 100) : 100,
         ];
     }
 

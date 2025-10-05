@@ -19,11 +19,11 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  * @package  NextDeveloper\IAAS\Database\Models
  * @property integer $id
  * @property string $uuid
- * @property string $object_type
- * @property integer $object_id
  * @property integer $day_of_month
  * @property integer $day_of_week
  * @property \Carbon\Carbon $time_of_day
+ * @property integer $iaas_backup_job_id
+ * @property string $schedule_type
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
@@ -46,11 +46,11 @@ class BackupSchedules extends Model
     protected $guarded = [];
 
     protected $fillable = [
-            'object_type',
-            'object_id',
             'day_of_month',
             'day_of_week',
             'time_of_day',
+            'iaas_backup_job_id',
+            'schedule_type',
             'iam_account_id',
             'iam_user_id',
     ];
@@ -76,11 +76,11 @@ class BackupSchedules extends Model
      */
     protected $casts = [
     'id' => 'integer',
-    'object_type' => 'string',
-    'object_id' => 'integer',
     'day_of_month' => 'integer',
     'day_of_week' => 'integer',
     'time_of_day' => 'datetime',
+    'iaas_backup_job_id' => 'integer',
+    'schedule_type' => 'string',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -146,5 +146,6 @@ class BackupSchedules extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

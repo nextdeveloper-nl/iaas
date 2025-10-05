@@ -54,17 +54,18 @@ class AbstractBackupSchedulesTransformer extends AbstractTransformer
      */
     public function transform(BackupSchedules $model)
     {
-                                                $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                $iaasBackupJobId = \NextDeveloper\IAAS\Database\Models\BackupJobs::where('id', $model->iaas_backup_job_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                         
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
-            'object_type'  =>  $model->object_type,
-            'object_id'  =>  $model->object_id,
             'day_of_month'  =>  $model->day_of_month,
             'day_of_week'  =>  $model->day_of_week,
             'time_of_day'  =>  $model->time_of_day,
+            'iaas_backup_job_id'  =>  $iaasBackupJobId ? $iaasBackupJobId->uuid : null,
+            'schedule_type'  =>  $model->schedule_type,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'created_at'  =>  $model->created_at,
@@ -158,5 +159,6 @@ class AbstractBackupSchedulesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 }

@@ -58,6 +58,7 @@ class AbstractVirtualMachineBackupsTransformer extends AbstractTransformer
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                                                             $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
+                                                            $iaasBackupJobId = \NextDeveloper\IAAS\Database\Models\BackupJobs::where('id', $model->iaas_backup_job_id)->first();
                         
         return $this->buildPayload(
             [
@@ -83,6 +84,7 @@ class AbstractVirtualMachineBackupsTransformer extends AbstractTransformer
             'deleted_at'  =>  $model->deleted_at,
             'status'  =>  $model->status,
             'iaas_repository_image_id'  =>  $iaasRepositoryImageId ? $iaasRepositoryImageId->uuid : null,
+            'iaas_backup_job_id'  =>  $iaasBackupJobId ? $iaasBackupJobId->uuid : null,
             ]
         );
     }
@@ -171,6 +173,7 @@ class AbstractVirtualMachineBackupsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

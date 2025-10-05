@@ -1115,27 +1115,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('backup-schedules')->group(
-            function () {
-                Route::get('/', 'BackupSchedules\BackupSchedulesController@index');
-                Route::get('/actions', 'BackupSchedules\BackupSchedulesController@getActions');
-
-                Route::get('{iaas_backup_schedules}/tags ', 'BackupSchedules\BackupSchedulesController@tags');
-                Route::post('{iaas_backup_schedules}/tags ', 'BackupSchedules\BackupSchedulesController@saveTags');
-                Route::get('{iaas_backup_schedules}/addresses ', 'BackupSchedules\BackupSchedulesController@addresses');
-                Route::post('{iaas_backup_schedules}/addresses ', 'BackupSchedules\BackupSchedulesController@saveAddresses');
-
-                Route::get('/{iaas_backup_schedules}/{subObjects}', 'BackupSchedules\BackupSchedulesController@relatedObjects');
-                Route::get('/{iaas_backup_schedules}', 'BackupSchedules\BackupSchedulesController@show');
-
-                Route::post('/', 'BackupSchedules\BackupSchedulesController@store');
-                Route::post('/{iaas_backup_schedules}/do/{action}', 'BackupSchedules\BackupSchedulesController@doAction');
-
-                Route::patch('/{iaas_backup_schedules}', 'BackupSchedules\BackupSchedulesController@update');
-                Route::delete('/{iaas_backup_schedules}', 'BackupSchedules\BackupSchedulesController@destroy');
-            }
-        );
-
         Route::prefix('backup-jobs')->group(
             function () {
                 Route::get('/', 'BackupJobs\BackupJobsController@index');
@@ -1154,6 +1133,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_backup_jobs}', 'BackupJobs\BackupJobsController@update');
                 Route::delete('/{iaas_backup_jobs}', 'BackupJobs\BackupJobsController@destroy');
+            }
+        );
+
+        Route::prefix('backup-schedules')->group(
+            function () {
+                Route::get('/', 'BackupSchedules\BackupSchedulesController@index');
+                Route::get('/actions', 'BackupSchedules\BackupSchedulesController@getActions');
+
+                Route::get('{iaas_backup_schedules}/tags ', 'BackupSchedules\BackupSchedulesController@tags');
+                Route::post('{iaas_backup_schedules}/tags ', 'BackupSchedules\BackupSchedulesController@saveTags');
+                Route::get('{iaas_backup_schedules}/addresses ', 'BackupSchedules\BackupSchedulesController@addresses');
+                Route::post('{iaas_backup_schedules}/addresses ', 'BackupSchedules\BackupSchedulesController@saveAddresses');
+
+                Route::get('/{iaas_backup_schedules}/{subObjects}', 'BackupSchedules\BackupSchedulesController@relatedObjects');
+                Route::get('/{iaas_backup_schedules}', 'BackupSchedules\BackupSchedulesController@show');
+
+                Route::post('/', 'BackupSchedules\BackupSchedulesController@store');
+                Route::post('/{iaas_backup_schedules}/do/{action}', 'BackupSchedules\BackupSchedulesController@doAction');
+
+                Route::patch('/{iaas_backup_schedules}', 'BackupSchedules\BackupSchedulesController@update');
+                Route::delete('/{iaas_backup_schedules}', 'BackupSchedules\BackupSchedulesController@destroy');
             }
         );
 
@@ -1474,6 +1474,79 @@ Route::prefix('iaas')->group(
 
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         Route::get('/configurations/dhcp-servers/{server}', [\NextDeveloper\IAAS\Http\Controllers\DhcpServers\DhcpServersConfigurationController::class, 'show']);
         Route::get('/console/{iaas_virtual_machines}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesConsoleController::class, 'getConsoleData']);
 
@@ -1483,6 +1556,9 @@ Route::prefix('iaas')->group(
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );
+
+
+
 
 
 

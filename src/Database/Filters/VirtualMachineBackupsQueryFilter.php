@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+                    
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -279,7 +279,23 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
         return $this->iaasRepositoryImage($value);
     }
     
+    public function iaasBackupJobId($value)
+    {
+            $iaasBackupJob = \NextDeveloper\IAAS\Database\Models\BackupJobs::where('uuid', $value)->first();
+
+        if($iaasBackupJob) {
+            return $this->builder->where('iaas_backup_job_id', '=', $iaasBackupJob->id);
+        }
+    }
+
+        //  This is an alias function of iaasBackupJob
+    public function iaas_backup_job_id($value)
+    {
+        return $this->iaasBackupJob($value);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -58,7 +58,7 @@ trait IaasBackupScheduleTestTraits
         $response = $this->http->request(
             'POST', '/iaas/iaasbackupschedule', [
             'form_params'   =>  [
-                'object_type'  =>  'a',
+                'schedule_type'  =>  'a',
                 'day_of_month'  =>  '1',
                 'day_of_week'  =>  '1',
                     'time_of_day'  =>  now(),
@@ -344,12 +344,12 @@ trait IaasBackupScheduleTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasbackupschedule_event_object_type_filter()
+    public function test_iaasbackupschedule_event_schedule_type_filter()
     {
         try {
             $request = new Request(
                 [
-                'object_type'  =>  'a'
+                'schedule_type'  =>  'a'
                 ]
             );
 
