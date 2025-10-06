@@ -172,7 +172,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
                 return [
                     'x' => $dt->format('c'), // ISO 8601 in UTC
-                    'y' => round($p['value'], 2)
+                    'y' => ceil($p['value'])
                 ];
             }, array_reverse($points)); // Reverse to oldest-to-newest
 
