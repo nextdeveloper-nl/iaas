@@ -82,6 +82,7 @@ class HealthCheck extends AbstractAction
         if(!$computeMember->is_alive) {
             Log::error(__METHOD__ . ' | The compute member is not alive: ' . $computeMember->uuid);
 
+            CommentsService::createSystemComment('Health check failed. Because we cannot reach the host which this VM is running on.', $this->model);
             Events::fire('health-check-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
             CommentsService::createSystemComment('Virtual machine health check failed because compute members seems like not alive.', $this->model);
@@ -115,6 +116,8 @@ class HealthCheck extends AbstractAction
 
             $this->setFinishedWithError('Virtual machine health check failed. Please consult to your' .
                 ' administrator for more information or create a support ticket to resolve this issue.');
+
+            CommentsService::createSystemComment('Health check failed. Please see the logs and consult to your administrator.', $this->model);
             Events::fire('health-check-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
@@ -153,12 +156,15 @@ class HealthCheck extends AbstractAction
 
             switch ($vmParams['power-state']) {
                 case 'running':
+                    CommentsService::createSystemComment('Virtual machine is found as running. Expected: ' . $this->model->status, $this->model);
                     Events::fire('running:NextDeveloper\IAAS\VirtualMachines', $this->model);
                     break;
                 case 'halted':
+                    CommentsService::createSystemComment('Virtual machine is found as halted. Expected: ' . $this->model->status, $this->model);
                     Events::fire('halted:NextDeveloper\IAAS\VirtualMachines', $this->model);
                     break;
                 case 'paused':
+                    CommentsService::createSystemComment('Virtual machine is found as paused. Expected: ' . $this->model->status, $this->model);
                     Events::fire('paused:NextDeveloper\IAAS\VirtualMachines', $this->model);
                     break;
             }

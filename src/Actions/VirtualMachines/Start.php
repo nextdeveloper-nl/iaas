@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -110,6 +111,7 @@ class Start extends AbstractAction
                 ' VM (' . $this->model->name. '/' . $this->model->uuid . ')');
 
         if($vmParams['power-state'] != 'running') {
+            CommentsService::createSystemComment('Failed to start the virtual machine.', $this->model);
             $this->setProgress(100, 'Virtual machine failed to start');
             Events::fire('start-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;

@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
@@ -58,9 +59,11 @@ class Pause extends AbstractAction
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
         if($vmParams['power-state'] == 'paused') {
+            CommentsService::createSystemComment('Virtual machine paused', $this->model);
             $this->setProgress(100, 'We paused the virtual machine. It is now paused.');
             Events::fire('paused:NextDeveloper\IAAS\VirtualMachines', $this->model);
         } else {
+            CommentsService::createSystemComment('Cannot pause VM.', $this->model);
             $this->setProgress(100, 'We cannot pause the virtual machine. It is now ' . $vmParams['power-state'] . '.');
             Events::fire('pause-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
         }
@@ -70,7 +73,6 @@ class Pause extends AbstractAction
             'hypervisor_data'   =>  $vmParams
         ]);
 
-        Events::fire('paused:NextDeveloper\IAAS\VirtualMachines', $this->model);
         $this->setProgress(100, 'Virtual machine paused');
     }
 }

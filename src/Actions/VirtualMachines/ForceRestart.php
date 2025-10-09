@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
@@ -65,6 +66,7 @@ class ForceRestart extends AbstractAction
         }
 
         if($vmParams['power-state'] != 'running') {
+            CommentsService::createSystemComment('We cannot hard restart the virtual machine.', $this->model);
             $this->setFinishedWithError('We cannot hard restart the virtual machine. It is not running.');
             Events::fire('restart-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
@@ -77,9 +79,11 @@ class ForceRestart extends AbstractAction
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
         if($vmParams['power-state'] == 'running') {
+            CommentsService::createSystemComment('Virtual machine is hard restarted successfully.', $this->model);
             $this->setProgress(100, 'We hard restarted the virtual machine. It is now running.');
             Events::fire('plugged:NextDeveloper\IAAS\VirtualMachines', $this->model);
         } else {
+            CommentsService::createSystemComment('Cannot hard restart the virtual machine.', $this->model);
             $this->setFinishedWithError('We cannot hard restart the virtual machine. It is now ' . $vmParams['power-state'] . '.');
             Events::fire('restart-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
         }

@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
@@ -49,6 +50,7 @@ class Restart extends AbstractAction
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
         if($vmParams['power-state'] != 'running') {
+            CommentsService::createSystemComment('We cannot restart the virtual machine.', $this->model);
             $this->setProgress(100, 'We cannot restart the virtual machine. It is not running.');
             Events::fire('restart-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
@@ -59,6 +61,7 @@ class Restart extends AbstractAction
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
         if($vmParams['power-state'] == 'running') {
+            CommentsService::createSystemComment('Virtual machine restarted', $this->model);
             $this->setProgress(100, 'We restarted the virtual machine. It is now running.');
             Events::fire('restarted:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;

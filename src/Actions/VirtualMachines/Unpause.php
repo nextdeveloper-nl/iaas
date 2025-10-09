@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
@@ -62,6 +63,7 @@ class Unpause extends AbstractAction
         }
 
         if($vmParams['power-state'] != 'paused') {
+            CommentsService::createSystemComment('We cannot unpause the virtual machine. It is still in paused state', $this->model);
             $this->setProgress(100, 'We cannot unpause the virtual machine. It is not paused.');
             Events::fire('unpause-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
@@ -72,9 +74,11 @@ class Unpause extends AbstractAction
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
         if($vmParams['power-state'] == 'running') {
+            CommentsService::createSystemComment('Virtual machine is now unpaused and running.', $this->model);
             $this->setProgress(100, 'We unpaused the virtual machine. It is now running.');
             Events::fire('unpaused:NextDeveloper\IAAS\VirtualMachines', $this->model);
         } else {
+            CommentsService::createSystemComment('We cannot unpause the virtual machine. The state is now: ' . $vmParams['power-state'], $this->model);
             $this->setProgress(100, 'We cannot unpause the virtual machine. It is now ' . $vmParams['power-state'] . '.');
             Events::fire('unpause-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
         }
