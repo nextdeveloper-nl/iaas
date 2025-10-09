@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -42,80 +43,19 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
         UserHelper::setAdminAsCurrentUser();
 
-        if($event['class'] == 'message') {
-            switch ($event['operation']) {
-                case 'add':
-                    //  We will handle message add events here
-                    $results = array_merge($results, $this->messageAddOperation());
-                    break;
-            }
-        }
-
-        if($event['class'] == 'vm') {
-            $this->vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-                ->where('hypervisor_uuid', $event['snapshot']['uuid'])
-                ->withTrashed()
-                ->first();
-
-            if(!$this->vm->iam_user_id) {
-                Log::error( __METHOD__ . ': VM (' . $this->vm->uuid . ') does not have an associated user for event ID ' . $this->event->id);
-
-                $account = UserHelper::getAccountById($this->vm->iam_account_id);
-                if($account) {
-                    $this->vm->iam_user_id = UserHelper::getAccountOwner($this->vm->iam_account_id)->id;
-                    $this->vm->saveQuietly();
-                }
-
-                (new Communicate(UserHelper::getLeoOwner()))->sendNotification(
-                    subject: 'VM without user',
-                    message: 'The VM with UUID ' . $this->vm->uuid . ' does not have an associated user. We have' .
-                        ' assigned the account owner as the VM owner, but please check the VM settings to ensure' .
-                        ' everything is correct.');
-            }
-
-            //  Because we need the users privileges to update the VM
-            UserHelper::setUserById($this->vm->iam_user_id);
-            UserHelper::setCurrentAccountById($this->vm->iam_account_id);
-
-            //  We will handle VM events here
-            switch ($event['operation']) {
-                case 'add':
-                    $results = array_merge($results, $this->vmAddOperation());
-                    break;
-                case 'mod':
-                    //  We will handle VM modification events here
-                    $results = array_merge($results, $this->vmModOperation());
-                    break;
-                case 'del':
-                    //  We will handle VM deletion events here
-                    $results = array_merge($results, $this->vmDelOperation());
-                    break;
-                default:
-                    Log::info(__METHOD__ . ': Skipped event type ' . $event['operation'] . ' for event ID ' . $this->event->id);
-                    $this->event->forceDelete();
-                    return;
-            }
-        }
-
-        if($event['class'] == 'sr') {
-            switch ($event['operation']) {
-                case 'add':
-                    //  We will handle SR add events here
-                    $results = array_merge($results, ['executed' => 'SR add event handled']);
-                    break;
-                case 'mod':
-                    //  We will handle SR modification events here
-                    $results = array_merge($results, ['executed' => 'SR modification event handled']);
-                    break;
-                case 'del':
-                    //  We will handle SR deletion events here
-                    $results = array_merge($results, ['executed' => 'SR deletion event handled']);
-                    break;
-                default:
-                    Log::info(__METHOD__ . ': Skipped event type ' . $event['operation'] . ' for event ID ' . $this->event->id);
-                    $this->event->forceDelete();
-                    return;
-            }
+        switch ($event['class']) {
+            case 'vm':
+                $results = array_merge($this->computeVmEvents($event, $results), $results);
+                break;
+            case 'message':
+                $results = array_merge($this->computeMessageEvents($event, $results), $results);
+                break;
+            case 'sr':
+                $results = array_merge($this->computeSrEvents($event, $results), $results);
+                break;
+            case 'leo':
+                $results = array_merge($this->computeLeoEvents($event, $results), $results);
+                break;
         }
 
         $this->event->results = $results;
@@ -132,6 +72,98 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         ComputeMemberEvents::withoutGlobalScope(AuthorizationScope::class)
             ->where('created_at', '<', now()->subDays(30))
             ->forceDelete();
+    }
+
+    private function computeLeoEvents($event, $results): array {
+        switch ($event['operation']) {
+            case 'export_completed':
+
+        }
+    }
+
+    private function computeVmEvents($event, $results = []) : array
+    {
+        $this->vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('hypervisor_uuid', $event['snapshot']['uuid'])
+            ->withTrashed()
+            ->first();
+
+        if(!$this->vm->iam_user_id) {
+            Log::error( __METHOD__ . ': VM (' . $this->vm->uuid . ') does not have an associated user for event ID ' . $this->event->id);
+
+            $account = UserHelper::getAccountById($this->vm->iam_account_id);
+            if($account) {
+                $this->vm->iam_user_id = UserHelper::getAccountOwner($this->vm->iam_account_id)->id;
+                $this->vm->saveQuietly();
+            }
+
+            (new Communicate(UserHelper::getLeoOwner()))->sendNotification(
+                subject: 'VM without user',
+                message: 'The VM with UUID ' . $this->vm->uuid . ' does not have an associated user. We have' .
+                ' assigned the account owner as the VM owner, but please check the VM settings to ensure' .
+                ' everything is correct.');
+        }
+
+        //  Because we need the users privileges to update the VM
+        UserHelper::setUserById($this->vm->iam_user_id);
+        UserHelper::setCurrentAccountById($this->vm->iam_account_id);
+
+        //  We will handle VM events here
+        switch ($event['operation']) {
+            case 'add':
+                $results = array_merge($results, $this->vmAddOperation());
+                break;
+            case 'mod':
+                //  We will handle VM modification events here
+                $results = array_merge($results, $this->vmModOperation());
+                break;
+            case 'del':
+                //  We will handle VM deletion events here
+                $results = array_merge($results, $this->vmDelOperation());
+                break;
+            default:
+                Log::info(__METHOD__ . ': Skipped event type ' . $event['operation'] . ' for event ID ' . $this->event->id);
+                $this->event->forceDelete();
+                return $results;
+        }
+
+        return $results;
+    }
+
+    private function computeSrEvents($event, $results = []) : array
+    {
+        switch ($event['operation']) {
+            case 'add':
+                //  We will handle SR add events here
+                $results = array_merge($results, ['executed' => 'SR add event handled']);
+                break;
+            case 'mod':
+                //  We will handle SR modification events here
+                $results = array_merge($results, ['executed' => 'SR modification event handled']);
+                break;
+            case 'del':
+                //  We will handle SR deletion events here
+                $results = array_merge($results, ['executed' => 'SR deletion event handled']);
+                break;
+            default:
+                Log::info(__METHOD__ . ': Skipped event type ' . $event['operation'] . ' for event ID ' . $this->event->id);
+                $this->event->forceDelete();
+                return [];
+        }
+
+        return $results;
+    }
+
+    private function computeMessageEvents($event, $results = []) : array
+    {
+        switch ($event['operation']) {
+            case 'add':
+                //  We will handle message add events here
+                $results = array_merge($results, $this->messageAddOperation());
+                break;
+        }
+
+        return $results;
     }
 
     private function messageAddOperation($results = [])
@@ -189,24 +221,28 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         }
 
         if($powerState != $vm->status) {
+            CommentsService::createSystemComment('Virtual machine power state changed from ' . $vm->status . ' to ' . $powerState, $vm);
             $results[] = [
                 'power_state'   =>  'Changed from: ' . $vm->status . ' to ' . $powerState
             ];
         }
 
         if($ram != $vm->ram) {
+            CommentsService::createSystemComment('Virtual machine ram changed from ' . $vm->ram . ' to ' . $ram, $vm);
             $results[] = [
                 'ram'   =>  'Changed from: ' . $vm->ram . ' to ' . $ram
             ];
         }
 
         if($cpu != $vm->cpu) {
+            CommentsService::createSystemComment('Virtual machine cpu changed from ' . $vm->cpu . ' to ' . $cpu, $vm);
             $results[] = [
                 'cpu'   =>  'Changed from: ' . $vm->cpu . ' to ' . $cpu
             ];
         }
 
         if($domainType != $vm->domain_type) {
+            CommentsService::createSystemComment('Virtual machine domain type changed from ' . $vm->domain_type . ' to ' . $domainType, $vm);
             $results[] = [
                 'domain_type'   =>  'Changed from: ' . $vm->domain_type . ' to ' . $domainType
             ];
