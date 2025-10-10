@@ -44,6 +44,8 @@ class Backup extends AbstractAction
     {
         $this->setProgress(0, 'Backup virtual machine action started.');
 
+        $backupJob = null;
+
         if(array_key_exists('iaas_backup_job_id', $this->params)) {
             $backupJob = BackupJobs::where('id', $this->params['iaas_backup_job_id'])->first();
 
