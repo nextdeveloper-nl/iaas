@@ -70,6 +70,7 @@ trait IaasVirtualMachineBackupTestTraits
                 'size'  =>  '1',
                 'ram'  =>  '1',
                 'cpu'  =>  '1',
+                'progress'  =>  '1',
                     'backup_starts'  =>  now(),
                     'backup_ends'  =>  now(),
                             ],
@@ -569,6 +570,25 @@ trait IaasVirtualMachineBackupTestTraits
             $request = new Request(
                 [
                 'cpu'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasVirtualMachineBackupQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineBackup::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualmachinebackup_event_progress_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'progress'  =>  '1'
                 ]
             );
 

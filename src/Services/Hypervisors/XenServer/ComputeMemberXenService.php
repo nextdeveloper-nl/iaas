@@ -29,6 +29,50 @@ use NextDeveloper\IAM\Helpers\UserHelper;
 
 class ComputeMemberXenService extends AbstractXenService
 {
+    public static function getRunningTasks(ComputeMembers $computeMembers)
+    {
+        Log::info('[ComputeMemberService@getRunningTasks] Getting the list of running tasks');
+
+        $command = 'xe task-list';
+        $result = self::performCommand($command, $computeMembers);
+        $xeOutput = $result['output'];
+
+        $tasks = [];
+        $currentTask = [];
+
+        // Normalize line endings and split into lines
+        $lines = preg_split("/\r\n|\n|\r/", trim($xeOutput));
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+
+            // Empty line indicates end of a task block
+            if ($line === '') {
+                if (!empty($currentTask)) {
+                    $tasks[] = $currentTask;
+                    $currentTask = [];
+                }
+                continue;
+            }
+
+            // Match "key ( RO): value" pattern
+            if (preg_match('/^([a-zA-Z0-9\-\s]+)\(.*?\):\s*(.*)$/', $line, $matches)) {
+                $key = trim($matches[1]);
+                $value = trim($matches[2]);
+                $currentTask[$key] = $value;
+            }
+        }
+
+        // Add the last task if not followed by empty lines
+        if (!empty($currentTask)) {
+            $tasks[] = $currentTask;
+        }
+
+        dd($tasks);
+
+        return $tasks;
+    }
+
     public static function updateMemberInformation(ComputeMembers $computeMember) : ComputeMembers
     {
         Log::info('[ComputeMemberService@sync] Checking if we can connect to: ' . $computeMember->name);

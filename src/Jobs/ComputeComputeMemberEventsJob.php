@@ -8,9 +8,13 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
+use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberTasks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -53,6 +57,9 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             case 'sr':
                 $results = array_merge($this->computeSrEvents($event, $results), $results);
                 break;
+            case 'task':
+                $results = array_merge($this->computeTaskEvents($event, $results), $results);
+                break;
             case 'leo':
                 $results = array_merge($this->computeLeoEvents($event, $results), $results);
                 break;
@@ -72,6 +79,84 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         ComputeMemberEvents::withoutGlobalScope(AuthorizationScope::class)
             ->where('created_at', '<', now()->subDays(30))
             ->forceDelete();
+    }
+
+    private function computeTaskEvents($event, $results = []) : array
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('hostname', $event['hostname'])
+            ->first();
+
+        if($event['operation'] == 'add') {
+            $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+                ->where('hostname', $event['hostname'])
+                ->first();
+
+            if(!$computeMember) {
+                Log::error( __METHOD__ . ': Compute member not found for hostname ' . $event['snapshot']['hostname'] . ' for event ID ' . $this->event->id);
+                $this->event->forceDelete();
+                return $results;
+            }
+
+            $snapshot = $event['snapshot'];
+
+            ComputeMemberTasks::create([
+                'hypervisor_uuid'   =>  $snapshot['uuid'],
+                'status'            =>  $snapshot['status'],
+                'name'              =>  $snapshot['name_label'],
+                'description'       =>  $snapshot['name_description'],
+                'error'             =>  json_encode($snapshot['error_info']),
+                'progress'          =>  ceil($snapshot['progress'] * 100),
+                'hypervisor_data'   =>  $event,
+                'iaas_compute_member_id' => $computeMember->id
+            ]);
+        }
+
+        if($event['operation'] == 'mod') {
+            $computeMemberTask = ComputeMemberTasks::withoutGlobalScope(AuthorizationScope::class)
+                ->where('hypervisor_uuid', $event['snapshot']['uuid'])
+                ->first();
+
+            $snapshot = $event['snapshot'];
+
+            if(!$computeMemberTask) {
+                $computeMemberTask = ComputeMemberTasks::create([
+                    'hypervisor_uuid'   =>  $snapshot['uuid'],
+                    'status'            =>  $snapshot['status'],
+                    'name'              =>  $snapshot['name_label'],
+                    'description'       =>  $snapshot['name_description'],
+                    'error'             =>  json_encode($snapshot['error_info']),
+                    'progress'          =>  ceil($snapshot['progress'] * 100),
+                    'hypervisor_data'   =>  $event,
+                    'iaas_compute_member_id' => $computeMember->id
+                ]);
+            }
+
+            $computeMemberTask->update([
+                'status'            =>  $event['snapshot']['status'],
+                'name'              =>  $event['snapshot']['name_label'],
+                'description'       =>  $event['snapshot']['name_description'],
+                'error'             =>  json_encode($snapshot['error_info']),
+                'progress'          =>  ceil($snapshot['progress'] * 100),
+                'hypervisor_data'   =>  $event,
+                'iaas_compute_member_id' => $computeMember->id
+            ]);
+        }
+
+        if($event['operation'] == 'del') {
+            $computeMemberTask = ComputeMemberTasks::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_compute_member_id', $computeMember->id)
+                ->where('progress', '<', 100)
+                ->orderBy('created_at', 'asc')
+                ->first();
+
+            $computeMemberTask->update([
+                'progress'  =>  100,
+                'status'    =>  'completed',
+            ]);
+        }
+
+        return [];
     }
 
     private function computeLeoEvents($event, $results): array {

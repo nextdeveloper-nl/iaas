@@ -3,7 +3,7 @@
 namespace NextDeveloper\IAAS\Helpers;
 
 use NextDeveloper\Events\Services\Events;
-use NextDeveloper\IAAS\Actions\VirtualMachines\CommentVMActionEvent;
+use NextDeveloper\IAAS\Jobs\VirtualMachines\CommentVMActionEvent;
 use NextDeveloper\IAAS\Actions\VirtualMachines\StateChangeNotification;
 
 class BindIAASEventHelper

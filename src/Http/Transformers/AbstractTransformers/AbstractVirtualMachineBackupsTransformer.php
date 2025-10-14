@@ -85,6 +85,7 @@ class AbstractVirtualMachineBackupsTransformer extends AbstractTransformer
             'status'  =>  $model->status,
             'iaas_repository_image_id'  =>  $iaasRepositoryImageId ? $iaasRepositoryImageId->uuid : null,
             'iaas_backup_job_id'  =>  $iaasBackupJobId ? $iaasBackupJobId->uuid : null,
+            'progress'  =>  $model->progress,
             ]
         );
     }
@@ -173,6 +174,7 @@ class AbstractVirtualMachineBackupsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

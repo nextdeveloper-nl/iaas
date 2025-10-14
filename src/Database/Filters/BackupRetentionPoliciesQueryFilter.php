@@ -17,7 +17,19 @@ class BackupRetentionPoliciesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
+    
+    public function name($value)
+    {
+        return $this->builder->where('name', 'ilike', '%' . $value . '%');
+    }
 
+        
+    public function description($value)
+    {
+        return $this->builder->where('description', 'ilike', '%' . $value . '%');
+    }
+
+    
     public function keepForDays($value)
     {
         $operator = substr($value, 0, 1);
@@ -56,6 +68,17 @@ class BackupRetentionPoliciesQueryFilter extends AbstractQueryFilter
         return $this->keepLastNBackups($value);
     }
     
+    public function isPublic($value)
+    {
+        return $this->builder->where('is_public', $value);
+    }
+
+        //  This is an alias function of isPublic
+    public function is_public($value)
+    {
+        return $this->isPublic($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -143,6 +166,7 @@ class BackupRetentionPoliciesQueryFilter extends AbstractQueryFilter
 
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 }

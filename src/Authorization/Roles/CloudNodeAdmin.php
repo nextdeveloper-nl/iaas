@@ -118,6 +118,11 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_network_members_interfaces:update',
             'iaas_network_members_interfaces:delete',
 
+            'iaas_compute_member_tasks:read',
+            'iaas_compute_member_tasks:create',
+            'iaas_compute_member_tasks:update',
+            'iaas_compute_member_tasks:delete',
+
             'iaas_compute_member_storage_volumes:read',
             'iaas_compute_member_storage_volumes:create',
             'iaas_compute_member_storage_volumes:update',

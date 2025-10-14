@@ -140,4 +140,5 @@ class VirtualDiskImageStatsQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

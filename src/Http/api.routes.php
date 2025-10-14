@@ -863,27 +863,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('virtual-machine-backups')->group(
-            function () {
-                Route::get('/', 'VirtualMachineBackups\VirtualMachineBackupsController@index');
-                Route::get('/actions', 'VirtualMachineBackups\VirtualMachineBackupsController@getActions');
-
-                Route::get('{iaas_virtual_machine_backups}/tags ', 'VirtualMachineBackups\VirtualMachineBackupsController@tags');
-                Route::post('{iaas_virtual_machine_backups}/tags ', 'VirtualMachineBackups\VirtualMachineBackupsController@saveTags');
-                Route::get('{iaas_virtual_machine_backups}/addresses ', 'VirtualMachineBackups\VirtualMachineBackupsController@addresses');
-                Route::post('{iaas_virtual_machine_backups}/addresses ', 'VirtualMachineBackups\VirtualMachineBackupsController@saveAddresses');
-
-                Route::get('/{iaas_virtual_machine_backups}/{subObjects}', 'VirtualMachineBackups\VirtualMachineBackupsController@relatedObjects');
-                Route::get('/{iaas_virtual_machine_backups}', 'VirtualMachineBackups\VirtualMachineBackupsController@show');
-
-                Route::post('/', 'VirtualMachineBackups\VirtualMachineBackupsController@store');
-                Route::post('/{iaas_virtual_machine_backups}/do/{action}', 'VirtualMachineBackups\VirtualMachineBackupsController@doAction');
-
-                Route::patch('/{iaas_virtual_machine_backups}', 'VirtualMachineBackups\VirtualMachineBackupsController@update');
-                Route::delete('/{iaas_virtual_machine_backups}', 'VirtualMachineBackups\VirtualMachineBackupsController@destroy');
-            }
-        );
-
         Route::prefix('storage-member-stats')->group(
             function () {
                 Route::get('/', 'StorageMemberStats\StorageMemberStatsController@index');
@@ -923,6 +902,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_virtual_machine_stats}', 'VirtualMachineStats\VirtualMachineStatsController@update');
                 Route::delete('/{iaas_virtual_machine_stats}', 'VirtualMachineStats\VirtualMachineStatsController@destroy');
+            }
+        );
+
+        Route::prefix('virtual-machine-backups')->group(
+            function () {
+                Route::get('/', 'VirtualMachineBackups\VirtualMachineBackupsController@index');
+                Route::get('/actions', 'VirtualMachineBackups\VirtualMachineBackupsController@getActions');
+
+                Route::get('{iaas_virtual_machine_backups}/tags ', 'VirtualMachineBackups\VirtualMachineBackupsController@tags');
+                Route::post('{iaas_virtual_machine_backups}/tags ', 'VirtualMachineBackups\VirtualMachineBackupsController@saveTags');
+                Route::get('{iaas_virtual_machine_backups}/addresses ', 'VirtualMachineBackups\VirtualMachineBackupsController@addresses');
+                Route::post('{iaas_virtual_machine_backups}/addresses ', 'VirtualMachineBackups\VirtualMachineBackupsController@saveAddresses');
+
+                Route::get('/{iaas_virtual_machine_backups}/{subObjects}', 'VirtualMachineBackups\VirtualMachineBackupsController@relatedObjects');
+                Route::get('/{iaas_virtual_machine_backups}', 'VirtualMachineBackups\VirtualMachineBackupsController@show');
+
+                Route::post('/', 'VirtualMachineBackups\VirtualMachineBackupsController@store');
+                Route::post('/{iaas_virtual_machine_backups}/do/{action}', 'VirtualMachineBackups\VirtualMachineBackupsController@doAction');
+
+                Route::patch('/{iaas_virtual_machine_backups}', 'VirtualMachineBackups\VirtualMachineBackupsController@update');
+                Route::delete('/{iaas_virtual_machine_backups}', 'VirtualMachineBackups\VirtualMachineBackupsController@destroy');
             }
         );
 
@@ -1031,27 +1031,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('backup-retention-policies')->group(
-            function () {
-                Route::get('/', 'BackupRetentionPolicies\BackupRetentionPoliciesController@index');
-                Route::get('/actions', 'BackupRetentionPolicies\BackupRetentionPoliciesController@getActions');
-
-                Route::get('{iaas_backup_retention_policies}/tags ', 'BackupRetentionPolicies\BackupRetentionPoliciesController@tags');
-                Route::post('{iaas_backup_retention_policies}/tags ', 'BackupRetentionPolicies\BackupRetentionPoliciesController@saveTags');
-                Route::get('{iaas_backup_retention_policies}/addresses ', 'BackupRetentionPolicies\BackupRetentionPoliciesController@addresses');
-                Route::post('{iaas_backup_retention_policies}/addresses ', 'BackupRetentionPolicies\BackupRetentionPoliciesController@saveAddresses');
-
-                Route::get('/{iaas_backup_retention_policies}/{subObjects}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@relatedObjects');
-                Route::get('/{iaas_backup_retention_policies}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@show');
-
-                Route::post('/', 'BackupRetentionPolicies\BackupRetentionPoliciesController@store');
-                Route::post('/{iaas_backup_retention_policies}/do/{action}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@doAction');
-
-                Route::patch('/{iaas_backup_retention_policies}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@update');
-                Route::delete('/{iaas_backup_retention_policies}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@destroy');
-            }
-        );
-
         Route::prefix('virtual-machine-cpu-alerts')->group(
             function () {
                 Route::get('/', 'VirtualMachineCpuAlerts\VirtualMachineCpuAlertsController@index');
@@ -1136,24 +1115,45 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('backup-schedules')->group(
+        Route::prefix('backup-retention-policies')->group(
             function () {
-                Route::get('/', 'BackupSchedules\BackupSchedulesController@index');
-                Route::get('/actions', 'BackupSchedules\BackupSchedulesController@getActions');
+                Route::get('/', 'BackupRetentionPolicies\BackupRetentionPoliciesController@index');
+                Route::get('/actions', 'BackupRetentionPolicies\BackupRetentionPoliciesController@getActions');
 
-                Route::get('{iaas_backup_schedules}/tags ', 'BackupSchedules\BackupSchedulesController@tags');
-                Route::post('{iaas_backup_schedules}/tags ', 'BackupSchedules\BackupSchedulesController@saveTags');
-                Route::get('{iaas_backup_schedules}/addresses ', 'BackupSchedules\BackupSchedulesController@addresses');
-                Route::post('{iaas_backup_schedules}/addresses ', 'BackupSchedules\BackupSchedulesController@saveAddresses');
+                Route::get('{iaas_backup_retention_policies}/tags ', 'BackupRetentionPolicies\BackupRetentionPoliciesController@tags');
+                Route::post('{iaas_backup_retention_policies}/tags ', 'BackupRetentionPolicies\BackupRetentionPoliciesController@saveTags');
+                Route::get('{iaas_backup_retention_policies}/addresses ', 'BackupRetentionPolicies\BackupRetentionPoliciesController@addresses');
+                Route::post('{iaas_backup_retention_policies}/addresses ', 'BackupRetentionPolicies\BackupRetentionPoliciesController@saveAddresses');
 
-                Route::get('/{iaas_backup_schedules}/{subObjects}', 'BackupSchedules\BackupSchedulesController@relatedObjects');
-                Route::get('/{iaas_backup_schedules}', 'BackupSchedules\BackupSchedulesController@show');
+                Route::get('/{iaas_backup_retention_policies}/{subObjects}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@relatedObjects');
+                Route::get('/{iaas_backup_retention_policies}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@show');
 
-                Route::post('/', 'BackupSchedules\BackupSchedulesController@store');
-                Route::post('/{iaas_backup_schedules}/do/{action}', 'BackupSchedules\BackupSchedulesController@doAction');
+                Route::post('/', 'BackupRetentionPolicies\BackupRetentionPoliciesController@store');
+                Route::post('/{iaas_backup_retention_policies}/do/{action}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@doAction');
 
-                Route::patch('/{iaas_backup_schedules}', 'BackupSchedules\BackupSchedulesController@update');
-                Route::delete('/{iaas_backup_schedules}', 'BackupSchedules\BackupSchedulesController@destroy');
+                Route::patch('/{iaas_backup_retention_policies}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@update');
+                Route::delete('/{iaas_backup_retention_policies}', 'BackupRetentionPolicies\BackupRetentionPoliciesController@destroy');
+            }
+        );
+
+        Route::prefix('compute-member-tasks')->group(
+            function () {
+                Route::get('/', 'ComputeMemberTasks\ComputeMemberTasksController@index');
+                Route::get('/actions', 'ComputeMemberTasks\ComputeMemberTasksController@getActions');
+
+                Route::get('{iaas_compute_member_tasks}/tags ', 'ComputeMemberTasks\ComputeMemberTasksController@tags');
+                Route::post('{iaas_compute_member_tasks}/tags ', 'ComputeMemberTasks\ComputeMemberTasksController@saveTags');
+                Route::get('{iaas_compute_member_tasks}/addresses ', 'ComputeMemberTasks\ComputeMemberTasksController@addresses');
+                Route::post('{iaas_compute_member_tasks}/addresses ', 'ComputeMemberTasks\ComputeMemberTasksController@saveAddresses');
+
+                Route::get('/{iaas_compute_member_tasks}/{subObjects}', 'ComputeMemberTasks\ComputeMemberTasksController@relatedObjects');
+                Route::get('/{iaas_compute_member_tasks}', 'ComputeMemberTasks\ComputeMemberTasksController@show');
+
+                Route::post('/', 'ComputeMemberTasks\ComputeMemberTasksController@store');
+                Route::post('/{iaas_compute_member_tasks}/do/{action}', 'ComputeMemberTasks\ComputeMemberTasksController@doAction');
+
+                Route::patch('/{iaas_compute_member_tasks}', 'ComputeMemberTasks\ComputeMemberTasksController@update');
+                Route::delete('/{iaas_compute_member_tasks}', 'ComputeMemberTasks\ComputeMemberTasksController@destroy');
             }
         );
 
@@ -1547,6 +1547,76 @@ Route::prefix('iaas')->group(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         Route::get('/configurations/dhcp-servers/{server}', [\NextDeveloper\IAAS\Http\Controllers\DhcpServers\DhcpServersConfigurationController::class, 'show']);
         Route::get('/console/{iaas_virtual_machines}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesConsoleController::class, 'getConsoleData']);
 
@@ -1556,6 +1626,7 @@ Route::prefix('iaas')->group(
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );
+
 
 
 

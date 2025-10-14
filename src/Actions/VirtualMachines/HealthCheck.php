@@ -33,6 +33,15 @@ class HealthCheck extends AbstractAction
         'vm-is-lost:NextDeveloper\IAAS\VirtualMachines'
     ];
 
+    public const CHECKPOINTS = [
+        '0' =>  'Virtual machine health check started',
+        '10' => 'Marking the server as checking health',
+        '25' => 'Checking the environment of the virtual machine.',
+        '50' => 'Checking if the virtual machine is alive',
+        '75' => 'Marking the server power state',
+        '100' => 'Virtual machine health check finished',
+    ];
+
     public function __construct(VirtualMachines $vm, $params = null, $previous = null)
     {
         $this->queue = 'iaas-health-check';

@@ -41,6 +41,7 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  * @property string $status
  * @property integer $iaas_repository_image_id
  * @property integer $iaas_backup_job_id
+ * @property integer $progress
  */
 class VirtualMachineBackups extends Model
 {
@@ -77,6 +78,7 @@ class VirtualMachineBackups extends Model
             'status',
             'iaas_repository_image_id',
             'iaas_backup_job_id',
+            'progress',
     ];
 
     /**
@@ -120,6 +122,7 @@ class VirtualMachineBackups extends Model
     'status' => 'string',
     'iaas_repository_image_id' => 'integer',
     'iaas_backup_job_id' => 'integer',
+    'progress' => 'integer',
     ];
 
     /**
@@ -192,6 +195,7 @@ class VirtualMachineBackups extends Model
             },
         );
     }
+
 
 
 

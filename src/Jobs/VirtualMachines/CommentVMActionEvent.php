@@ -1,14 +1,20 @@
 <?php
 
-namespace NextDeveloper\IAAS\Actions\VirtualMachines;
+namespace NextDeveloper\IAAS\Jobs\VirtualMachines;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
-class CommentVMActionEvent extends AbstractAction
+class CommentVMActionEvent implements ShouldQueue
 {
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     /**
      * Map of VM lifecycle event identifiers to comment templates.
      * The token `:vm_name` will be replaced with the display name of the VM.
@@ -104,22 +110,19 @@ class CommentVMActionEvent extends AbstractAction
      */
     protected ?string $eventName;
 
+    private $model;
+
     public function __construct(VirtualMachines $vm, $params = [], $previous = null)
     {
         $this->model = $vm;
         $this->eventName = $params['event'] ?? null;
 
         $this->queue = 'iaas';
-
-        parent::__construct($previous);
     }
 
     public function handle()
     {
-        $this->setProgress(0, 'State change notification job started.');
-
         if ($this->eventName === null || !array_key_exists($this->eventName, self::EVENT_MESSAGES)) {
-            $this->setFinished(__METHOD__ . ': Event name is either not provided or not supported.');
             return;
         }
 
@@ -131,11 +134,8 @@ class CommentVMActionEvent extends AbstractAction
                 $message,
                 $this->model,
             );
-
-            $this->setFinished('State change notification process completed successfully.');
         } catch (\Exception $e) {
             Log::error('Failed to create state change comment: ' . $e->getMessage());
-            $this->setFinished(__METHOD__ . ': Failed to create state change comment: ' . $e->getMessage());
         }
     }
 

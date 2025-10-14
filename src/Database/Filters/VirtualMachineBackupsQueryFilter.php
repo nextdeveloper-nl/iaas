@@ -119,6 +119,20 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     }
 
     
+    public function progress($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('progress', $operator, $value);
+    }
+
+    
     public function backupStartsStart($date)
     {
         return $this->builder->where('backup_starts', '>=', $date);
@@ -295,6 +309,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

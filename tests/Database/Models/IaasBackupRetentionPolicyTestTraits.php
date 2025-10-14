@@ -58,6 +58,8 @@ trait IaasBackupRetentionPolicyTestTraits
         $response = $this->http->request(
             'POST', '/iaas/iaasbackupretentionpolicy', [
             'form_params'   =>  [
+                'name'  =>  'a',
+                'description'  =>  'a',
                 'keep_for_days'  =>  '1',
                 'keep_last_n_backups'  =>  '1',
                             ],
@@ -335,6 +337,44 @@ trait IaasBackupRetentionPolicyTestTraits
             $model = \NextDeveloper\IAAS\Database\Models\IaasBackupRetentionPolicy::first();
 
             event(new \NextDeveloper\IAAS\Events\IaasBackupRetentionPolicy\IaasBackupRetentionPolicyRestoredEvent($model));
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasbackupretentionpolicy_event_name_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'name'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasBackupRetentionPolicyQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasBackupRetentionPolicy::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasbackupretentionpolicy_event_description_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'description'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasBackupRetentionPolicyQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasBackupRetentionPolicy::filter($filter)->first();
         } catch (\Exception $e) {
             $this->assertFalse(false, $e->getMessage());
         }
