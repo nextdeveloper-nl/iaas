@@ -1260,7 +1260,7 @@ physical interfaces and vlans of compute member');
         //  Now we need are adding the rrd service to the crontab
         $command = 'echo "* * * * * /opt/plusclouds/ipmi.py ' .
             $endpoint . ' ' .
-            $token . ' > /dev/null 2>&1" | crontab -';
+            $token . ' >> /dev/null 2>&1" | crontab -';
         $result = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))
@@ -1380,7 +1380,7 @@ physical interfaces and vlans of compute member');
             $username . ' ' .
             $password . ' ' .
             $endpoint . ' ' .
-            $token . ' > /dev/null 2>&1 &';
+            $token . ' >> /dev/null 2>&1 &';
         $result = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))
