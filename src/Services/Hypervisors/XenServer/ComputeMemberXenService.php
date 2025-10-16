@@ -1096,7 +1096,7 @@ physical interfaces and vlans of compute member');
                 . 'the compute member: ' . $computeMembers->name);
 
         //  Check if the rrd.py exists on the compute member
-        $command = 'ls /opt/plusclouds/rrd.py';
+        $command = 'crontab -l | grep rrd.py';
         $result = self::performCommand($command, $computeMembers);
 
         if(!Str::contains($result['output'], 'rrd.py') || $reDeploy) {
@@ -1195,7 +1195,7 @@ physical interfaces and vlans of compute member');
                 . 'the compute member: ' . $computeMember->name);
 
         //  Check if the events.py exists on the compute member
-        $command = 'ls /opt/plusclouds/ipmi.py';
+        $command = 'crontab -l | grep ipmi.py';
         $result = self::performCommand($command, $computeMember);
 
         if(!Str::contains($result['output'], 'ipmi.py')) {
