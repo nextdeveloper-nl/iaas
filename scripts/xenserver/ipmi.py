@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Compatible with XenServer 8.2 (Python 2.7.5)
+import time
 import subprocess
 import json
 import sys
@@ -68,7 +69,7 @@ def main():
     sensors = parse_ipmitool_output(raw)
     payload = {
         "hostname": socket.gethostname(),
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": int(time.time()),
         "sensors": sensors
     }
 
@@ -76,10 +77,9 @@ def main():
     sys.stdout.write(json.dumps(payload, indent=2) + "\n")
 
     url = sys.argv[1]
-    endpoint = sys.argv[2] if len(sys.argv) > 2 else ""
-    token = sys.argv[3] if len(sys.argv) > 3 else ""
+    token = sys.argv[2] if len(sys.argv) > 2 else ""
 
-    command = "curl -X POST "+endpoint+" -s -H \"Content-Type: application/x-www-form-urlencoded\" -d \"payload="+json.dumps(payload)+"\""
+    command = "curl -X POST "+url+" -s -H \"Content-Type: application/x-www-form-urlencoded\" -d \"payload="+json.dumps(payload)+"\""
     subprocess.call(command, shell=True)
 
 if __name__ == "__main__":

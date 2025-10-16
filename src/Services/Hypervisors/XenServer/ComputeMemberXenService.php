@@ -1188,7 +1188,7 @@ physical interfaces and vlans of compute member');
         return true;
     }
 
-    public static function checkIpmiService(ComputeMembers $computeMember) : bool
+    public static function checkIpmiService(ComputeMembers $computeMember, $redeploy) : bool
     {
         if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@checkIpmiService] Checking if the ipmi service is available on '
@@ -1199,8 +1199,23 @@ physical interfaces and vlans of compute member');
         $result = self::performCommand($command, $computeMember);
 
         if(!Str::contains($result['output'], 'ipmi.py')) {
-            self::deployEventsService($computeMember);
+            self::deployIpmiService($computeMember);
         }
+
+        //  Now we need to check if the rrd service is in the crontab
+        $command = 'crontab -l | grep ipmi.py';
+        $result = self::performCommand($command, $computeMember);
+
+        if(Str::contains($result['output'], 'rrd.py')) {
+            Log::info('[ComputeMembersXenService@checkRrdService] The IPMI service is in the crontab on the compute member: '
+                . $computeMember->name);
+        } else {
+            Log::error('[ComputeMembersXenService@checkRrdService] The IPMI service is not in the crontab on the compute member: '
+                . $computeMember->name);
+            return false;
+        }
+
+        return true;
     }
 
     public static function deployIpmiService(ComputeMembers $computeMember) : bool
@@ -1219,52 +1234,48 @@ physical interfaces and vlans of compute member');
         $command = 'yes | cp -rf /opt/plusclouds/ipmi.py /opt/plusclouds/ipmi.py.bak';
         $result = self::performCommand($command, $computeMember);
 
-        $rrdFile = file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/xenserver/ipmi.py'));
-        $rrdFileBase64 = base64_encode($rrdFile);
-        $command = 'echo "' . $rrdFileBase64 . '" > /opt/plusclouds/rrd.base64';
+        $ipmiFile = file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/xenserver/ipmi.py'));
+        $ipmiFileBase64 = base64_encode($ipmiFile);
+        $command = 'echo "' . $ipmiFileBase64 . '" > /opt/plusclouds/ipmi.base64';
         $result = self::performCommand($command, $computeMember);
 
-        $command = 'base64 -d /opt/plusclouds/rrd.base64 > /opt/plusclouds/rrd.py';
+        $command = 'base64 -d /opt/plusclouds/ipmi.base64 > /opt/plusclouds/ipmi.py';
         $result = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))
-            Log::info('[ComputeMembersXenService@deployRrdService] The RRD service is deployed on the compute member: '
+            Log::info('[ComputeMembersXenService@deployIpmiService] The IPMI service is deployed on the compute member: '
                 . $computeMember->name);
 
         //  Now we need to make the RRD service executable
-        $command = 'chmod +x /opt/plusclouds/rrd.py';
+        $command = 'chmod +x /opt/plusclouds/ipmi.py';
         $result = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))
-            Log::info('[ComputeMembersXenService@deployRrdService] The RRD service is made executable on the compute member: '
+            Log::info('[ComputeMembersXenService@deployIpmiService] The IPMI service is made executable on the compute member: '
                 . $computeMember->name);
 
-        $username = $computeMember->ssh_username;
-        $password = decrypt($computeMember->ssh_password);
         $endpoint = config('leo.internal_endpoint') . '/public/iaas/metrics';
         $token = $computeMember->events_token;
 
         //  Now we need are adding the rrd service to the crontab
-        $command = 'echo "* * * * * /opt/plusclouds/rrd.py localhost ' .
-            $username . ' ' .
-            $password . ' ' .
+        $command = 'echo "* * * * * /opt/plusclouds/ipmi.py ' .
             $endpoint . ' ' .
             $token . ' > /dev/null 2>&1" | crontab -';
         $result = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))
-            Log::info('[ComputeMembersXenService@deployRrdService] The RRD service is added to the crontab on the compute member: '
+            Log::info('[ComputeMembersXenService@deployIpmiService] The IPMI service is added to the crontab on the compute member: '
                 . $computeMember->name);
 
         //  Check if the RRD service is in the crontab
-        $command = 'crontab -l | grep rrd.py';
+        $command = 'crontab -l | grep ipmi.py';
         $result = self::performCommand($command, $computeMember);
 
-        if(Str::contains($result['output'], 'rrd.py')) {
-            Log::info('[ComputeMembersXenService@deployRrdService] The RRD service is added to the crontab on the compute member: '
+        if(Str::contains($result['output'], 'ipmi.py')) {
+            Log::info('[ComputeMembersXenService@deployIpmiService] The IPMI service is added to the crontab on the compute member: '
                 . $computeMember->name);
         } else {
-            Log::error('[ComputeMembersXenService@deployRrdService] The RRD service is not added to the crontab on the compute member: '
+            Log::error('[ComputeMembersXenService@deployIpmiService] The IPMI service is not added to the crontab on the compute member: '
                 . $computeMember->name);
             return false;
         }

@@ -40,6 +40,8 @@ class CheckServices extends AbstractAction
 
         $isRrdServiceRunning = ComputeMembersService::checkRrdService($this->model, $this->reDeploy);
 
+        $isIpmiServiceRunning = ComputeMembersService::checkIpmiService($this->model, $this->reDeploy);
+
         Events::fire('checked:NextDeveloper\IAAS\ComputeMembers', $this->model);
 
         $this->setProgress(100, 'Compute member services are checked');
