@@ -1380,7 +1380,7 @@ physical interfaces and vlans of compute member');
             $username . ' ' .
             $password . ' ' .
             $endpoint . ' ' .
-            $token . ' >> /dev/null 2>&1 &';
+            $token . ' > /dev/null 2>&1 &';
         $result = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))
