@@ -1161,11 +1161,11 @@ physical interfaces and vlans of compute member');
         $token = $computeMember->events_token;
 
         //  Now we need are adding the rrd service to the crontab
-        $command = 'echo "* * * * * /opt/plusclouds/rrd.py localhost ' .
+        $command = '(crontab -l 2>/dev/null; echo "* * * * * /opt/plusclouds/rrd.py localhost ' .
             $username . ' ' .
             $password . ' ' .
             $endpoint . ' ' .
-            $token . ' > /dev/null 2>&1" | crontab -';
+            $token . ' > /dev/null 2>&1") | crontab -';
         $result = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))
@@ -1258,9 +1258,9 @@ physical interfaces and vlans of compute member');
         $token = $computeMember->events_token;
 
         //  Now we need are adding the rrd service to the crontab
-        $command = 'echo "* * * * * /opt/plusclouds/ipmi.py ' .
+        $command = '(crontab -l 2>/dev/null; echo "* * * * * /opt/plusclouds/ipmi.py ' .
             $endpoint . ' ' .
-            $token . ' >> /dev/null 2>&1" | crontab -';
+            $token . ' > /dev/null 2>&1") | crontab -';
         $result = self::performCommand($command, $computeMember);
 
         if(config('leo.debug.iaas.compute_members'))
