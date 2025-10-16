@@ -1188,6 +1188,90 @@ physical interfaces and vlans of compute member');
         return true;
     }
 
+    public static function checkIpmiService(ComputeMembers $computeMember) : bool
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@checkIpmiService] Checking if the ipmi service is available on '
+                . 'the compute member: ' . $computeMember->name);
+
+        //  Check if the events.py exists on the compute member
+        $command = 'ls /opt/plusclouds/ipmi.py';
+        $result = self::performCommand($command, $computeMember);
+
+        if(!Str::contains($result['output'], 'ipmi.py')) {
+            self::deployEventsService($computeMember);
+        }
+    }
+
+    public static function deployIpmiService(ComputeMembers $computeMember) : bool
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployIpmiService] Deploying the IPMI service on the compute member: '
+                . $computeMember->name);
+
+        $command = 'mkdir -p /opt/plusclouds';
+        $result = self::performCommand($command, $computeMember);
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployIpmiService] The directory /opt/plusclouds is created on the compute member: '
+                . $result['output']);
+
+        $command = 'yes | cp -rf /opt/plusclouds/ipmi.py /opt/plusclouds/ipmi.py.bak';
+        $result = self::performCommand($command, $computeMember);
+
+        $rrdFile = file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/xenserver/ipmi.py'));
+        $rrdFileBase64 = base64_encode($rrdFile);
+        $command = 'echo "' . $rrdFileBase64 . '" > /opt/plusclouds/rrd.base64';
+        $result = self::performCommand($command, $computeMember);
+
+        $command = 'base64 -d /opt/plusclouds/rrd.base64 > /opt/plusclouds/rrd.py';
+        $result = self::performCommand($command, $computeMember);
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployRrdService] The RRD service is deployed on the compute member: '
+                . $computeMember->name);
+
+        //  Now we need to make the RRD service executable
+        $command = 'chmod +x /opt/plusclouds/rrd.py';
+        $result = self::performCommand($command, $computeMember);
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployRrdService] The RRD service is made executable on the compute member: '
+                . $computeMember->name);
+
+        $username = $computeMember->ssh_username;
+        $password = decrypt($computeMember->ssh_password);
+        $endpoint = config('leo.internal_endpoint') . '/public/iaas/metrics';
+        $token = $computeMember->events_token;
+
+        //  Now we need are adding the rrd service to the crontab
+        $command = 'echo "* * * * * /opt/plusclouds/rrd.py localhost ' .
+            $username . ' ' .
+            $password . ' ' .
+            $endpoint . ' ' .
+            $token . ' > /dev/null 2>&1" | crontab -';
+        $result = self::performCommand($command, $computeMember);
+
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployRrdService] The RRD service is added to the crontab on the compute member: '
+                . $computeMember->name);
+
+        //  Check if the RRD service is in the crontab
+        $command = 'crontab -l | grep rrd.py';
+        $result = self::performCommand($command, $computeMember);
+
+        if(Str::contains($result['output'], 'rrd.py')) {
+            Log::info('[ComputeMembersXenService@deployRrdService] The RRD service is added to the crontab on the compute member: '
+                . $computeMember->name);
+        } else {
+            Log::error('[ComputeMembersXenService@deployRrdService] The RRD service is not added to the crontab on the compute member: '
+                . $computeMember->name);
+            return false;
+        }
+
+        return true;
+    }
+
     public static function checkEventsService(ComputeMembers $computeMember) : bool
     {
         //  Checking if the event service exists on compute member
