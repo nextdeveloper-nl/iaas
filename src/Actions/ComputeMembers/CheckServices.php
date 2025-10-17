@@ -17,17 +17,19 @@ use NextDeveloper\IAM\Helpers\UserHelper;
  */
 class CheckServices extends AbstractAction
 {
+    private $reDeploy = false;
+
     public const EVENTS = [
         'checked:NextDeveloper\IAAS\ComputeMembers'
     ];
 
-    public function __construct(ComputeMembers $computeMember, public $reDeploy = false)
+    public function __construct(ComputeMembers $computeMember, $params = null, $previous = null)
     {
         $this->model = $computeMember;
 
         $this->queue = 'iaas';
 
-        parent::__construct(null, null);
+        parent::__construct($params, $previous);
     }
 
     public function handle()

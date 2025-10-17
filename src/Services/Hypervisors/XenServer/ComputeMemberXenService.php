@@ -1206,11 +1206,11 @@ physical interfaces and vlans of compute member');
         $command = 'crontab -l | grep ipmi.py';
         $result = self::performCommand($command, $computeMember);
 
-        if(Str::contains($result['output'], 'rrd.py')) {
-            Log::info('[ComputeMembersXenService@checkRrdService] The IPMI service is in the crontab on the compute member: '
+        if(Str::contains($result['output'], 'ipmi.py')) {
+            Log::info('[ComputeMembersXenService@checkIpmiService] The IPMI service is in the crontab on the compute member: '
                 . $computeMember->name);
         } else {
-            Log::error('[ComputeMembersXenService@checkRrdService] The IPMI service is not in the crontab on the compute member: '
+            Log::error('[ComputeMembersXenService@checkIpmiService] The IPMI service is not in the crontab on the compute member: '
                 . $computeMember->name);
             return false;
         }
