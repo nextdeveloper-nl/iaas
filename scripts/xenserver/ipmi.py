@@ -79,7 +79,9 @@ def main():
     url = sys.argv[1]
     token = sys.argv[2] if len(sys.argv) > 2 else ""
 
-    command = "curl -X POST "+url+" -s -H \"Content-Type: application/x-www-form-urlencoded\" -d \"payload="+json.dumps(payload)+"\""
+    json_str = json.dumps(payload).replace('"', '\\"')
+
+    command = "curl -X POST "+url+" -s -H \"Content-Type: application/x-www-form-urlencoded\" -d \"payload="+json_str+"\""
     subprocess.call(command, shell=True)
 
 if __name__ == "__main__":
