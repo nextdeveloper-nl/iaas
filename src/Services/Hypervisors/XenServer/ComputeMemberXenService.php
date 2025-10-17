@@ -1254,7 +1254,7 @@ physical interfaces and vlans of compute member');
             Log::info('[ComputeMembersXenService@deployIpmiService] The IPMI service is made executable on the compute member: '
                 . $computeMember->name);
 
-        $endpoint = config('leo.internal_endpoint') . '/public/iaas/metrics';
+        $endpoint = config('leo.internal_endpoint') . '/public/iaas/ipmi';
         $token = $computeMember->events_token;
 
         //  Now we need are adding the rrd service to the crontab
