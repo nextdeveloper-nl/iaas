@@ -64,7 +64,7 @@ class Backup extends AbstractAction
 
         $backupJob = $this->getStateData('backup_job', null);
 
-        if(array_key_exists('iaas_backup_job_id', $this->params)) {
+        if(array_key_exists('iaas_backup_job_id', $this->params) && !$backupJob) {
             $backupJob = BackupJobs::where('id', $this->params['iaas_backup_job_id'])->first();
 
             if(!$backupJob) {
