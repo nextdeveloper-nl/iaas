@@ -72,6 +72,10 @@ class Backup extends AbstractAction
             }
         }
 
+        //  We are taking the state object from the backup job because the abstract action is storing the information
+        //  to vm state. However, a VM may have multiple backup jobs. Therefor we need to store this data in backupJob
+        $this->stateObject = $backupJob;
+
         $this->setStateData('backup_job', $backupJob);
 
         $vmBackup = $this->getStateData(
