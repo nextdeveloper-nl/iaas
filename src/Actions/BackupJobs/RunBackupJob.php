@@ -33,6 +33,23 @@ class RunBackupJob extends AbstractAction
         'backup-completed:NextDeveloper\IAAS\BackupJobs',
     ];
 
+    public const CHECKPOINTS = [
+        '0'     =>  'Starting the backup process',
+        '10'    =>  'Taking the snapshot of the virtual machine',
+        '20'    =>  'Snapshot is taken, creating the snapshot object.',
+        '30'    =>  'Fixing the name of the snapshot.',
+        '40'    =>  'Converting Snapshot to VM.',
+        '50'    =>  'Cloning the VM.',
+        '55'    =>  'Deleting the snapshot.',
+        '60'    =>  'Fixing the cloned vm name.',
+        '65'    =>  'Mounting default backup repository.',
+        '75'    =>  'Removing all the VIFs of cloned VM.',
+        '80'    =>  'Exporting to the default backup repository.',
+        '90'    =>  'VM exported, removing the cloned VM.',
+        '95'    =>  'Removed VM that was cloned.',
+        '100'   =>  'Virtual machine backup finished'
+    ];
+
     /**
      * EnableService constructor.
      *
