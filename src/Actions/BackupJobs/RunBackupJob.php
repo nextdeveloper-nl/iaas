@@ -10,6 +10,8 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Backup;
 use NextDeveloper\IAAS\Database\Models\Accounts;
 use NextDeveloper\IAAS\Database\Models\BackupJobs;
+use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\BackupJobsService;
 use NextDeveloper\IAAS\Services\Backups\BackupService;
@@ -91,18 +93,21 @@ class RunBackupJob extends AbstractAction
             default: BackupService::getPendingBackup($vm, $this->model)
         );
 
+        if(is_array($vmBackup))
+            $vmBackup = VirtualMachineBackups::withoutGlobalScopes()->find($vmBackup['id']);
+
         if(!$vmBackup) {
             $vmBackup = BackupService::createPendingBackup($vm, $this->model);
             BackupService::setBackupState($vmBackup, 'initiated');
+
+            $this->setStateData(
+                'vm_backup',
+                $vmBackup
+            );
         }
         else {
             BackupService::setBackupState($vmBackup, 'restarting');
         }
-
-        $this->setStateData(
-            'vm_backup',
-            $vmBackup
-        );
 
         $backupStarts = Carbon::now();
 
@@ -124,6 +129,10 @@ class RunBackupJob extends AbstractAction
         $uuid = $this->getStateData('snapshot_uuid', null);
         $backupRepo = $this->getStateData('backup_repo', null);
         $exportPath = $this->getStateData('export_path', null);
+
+        if(is_array($snapshot)) $snapshot = VirtualMachines::fill($snapshot);
+        if(is_array($clonedVm)) $clonedVm = VirtualMachines::fill($clonedVm);
+        if(is_array($backupRepo)) $backupRepo = Repositories::fill($backupRepo);
 
         if($this->shouldRunCheckpoint(10)) {
             $snapshot = VirtualMachinesXenService::takeSnapshot($vm);
