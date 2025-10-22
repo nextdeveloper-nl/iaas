@@ -98,6 +98,12 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_virtual_machines:update',
             'iaas_virtual_machines:delete',
 
+            'iaas_virtual_machine_backups:read',
+            'iaas_virtual_machine_backups:create',
+            'iaas_virtual_machine_backups:update',
+            'iaas_virtual_machine_backups:delete',
+            'iaas_virtual_machine_backups:restore',
+
             'iaas_virtual_disk_images:read',
             'iaas_virtual_disk_images:create',
             'iaas_virtual_disk_images:update',
@@ -192,11 +198,6 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_backup_retention_policies:create',
             'iaas_backup_retention_policies:update',
             'iaas_backup_retention_policies:delete',
-
-            'iaas_backup_schedules:read',
-            'iaas_backup_schedules:create',
-            'iaas_backup_schedules:update',
-            'iaas_backup_schedules:delete',
 
             'iaas_backup_jobs:read',
             'iaas_backup_jobs:create',
