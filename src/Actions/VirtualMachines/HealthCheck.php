@@ -66,6 +66,14 @@ class HealthCheck extends AbstractAction
 
         if($this->model->is_lost) {
             $this->setFinished('Virtual machine is lost. Skipping health check.');
+
+            if($this->model->status != 'lost')
+                $this->model->update([
+                    'status' => 'lost'
+                ]);
+
+            $this->model->delete();
+
             CommentsService::createSystemComment('Virtual machine is lost. Skipping health check.', $this->model);
             return;
         }
