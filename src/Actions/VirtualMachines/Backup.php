@@ -165,9 +165,10 @@ class Backup extends AbstractAction
         }
 
         if($this->shouldRunCheckpoint(40)) {
-            $this->setProgress(40, 'Converting Snapshot to VM.');
-
+            //  Converting snapshot to VM does not require an update in VM details.
             $convertResult = VirtualMachinesXenService::convertSnapshotToVm($snapshot);
+
+            $this->setProgress(40, 'Converting Snapshot to VM.');
         }
 
         if($this->shouldRunCheckpoint(50)) {
