@@ -130,9 +130,9 @@ class RunBackupJob extends AbstractAction
         $backupRepo = $this->getStateData('backup_repo', null);
         $exportPath = $this->getStateData('export_path', null);
 
-        if(is_array($snapshot)) $snapshot = VirtualMachines::fill($snapshot);
-        if(is_array($clonedVm)) $clonedVm = VirtualMachines::fill($clonedVm);
-        if(is_array($backupRepo)) $backupRepo = Repositories::fill($backupRepo);
+        if(is_array($snapshot)) $snapshot = (new VirtualMachines())->fill($snapshot);
+        if(is_array($clonedVm)) $clonedVm = (new VirtualMachines())->fill($clonedVm);
+        if(is_array($backupRepo)) $backupRepo = (new Repositories())->fill($backupRepo);
 
         if($this->shouldRunCheckpoint(10)) {
             $snapshot = VirtualMachinesXenService::takeSnapshot($vm);
