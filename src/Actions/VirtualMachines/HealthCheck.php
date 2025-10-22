@@ -155,6 +155,8 @@ class HealthCheck extends AbstractAction
 
             Events::fire('vm-is-lost:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
+            CommentsService::createSystemComment('This virtual machine is marked as lost in health check.', $this->model);
+
             $this->setProgress(100, 'Virtual machine marked as lost.');
             return;
         }
@@ -188,6 +190,8 @@ class HealthCheck extends AbstractAction
         }
 
         $this->model->updateQuietly($dataToUpdate);
+
+        CommentsService::createSystemComment('Everything is fine with health check.', $this->model);
 
         Events::fire('healthy:NextDeveloper\IAAS\VirtualMachines', $this->model);
         Events::fire('checked:NextDeveloper\IAAS\VirtualMachines', $this->model);
