@@ -520,11 +520,26 @@ class VirtualMachinesXenService extends AbstractXenService
         return false;
     }
 
-    public static function exportToRepository(VirtualMachines $vm, Repositories $repositories): array
+    public static function exportToRepository(VirtualMachines $vm, Repositories $repositories, $exportName): bool
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
-        $exportName = $vm->uuid . '.' . (new Carbon($vm->created_at))->timestamp . '.pvm';
+        //  Here we need to make sure that there are no export tasks running on the compute member.
+        //  If there are, we need to wait until they are finished.
+        $isTaskRunning = self::isBackupRunning($computeMember, $vm);
+
+        if($isTaskRunning) {
+            while ($isTaskRunning) {
+                if (config('leo.debug.iaas.compute_members'))
+                    Log::info('[VirtualMachinesXenService@export] There is already a' .
+                        ' backup task running for VM: ' . $vm->name . '/' . $vm->uuid);
+
+                sleep(10);
+                $isTaskRunning = self::isBackupRunning($computeMember, $vm);
+            }
+
+            return true;
+        }
 
         if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@export] I am exporting the' .
@@ -539,10 +554,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         $result = self::performCommand($command, $computeMember);
 
-        $result['filename'] = $exportName;
-        $result['path'] = $repositories->local_ip_addr . ':' . $repositories->vm_path . '/' . $exportName;
-
-        return $result;
+        return true;
     }
 
     public static function exportToDefaultBackupRepository(VirtualMachines $vm): array
@@ -940,5 +952,20 @@ class VirtualMachinesXenService extends AbstractXenService
 
             throw $exception;
         }
+    }
+
+    private static function isBackupRunning($computeMember, $clonedVm)  : bool
+    {
+        $runningTasks = ComputeMemberXenService::getRunningTasks($computeMember);
+        $isBackupRunning = false;
+
+        foreach ($runningTasks as $task) {
+            $task['name-label'] = trim($task['name-label']);
+            if($task['name-label'] == 'Export of VM: ' . $clonedVm->name) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

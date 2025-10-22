@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\BackupJobs;
+use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\BackupJobsService;
 use NextDeveloper\IAAS\Services\Backups\BackupService;
@@ -61,7 +62,7 @@ class Backup extends AbstractAction
     {
         $this->setProgress(0, 'Backup virtual machine action started.');
 
-        $backupJob = null;
+        $backupJob = $this->getStateData('backup_job', null);
 
         if(array_key_exists('iaas_backup_job_id', $this->params)) {
             $backupJob = BackupJobs::where('id', $this->params['iaas_backup_job_id'])->first();
@@ -71,7 +72,12 @@ class Backup extends AbstractAction
             }
         }
 
-        $vmBackup = BackupService::getPendingBackup($this->model, $backupJob);
+        $this->setStateData('backup_job', $backupJob);
+
+        $vmBackup = $this->getStateData(
+            key: 'vm_backup',
+            default: BackupService::getPendingBackup($this->model, $backupJob)
+        );
 
         if(!$vmBackup) {
             $vmBackup = BackupService::createPendingBackup($this->model, $backupJob);
@@ -81,7 +87,14 @@ class Backup extends AbstractAction
             BackupService::setBackupState($vmBackup, 'restarting');
         }
 
+        $this->setStateData(
+            'vm_backup',
+            $vmBackup
+        );
+
         $backupStarts = Carbon::now();
+
+        $this->setStateData('backup_starts', $backupStarts);
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -93,9 +106,12 @@ class Backup extends AbstractAction
             return;
         }
 
-        $snapshot = null;
-        $clonedVm = null;
-        $backupRepo = null;
+        //  Converting back to latest state just incase we need to rerun this job.
+        $snapshot = $this->getStateData('snapshot', null);
+        $clonedVm = $this->getStateData('cloned_vm', null);
+        $uuid = $this->getStateData('snapshot_uuid', null);
+        $backupRepo = $this->getStateData('backup_repo', null);
+        $exportPath = $this->getStateData('export_path', null);
 
         if($this->shouldRunCheckpoint(10)) {
             $snapshot = VirtualMachinesXenService::takeSnapshot($this->model);
@@ -110,6 +126,8 @@ class Backup extends AbstractAction
             Log::info('[' . __METHOD__ . '] Taken the snapshot. The uuid of snapshot: ' . $uuid);
 
             $this->setProgress(10, 'Snapshot of the virtual machine is taken.');
+
+            $this->setStateData('snapshot_uuid', $uuid);
         }
 
         if($this->shouldRunCheckpoint(20)) {
@@ -132,6 +150,8 @@ class Backup extends AbstractAction
             ]);
 
             $this->setProgress(20, 'Snapshot is taken, creating the snapshot object.');
+
+            $this->setStateData('snapshot', $snapshot);
         }
 
         if($this->shouldRunCheckpoint(30)) {
@@ -171,6 +191,8 @@ class Backup extends AbstractAction
             ]);
 
             $this->setProgress(50, 'VM is cloned.');
+
+            $this->setStateData('cloned_vm', $clonedVm);
         }
 
         if($this->shouldRunCheckpoint(55)) {
@@ -190,7 +212,10 @@ class Backup extends AbstractAction
         if($this->shouldRunCheckpoint(65)) {
             $computeMember = VirtualMachinesService::getComputeMember($clonedVm);
 
-            $backupRepo = ComputeMembersService::getDefaultBackupRepository($computeMember);
+            $backupRepo = $this->getStateData(
+                key: 'backup_repo',
+                default: ComputeMembersService::getDefaultBackupRepository($computeMember)
+            );
 
             ComputeMemberXenService::mountRepository($computeMember, $backupRepo);
 
@@ -210,9 +235,23 @@ class Backup extends AbstractAction
         if($this->shouldRunCheckpoint(80)) {
             BackupService::setBackupState($vmBackup, 'running');
 
+            $backupFilename = $this->getStateData(
+                'backup_filename',
+                $clonedVm->uuid . '.' . (new Carbon($clonedVm->created_at))->timestamp . '.pvm'
+            );
+
+            $exportPath = $this->getStateData(
+                'export_path',
+                $backupRepo->local_ip_addr . ':' . $backupRepo->vm_path . '/' . $backupFilename
+            );
+
             //  This may take up to few hours.
             //  We need to make sure that the job does not time out.
-            $backupResult = VirtualMachinesXenService::exportToRepository($clonedVm, $backupRepo);
+            $backupResult = VirtualMachinesXenService::exportToRepository(
+                vm: $clonedVm,
+                repositories: $backupRepo,
+                exportName: $backupFilename
+            );
 
             $this->setProgress(80, 'Exported VM to the default backup repository.');
         }
@@ -225,19 +264,24 @@ class Backup extends AbstractAction
             $backupEnds = Carbon::now();
             $backupDiff = $backupEnds->diffInSeconds($backupStarts);
 
+            $this->setStateData('backup_ends', $backupEnds);
+            $this->setStateData('backup_diff', $backupDiff);
+
             $vmBackup->update([
-                'path'  =>  $backupResult['path'],
-                'filename'  =>  $backupResult['filename'],
+                'path'  =>  $exportPath,
+                'filename'  =>  $backupFilename,
                 'status'    =>  'backed-up',
                 'backup-type'   =>  'full-backup',
                 'iaas_repository_id'    =>  $backupRepo->id
             ]);
 
+            $this->setStateData('vm_backup', $vmBackup->fresh());
+
             $repoImage = RepositoryImagesService::create([
                 'iaas_repository_id'    =>  $backupRepo->id,
                 'name'                  =>  'Backup of ' . $this->model->name,
-                'filename'              =>  $backupResult['filename'],
-                'path'                  =>  $backupResult['path'],
+                'filename'              =>  $backupFilename,
+                'path'                  =>  $exportPath,
                 'is_iso'                =>  false,
                 'is_public'             =>  false,
                 'ram'                   =>  $this->model->ram,
@@ -253,11 +297,15 @@ class Backup extends AbstractAction
                 'iam_user_id'           =>  $this->model->iam_user_id
             ]);
 
+            $this->setStateData('repo_image', $repoImage);
+
             //  Updating the vm backup to understand where is the image.
             //  In the future we will be removing this table (most probably)
             $vmBackup->updateQuietly([
                 'iaas_repository_image_id'  =>  $repoImage->id
             ]);
+
+            $this->setStateData('vm_backup', $vmBackup->fresh());
 
             RepositoryImagesService::updateRepoSize($repoImage);
 
