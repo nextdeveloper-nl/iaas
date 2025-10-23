@@ -68,8 +68,6 @@ class ComputeMemberXenService extends AbstractXenService
             $tasks[] = $currentTask;
         }
 
-        dd($tasks);
-
         return $tasks;
     }
 
