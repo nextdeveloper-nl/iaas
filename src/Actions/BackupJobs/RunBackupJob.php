@@ -190,14 +190,14 @@ class RunBackupJob extends AbstractAction
         }
 
         if($this->shouldRunCheckpoint(50)) {
-            $clonedVm = VirtualMachinesXenService::cloneVm($snapshot);
-            $clonedVm = $clonedVm['output'];
+            $clonedVmUuid = VirtualMachinesXenService::cloneVm($snapshot);
+            $clonedVmUuid = $clonedVm['output'];
 
-            Log::info('[' . __METHOD__ . '] VM is cloned, the new uuid is: ' . $clonedVm);
+            Log::info('[' . __METHOD__ . '] VM is cloned, the new uuid is: ' . $clonedVmUuid);
 
             $clonedVm = VirtualMachinesService::create([
                 'name'  =>  'Clone of ' . $vm->name,
-                'hypervisor_uuid'   =>  $clonedVm,
+                'hypervisor_uuid'   =>  $clonedVmUuid,
                 'is_snapshot'   =>  true,
                 'is_draft'  =>  false,
                 'os'    =>  $vm->os,
@@ -345,6 +345,6 @@ class RunBackupJob extends AbstractAction
             $this->setProgress(95, 'Removed VM that was cloned.');
         }
 
-        $this->setProgress(100, 'Virtual machine backup finished');
+        $this->setFinished('Virtual machine backup finished');
     }
 }
