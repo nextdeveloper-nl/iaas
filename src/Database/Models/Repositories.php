@@ -113,6 +113,7 @@ class Repositories extends Model
      */
     protected $casts = [
     'id' => 'integer',
+        'uuid'  =>  'string',
     'name' => 'string',
     'description' => 'string',
     'ssh_username' => 'string',
@@ -199,12 +200,12 @@ class Repositories extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-    
+
     public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
-    
+
     public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);

@@ -129,6 +129,7 @@ class RunBackupJob extends AbstractAction
         $uuid = $this->getStateData('snapshot_uuid', null);
         $backupRepo = $this->getStateData('backup_repo', null);
         $exportPath = $this->getStateData('export_path', null);
+        $backupFilename = $this->getStateData('backup_filename', null);
 
         if(is_array($snapshot)) $snapshot = (new VirtualMachines())->fill($snapshot);
         if(is_array($clonedVm)) $clonedVm = (new VirtualMachines())->fill($clonedVm);
