@@ -345,6 +345,8 @@ class RunBackupJob extends AbstractAction
             $this->setProgress(95, 'Removed VM that was cloned.');
         }
 
+        Events::fire('backup-completed:NextDeveloper\IAAS\BackupJobs', $vmBackup);
+
         $this->setFinished('Virtual machine backup finished');
     }
 }
