@@ -12,6 +12,9 @@ use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Communication\Helpers\Communicate;
+use NextDeveloper\IAAS\Actions\ComputeMembers\ScanVirtualMachines;
+use NextDeveloper\IAAS\Actions\ComputeMembers\UpdateResources;
+use NextDeveloper\IAAS\Actions\ComputeMembers\UpdateStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberTasks;
@@ -91,6 +94,21 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
                 ->where('hostname', $event['hostname'])
                 ->first();
+
+            switch ($event['snapshot']['name_label']) {
+                case 'Async.VM.start':
+                    dispatch(new UpdateResources($computeMember));
+                    break;
+                case 'Async.VDI.snapshot':
+                case 'VM.snapshot':
+                case 'VBD.plug':
+                case 'Async.VDI.destroy':
+                case 'VM import':
+                case 'VDI.create':
+                    dispatch(new UpdateStorageVolumes($computeMember));
+                    dispatch(new ScanVirtualMachines($computeMember));
+                    break;
+            }
 
             if(!$computeMember) {
                 Log::error( __METHOD__ . ': Compute member not found for hostname ' . $event['snapshot']['hostname'] . ' for event ID ' . $this->event->id);
