@@ -150,15 +150,17 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                 ]);
             }
 
-            $computeMemberTask->update([
-                'status'            =>  $event['snapshot']['status'],
-                'name'              =>  $event['snapshot']['name_label'],
-                'description'       =>  $event['snapshot']['name_description'],
-                'error'             =>  json_encode($snapshot['error_info']),
-                'progress'          =>  ceil($snapshot['progress'] * 100),
-                'hypervisor_data'   =>  $event,
-                'iaas_compute_member_id' => $computeMember->id
-            ]);
+            if($computeMemberTask) {
+                $computeMemberTask->update([
+                    'status'            =>  $event['snapshot']['status'],
+                    'name'              =>  $event['snapshot']['name_label'],
+                    'description'       =>  $event['snapshot']['name_description'],
+                    'error'             =>  json_encode($snapshot['error_info']),
+                    'progress'          =>  ceil($snapshot['progress'] * 100),
+                    'hypervisor_data'   =>  $event,
+                    'iaas_compute_member_id' => $computeMember->id
+                ]);
+            }
         }
 
         if($event['operation'] == 'del') {
