@@ -218,7 +218,12 @@ class ScanVirtualMachines extends AbstractAction
                     $checkVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
                         ->where('iaas_virtual_machine_id', $dbVm->id)
                         ->where('device_number', $vbdParams['userdevice'])
+                        ->withTrashed()
                         ->first();
+
+                    if($checkVdi->trashed()) {
+                        $checkVdi->restore();
+                    }
 
                     //  This happens when the VDI is migrated to another storage. We need to update the hypervisor_uuid
                     if($checkVdi) {
