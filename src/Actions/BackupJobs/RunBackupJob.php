@@ -3,9 +3,11 @@
 namespace NextDeveloper\IAAS\Actions\BackupJobs;
 
 use Carbon\Carbon;
+use Google\Service\GKEHub\State;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
+use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Backup;
 use NextDeveloper\IAAS\Database\Models\Accounts;
@@ -268,13 +270,42 @@ class RunBackupJob extends AbstractAction
                 $backupRepo->local_ip_addr . ':' . $backupRepo->vm_path . '/' . $backupFilename
             );
 
-            //  This may take up to few hours.
-            //  We need to make sure that the job does not time out.
-            $backupResult = VirtualMachinesXenService::exportToRepository(
-                vm: $clonedVm,
-                repositories: $backupRepo,
-                exportName: $backupFilename
+            $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
+                computeMember: $computeMember,
+                vmName: $clonedVm->name,
             );
+
+            if(!$isBackupRunning) {
+                $this->setProgress(76, 'Backup is not running therefor I am starting ' .
+                    'the backup process');
+                //  This may take up to few hours.
+                //  We need to make sure that the job does not time out.
+                $backupResult = VirtualMachinesXenService::exportToRepositoryInBackground(
+                    vm: $clonedVm,
+                    repositories: $backupRepo,
+                    exportName: $backupFilename
+                );
+            }
+
+            if($isBackupRunning) {
+                while($isBackupRunning !== false) {
+                    $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
+                        computeMember: $computeMember,
+                        vmName: $clonedVm->name,
+                    );
+
+                    $this->setProgress(77, 'Backup is in progress: ' . $isBackupRunning . '/100');
+
+                    sleep(5);
+
+                    StateHelper::setState(
+                        obj: $vmBackup,
+                        stateName: 'backup-progress',
+                        value: $isBackupRunning,
+                        objectState: StateHelper::STATE_INFO
+                    );
+                }
+            }
 
             $this->setProgress(80, 'Exported VM to the default backup repository.');
         }

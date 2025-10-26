@@ -198,7 +198,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
                 ->where('hostname', $event['hostname'])
                 ->first();
-            
+
             //  There is no VM in the database, we should start the scan.
             self::dispatch(new ScanVirtualMachines($computeMember));
         }

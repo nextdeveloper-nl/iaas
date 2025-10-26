@@ -520,13 +520,34 @@ class VirtualMachinesXenService extends AbstractXenService
         return false;
     }
 
+    public static function exportToRepositoryInBackground(VirtualMachines $vm, Repositories $repositories, $exportName): bool
+    {
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        if (config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@export] I am exporting the' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') to default repo under name ' .
+                $exportName . '.backup from compute member' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        //  This is the background version of the command with &
+        $command = 'nohup xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
+            'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName . ' &';
+
+        Log::info(__METHOD__ . ' Exporting with command: ' . $command);
+
+        $result = self::performCommand($command, $computeMember);
+
+        return true;
+    }
+
     public static function exportToRepository(VirtualMachines $vm, Repositories $repositories, $exportName): bool
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
         //  Here we need to make sure that there are no export tasks running on the compute member.
         //  If there are, we need to wait until they are finished.
-        $isTaskRunning = self::isBackupRunning($computeMember, $vm);
+        $isTaskRunning = self::isBackupRunning($computeMember, $vm->name);
 
         if($isTaskRunning) {
             while ($isTaskRunning) {
@@ -535,7 +556,7 @@ class VirtualMachinesXenService extends AbstractXenService
                         ' backup task running for VM: ' . $vm->name . '/' . $vm->uuid);
 
                 sleep(10);
-                $isTaskRunning = self::isBackupRunning($computeMember, $vm);
+                $isTaskRunning = self::isBackupRunning($computeMember, $vm->name);
             }
 
             return true;
@@ -954,15 +975,15 @@ class VirtualMachinesXenService extends AbstractXenService
         }
     }
 
-    private static function isBackupRunning($computeMember, $clonedVm)  : bool
+    public static function isBackupRunning($computeMember, $vmName)  : bool
     {
         $runningTasks = ComputeMemberXenService::getRunningTasks($computeMember);
         $isBackupRunning = false;
 
         foreach ($runningTasks as $task) {
             $task['name-label'] = trim($task['name-label']);
-            if($task['name-label'] == 'Export of VM: ' . $clonedVm->name) {
-                return true;
+            if($task['name-label'] == 'Export of VM: ' . $vmName) {
+                return $task['progress'];
             }
         }
 
