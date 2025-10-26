@@ -101,7 +101,7 @@ class RunBackupJob extends AbstractAction
         );
 
         if(is_array($vmBackup))
-            $vmBackup = VirtualMachineBackups::withoutGlobalScopes()->find($vmBackup['id']);
+            $vmBackup = VirtualMachineBackups::withoutGlobalScopes()->where('uuid', $vmBackup['uuid'])->first();
 
         if(!$vmBackup) {
             $vmBackup = BackupService::createPendingBackup($vm, $this->model);
@@ -300,9 +300,14 @@ class RunBackupJob extends AbstractAction
                         repositories: $backupRepo,
                         exportName: $backupFilename
                     );
-                }
 
-                if($isBackupRunning) {
+                    sleep(5);
+
+                    $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
+                        computeMember: $computeMember,
+                        vmName: $clonedVm->name,
+                    );
+
                     while($isBackupRunning !== false) {
                         $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
                             computeMember: $computeMember,
