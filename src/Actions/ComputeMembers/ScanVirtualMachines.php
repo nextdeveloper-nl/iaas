@@ -275,20 +275,6 @@ class ScanVirtualMachines extends AbstractAction
                     }
                 }
 
-                if(!$dbVif) {
-                    //  Check if a network card exists on that device_number
-                    $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
-                        ->where('iaas_virtual_machine_id', $dbVm->id)
-                        ->where('device_number', $vifParams['device'])
-                        ->withTrashed()
-                        ->first();
-
-                    if($dbVif) {
-                        if($dbVif->trashed())
-                            $dbVif->restore();
-                    }
-                }
-
                 $connectedInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
                     ->where('network_uuid', $vifParams['network-uuid'])
                     ->first();
@@ -335,10 +321,38 @@ class ScanVirtualMachines extends AbstractAction
                     'iaas_virtual_machine_id'   =>  $dbVm->id
                 ];
 
-                if($dbVif)
-                    $dbVif->updateQuietly($data);
-                else
-                    VirtualNetworkCardsService::create($data);
+                //  Check if there is another VIF on same device
+                $vifOnSameDevice = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_virtual_machine_id', $dbVm->id)
+                    ->where('device_number', $data['device_number'])
+                    ->first();
+
+                if($vifOnSameDevice) {
+                    if($vifOnSameDevice->id != $dbVif->id)
+                        $vifOnSameDevice->forceDelete();
+                }
+
+                $vifOnSameMac = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_virtual_machine_id', $dbVm->id)
+                    ->where('mac_addr', $data['mac_addr'])
+                    ->first();
+
+                if($vifOnSameMac) {
+                    if($vifOnSameMac->id != $dbVif->id)
+                        $vifOnSameMac->forceDelete();
+                }
+
+                try {
+                    if($dbVif)
+                        $dbVif->updateQuietly($data);
+                    else {
+
+                        VirtualNetworkCardsService::create($data);
+                    }
+                } catch (\Exception $exception) {
+                    dump($dbVif);
+                    dd($exception->getMessage());
+                }
             }
         }
 

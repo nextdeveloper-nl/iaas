@@ -89,7 +89,9 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
         }
 
         //  We need to create a unique device number for the new VIF
-        $data['device_number']  =  count($vifs);
+        if(!array_key_exists('device_number', $data)) {
+            $data['device_number']  =  count($vifs);
+        }
 
         $vif = parent::create($data);
 
