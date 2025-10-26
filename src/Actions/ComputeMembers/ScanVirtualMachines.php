@@ -264,7 +264,11 @@ class ScanVirtualMachines extends AbstractAction
                     $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
                         ->where('iaas_virtual_machine_id', $dbVm->id)
                         ->where('mac_addr', $vifParams['MAC'])
+                        ->withTrashed()
                         ->first();
+
+                    if($dbVif->trashed())
+                        $dbVif->restore();
                 }
 
                 $connectedInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
