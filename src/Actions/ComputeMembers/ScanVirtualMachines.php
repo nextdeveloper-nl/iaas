@@ -20,6 +20,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action will scan compute member and sync all findings
@@ -41,6 +42,8 @@ class ScanVirtualMachines extends AbstractAction
 
     public function handle()
     {
+        UserHelper::setAdminAsCurrentUser();
+
         $this->setProgress(0, 'Scanning virtual machines started');
 
         $this->scanXenVirtualMachines();
