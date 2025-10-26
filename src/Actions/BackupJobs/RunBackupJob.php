@@ -258,52 +258,58 @@ class RunBackupJob extends AbstractAction
         }
 
         if($this->shouldRunCheckpoint(80)) {
-            BackupService::setBackupState($vmBackup, 'running');
-
-            $backupFilename = $this->getStateData(
-                'backup_filename',
-                $clonedVm->uuid . '.' . (new Carbon($clonedVm->created_at))->timestamp . '.pvm'
-            );
-
-            $exportPath = $this->getStateData(
-                'export_path',
-                $backupRepo->local_ip_addr . ':' . $backupRepo->vm_path . '/' . $backupFilename
-            );
-
             $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
                 computeMember: $computeMember,
                 vmName: $clonedVm->name,
             );
 
-            if(!$isBackupRunning) {
-                $this->setProgress(76, 'Backup is not running therefor I am starting ' .
-                    'the backup process');
-                //  This may take up to few hours.
-                //  We need to make sure that the job does not time out.
-                $backupResult = VirtualMachinesXenService::exportToRepositoryInBackground(
-                    vm: $clonedVm,
-                    repositories: $backupRepo,
-                    exportName: $backupFilename
+            //  If the backup state is running and isBackupRunning is false. Maybe the backup is already finished ?
+            //  We should check this.
+            if(BackupService::getBackupState($vmBackup) == 'running' && !$isBackupRunning) {
+                //
+            } else {
+                BackupService::setBackupState($vmBackup, 'running');
+
+                $backupFilename = $this->getStateData(
+                    'backup_filename',
+                    $clonedVm->uuid . '.' . (new Carbon($clonedVm->created_at))->timestamp . '.pvm'
                 );
-            }
 
-            if($isBackupRunning) {
-                while($isBackupRunning !== false) {
-                    $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
-                        computeMember: $computeMember,
-                        vmName: $clonedVm->name,
+                $exportPath = $this->getStateData(
+                    'export_path',
+                    $backupRepo->local_ip_addr . ':' . $backupRepo->vm_path . '/' . $backupFilename
+                );
+
+                if(!$isBackupRunning) {
+                    $this->setProgress(76, 'Backup is not running therefor I am starting ' .
+                        'the backup process');
+                    //  This may take up to few hours.
+                    //  We need to make sure that the job does not time out.
+                    $backupResult = VirtualMachinesXenService::exportToRepositoryInBackground(
+                        vm: $clonedVm,
+                        repositories: $backupRepo,
+                        exportName: $backupFilename
                     );
+                }
 
-                    $this->setProgress(77, 'Backup is in progress: ' . $isBackupRunning . '/100');
+                if($isBackupRunning) {
+                    while($isBackupRunning !== false) {
+                        $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
+                            computeMember: $computeMember,
+                            vmName: $clonedVm->name,
+                        );
 
-                    sleep(5);
+                        $this->setProgress(77, 'Backup is in progress: ' . $isBackupRunning . '/100');
 
-                    StateHelper::setState(
-                        obj: $vmBackup,
-                        stateName: 'backup-progress',
-                        value: $isBackupRunning,
-                        objectState: StateHelper::STATE_INFO
-                    );
+                        sleep(5);
+
+                        StateHelper::setState(
+                            obj: $vmBackup,
+                            stateName: 'backup-progress',
+                            value: $isBackupRunning,
+                            objectState: StateHelper::STATE_INFO
+                        );
+                    }
                 }
             }
 
@@ -333,7 +339,7 @@ class RunBackupJob extends AbstractAction
 
             $repoImage = RepositoryImagesService::create([
                 'iaas_repository_id'    =>  $backupRepo->id,
-                'name'                  =>  'Backup of ' . $vm->name,
+                'name'                  =>  $vm->name,
                 'filename'              =>  $backupFilename,
                 'path'                  =>  $exportPath,
                 'is_iso'                =>  false,

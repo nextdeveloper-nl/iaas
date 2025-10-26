@@ -64,6 +64,11 @@ class BackupService
         ]);
     }
 
+    public static function getBackupState(VirtualMachineBackups $backup)
+    {
+        return $backup->status;
+    }
+
     public static function setBackupState(VirtualMachineBackups $backup, $state) : VirtualMachineBackups
     {
         $backup->update([
