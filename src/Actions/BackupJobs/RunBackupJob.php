@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\BackupJobs;
 
+use App\Services\IAAS\VirtualMachineServices;
 use Carbon\Carbon;
 use Google\Service\GKEHub\State;
 use Illuminate\Support\Facades\Log;
@@ -12,6 +13,7 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Backup;
 use NextDeveloper\IAAS\Database\Models\Accounts;
 use NextDeveloper\IAAS\Database\Models\BackupJobs;
+use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -22,6 +24,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * This class executes the backup job
@@ -132,10 +135,15 @@ class RunBackupJob extends AbstractAction
         $backupRepo = $this->getStateData('backup_repo', null);
         $exportPath = $this->getStateData('export_path', null);
         $backupFilename = $this->getStateData('backup_filename', null);
+        $computeMember = $this->getStateData(
+            key: 'compute_member',
+            default: VirtualMachinesService::getComputeMember($vm)
+        );
 
-        if(is_array($snapshot)) $snapshot = (new VirtualMachines())->fill($snapshot);
-        if(is_array($clonedVm)) $clonedVm = (new VirtualMachines())->fill($clonedVm);
-        if(is_array($backupRepo)) $backupRepo = (new Repositories())->fill($backupRepo);
+        if(is_array($snapshot)) $snapshot = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('uuid', $snapshot['uuid'])->first();
+        if(is_array($clonedVm)) $clonedVm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('uuid', $clonedVm['uuid'])->first();
+        if(is_array($backupRepo)) $backupRepo = Repositories::withoutGlobalScope(AuthorizationScope::class)->where('uuid', $backupRepo['uuid'])->first();
+        if(is_array($computeMember)) $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)->where('uuid', $computeMember['uuid'])->first();
 
         if($this->shouldRunCheckpoint(10)) {
             $snapshot = VirtualMachinesXenService::takeSnapshot($vm);

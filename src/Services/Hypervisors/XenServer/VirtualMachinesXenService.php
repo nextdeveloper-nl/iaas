@@ -532,7 +532,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
         //  This is the background version of the command with &
         $command = 'nohup xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
-            'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName . ' &';
+            'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName . ' > /dev/null 2>&1 &';
 
         Log::info(__METHOD__ . ' Exporting with command: ' . $command);
 
