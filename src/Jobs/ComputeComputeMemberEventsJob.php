@@ -164,8 +164,6 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
         }
 
         if($event['operation'] == 'del') {
-            dispatch(new ScanVirtualMachines($computeMember));
-
             $computeMemberTask = ComputeMemberTasks::withoutGlobalScope(AuthorizationScope::class)
                 ->where('iaas_compute_member_id', $computeMember->id)
                 ->where('progress', '<', 100)
