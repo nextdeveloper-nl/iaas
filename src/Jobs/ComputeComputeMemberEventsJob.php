@@ -200,7 +200,9 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                 ->first();
 
             //  There is no VM in the database, we should start the scan.
-            self::dispatch(new ScanVirtualMachines($computeMember));
+            //  This causes problems while creating new VM and or taking snapshot. We should think about something else on this.
+            //  Maybe in the future we can implement a locking mechanism for this. like scan_lock = true or false
+            //  self::dispatch(new ScanVirtualMachines($computeMember));
         }
 
         if(!$this->vm->iam_user_id) {
