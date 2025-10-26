@@ -88,7 +88,9 @@ class RunBackupJob extends AbstractAction
                 break;
         }
 
-        $this->setProgress(100, 'Finished for backup job: ' . $this->model->uuid);
+        Events::fire('backup-completed:NextDeveloper\IAAS\BackupJobs', $vmBackup);
+
+        $this->setFinished('Finished for backup job: ' . $this->model->uuid);
     }
 
     private function backupVirtualMachine($vm)
@@ -389,9 +391,5 @@ class RunBackupJob extends AbstractAction
 
             $this->setProgress(95, 'Removed VM that was cloned.');
         }
-
-        Events::fire('backup-completed:NextDeveloper\IAAS\BackupJobs', $vmBackup);
-
-        $this->setFinished('Virtual machine backup finished');
     }
 }
