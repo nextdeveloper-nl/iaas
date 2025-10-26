@@ -275,6 +275,20 @@ class ScanVirtualMachines extends AbstractAction
                     }
                 }
 
+                if(!$dbVif) {
+                    //  Check if a network card exists on that device_number
+                    $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_virtual_machine_id', $dbVm->id)
+                        ->where('device_number', $vifParams['device'])
+                        ->withTrashed()
+                        ->first();
+
+                    if($dbVif) {
+                        if($dbVif->trashed())
+                            $dbVif->restore();
+                    }
+                }
+
                 $connectedInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
                     ->where('network_uuid', $vifParams['network-uuid'])
                     ->first();
