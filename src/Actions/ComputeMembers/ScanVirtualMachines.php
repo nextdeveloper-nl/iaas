@@ -224,8 +224,10 @@ class ScanVirtualMachines extends AbstractAction
                         ->withTrashed()
                         ->first();
 
-                    if($checkVdi->trashed()) {
-                        $checkVdi->restore();
+                    if($checkVdi) {
+                        if($checkVdi->trashed()) {
+                            $checkVdi->restore();
+                        }
                     }
 
                     //  This happens when the VDI is migrated to another storage. We need to update the hypervisor_uuid
@@ -267,8 +269,10 @@ class ScanVirtualMachines extends AbstractAction
                         ->withTrashed()
                         ->first();
 
-                    if($dbVif->trashed())
-                        $dbVif->restore();
+                    if($dbVif) {
+                        if($dbVif->trashed())
+                            $dbVif->restore();
+                    }
                 }
 
                 $connectedInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
