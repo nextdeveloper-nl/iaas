@@ -193,7 +193,7 @@ class RunBackupJob extends AbstractAction
 
         if($this->shouldRunCheckpoint(50)) {
             $clonedVmUuid = VirtualMachinesXenService::cloneVm($snapshot);
-            $clonedVmUuid = $clonedVm['output'];
+            $clonedVmUuid = $clonedVmUuid['output'];
 
             Log::info('[' . __METHOD__ . '] VM is cloned, the new uuid is: ' . $clonedVmUuid);
 
