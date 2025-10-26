@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Jobs;
 
+use Google\Service\Compute;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -192,6 +193,15 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             ->where('hypervisor_uuid', $event['snapshot']['uuid'])
             ->withTrashed()
             ->first();
+
+        if(!$this->vm) {
+            $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+                ->where('hostname', $event['hostname'])
+                ->first();
+            
+            //  There is no VM in the database, we should start the scan.
+            self::dispatch(new ScanVirtualMachines($computeMember));
+        }
 
         if(!$this->vm->iam_user_id) {
             Log::error( __METHOD__ . ': VM (' . $this->vm->uuid . ') does not have an associated user for event ID ' . $this->event->id);
