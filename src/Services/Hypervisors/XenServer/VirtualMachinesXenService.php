@@ -975,10 +975,12 @@ class VirtualMachinesXenService extends AbstractXenService
         }
     }
 
-    public static function isBackupRunning($computeMember, $vmName)  : bool
+    public static function isBackupRunning($computeMember, $vmName)  : ?float
     {
         $runningTasks = ComputeMemberXenService::getRunningTasks($computeMember);
         $isBackupRunning = false;
+
+        Log::debug('[isBackupRunning] response: ' . print_r($runningTasks, true));
 
         foreach ($runningTasks as $task) {
             $task['name-label'] = trim($task['name-label']);
@@ -987,6 +989,6 @@ class VirtualMachinesXenService extends AbstractXenService
             }
         }
 
-        return false;
+        return null;
     }
 }

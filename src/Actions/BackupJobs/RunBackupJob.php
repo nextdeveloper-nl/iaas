@@ -269,6 +269,9 @@ class RunBackupJob extends AbstractAction
                 vmName: $clonedVm->name,
             );
 
+            Log::debug('[RunBackupJob] The backup state fo the vmBackup: ' . $vmBackup->status);
+            Log::debug('[RunBackupJob] Is backup running in background: ' . $isBackupRunning);
+
             //  If the backup state is running and isBackupRunning is false. Maybe the backup is already finished ?
             //  We should check this.
             if(BackupService::getBackupState($vmBackup) == 'running' && !$isBackupRunning) {
@@ -285,6 +288,8 @@ class RunBackupJob extends AbstractAction
                     'export_path',
                     $backupRepo->local_ip_addr . ':' . $backupRepo->vm_path . '/' . $backupFilename
                 );
+
+                Log::debug('[RunBackupJob] Is backup running on step 2: ' . $isBackupRunning);
 
                 if(!$isBackupRunning) {
                     $this->setProgress(76, 'Backup is not running therefor I am starting ' .
