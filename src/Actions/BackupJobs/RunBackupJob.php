@@ -22,6 +22,7 @@ use NextDeveloper\IAAS\Services\Backups\BackupService;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -88,17 +89,12 @@ class RunBackupJob extends AbstractAction
                 break;
         }
 
-        Events::fire('backup-completed:NextDeveloper\IAAS\BackupJobs', $vmBackup);
-
         $this->setFinished('Finished for backup job: ' . $this->model->uuid);
     }
 
     private function backupVirtualMachine($vm)
     {
-        $vmBackup = $this->getStateData(
-            key: 'vm_backup',
-            default: BackupService::getPendingBackup($vm, $this->model)
-        );
+        $vmBackup = BackupService::getPendingBackup($vm, $this->model);
 
         if(is_array($vmBackup))
             $vmBackup = VirtualMachineBackups::withoutGlobalScopes()->where('uuid', $vmBackup['uuid'])->first();
@@ -305,7 +301,7 @@ class RunBackupJob extends AbstractAction
 
                     $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
                         computeMember: $computeMember,
-                        vmName: $clonedVm->name,
+                        vmName: $clonedVm->hypervisor_uuid,
                     );
 
                     while($isBackupRunning !== false) {
@@ -314,7 +310,7 @@ class RunBackupJob extends AbstractAction
                             vmName: $clonedVm->name,
                         );
 
-                        $this->setProgress(77, 'Backup is in progress: ' . $isBackupRunning . '/100');
+                        Log::info('[RunBackupJob] Backup is in progress: ' . $isBackupRunning . ' / 1');
 
                         sleep(5);
 
@@ -384,6 +380,12 @@ class RunBackupJob extends AbstractAction
 
             RepositoryImagesService::updateRepoSize($repoImage);
 
+            $repoImage = $repoImage->fresh();
+
+            $vmBackup->update([
+                'size'  =>  $repoImage->size,
+            ]);
+
             $this->setProgress(90, 'VM exported. It took: ' . $backupDiff . ' seconds.');
         }
 
@@ -396,5 +398,7 @@ class RunBackupJob extends AbstractAction
 
             $this->setProgress(95, 'Removed VM that was cloned.');
         }
+
+        Events::fire('backup-completed:NextDeveloper\IAAS\BackupJobs', $vmBackup);
     }
 }

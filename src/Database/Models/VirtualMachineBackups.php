@@ -54,104 +54,106 @@ class VirtualMachineBackups extends Model
 
 
     /**
-     @var array
+     * @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-            'name',
-            'description',
-            'path',
-            'filename',
-            'username',
-            'password',
-            'size',
-            'ram',
-            'cpu',
-            'hash',
-            'backup_starts',
-            'backup_ends',
-            'backup_type',
-            'iaas_virtual_machine_id',
-            'iam_account_id',
-            'iam_user_id',
-            'status',
-            'iaas_repository_image_id',
-            'iaas_backup_job_id',
-            'progress',
+        'name',
+        'description',
+        'path',
+        'filename',
+        'username',
+        'password',
+        'size',
+        'ram',
+        'cpu',
+        'hash',
+        'backup_starts',
+        'backup_ends',
+        'backup_type',
+        'iaas_virtual_machine_id',
+        'iam_account_id',
+        'iam_user_id',
+        'status',
+        'iaas_repository_image_id',
+        'iaas_backup_job_id',
+        'data',
+        'progress',
     ];
 
     /**
-      Here we have the fulltext fields. We can use these for fulltext search if enabled.
+     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     We are casting fields to objects so that we can work on them better
+     * We are casting fields to objects so that we can work on them better
      *
-     @var array
+     * @var array
      */
     protected $casts = [
-    'id' => 'integer',
-    'name' => 'string',
-    'description' => 'string',
-    'path' => 'string',
-    'filename' => 'string',
-    'username' => 'string',
-    'password' => 'string',
-    'size' => 'integer',
-    'ram' => 'integer',
-    'cpu' => 'integer',
-    'hash' => 'string',
-    'backup_starts' => 'datetime',
-    'backup_ends' => 'datetime',
-    'backup_type' => 'string',
-    'iaas_virtual_machine_id' => 'integer',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
-    'status' => 'string',
-    'iaas_repository_image_id' => 'integer',
-    'iaas_backup_job_id' => 'integer',
-    'progress' => 'integer',
+        'id' => 'integer',
+        'name' => 'string',
+        'description' => 'string',
+        'path' => 'string',
+        'filename' => 'string',
+        'username' => 'string',
+        'password' => 'string',
+        'size' => 'integer',
+        'ram' => 'integer',
+        'cpu' => 'integer',
+        'hash' => 'string',
+        'backup_starts' => 'datetime',
+        'backup_ends' => 'datetime',
+        'backup_type' => 'string',
+        'iaas_virtual_machine_id' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'status' => 'string',
+        'iaas_repository_image_id' => 'integer',
+        'iaas_backup_job_id' => 'integer',
+        'data' => 'array',
+        'progress' => 'integer',
     ];
 
     /**
-     We are casting data fields.
+     * We are casting data fields.
      *
-     @var array
+     * @var array
      */
     protected $dates = [
-    'backup_starts',
-    'backup_ends',
-    'created_at',
-    'updated_at',
-    'deleted_at',
+        'backup_starts',
+        'backup_ends',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $with = [
 
     ];
 
     /**
-     @var int
+     * @var int
      */
     protected $perPage = 20;
 
     /**
-     @return void
+     * @return void
      */
     public static function boot()
     {
@@ -168,9 +170,11 @@ class VirtualMachineBackups extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_virtual_machine_backups');
 
-        if(!$modelScopes) { $modelScopes = [];
+        if (!$modelScopes) {
+            $modelScopes = [];
         }
-        if (!$globalScopes) { $globalScopes = [];
+        if (!$globalScopes) {
+            $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -178,7 +182,7 @@ class VirtualMachineBackups extends Model
             $modelScopes
         );
 
-        if($scopes) {
+        if ($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
@@ -195,8 +199,6 @@ class VirtualMachineBackups extends Model
             },
         );
     }
-
-
 
 
 }
