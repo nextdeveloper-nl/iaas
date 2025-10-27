@@ -46,6 +46,12 @@ class ScanVirtualMachines extends AbstractAction
 
         $this->setProgress(0, 'Scanning virtual machines started');
 
+        if(array_key_exists('scan_lock', $this->model->features)) {
+            $this->setFinished('There is a scan lock on the compute member, therefor I am' .
+                ' stopping this ScanVirtualMachines Action.');
+            return;
+        }
+
         $this->scanXenVirtualMachines();
 
         $this->setProgress(100, 'Compute member scanned and synced');
