@@ -309,7 +309,7 @@ class RunBackupJob extends AbstractAction
                         vmName: $clonedVm->hypervisor_uuid,
                     );
 
-                    while($isBackupRunning !== false) {
+                    while($isBackupRunning === null) {
                         $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
                             computeMember: $computeMember,
                             vmName: $clonedVm->hypervisor_uuid,
