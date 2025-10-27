@@ -983,9 +983,10 @@ class VirtualMachinesXenService extends AbstractXenService
         Log::debug('[isBackupRunning] response: ' . print_r($runningTasks, true));
 
         foreach ($runningTasks as $task) {
+            Log::debug('[isBackupRunning] looking for: ' . 'Export of VM: ' . $vmName);
             $task['name-label'] = trim($task['name-label']);
             if($task['name-label'] == 'Export of VM: ' . $vmName) {
-                return $task['progress'];
+                return floatval($task['progress']);
             }
         }
 
