@@ -506,12 +506,12 @@ class VirtualMachinesXenService extends AbstractXenService
             $configImage = RepositoryImagesService::getCloudInitImage($vm);
 
             if(!$configImage) {
-                RepositoryImagesService::syncRepoImageByFilename(
-                    filename: 'config-' . $vm->uuid . '.iso',
-                    repo: $centralRepo,
-                    type: 'iso',
-                    isActive: true
-                );
+//                RepositoryImagesService::syncRepoImageByFilename(
+//                    filename: 'config-' . $vm->uuid . '.iso',
+//                    repo: $centralRepo,
+//                    type: 'iso',
+//                    isActive: true
+//                );
             }
 
             return true;

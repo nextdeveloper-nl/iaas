@@ -42,6 +42,8 @@ class SynchronizeIsos extends AbstractAction
 
     public function handle()
     {
+        UserHelper::setAdminAsCurrentUser();
+
         $this->setProgress(0, 'Syncronizing ISO images in repository.');
 
         Events::fire('syncing-isos:NextDeveloper\IAAS\Repositories', $this->model);
