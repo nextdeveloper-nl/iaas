@@ -456,8 +456,6 @@ class VirtualMachinesXenService extends AbstractXenService
             Log::error('[VirtualMachinesXenService@updateConfigurationIso] I am updating the' .
                 ' configuration ISO of the VM (' . $vm->name . '/' . $vm->uuid . ')');
 
-        $computeMember = VirtualMachinesService::getComputeMember($vm);
-
         //  Here if we have a central repository server we should move it to that repository
         $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
 
@@ -506,12 +504,12 @@ class VirtualMachinesXenService extends AbstractXenService
             $configImage = RepositoryImagesService::getCloudInitImage($vm);
 
             if(!$configImage) {
-//                RepositoryImagesService::syncRepoImageByFilename(
-//                    filename: 'config-' . $vm->uuid . '.iso',
-//                    repo: $centralRepo,
-//                    type: 'iso',
-//                    isActive: true
-//                );
+                RepositoryImagesService::syncRepoImageByFilename(
+                    filename: 'config-' . $vm->uuid . '.iso',
+                    repo: $centralRepo,
+                    type: 'iso',
+                    isActive: true
+                );
             }
 
             return true;

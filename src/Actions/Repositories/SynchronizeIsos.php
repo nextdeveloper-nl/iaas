@@ -88,7 +88,47 @@ class SynchronizeIsos extends AbstractAction
 
     private function syncFile($file)
     {
+        $dbImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_repository_id', $this->model->id)
+            ->where('is_iso', true)
+            ->where('filename', $file)
+            ->first();
 
+        if(!$dbImage) {
+            $iamAccountId = $this->model->iam_account_id;
+            $iamUserId = $this->model->iam_user_id;
+
+            $isPublic = $this->model->is_public;
+
+            if(Str::startsWith($file, 'config-')) {
+                $uuid = str_replace('config-', '', $file);
+                $uuid = str_replace('.iso', '', $uuid);
+
+                $vm = \NextDeveloper\IAAS\Database\Models\VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('uuid', $uuid)
+                    ->first();
+
+                if($vm) {
+                    $iamAccountId = $vm->iam_account_id;
+                    $iamUserId = $vm->iam_user_id;
+                    $isPublic = false;
+                }
+            }
+
+            $dbImage = RepositoryImagesService::create([
+                'iaas_repository_id'    =>  $this->model->id,
+                'name'                  =>  Str::remove('.iso', $file),
+                'filename'              =>  $file,
+                'path'                  =>  $this->model->iso_path . '/' . $file,
+                'is_iso'                =>  true,
+                'is_cloudinit_image'         =>  Str::startsWith($file, 'config-'),
+                'is_public'             =>  $isPublic,
+                'ram'                   =>  1,
+                'cpu'                   =>  2,
+                'iam_account_id'        =>  $iamAccountId,
+                'iam_user_id'           =>  $iamUserId
+            ]);
+        }
     }
 
     private function syncAllImages()
@@ -104,47 +144,7 @@ class SynchronizeIsos extends AbstractAction
         foreach ($isoImages as $image) {
             $this->setProgress(20 + ceil($now), 'Syncing ISO image: ' . $image);
 
-            $dbImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
-                ->where('iaas_repository_id', $this->model->id)
-                ->where('is_iso', true)
-                ->where('filename', $image)
-                ->first();
-
-            if(!$dbImage) {
-                $iamAccountId = $this->model->iam_account_id;
-                $iamUserId = $this->model->iam_user_id;
-
-                $isPublic = $this->model->is_public;
-
-                if(Str::startsWith($image, 'config-')) {
-                    $uuid = str_replace('config-', '', $image);
-                    $uuid = str_replace('.iso', '', $uuid);
-
-                    $vm = \NextDeveloper\IAAS\Database\Models\VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-                        ->where('uuid', $uuid)
-                        ->first();
-
-                    if($vm) {
-                        $iamAccountId = $vm->iam_account_id;
-                        $iamUserId = $vm->iam_user_id;
-                        $isPublic = false;
-                    }
-                }
-
-                $dbImage = RepositoryImagesService::create([
-                    'iaas_repository_id'    =>  $this->model->id,
-                    'name'                  =>  Str::remove('.iso', $image),
-                    'filename'              =>  $image,
-                    'path'                  =>  $this->model->iso_path . '/' . $image,
-                    'is_iso'                =>  true,
-                    'is_cloudinit_image'         =>  Str::startsWith($image, 'config-'),
-                    'is_public'             =>  $isPublic,
-                    'ram'                   =>  1,
-                    'cpu'                   =>  2,
-                    'iam_account_id'        =>  $iamAccountId,
-                    'iam_user_id'           =>  $iamUserId
-                ]);
-            }
+            self::syncFile($image);
 
             $now = $now + $step;
         }
