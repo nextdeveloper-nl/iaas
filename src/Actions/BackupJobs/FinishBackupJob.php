@@ -2,32 +2,15 @@
 
 namespace NextDeveloper\IAAS\Actions\BackupJobs;
 
-use App\Services\IAAS\VirtualMachineServices;
-use Carbon\Carbon;
-use Google\Service\GKEHub\State;
-use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
-use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
-use NextDeveloper\IAAS\Actions\VirtualMachines\Backup;
-use NextDeveloper\IAAS\Database\Models\Accounts;
 use NextDeveloper\IAAS\Database\Models\BackupJobs;
-use NextDeveloper\IAAS\Database\Models\ComputeMembers;
-use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\BackupJobsService;
-use NextDeveloper\IAAS\Services\Backups\BackupService;
-use NextDeveloper\IAAS\Services\ComputeMembersService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
-use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 use NextDeveloper\IAAS\Services\RepositoriesService;
-use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachineBackupsService;
-use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This class executes the backup job
@@ -51,13 +34,20 @@ class FinishBackupJob extends AbstractAction
         '100'    =>  'Finalizing the backup',
     ];
 
+    public const PARAMS = [
+        'iaas_virtual_machine_backup_id' =>  'required|exists:iaas_virtual_machine_backups,id',
+    ];
+
+
     /**
-     * EnableService constructor.
+     * Finalize backup constructor
      *
-     * @param Accounts $accounts The accounts model instance.
-     * @throws NotAllowedException If the action is not allowed.
+     * @param BackupJobs $backupJob
+     * @param $params
+     * @param $previousAction
+     * @throws NotAllowedException
      */
-    public function __construct(BackupJobs $backupJob, $params, $previousAction)
+    public function __construct(BackupJobs $backupJob, $params = null, $previousAction = null)
     {
         $this->model = $backupJob;
 
@@ -72,6 +62,8 @@ class FinishBackupJob extends AbstractAction
     public function handle(): void
     {
         $this->setProgress(0, 'Starting for backup job: ' . $this->model->uuid);
+
+        UserHelper::setAdminAsCurrentUser();
 
         /**
          * Here we should do;

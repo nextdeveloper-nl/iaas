@@ -55,7 +55,7 @@ class RepositoriesService extends AbstractRepositoriesService
             Log::info('[RepositoriesService@checkBackup] Checking the backup file of ' . $filename .
                 ' in the repository: ' . $repo->name);
 
-        $command = 'ls ' . $repo->vm_path . $filename;
+        $command = 'ls ' . $repo->vm_path . '/' . $filename;
         $result = $repo->performSSHCommand($command);
 
         dd($result);
