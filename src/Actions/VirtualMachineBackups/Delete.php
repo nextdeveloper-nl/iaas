@@ -49,6 +49,8 @@ class Delete extends AbstractAction
     }
 
     public function handle() {
+        trigger_error('This function is not implemented yet.');
+
         $this->setProgress(0, 'Starting to delete backup: ' . $this->model . ' which is taken: ' . $this->model->created_at);
 
         $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
