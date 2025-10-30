@@ -52,8 +52,8 @@ class VirtualMachineBackupsService extends AbstractVirtualMachineBackupsService
             ->where('id', $vmBackup->iaas_backup_job_id)
             ->first();
 
-        dispatch(new FinishBackupJob($backupJob, [
+        (new FinishBackupJob($backupJob, [
             'iaas_virtual_machine_backups_id'   =>  $vmBackup->id
-        ]));
+        ]))->handle();
     }
 }

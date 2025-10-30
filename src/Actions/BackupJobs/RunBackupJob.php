@@ -284,6 +284,10 @@ class RunBackupJob extends AbstractAction
                     $clonedVm->uuid . '.' . (new Carbon($clonedVm->created_at))->timestamp . '.pvm'
                 );
 
+                $vmBackup->update([
+                    'filename' => $backupFilename,
+                ]);
+
                 $exportPath = $this->getStateData(
                     'export_path',
                     $backupRepo->local_ip_addr . ':' . $backupRepo->vm_path . '/' . $backupFilename
