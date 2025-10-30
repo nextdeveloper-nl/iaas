@@ -303,33 +303,9 @@ class RunBackupJob extends AbstractAction
                     $backupResult = VirtualMachinesXenService::exportToRepositoryInBackground(
                         vm: $clonedVm,
                         repositories: $backupRepo,
-                        exportName: $backupFilename
+                        exportName: $backupFilename,
+                        vmBackup: $vmBackup
                     );
-
-                    sleep(5);
-
-                    $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
-                        computeMember: $computeMember,
-                        vmName: $clonedVm->hypervisor_uuid,
-                    );
-
-                    while($isBackupRunning !== null) {
-                        $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
-                            computeMember: $computeMember,
-                            vmName: $clonedVm->hypervisor_uuid,
-                        );
-
-                        Log::info('[RunBackupJob] Backup is in progress: ' . $isBackupRunning . ' / 1');
-
-                        sleep(5);
-
-                        StateHelper::setState(
-                            obj: $vmBackup,
-                            stateName: 'backup-progress',
-                            value: $isBackupRunning,
-                            objectState: StateHelper::STATE_INFO
-                        );
-                    }
                 }
             }
 

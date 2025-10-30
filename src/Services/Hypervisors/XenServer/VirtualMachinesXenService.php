@@ -13,6 +13,7 @@ use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
@@ -518,7 +519,7 @@ class VirtualMachinesXenService extends AbstractXenService
         return false;
     }
 
-    public static function exportToRepositoryInBackground(VirtualMachines $vm, Repositories $repositories, $exportName): bool
+    public static function exportToRepositoryInBackground(VirtualMachines $vm, Repositories $repositories, $exportName, VirtualMachineBackups $vmBackup): bool
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
@@ -530,7 +531,9 @@ class VirtualMachinesXenService extends AbstractXenService
 
         //  This is the background version of the command with &
         $command = 'nohup xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
-            'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName . ' > /dev/null 2>&1 &';
+            'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName . ' &&' .
+            ' curl -X POST http://' . config('leo.internal_endpoint') . '/public/iaas/finalize-backup/' . $vmBackup->uuid .
+            ' > /dev/null 2>&1 &';
 
         Log::info(__METHOD__ . ' Exporting with command: ' . $command);
 
