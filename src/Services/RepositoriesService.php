@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Services;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -49,7 +50,7 @@ class RepositoriesService extends AbstractRepositoriesService
         //  Here we will do the check.
     }
 
-    public static function checkBackup(Repositories $repo, $filename)
+    public static function isBackupExists(Repositories $repo, $filename) : bool
     {
         if(config('leo.debug.iaas.repo'))
             Log::info('[RepositoriesService@checkBackup] Checking the backup file of ' . $filename .
@@ -58,6 +59,8 @@ class RepositoriesService extends AbstractRepositoriesService
         $command = 'ls ' . $repo->vm_path . '/' . $filename;
         $result = $repo->performSSHCommand($command);
 
-        dd($result);
+        if(Str::contains($result['output'], $filename)) return true;
+
+        return false;
     }
 }

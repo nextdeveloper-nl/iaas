@@ -2,12 +2,20 @@
 
 namespace NextDeveloper\IAAS\Actions\BackupJobs;
 
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Actions\Repositories\SynchronizeMachineImages;
+use NextDeveloper\IAAS\Actions\VirtualMachines\Sync;
+use NextDeveloper\IAAS\Console\Commands\SyncRepositoryMachineImages;
+use NextDeveloper\IAAS\Console\Commands\SyncVirtualMachine;
 use NextDeveloper\IAAS\Database\Models\BackupJobs;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
+use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 use NextDeveloper\IAAS\Services\RepositoriesService;
+use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachineBackupsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -68,7 +76,7 @@ class FinishBackupJob extends AbstractAction
         /**
          * Here we should do;
          *
-         * 1) Check if the xe vm-export job is still running in the compute member.
+         * 1) Check if the xe vm-export job is still running in the compute member. (skipped now)
          * 2) Check if the file is in the repository
          * 3) Hash the file
          * 4) Save it
@@ -84,7 +92,21 @@ class FinishBackupJob extends AbstractAction
 
         $repository = VirtualMachineBackupsService::getRepository($vmBackup);
 
-        $checkRepository = RepositoriesService::checkBackup($repository, $vmBackup->filename);
+        $isBackupExists = RepositoriesService::isBackupExists($repository, $vmBackup->filename);
+
+        if($isBackupExists) {
+            $image = SyncRepositoryService::addOrUpdate($vmBackup->filename, $repository);
+
+            $hash = SyncRepositoryService::hashImage($repository, $image);
+
+            $image->update([
+                'hash' => $hash,
+            ]);
+
+            $vmBackup->update([
+                'iaas_repository_image_id'  =>  $image->id
+            ]);
+        }
 
         Events::fire('backup-completed:NextDeveloper\IAAS\BackupJobs', $vmBackup);
     }

@@ -100,12 +100,16 @@ class SyncRepositoryService
         }
     }
 
-    public static function hashImage(Repositories $repo, RepositoryImages $image)
+    public static function hashImage(Repositories $repo, RepositoryImages $image) : string
     {
         if(config('leo.debug.iaas.repo'))
             logger()->info('[VirtualMachineImageService@hashImage] hashing file: ' . $repo->vm_path . '/' . $image->filename);
 
         //  Buradan devam edelim.
+        $command = 'xxh128sum ' . $repo->vm_path . '/' . $image->filename;
+        $result = $repo->performSSHCommand($command);
+
+        return $result['output'];
     }
 
     public static function addOrUpdate($file, Repositories $repoServer) : ?RepositoryImages
@@ -177,7 +181,7 @@ class SyncRepositoryService
 
                     //  Böyle bir imaj yok ise kayıt et
                     if (!$image) {
-                        RepositoryImagesService::create([
+                        $image = RepositoryImagesService::create([
                             'iam_account_id' => $repoServer->iam_account_id,
                             'iam_user_id' => $repoServer->iam_user_id,
                             'iaas_repository_id' => $repoServer->id,
