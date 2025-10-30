@@ -529,10 +529,30 @@ class VirtualMachinesXenService extends AbstractXenService
                 $exportName . '.backup from compute member' .
                 ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
 
+        /**
+         * # Run the entire command in the background, ensuring it continues even after logout
+         * nohup bash -c '
+         *
+         * # 1️⃣ Export a virtual machine from XenServer by UUID
+         * xe vm-export \
+         * uuid=ac27e957-fec6-43e8-d083-c7cdac6f0094 \
+         * filename=/mnt/plusclouds-repo/2e4bdaca-cdc4-4665-9ace-564b1f0c265b/69abaf66-c4f0-4d87-bb12-934ac117fbb4.1761867357.pvm \
+         *
+         * # 2️⃣ If export succeeds (&&), send a POST request to notify completion
+         * && curl -X POST http://10.1.32.5:8011/public/iaas/finalize-backup/4171e717-7f97-4262-9707-d4f916b39b71
+         * ' \
+         *
+         * # Redirect all standard output (stdout) and error (stderr) to /dev/null (ignore all logs)
+         * > /dev/null 2>&1 \
+         *
+         * # Run the whole process in the background (asynchronously)
+         * &
+         */
+
         //  This is the background version of the command with &
-        $command = 'nohup xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
+        $command = 'nohup bash -c \'xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
             'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName . ' &&' .
-            ' curl -X POST http://' . config('leo.internal_endpoint') . '/public/iaas/finalize-backup/' . $vmBackup->uuid .
+            ' curl -X POST http://' . config('leo.internal_endpoint') . '/public/iaas/finalize-backup/' . $vmBackup->uuid . '\'' .
             ' > /dev/null 2>&1 &';
 
         Log::info(__METHOD__ . ' Exporting with command: ' . $command);
