@@ -171,10 +171,12 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
                 ->orderBy('created_at', 'asc')
                 ->first();
 
-            $computeMemberTask->update([
-                'progress'  =>  100,
-                'status'    =>  'completed',
-            ]);
+            if($computeMemberTask) {
+                $computeMemberTask->update([
+                    'progress'  =>  100,
+                    'status'    =>  'completed',
+                ]);
+            }
         }
 
         return [];

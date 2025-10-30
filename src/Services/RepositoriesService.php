@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Services;
 
 use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractRepositoriesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -35,5 +36,15 @@ class RepositoriesService extends AbstractRepositoriesService
             ->where('iaas_cloud_node_id', $vm->iaas_cloud_node_id)
             ->where('is_backup_repository', false)
             ->first();
+    }
+
+    public static function deleteRepoImage(RepositoryImages $image)
+    {
+        $repoServer = RepositoryImagesService::getRepositoryOfImage($image);
+
+        $command = 'rm ' . $image->path;
+        $result = $repoServer->performSSHCommand($command);
+
+        //  Here we will do the check.
     }
 }

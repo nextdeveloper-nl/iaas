@@ -24,13 +24,20 @@ class SynchronizeIsos extends AbstractAction
         'cannot-sync-isos:NextDeveloper\IAAS\Repositories'
     ];
 
-    public function __construct(Repositories $repo)
+    public const PARAMETERS = [
+        'filename' => [
+            'type'          =>  'string',
+            'validation'    =>  'nullable|string'
+        ],
+    ];
+
+    public function __construct(Repositories $repo, $params = null, $previousAction = null)
     {
         $this->model = $repo;
 
         $this->queue = 'iaas';
 
-        parent::__construct();
+        parent::__construct($params, $previousAction);
     }
 
     public function handle()
@@ -68,6 +75,22 @@ class SynchronizeIsos extends AbstractAction
 
         $this->setProgress(20, 'Retrieving ISO images in repository.');
 
+        if($this->params['filename']) {
+            $this->syncFile($this->params['filename']);
+        } else {
+            $this->syncAllImages();
+        }
+
+        $this->setFinished('Storage member scanned and synced');
+    }
+
+    private function syncFile($file)
+    {
+
+    }
+
+    private function syncAllImages()
+    {
         $isoImages = SyncRepositoryService::getIsoImages($this->model);
 
         $this->setProgress(20, 'Syncing ISO images in repository.');
@@ -123,7 +146,5 @@ class SynchronizeIsos extends AbstractAction
 
             $now = $now + $step;
         }
-
-        $this->setFinished('Storage member scanned and synced');
     }
 }

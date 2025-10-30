@@ -42,25 +42,25 @@ class SyncRepositoryService
         return $tempImages;
     }
 
-    public static function syncRepoImage(RepositoryImages $images) : RepositoryImages
+    public static function syncRepoImage(RepositoryImages $images, RepositoryImages $image) : RepositoryImages
     {
         if(config('leo.debug.iaas.repo'))
             Log::info('[SyncService@syncRepoImages] Starting to sync the images for the' .
-                ' repository: ' . $images->name);
+                ' repository: ' . $image->name);
 
-        $repo = RepositoryImagesService::getRepositoryOfImage($images);
+        $repo = RepositoryImagesService::getRepositoryOfImage($image);
 
-        $command = 'stat -c %s ' . $repo->vm_path . '/' . $images->filename;
+        $command = 'stat -c %s ' . $repo->vm_path . '/' . $image->filename;
         $result = self::performCommand($command, $repo);
         $size = $result['output'];
 
         $sizeInGb = ceil($size / 1000 / 1000);
 
-        $images->updateQuietly([
+        $image->updateQuietly([
             'size'  =>  $sizeInGb
         ]);
 
-        return $images;
+        return $image;
     }
 
     public static function syncRepoImages(Repositories $repo) : Repositories
@@ -98,6 +98,14 @@ class SyncRepositoryService
         } else {
             return $repo->performSSHCommand($command);
         }
+    }
+
+    public static function hashImage(Repositories $repo, RepositoryImages $image)
+    {
+        if(config('leo.debug.iaas.repo'))
+            logger()->info('[VirtualMachineImageService@hashImage] hashing file: ' . $repo->vm_path . '/' . $image->filename);
+
+        //  Buradan devam edelim.
     }
 
     public static function addOrUpdate($file, Repositories $repoServer) : ?RepositoryImages
@@ -205,7 +213,7 @@ class SyncRepositoryService
                         ->first();
 
                     if ($image) {
-                        $hash = md5($repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file));
+                        $hash = md5($repoServer->performSSHCommand('xxh128sum ' . $file));
 
                         $command = 'du -shb ' . $file;
                         $size = self::performCommand($command, $repoServer);
