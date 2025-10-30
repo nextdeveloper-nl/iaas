@@ -2,6 +2,9 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use NextDeveloper\IAAS\Actions\BackupJobs\FinishBackupJob;
+use NextDeveloper\IAAS\Database\Models\BackupJobs;
+use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachineBackupsService;
@@ -24,5 +27,33 @@ class VirtualMachineBackupsService extends AbstractVirtualMachineBackupsService
         return RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $backup->iaas_repository_image_id)
             ->first();
+    }
+
+    public static function getRepository(VirtualMachineBackups $backup)
+    {
+        $backupJob = BackupJobs::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $backup->iaas_backup_job_id)
+            ->first();
+
+        $repo = Repositories::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $backupJob->iaas_repository_id)
+            ->first();
+
+        return $repo;
+    }
+
+    public static function finalizeBackup($uuid)
+    {
+        $vmBackup = VirtualMachineBackups::withoutGlobalScope(AuthorizationScope::class)
+            ->where('uuid', $uuid)
+            ->first();
+
+        $backupJob = BackupJobs::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vmBackup->iaas_backup_job_id)
+            ->first();
+
+        dispatch(new FinishBackupJob($backupJob, [
+            'iaas_virtual_machine_backups_id'   =>  $vmBackup->id
+        ]));
     }
 }
