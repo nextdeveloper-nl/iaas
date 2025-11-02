@@ -42,6 +42,9 @@ class BackupService
             ->where('iaas_backup_job_id', $job->id)
             ->first();
 
+        if(!$backup)
+            return self::createPendingBackup($vm, $job);
+
         return $backup;
     }
 

@@ -11,13 +11,17 @@ class VmBackupDataHelper
 
     }
 
-    public function setData($key, $default) : void
+    public function setData($key, $default)
     {
         $data = $this->backup->data;
 
         $data[$key] = $default;
 
-        $this->backup->update($data);
+        $this->backup->update([
+            'data' => $data
+        ]);
+
+        return $default;
     }
 
     public function getData($key, $default = null) : array

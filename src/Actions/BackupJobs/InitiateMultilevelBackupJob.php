@@ -98,6 +98,8 @@ class InitiateMultilevelBackupJob extends AbstractAction
         $vmBackup = BackupService::getPendingBackup($vm, $this->model);
         BackupService::setBackupState($vmBackup, 'restarting');
 
+        $vmBackup->update(['status' => 'running']);
+
         $backupStarts = Carbon::now();
 
         $vmBackupHelper = new VmBackupDataHelper($vmBackup);
@@ -114,7 +116,6 @@ class InitiateMultilevelBackupJob extends AbstractAction
             return;
         }
 
-        $snapshot = $vmBackupHelper->setData('snapshot', null);
         //  Converting back to latest state just incase we need to rerun this job.
         $snapshot = $vmBackupHelper->setData('snapshot', null);
         $clonedVm = $vmBackupHelper->setData('cloned_vm', null);
@@ -187,10 +188,20 @@ class InitiateMultilevelBackupJob extends AbstractAction
         }
 
         if($this->shouldRunCheckpoint(50)) {
-            $clonedVmUuid = VirtualMachinesXenService::cloneVm($snapshot);
-            $clonedVmUuid = $clonedVmUuid['output'];
+            if(!$snapshot) {
+                $this->setFinishedWithError('Snapshot object is missing. Cannot continue.');
+                return;
+            }
+
+            $cloneResponse = VirtualMachinesXenService::cloneVm($snapshot);
+            $clonedVmUuid = $cloneResponse['output'];
 
             Log::info('[' . __METHOD__ . '] VM is cloned, the new uuid is: ' . $clonedVmUuid);
+
+            if(!$clonedVmUuid) {
+                //  Then there must be an error
+                dd($cloneResponse);
+            }
 
             $clonedVm = VirtualMachinesService::create([
                 'name'  =>  'Clone of ' . $vm->name,
@@ -288,7 +299,8 @@ class InitiateMultilevelBackupJob extends AbstractAction
                     $backupResult = VirtualMachinesXenService::exportToRepositoryInBackground(
                         vm: $clonedVm,
                         repositories: $backupRepo,
-                        exportName: $backupFilename
+                        exportName: $backupFilename,
+                        vmBackup: $vmBackup,
                     );
                 }
             }
@@ -298,7 +310,7 @@ class InitiateMultilevelBackupJob extends AbstractAction
             $vmBackup->update([
                 'path'  =>  $exportPath,
                 'filename'  =>  $backupFilename,
-                'status'    =>  'backed-up',
+                'status'    =>  'exporting',
                 'backup-type'   =>  'full-backup',
                 'iaas_repository_id'    =>  $backupRepo->id
             ]);
