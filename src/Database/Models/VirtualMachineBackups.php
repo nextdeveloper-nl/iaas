@@ -103,6 +103,7 @@ class VirtualMachineBackups extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'uuid'  =>  'string',
         'name' => 'string',
         'description' => 'string',
         'path' => 'string',

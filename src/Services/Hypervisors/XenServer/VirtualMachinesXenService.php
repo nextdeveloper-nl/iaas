@@ -519,7 +519,12 @@ class VirtualMachinesXenService extends AbstractXenService
         return false;
     }
 
-    public static function exportToRepositoryInBackground(VirtualMachines $vm, Repositories $repositories, $exportName, VirtualMachineBackups $vmBackup): bool
+    public static function exportToRepositoryInBackground(
+        VirtualMachines $vm,
+        Repositories $repositories,
+        $exportName,
+        VirtualMachineBackups $vmBackup
+    ): bool
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
