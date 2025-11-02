@@ -8,6 +8,7 @@ use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 class SyncRepositoryService
 {
@@ -127,12 +128,16 @@ class SyncRepositoryService
              * This section is for custom VMS. They have exp- tag at the begining of the file.
              */
 
+            UserHelper::me();
+
             //  In this version the file should be in the database. If not then there is no such file.
             //  In this case we are just hashing the file and update it.
             $image = RepositoryImages::where('path', $file)->where('iaas_repository_id', $repoServer->id)->first();
 
             if($image) {
-                $hash = md5($repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file));
+                $file = $repoServer->vm_path . '/' . $image->filename;
+                $result = $repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file);
+                $hash = md5($result['output']);
 
                 $image->update([
                     'hash'  =>  $hash
@@ -217,7 +222,9 @@ class SyncRepositoryService
                         ->first();
 
                     if ($image) {
-                        $hash = md5($repoServer->performSSHCommand('xxh128sum ' . $file));
+                        $file = $repoServer->vm_path . '/' . $image->filename;
+                        $result = $repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file);
+                        $hash = md5($result['output']);
 
                         $command = 'du -shb ' . $file;
                         $size = self::performCommand($command, $repoServer);

@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\BackupJobs;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
@@ -99,12 +100,10 @@ class FinishBackupJob extends AbstractAction
 
             $hash = SyncRepositoryService::hashImage($repository, $image);
 
+            Log::info('[FinishBackupJob@handle] . Backup file hash is: ' . $hash);
+
             $image->update([
                 'hash' => $hash,
-            ]);
-
-            $vmBackup->update([
-                'iaas_repository_image_id'  =>  $image->id
             ]);
         }
 
