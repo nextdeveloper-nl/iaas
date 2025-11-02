@@ -107,7 +107,10 @@ class SyncRepositoryService
             logger()->info('[VirtualMachineImageService@hashImage] hashing file: ' . $repo->vm_path . '/' . $image->filename);
 
         //  Buradan devam edelim.
-        $command = 'xxh128sum ' . $repo->vm_path . '/' . $image->filename;
+        $command = 'echo ' . decrypt($repo->ssh_password) . ' | sudo -S xxh128sum ' . $repo->vm_path . '/' . $image->filename;
+
+        logger()->info('[VirtualMachineImageService@hashImage] Hashing image command is: ' . $command);
+
         $result = $repo->performSSHCommand($command);
 
         return $result['output'];

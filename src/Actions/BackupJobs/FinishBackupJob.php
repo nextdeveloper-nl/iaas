@@ -8,12 +8,15 @@ use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\Repositories\SynchronizeMachineImages;
+use NextDeveloper\IAAS\Actions\VirtualMachines\Delete;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Sync;
 use NextDeveloper\IAAS\Console\Commands\SyncRepositoryMachineImages;
 use NextDeveloper\IAAS\Console\Commands\SyncVirtualMachine;
 use NextDeveloper\IAAS\Database\Models\BackupJobs;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Helpers\VmBackupDataHelper;
 use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 use NextDeveloper\IAAS\Services\RepositoriesService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
@@ -95,16 +98,27 @@ class FinishBackupJob extends AbstractAction
 
         $isBackupExists = RepositoriesService::isBackupExists($repository, $vmBackup->filename);
 
+        $vmBackupData = new VmBackupDataHelper($vmBackup);
+
         if($isBackupExists) {
             $image = SyncRepositoryService::addOrUpdate($vmBackup->filename, $repository);
 
             $hash = SyncRepositoryService::hashImage($repository, $image);
 
+            $hash = explode(' ', $hash);
+
             Log::info('[FinishBackupJob@handle] . Backup file hash is: ' . $hash);
 
-            $image->update([
-                'hash' => $hash,
+            $vmBackup->update([
+                'hash'  =>  $hash[0],
+                'size'  =>  $image->size
             ]);
+
+            $clonedVm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                ->where('uuid', $vmBackupData->getData('cloned_vm')['uuid'])
+                ->first();
+
+            dispatch(new Delete($clonedVm));
         }
 
         Events::fire('backup-completed:NextDeveloper\IAAS\BackupJobs', $vmBackup);
