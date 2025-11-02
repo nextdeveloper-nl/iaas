@@ -107,9 +107,10 @@ class FinishBackupJob extends AbstractAction
 
             $hash = explode(' ', $hash);
 
-            Log::info('[FinishBackupJob@handle] . Backup file hash is: ' . $hash);
+            Log::info('[FinishBackupJob@handle] . Backup file hash is: ' . $hash[0]);
 
             $vmBackup->update([
+                'status'    =>  'backed-up',
                 'hash'  =>  $hash[0],
                 'size'  =>  $image->size
             ]);
