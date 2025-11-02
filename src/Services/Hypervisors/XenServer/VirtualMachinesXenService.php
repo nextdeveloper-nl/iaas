@@ -552,7 +552,7 @@ class VirtualMachinesXenService extends AbstractXenService
         //  This is the background version of the command with &
         $command = 'nohup bash -c \'xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
             'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName . ' &&' .
-            ' curl -X POST http://' . config('leo.internal_endpoint') . '/public/iaas/finalize-backup/' . $vmBackup->uuid . '\'' .
+            ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-backup/' . $vmBackup->uuid . '\'' .
             ' > /dev/null 2>&1 &';
 
         Log::info(__METHOD__ . ' Exporting with command: ' . $command);
