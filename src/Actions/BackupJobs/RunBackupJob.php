@@ -309,7 +309,7 @@ class RunBackupJob extends AbstractAction
                 }
             }
 
-            $this->setProgress(80, 'Exported VM to the default backup repository.');
+            $this->setProgress(80, 'Exporting VM to the repository started.');
         }
 
         if($this->shouldRunCheckpoint(90)) {
