@@ -274,35 +274,31 @@ class InitiateMultilevelBackupJob extends AbstractAction
 
             //  If the backup state is running and isBackupRunning is false. Maybe the backup is already finished ?
             //  We should check this.
-            if(BackupService::getBackupState($vmBackup) == 'running' && !$isBackupRunning) {
-                //
-            } else {
-                BackupService::setBackupState($vmBackup, 'running');
+            BackupService::setBackupState($vmBackup, 'running');
 
-                $backupFilename = $vmBackupHelper->setData(
-                    'backup_filename',
-                    $clonedVm->uuid . '.' . (new Carbon($clonedVm->created_at))->timestamp . '.pvm'
+            $backupFilename = $vmBackupHelper->setData(
+                'backup_filename',
+                $clonedVm->uuid . '.' . (new Carbon($clonedVm->created_at))->timestamp . '.pvm'
+            );
+
+            $exportPath = $vmBackupHelper->setData(
+                'export_path',
+                $backupRepo->local_ip_addr . ':' . $backupRepo->vm_path . '/' . $backupFilename
+            );
+
+            Log::debug('[RunBackupJob] Is backup running on step 2: ' . $isBackupRunning);
+
+            if(!$isBackupRunning) {
+                $this->setProgress(76, 'Backup is not running therefor I am starting ' .
+                    'the backup process');
+                //  This may take up to few hours.
+                //  We need to make sure that the job does not time out.
+                $backupResult = VirtualMachinesXenService::exportToRepositoryInBackground(
+                    vm: $clonedVm,
+                    repositories: $backupRepo,
+                    exportName: $backupFilename,
+                    vmBackup: $vmBackup,
                 );
-
-                $exportPath = $vmBackupHelper->setData(
-                    'export_path',
-                    $backupRepo->local_ip_addr . ':' . $backupRepo->vm_path . '/' . $backupFilename
-                );
-
-                Log::debug('[RunBackupJob] Is backup running on step 2: ' . $isBackupRunning);
-
-                if(!$isBackupRunning) {
-                    $this->setProgress(76, 'Backup is not running therefor I am starting ' .
-                        'the backup process');
-                    //  This may take up to few hours.
-                    //  We need to make sure that the job does not time out.
-                    $backupResult = VirtualMachinesXenService::exportToRepositoryInBackground(
-                        vm: $clonedVm,
-                        repositories: $backupRepo,
-                        exportName: $backupFilename,
-                        vmBackup: $vmBackup,
-                    );
-                }
             }
 
             $this->setProgress(80, 'Background backup job to repository started.');
