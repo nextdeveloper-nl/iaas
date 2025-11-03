@@ -264,6 +264,13 @@ class InitiateMultilevelBackupJob extends AbstractAction
         }
 
         if($this->shouldRunCheckpoint(80)) {
+            if(!$clonedVm) {
+                //  In this stage if we dont have the cloned VM we cannot continue.
+                $this->setFinishedWithError('Cloned VM object is missing. Cannot continue.');
+                Events::fire('failed-with-missing-data:NextDeveloper\IAAS\BackupJobs', $vmBackup);
+                return;
+            }
+
             $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
                 computeMember: $computeMember,
                 vmName: $clonedVm->name,
@@ -287,6 +294,8 @@ class InitiateMultilevelBackupJob extends AbstractAction
             );
 
             Log::debug('[RunBackupJob] Is backup running on step 2: ' . $isBackupRunning);
+
+            $vmBackup = $vmBackup->fresh();
 
             if(!$isBackupRunning) {
                 $this->setProgress(76, 'Backup is not running therefor I am starting ' .
