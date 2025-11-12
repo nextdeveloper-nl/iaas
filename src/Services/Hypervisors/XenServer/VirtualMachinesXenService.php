@@ -13,6 +13,7 @@ use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
@@ -456,8 +457,6 @@ class VirtualMachinesXenService extends AbstractXenService
             Log::error('[VirtualMachinesXenService@updateConfigurationIso] I am updating the' .
                 ' configuration ISO of the VM (' . $vm->name . '/' . $vm->uuid . ')');
 
-        $computeMember = VirtualMachinesService::getComputeMember($vm);
-
         //  Here if we have a central repository server we should move it to that repository
         $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
 
@@ -520,13 +519,61 @@ class VirtualMachinesXenService extends AbstractXenService
         return false;
     }
 
+    public static function exportToRepositoryInBackground(
+        VirtualMachines $vm,
+        Repositories $repositories,
+        $exportName,
+        VirtualMachineBackups $vmBackup
+    ): bool
+    {
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        if (config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@export] I am exporting the' .
+                ' VM (' . $vm->name . '/' . $vm->uuid . ') to default repo under name ' .
+                $exportName . '.backup from compute member' .
+                ' member (' . $computeMember->name . '/' . $computeMember->uuid . ')');
+
+        /**
+         * # Run the entire command in the background, ensuring it continues even after logout
+         * nohup bash -c '
+         *
+         * # 1️⃣ Export a virtual machine from XenServer by UUID
+         * xe vm-export \
+         * uuid=ac27e957-fec6-43e8-d083-c7cdac6f0094 \
+         * filename=/mnt/plusclouds-repo/2e4bdaca-cdc4-4665-9ace-564b1f0c265b/69abaf66-c4f0-4d87-bb12-934ac117fbb4.1761867357.pvm \
+         *
+         * # 2️⃣ If export succeeds (&&), send a POST request to notify completion
+         * && curl -X POST http://10.1.32.5:8011/public/iaas/finalize-backup/4171e717-7f97-4262-9707-d4f916b39b71
+         * ' \
+         *
+         * # Redirect all standard output (stdout) and error (stderr) to /dev/null (ignore all logs)
+         * > /dev/null 2>&1 \
+         *
+         * # Run the whole process in the background (asynchronously)
+         * &
+         */
+
+        //  This is the background version of the command with &
+        $command = 'nohup bash -c \'xe vm-export uuid=' . $vm->hypervisor_uuid . ' ' .
+            'filename=/mnt/plusclouds-repo/' . $repositories->uuid . '/' . $exportName . ' &&' .
+            ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-backup/' . $vmBackup->uuid . '\'' .
+            ' > /dev/null 2>&1 &';
+
+        Log::info(__METHOD__ . ' Exporting with command: ' . $command);
+
+        $result = self::performCommand($command, $computeMember);
+
+        return true;
+    }
+
     public static function exportToRepository(VirtualMachines $vm, Repositories $repositories, $exportName): bool
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
         //  Here we need to make sure that there are no export tasks running on the compute member.
         //  If there are, we need to wait until they are finished.
-        $isTaskRunning = self::isBackupRunning($computeMember, $vm);
+        $isTaskRunning = self::isBackupRunning($computeMember, $vm->name);
 
         if($isTaskRunning) {
             while ($isTaskRunning) {
@@ -535,7 +582,7 @@ class VirtualMachinesXenService extends AbstractXenService
                         ' backup task running for VM: ' . $vm->name . '/' . $vm->uuid);
 
                 sleep(10);
-                $isTaskRunning = self::isBackupRunning($computeMember, $vm);
+                $isTaskRunning = self::isBackupRunning($computeMember, $vm->name);
             }
 
             return true;
@@ -954,18 +1001,21 @@ class VirtualMachinesXenService extends AbstractXenService
         }
     }
 
-    private static function isBackupRunning($computeMember, $clonedVm)  : bool
+    public static function isBackupRunning($computeMember, $vmName)  : ?float
     {
         $runningTasks = ComputeMemberXenService::getRunningTasks($computeMember);
         $isBackupRunning = false;
 
+        Log::debug('[isBackupRunning] response: ' . print_r($runningTasks, true));
+
         foreach ($runningTasks as $task) {
+            Log::debug('[isBackupRunning] looking for: ' . 'Export of VM: ' . $vmName);
             $task['name-label'] = trim($task['name-label']);
-            if($task['name-label'] == 'Export of VM: ' . $clonedVm->name) {
-                return true;
+            if($task['name-label'] == 'Export of VM: ' . $vmName) {
+                return floatval($task['progress']);
             }
         }
 
-        return false;
+        return null;
     }
 }

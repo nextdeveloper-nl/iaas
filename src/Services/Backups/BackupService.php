@@ -42,6 +42,11 @@ class BackupService
             ->where('iaas_backup_job_id', $job->id)
             ->first();
 
+        if(!$backup) {
+            $vmBackup = self::createPendingBackup($vm, $job);
+            return $vmBackup->fresh();
+        }
+
         return $backup;
     }
 
@@ -62,6 +67,11 @@ class BackupService
             'iam_account_id'    =>  UserHelper::currentAccount()->id,
             'iam_user_id'   =>  UserHelper::currentUser()->id,
         ]);
+    }
+
+    public static function getBackupState(VirtualMachineBackups $backup)
+    {
+        return $backup->status;
     }
 
     public static function setBackupState(VirtualMachineBackups $backup, $state) : VirtualMachineBackups

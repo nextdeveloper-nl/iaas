@@ -20,6 +20,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action will scan compute member and sync all findings
@@ -41,7 +42,18 @@ class ScanVirtualMachines extends AbstractAction
 
     public function handle()
     {
+        UserHelper::setAdminAsCurrentUser();
+
         $this->setProgress(0, 'Scanning virtual machines started');
+
+        //  Features can be null, that is why we are checking it.
+        if($this->model->features) {
+            if(array_key_exists('scan_lock', $this->model->features)) {
+                $this->setFinished('There is a scan lock on the compute member, therefor I am' .
+                    ' stopping this ScanVirtualMachines Action.');
+                return;
+            }
+        }
 
         $this->scanXenVirtualMachines();
 
@@ -218,7 +230,14 @@ class ScanVirtualMachines extends AbstractAction
                     $checkVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
                         ->where('iaas_virtual_machine_id', $dbVm->id)
                         ->where('device_number', $vbdParams['userdevice'])
+                        ->withTrashed()
                         ->first();
+
+                    if($checkVdi) {
+                        if($checkVdi->trashed()) {
+                            $checkVdi->restore();
+                        }
+                    }
 
                     //  This happens when the VDI is migrated to another storage. We need to update the hypervisor_uuid
                     if($checkVdi) {
@@ -256,7 +275,13 @@ class ScanVirtualMachines extends AbstractAction
                     $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
                         ->where('iaas_virtual_machine_id', $dbVm->id)
                         ->where('mac_addr', $vifParams['MAC'])
+                        ->withTrashed()
                         ->first();
+
+                    if($dbVif) {
+                        if($dbVif->trashed())
+                            $dbVif->restore();
+                    }
                 }
 
                 $connectedInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
@@ -305,10 +330,38 @@ class ScanVirtualMachines extends AbstractAction
                     'iaas_virtual_machine_id'   =>  $dbVm->id
                 ];
 
-                if($dbVif)
-                    $dbVif->updateQuietly($data);
-                else
-                    VirtualNetworkCardsService::create($data);
+                //  Check if there is another VIF on same device
+                $vifOnSameDevice = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_virtual_machine_id', $dbVm->id)
+                    ->where('device_number', $data['device_number'])
+                    ->first();
+
+                if($vifOnSameDevice) {
+                    if($vifOnSameDevice->id != $dbVif->id)
+                        $vifOnSameDevice->forceDelete();
+                }
+
+                $vifOnSameMac = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_virtual_machine_id', $dbVm->id)
+                    ->where('mac_addr', $data['mac_addr'])
+                    ->first();
+
+                if($vifOnSameMac) {
+                    if($vifOnSameMac->id != $dbVif->id)
+                        $vifOnSameMac->forceDelete();
+                }
+
+                try {
+                    if($dbVif)
+                        $dbVif->updateQuietly($data);
+                    else {
+
+                        VirtualNetworkCardsService::create($data);
+                    }
+                } catch (\Exception $exception) {
+                    dump($dbVif);
+                    dd($exception->getMessage());
+                }
             }
         }
 

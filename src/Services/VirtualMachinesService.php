@@ -48,6 +48,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    public static function get(VirtualMachinesQueryFilter $filter = null, array $params = []): Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        return parent::get($filter, $params);
+    }
+
     public static function getCdrom(VirtualMachines $vm) : ?VirtualDiskImages
     {
         return VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)

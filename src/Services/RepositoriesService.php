@@ -2,7 +2,10 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractRepositoriesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -35,5 +38,29 @@ class RepositoriesService extends AbstractRepositoriesService
             ->where('iaas_cloud_node_id', $vm->iaas_cloud_node_id)
             ->where('is_backup_repository', false)
             ->first();
+    }
+
+    public static function deleteRepoImage(RepositoryImages $image)
+    {
+        $repoServer = RepositoryImagesService::getRepositoryOfImage($image);
+
+        $command = 'rm ' . $image->path;
+        $result = $repoServer->performSSHCommand($command);
+
+        //  Here we will do the check.
+    }
+
+    public static function isBackupExists(Repositories $repo, $filename) : bool
+    {
+        if(config('leo.debug.iaas.repo'))
+            Log::info('[RepositoriesService@checkBackup] Checking the backup file of ' . $filename .
+                ' in the repository: ' . $repo->name);
+
+        $command = 'ls ' . $repo->vm_path . '/' . $filename;
+        $result = $repo->performSSHCommand($command);
+
+        if(Str::contains($result['output'], $filename)) return true;
+
+        return false;
     }
 }

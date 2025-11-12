@@ -24,17 +24,26 @@ class SynchronizeIsos extends AbstractAction
         'cannot-sync-isos:NextDeveloper\IAAS\Repositories'
     ];
 
-    public function __construct(Repositories $repo)
+    public const PARAMETERS = [
+        'filename' => [
+            'type'          =>  'string',
+            'validation'    =>  'nullable|string'
+        ],
+    ];
+
+    public function __construct(Repositories $repo, $params = null, $previousAction = null)
     {
         $this->model = $repo;
 
         $this->queue = 'iaas';
 
-        parent::__construct();
+        parent::__construct($params, $previousAction);
     }
 
     public function handle()
     {
+        UserHelper::setAdminAsCurrentUser();
+
         $this->setProgress(0, 'Syncronizing ISO images in repository.');
 
         Events::fire('syncing-isos:NextDeveloper\IAAS\Repositories', $this->model);
@@ -68,6 +77,62 @@ class SynchronizeIsos extends AbstractAction
 
         $this->setProgress(20, 'Retrieving ISO images in repository.');
 
+        if($this->params['filename']) {
+            $this->syncFile($this->params['filename']);
+        } else {
+            $this->syncAllImages();
+        }
+
+        $this->setFinished('Storage member scanned and synced');
+    }
+
+    private function syncFile($file)
+    {
+        $dbImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_repository_id', $this->model->id)
+            ->where('is_iso', true)
+            ->where('filename', $file)
+            ->first();
+
+        if(!$dbImage) {
+            $iamAccountId = $this->model->iam_account_id;
+            $iamUserId = $this->model->iam_user_id;
+
+            $isPublic = $this->model->is_public;
+
+            if(Str::startsWith($file, 'config-')) {
+                $uuid = str_replace('config-', '', $file);
+                $uuid = str_replace('.iso', '', $uuid);
+
+                $vm = \NextDeveloper\IAAS\Database\Models\VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('uuid', $uuid)
+                    ->first();
+
+                if($vm) {
+                    $iamAccountId = $vm->iam_account_id;
+                    $iamUserId = $vm->iam_user_id;
+                    $isPublic = false;
+                }
+            }
+
+            $dbImage = RepositoryImagesService::create([
+                'iaas_repository_id'    =>  $this->model->id,
+                'name'                  =>  Str::remove('.iso', $file),
+                'filename'              =>  $file,
+                'path'                  =>  $this->model->iso_path . '/' . $file,
+                'is_iso'                =>  true,
+                'is_cloudinit_image'         =>  Str::startsWith($file, 'config-'),
+                'is_public'             =>  $isPublic,
+                'ram'                   =>  1,
+                'cpu'                   =>  2,
+                'iam_account_id'        =>  $iamAccountId,
+                'iam_user_id'           =>  $iamUserId
+            ]);
+        }
+    }
+
+    private function syncAllImages()
+    {
         $isoImages = SyncRepositoryService::getIsoImages($this->model);
 
         $this->setProgress(20, 'Syncing ISO images in repository.');
@@ -79,51 +144,9 @@ class SynchronizeIsos extends AbstractAction
         foreach ($isoImages as $image) {
             $this->setProgress(20 + ceil($now), 'Syncing ISO image: ' . $image);
 
-            $dbImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
-                ->where('iaas_repository_id', $this->model->id)
-                ->where('is_iso', true)
-                ->where('filename', $image)
-                ->first();
-
-            if(!$dbImage) {
-                $iamAccountId = $this->model->iam_account_id;
-                $iamUserId = $this->model->iam_user_id;
-
-                $isPublic = $this->model->is_public;
-
-                if(Str::startsWith($image, 'config-')) {
-                    $uuid = str_replace('config-', '', $image);
-                    $uuid = str_replace('.iso', '', $uuid);
-
-                    $vm = \NextDeveloper\IAAS\Database\Models\VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-                        ->where('uuid', $uuid)
-                        ->first();
-
-                    if($vm) {
-                        $iamAccountId = $vm->iam_account_id;
-                        $iamUserId = $vm->iam_user_id;
-                        $isPublic = false;
-                    }
-                }
-
-                $dbImage = RepositoryImagesService::create([
-                    'iaas_repository_id'    =>  $this->model->id,
-                    'name'                  =>  Str::remove('.iso', $image),
-                    'filename'              =>  $image,
-                    'path'                  =>  $this->model->iso_path . '/' . $image,
-                    'is_iso'                =>  true,
-                    'is_cloudinit_image'         =>  Str::startsWith($image, 'config-'),
-                    'is_public'             =>  $isPublic,
-                    'ram'                   =>  1,
-                    'cpu'                   =>  2,
-                    'iam_account_id'        =>  $iamAccountId,
-                    'iam_user_id'           =>  $iamUserId
-                ]);
-            }
+            self::syncFile($image);
 
             $now = $now + $step;
         }
-
-        $this->setFinished('Storage member scanned and synced');
     }
 }

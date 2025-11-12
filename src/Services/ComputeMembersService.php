@@ -169,4 +169,5 @@ class ComputeMembersService extends AbstractComputeMembersService
 
         return ComputeMemberXenService::checkIpmiService($computeMember, $reDeploy);
     }
+
 }

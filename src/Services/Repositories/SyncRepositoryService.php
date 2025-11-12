@@ -8,6 +8,7 @@ use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 class SyncRepositoryService
 {
@@ -42,25 +43,25 @@ class SyncRepositoryService
         return $tempImages;
     }
 
-    public static function syncRepoImage(RepositoryImages $images) : RepositoryImages
+    public static function syncRepoImage(RepositoryImages $images, RepositoryImages $image) : RepositoryImages
     {
         if(config('leo.debug.iaas.repo'))
             Log::info('[SyncService@syncRepoImages] Starting to sync the images for the' .
-                ' repository: ' . $images->name);
+                ' repository: ' . $image->name);
 
-        $repo = RepositoryImagesService::getRepositoryOfImage($images);
+        $repo = RepositoryImagesService::getRepositoryOfImage($image);
 
-        $command = 'stat -c %s ' . $repo->vm_path . '/' . $images->filename;
+        $command = 'stat -c %s ' . $repo->vm_path . '/' . $image->filename;
         $result = self::performCommand($command, $repo);
         $size = $result['output'];
 
         $sizeInGb = ceil($size / 1000 / 1000);
 
-        $images->updateQuietly([
+        $image->updateQuietly([
             'size'  =>  $sizeInGb
         ]);
 
-        return $images;
+        return $image;
     }
 
     public static function syncRepoImages(Repositories $repo) : Repositories
@@ -100,6 +101,21 @@ class SyncRepositoryService
         }
     }
 
+    public static function hashImage(Repositories $repo, RepositoryImages $image) : string
+    {
+        if(config('leo.debug.iaas.repo'))
+            logger()->info('[VirtualMachineImageService@hashImage] hashing file: ' . $repo->vm_path . '/' . $image->filename);
+
+        //  Buradan devam edelim.
+        $command = 'echo ' . decrypt($repo->ssh_password) . ' | sudo -S xxh128sum ' . $repo->vm_path . '/' . $image->filename;
+
+        logger()->info('[VirtualMachineImageService@hashImage] Hashing image command is: ' . $command);
+
+        $result = $repo->performSSHCommand($command);
+
+        return $result['output'];
+    }
+
     public static function addOrUpdate($file, Repositories $repoServer) : ?RepositoryImages
     {
         if(config('leo.debug.iaas.repo'))
@@ -115,12 +131,16 @@ class SyncRepositoryService
              * This section is for custom VMS. They have exp- tag at the begining of the file.
              */
 
+            UserHelper::me();
+
             //  In this version the file should be in the database. If not then there is no such file.
             //  In this case we are just hashing the file and update it.
             $image = RepositoryImages::where('path', $file)->where('iaas_repository_id', $repoServer->id)->first();
 
             if($image) {
-                $hash = md5($repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file));
+                $file = $repoServer->vm_path . '/' . $image->filename;
+                $result = $repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file);
+                $hash = md5($result['output']);
 
                 $image->update([
                     'hash'  =>  $hash
@@ -169,7 +189,7 @@ class SyncRepositoryService
 
                     //  Böyle bir imaj yok ise kayıt et
                     if (!$image) {
-                        RepositoryImagesService::create([
+                        $image = RepositoryImagesService::create([
                             'iam_account_id' => $repoServer->iam_account_id,
                             'iam_user_id' => $repoServer->iam_user_id,
                             'iaas_repository_id' => $repoServer->id,
@@ -205,7 +225,9 @@ class SyncRepositoryService
                         ->first();
 
                     if ($image) {
-                        $hash = md5($repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file));
+                        $file = $repoServer->vm_path . '/' . $image->filename;
+                        $result = $repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file);
+                        $hash = md5($result['output']);
 
                         $command = 'du -shb ' . $file;
                         $size = self::performCommand($command, $repoServer);

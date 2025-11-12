@@ -49,7 +49,9 @@ class RepositoryImagesService extends AbstractRepositoryImagesService
 
     public static function syncRepoImageByFilename($filename, Repositories $repo, $type = 'iso', $isActive = true)
     {
-        (new SynchronizeIsos($repo))->handle();
+        dispatch(new SynchronizeIsos($repo, [
+            'filename'  =>  $filename
+        ]));
 
         return RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_repository_id', $repo->id)
