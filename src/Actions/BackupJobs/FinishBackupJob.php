@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
+use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\Repositories\SynchronizeMachineImages;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Delete;
@@ -21,6 +22,7 @@ use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 use NextDeveloper\IAAS\Services\RepositoriesService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachineBackupsService;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -76,6 +78,17 @@ class FinishBackupJob extends AbstractAction
         $this->setProgress(0, 'Starting for backup job: ' . $this->model->uuid);
 
         UserHelper::setAdminAsCurrentUser();
+
+        $originalVm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $this->model->object_id)
+            ->first();
+
+        $vmOwner = VirtualMachinesService::getOwner($originalVm);
+
+        (new Communicate($vmOwner))->sendNotification(
+            subject: 'Backup is finished for VM: ' . $originalVm->name,
+            message: 'The backup job for virtual machine: ' . $originalVm->name
+        );
 
         /**
          * Here we should do;

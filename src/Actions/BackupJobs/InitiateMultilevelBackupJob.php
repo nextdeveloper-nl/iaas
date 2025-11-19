@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Backup;
 use NextDeveloper\IAAS\Database\Models\Accounts;
@@ -21,6 +22,7 @@ use NextDeveloper\IAAS\Helpers\VmBackupDataHelper;
 use NextDeveloper\IAAS\Services\BackupJobsService;
 use NextDeveloper\IAAS\Services\Backups\BackupService;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
+use NextDeveloper\IAAS\Services\ComputePoolsService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
@@ -95,6 +97,23 @@ class InitiateMultilevelBackupJob extends AbstractAction
 
     private function backupVirtualMachine($vm)
     {
+        $poolType = VirtualMachinesService::getPoolType($vm);
+
+        $vmOwner = VirtualMachinesService::getOwner($vm);
+
+        if($poolType == 'one') {
+            $this->setFinished('VM is in One Pool, therefore multilevel backup cannot be performed.');
+
+            (new Communicate($vmOwner))->sendNotification(
+                subject: 'Multilevel Backup not possible',
+                message: 'The backup for VM: ' . $vm->name . ' could not be performed because the VM is in pool ' .
+                'which the type is "One". In this pool, Virtual Machines cannot be backed up if they are ' .
+                'not in shutdown state.'
+            );
+
+            return;
+        }
+
         $vmBackup = BackupService::getPendingBackup($vm, $this->model);
         BackupService::setBackupState($vmBackup, 'restarting');
 
@@ -115,6 +134,11 @@ class InitiateMultilevelBackupJob extends AbstractAction
             $this->setFinished('I cannot complete this process because the VM is already deleted');
             return;
         }
+
+        (new Communicate($vmOwner))->sendNotification(
+            subject: 'Backup is starting',
+            message: 'The backup for VM: ' . $vm->name . ' is starting now.'
+        );
 
         //  Converting back to latest state just incase we need to rerun this job.
         $snapshot = $vmBackupHelper->setData('snapshot', null);
@@ -257,7 +281,8 @@ class InitiateMultilevelBackupJob extends AbstractAction
             $vifs = VirtualMachinesXenService::getVifs($clonedVm);
 
             foreach ($vifs as $vif) {
-                VirtualMachinesXenService::destroyVif($clonedVm, $vif['uuid']);
+                if(array_key_exists('uuid', $vif))
+                    VirtualMachinesXenService::destroyVif($clonedVm, $vif['uuid']);
             }
 
             $this->setProgress(75, 'Removed all the VIFs of cloned VM. Starting to export it.');

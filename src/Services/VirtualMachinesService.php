@@ -34,6 +34,7 @@ use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
 use NextDeveloper\IAM\Database\Models\Accounts;
+use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -51,6 +52,16 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     public static function get(VirtualMachinesQueryFilter $filter = null, array $params = []): Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         return parent::get($filter, $params);
+    }
+
+    public static function getOwnerAccount(VirtualMachines $vm) : ?Accounts
+    {
+        return UserHelper::getAccountById($vm->iam_account_id);
+    }
+
+    public static function getOwner(VirtualMachines $vm) : ?Users
+    {
+        return UserHelper::getUserWithId($vm->iam_user_id);
     }
 
     public static function getCdrom(VirtualMachines $vm) : ?VirtualDiskImages
@@ -483,6 +494,13 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $cp = self::getComputePool($vm);
 
         return $cp->pool_type == 'one';
+    }
+
+    public static function getPoolType(VirtualMachines $vm)
+    {
+        $cp = self::getComputePool($vm);
+
+        return $cp->pool_type;
     }
 
     public static function canUpdateDisk(VirtualMachines $vm, $toDisk) {
