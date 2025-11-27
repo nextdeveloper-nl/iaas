@@ -119,7 +119,7 @@ class SyncRepositoryService
     public static function addOrUpdate($file, Repositories $repoServer) : ?RepositoryImages
     {
         if(config('leo.debug.iaas.repo'))
-            logger()->info('[VirtualMachineImageService@addOrUpdate] File: ' . $file);
+            logger()->info('[VirtualMachineImageService@addOrUpdate] File: ' . print_r($file, true));
 
         $image = null;
 
