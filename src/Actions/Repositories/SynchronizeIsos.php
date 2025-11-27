@@ -33,6 +33,9 @@ class SynchronizeIsos extends AbstractAction
 
     public function __construct(Repositories $repo, $params = null, $previousAction = null)
     {
+        //  We are putting this here because we should also save the action model with root user
+        UserHelper::setAdminAsCurrentUser();
+
         $this->model = $repo;
 
         $this->queue = 'iaas';
@@ -42,8 +45,6 @@ class SynchronizeIsos extends AbstractAction
 
     public function handle()
     {
-        UserHelper::setAdminAsCurrentUser();
-
         $this->setProgress(0, 'Syncronizing ISO images in repository.');
 
         Events::fire('syncing-isos:NextDeveloper\IAAS\Repositories', $this->model);
