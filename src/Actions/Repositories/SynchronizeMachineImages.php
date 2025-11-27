@@ -52,7 +52,7 @@ class SynchronizeMachineImages extends AbstractAction
             return;
         }
 
-        SyncRepositoryService::syncRepoImage($this->model, $this);
+        SyncRepositoryService::syncRepoImages($this->model);
 
         Events::fire('cannot-sync-machine-images:NextDeveloper\IAAS\StorageMembers', $this->model);
 
