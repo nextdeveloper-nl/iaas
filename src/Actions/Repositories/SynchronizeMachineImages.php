@@ -7,6 +7,7 @@ use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action will scan compute member and sync all findings
@@ -21,6 +22,8 @@ class SynchronizeMachineImages extends AbstractAction
 
     public function __construct(Repositories $repo, $params = null, $previous = null)
     {
+        UserHelper::setAdminAsCurrentUser();
+
         $this->model = $repo;
 
         $this->queue = 'iaas';

@@ -78,8 +78,10 @@ class SynchronizeIsos extends AbstractAction
 
         $this->setProgress(20, 'Retrieving ISO images in repository.');
 
-        if($this->params['filename']) {
-            $this->syncFile($this->params['filename']);
+        if($this->params) {
+            if(array_key_exists('filename', $this->params)) {
+                $this->syncFile($this->params['filename']);
+            }
         } else {
             $this->syncAllImages();
         }
