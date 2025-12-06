@@ -14,6 +14,7 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\ComputeMembersObserver;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
 use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\HasObject;
 
 /**
  * ComputeMembers model.
@@ -65,7 +66,7 @@ use Illuminate\Notifications\Notifiable;
  */
 class ComputeMembers extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
     use SoftDeletes;
     use SSHable, Agentable;
 
@@ -290,6 +291,7 @@ class ComputeMembers extends Model
             },
         );
     }
+
 
 
 
