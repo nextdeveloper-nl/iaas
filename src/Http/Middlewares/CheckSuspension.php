@@ -23,11 +23,11 @@ class CheckSuspension
             if($request->getMethod() != 'GET'){
                 return response()->json([
                     'errors' => [
-                        'status'    => 401,
+                        'status'    => 403,
                         'message'   => 'Suspended account',
                         'details'   => 'Cannot make this request, because you account is suspended.'
                     ],
-                ], 401);
+                ], 403);
             }
         }
 

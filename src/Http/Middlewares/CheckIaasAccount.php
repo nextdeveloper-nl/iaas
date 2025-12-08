@@ -26,11 +26,11 @@ class CheckIaasAccount
         if(!$iaasAccount->is_service_enabled) {
             return response()->json([
                 'errors' => [
-                    'status'    => 401,
+                    'status'    => 403,
                     'message'   => 'IAAS services are not enabled for this account',
                     'details'   => 'Please contact support to enable IAAS services for your account.'
                 ],
-            ], 401);
+            ], 403);
         }
 
         /** @noinspection $next **/

@@ -24,11 +24,11 @@ class CheckEligibility
             if(!$iamAccount->common_country_id || !$iamUser->is_profile_verified) {
                 return response()->json([
                     'errors' => [
-                        'status'    => 401,
+                        'status'    => 403,
                         'message'   => 'Cannot use infrastructure without country',
                         'details'   => 'Due to laws and regulations, to use infrastructure services you should have a validated account with a validated user.'
                     ],
-                ], 401);
+                ], 403);
             }
         }
 
