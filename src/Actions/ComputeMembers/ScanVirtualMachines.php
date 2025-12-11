@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
@@ -48,9 +49,19 @@ class ScanVirtualMachines extends AbstractAction
 
         //  Features can be null, that is why we are checking it.
         if($this->model->features) {
-            if(array_key_exists('scan_lock', $this->model->features)) {
+            if(array_key_exists('scan-lock', $this->model->features)) {
                 $this->setFinished('There is a scan lock on the compute member, therefor I am' .
                     ' stopping this ScanVirtualMachines Action.');
+                return;
+            }
+        }
+
+        $runningTasks = ComputeMemberXenService::getRunningTasks($this->model);
+
+        foreach ($runningTasks as $task) {
+            if(Str::contains($task['name-label'], 'import', true)) {
+                $this->setFinished('There is an import process for this compute member, therefore I cannot ' .
+                    'scan. If I continue to scan I will create wrong data in database.');
                 return;
             }
         }
