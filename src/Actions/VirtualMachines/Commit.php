@@ -54,7 +54,7 @@ class Commit extends AbstractAction
     public $timeout = 3600;
 
     public const PARAMS = [
-        'is_lazy_import'  =>  'boolean',
+        'is_lazy_deploy'  =>  'boolean',
     ];
 
     public function __construct(VirtualMachines $vm, $params = null, $previous = null)
@@ -64,11 +64,11 @@ class Commit extends AbstractAction
         $this->queue = 'iaas';
 
         if($params) {
-            if(!array_key_exists('is_lazy_import', $params)) {
-                $params['is_lazy_import'] = false;
+            if(!array_key_exists('is_lazy_deploy', $params)) {
+                $params['is_lazy_deploy'] = false;
             }
         } else {
-            $params['is_lazy_import'] = false;
+            $params['is_lazy_deploy'] = false;
         }
 
         parent::__construct($params, $previous);
@@ -77,6 +77,10 @@ class Commit extends AbstractAction
     public function handle()
     {
         $this->setProgress(0, 'Committing virtual machine...');
+
+        if($this->params['is_lazy_deploy']) {
+            $this->setProgress(0, 'Lazy deploying virtual machine...');
+        }
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -420,13 +424,13 @@ class Commit extends AbstractAction
 
         $uuid = '';
 
-        if($this->params['is_lazy_import']) {
+        if($this->params['is_lazy_deploy']) {
             $uuid = ComputeMemberXenService::importVirtualMachine(
                 computeMember: $computeMember,
                 volume: $volume,
                 image: $image,
                 vm: $vm,
-                isBackgroundImport: $this->params['is_lazy_import'],
+                isLazyDeploy: $this->params['is_lazy_deploy'],
                 vmUuid: $vm->uuid
             );
         } else {

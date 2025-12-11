@@ -964,7 +964,7 @@ physical interfaces and vlans of compute member');
         StorageVolumes $volume,
         RepositoryImages $image,
         VirtualMachines $vm,
-        bool $isBackgroundImport = false,
+        bool $isLazyDeploy = false,
         string $vmUuid = null
     )
     {
@@ -1007,7 +1007,7 @@ physical interfaces and vlans of compute member');
             ->where('iaas_storage_volume_id', $volume->id)
             ->first();
 
-        if(!$isBackgroundImport) {
+        if(!$isLazyDeploy) {
             $command = 'xe vm-import ';
             $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
             $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
