@@ -9,6 +9,7 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
+use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
@@ -21,6 +22,7 @@ use NextDeveloper\IAAS\Exceptions\SynchronizationException;
 use NextDeveloper\IAAS\Helpers\NetworkCalculationHelper;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
+use NextDeveloper\IAAS\Services\ComputePoolsService;
 use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
@@ -961,6 +963,7 @@ physical interfaces and vlans of compute member');
         ComputeMembers $computeMember,
         StorageVolumes $volume,
         RepositoryImages $image,
+        VirtualMachines $vm,
         bool $isBackgroundImport = false,
         string $vmUuid = null
     )
@@ -1012,11 +1015,21 @@ physical interfaces and vlans of compute member');
             Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
                 'command: ' . $command);
         } else {
+            $vmName = $vm->uuid;
+
+            if(!ComputePoolsService::isIso27001Enabled(
+                ComputeMembersService::getComputePool($computeMember)
+            )) {
+                $vmName = $vm->name;
+            }
+
             $command = 'xe vm-import ';
             $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
-            $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid . ' &&' .
-            ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-commit/' . $vmUuid . '\'' .
-            ' > /dev/null 2>&1 &';
+            $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
+            $command .= ' | xargs -T {} xe vm-param-set uuid={} name-label="' . $vmName . '"';
+            $command .= '&&';
+            $command .= ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-commit/' . $vmUuid . '\'';
+            $command .= ' > /dev/null 2>&1 &';
 
             Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
                 'command: ' . $command);

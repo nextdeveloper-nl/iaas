@@ -425,6 +425,7 @@ class Commit extends AbstractAction
                 computeMember: $computeMember,
                 volume: $volume,
                 image: $image,
+                vm: $vm,
                 isBackgroundImport: $this->params['is_lazy_import'],
                 vmUuid: $vm->uuid
             );
@@ -433,6 +434,7 @@ class Commit extends AbstractAction
                 computeMember: $computeMember,
                 volume: $volume,
                 image: $image,
+                vm: $vm,
             );
         }
 
