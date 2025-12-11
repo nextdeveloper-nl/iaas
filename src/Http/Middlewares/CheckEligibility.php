@@ -25,7 +25,7 @@ class CheckEligibility
                 return response()->json([
                     'errors' => [
                         'status'    => 403,
-                        'message'   => 'Cannot use infrastructure without country',
+                        'message'   => 'Cannot use infrastructure without country or validated profile.',
                         'details'   => 'Due to laws and regulations, to use infrastructure services you should have a validated account with a validated user.'
                     ],
                 ], 403);

@@ -960,7 +960,9 @@ physical interfaces and vlans of compute member');
     public static function importVirtualMachine(
         ComputeMembers $computeMember,
         StorageVolumes $volume,
-        RepositoryImages $image
+        RepositoryImages $image,
+        bool $isBackgroundImport = false,
+        string $vmUuid = null
     )
     {
         if(config('leo.debug.iaas.compute_members'))
@@ -1002,12 +1004,23 @@ physical interfaces and vlans of compute member');
             ->where('iaas_storage_volume_id', $volume->id)
             ->first();
 
-        $command = 'xe vm-import ';
-        $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
-        $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
+        if(!$isBackgroundImport) {
+            $command = 'xe vm-import ';
+            $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
+            $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
 
-        Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
-            'command: ' . $command);
+            Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
+                'command: ' . $command);
+        } else {
+            $command = 'xe vm-import ';
+            $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
+            $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid . ' &&' .
+            ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-commit/' . $vmUuid . '\'' .
+            ' > /dev/null 2>&1 &';
+
+            Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
+                'command: ' . $command);
+        }
 
         $result = self::performCommand($command, $computeMember);
 

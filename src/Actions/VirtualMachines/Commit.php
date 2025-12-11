@@ -53,13 +53,17 @@ class Commit extends AbstractAction
 
     public $timeout = 3600;
 
-    public function __construct(VirtualMachines $vm)
+    public const PARAMS = [
+        'is_background_import'  =>  'boolean',
+    ];
+
+    public function __construct(VirtualMachines $vm, $params = null, $previous = null)
     {
         $this->model = $vm;
 
         $this->queue = 'iaas';
 
-        parent::__construct();
+        parent::__construct($params, $previous);
     }
 
     public function handle()
@@ -106,7 +110,17 @@ class Commit extends AbstractAction
             $this->importVirtualMachine(10);
         } else {
             $this->setProgress(10, 'Virtual machine already imported, ' .
-                'skipping to disk configuration');
+                'skipping to disk configuration and continue with the configuration');
+
+            $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+            $this->postImportConfiguration(
+                vm: $vm,
+                computeMember: $computeMember,
+                step: 14
+            );
+
+            ComputeMemberXenService::updateMemberInformation($computeMember);
         }
 
         //  We need to update CPU and RAM
@@ -378,6 +392,7 @@ class Commit extends AbstractAction
         switch ($computePool->virtualization) {
             case 'xenserver-8.2':
                 $uuid = $this->importXenServer($vm, $computeMember, $repositoryServer, $storageVolume, $machineImage, $step);
+                $this->postImportConfiguration($vm, $computeMember, $step);
                 break;
         }
 
@@ -394,8 +409,30 @@ class Commit extends AbstractAction
 
         $this->setProgress($step + 5, 'Importing virtual machine image');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 5 . '] | Importing virtual machine image');
-        $uuid = ComputeMemberXenService::importVirtualMachine($computeMember, $volume, $image);
 
+        $uuid = '';
+
+        if($this->params['is_background_import']) {
+            $uuid = ComputeMemberXenService::importVirtualMachine(
+                computeMember: $computeMember,
+                volume: $volume,
+                image: $image,
+                isBackgroundImport: $this->params->isBackgroundImport,
+                vmUuid: $vm->uuid
+            );
+        } else {
+            $uuid = ComputeMemberXenService::importVirtualMachine(
+                computeMember: $computeMember,
+                volume: $volume,
+                image: $image,
+            );
+        }
+
+        return true;
+    }
+
+    private function postImportConfiguration($vm, $computeMember, $step)
+    {
         $this->setProgress($step + 6, 'Updating virtual machine parameters');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 6 . '] | Updating virtual machine parameters');
         $vmParams = VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
@@ -421,8 +458,6 @@ class Commit extends AbstractAction
 
         ComputeMemberXenService::setVmXenstoreData('api', config('app.url'), $vm, $computeMember);
         ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
-
-        return true;
     }
 
     private function setupXenDisks($step = 0)
