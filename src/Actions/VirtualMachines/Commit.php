@@ -400,7 +400,7 @@ class Commit extends AbstractAction
         switch ($computePool->virtualization) {
             case 'xenserver-8.2':
                 $uuid = $this->importXenServer($vm, $computeMember, $repositoryServer, $storageVolume, $machineImage, $step);
-                $this->postImportConfiguration($vm, $computeMember, $step);
+                $this->postImportConfiguration($vm, $computeMember, $uuid, $machineImage, $repositoryServer, $step);
                 break;
         }
 
@@ -436,11 +436,25 @@ class Commit extends AbstractAction
             );
         }
 
-        return true;
+        return $uuid;
     }
 
-    private function postImportConfiguration($vm, $computeMember, $step)
+    private function postImportConfiguration($vm, $computeMember, $uuid = null, $image = null, $repo = null, $step)
     {
+        if(!$uuid) {
+            //  This means that we are running postImportConfiguration because the VM is imported already and
+            //  we need to rerun the import process, and running the import again.
+
+            //  Here we are assuming that the uuid is pushed by the hypervisor to API by triggering the API when
+            //  the import is finished. Therefore the hypervisor_uuid should be in the $vm object.
+
+            if(!$vm->hypervisor_uuid) {
+                $this->setFinishedWithError('We expected this VM (' . $vm->uuid . ') to be imported, ' .
+                    'and hypervisor_uuid should be set. But that is not the case, therefore we are stopping ' .
+                    'for import.');
+            }
+        }
+
         $this->setProgress($step + 6, 'Updating virtual machine parameters');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 6 . '] | Updating virtual machine parameters');
         $vmParams = VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
