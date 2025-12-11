@@ -54,7 +54,7 @@ class Commit extends AbstractAction
     public $timeout = 3600;
 
     public const PARAMS = [
-        'is_background_import'  =>  'boolean',
+        'is_lazy_import'  =>  'boolean',
     ];
 
     public function __construct(VirtualMachines $vm, $params = null, $previous = null)
@@ -62,6 +62,10 @@ class Commit extends AbstractAction
         $this->model = $vm;
 
         $this->queue = 'iaas';
+
+        if(!array_key_exists('is_lazy_import', $params)) {
+            $params['is_lazy_import'] = false;
+        }
 
         parent::__construct($params, $previous);
     }
@@ -412,7 +416,7 @@ class Commit extends AbstractAction
 
         $uuid = '';
 
-        if($this->params['is_background_import']) {
+        if($this->params['is_lazy_import']) {
             $uuid = ComputeMemberXenService::importVirtualMachine(
                 computeMember: $computeMember,
                 volume: $volume,
