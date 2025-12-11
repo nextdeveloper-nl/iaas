@@ -63,7 +63,11 @@ class Commit extends AbstractAction
 
         $this->queue = 'iaas';
 
-        if(!array_key_exists('is_lazy_import', $params)) {
+        if($params) {
+            if(!array_key_exists('is_lazy_import', $params)) {
+                $params['is_lazy_import'] = false;
+            }
+        } else {
             $params['is_lazy_import'] = false;
         }
 
