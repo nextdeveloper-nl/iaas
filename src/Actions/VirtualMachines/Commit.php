@@ -135,6 +135,8 @@ class Commit extends AbstractAction
          * ############### FIRST PART OF IMPORT FINISHES
          */
 
+        $vm = $vm->fresh();
+
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
         $repoImage = RepositoryImages::withoutGlobalScopes()->where('id', $vm->iaas_repository_image_id)->first();
