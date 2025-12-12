@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
+use App\Services\IAAS\RepositoryImagesServices;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
@@ -24,10 +25,12 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers\UtilizeComputeMembers;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes\UtilizeStorageVolumes;
+use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\IpAddressesService;
+use NextDeveloper\IAAS\Services\RepositoriesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -120,20 +123,39 @@ class Commit extends AbstractAction
         if (!$vm->hypervisor_uuid) {
             $this->setProgress(10, 'Importing virtual machine to the related compute member');
             $this->importVirtualMachine(10);
-        } else {
-            $this->setProgress(10, 'Virtual machine already imported, ' .
-                'skipping to disk configuration and continue with the configuration');
 
-            $computeMember = VirtualMachinesService::getComputeMember($vm);
-
-            $this->postImportConfiguration(
-                vm: $vm,
-                computeMember: $computeMember,
-                step: 14
-            );
-
-            ComputeMemberXenService::updateMemberInformation($computeMember);
+            if($this->params['is_lazy_deploy']) {
+                //  Since this deployment model is a lazy deploy at this point the deployment should stop.
+                $this->setFinished('Lazy deploying virtual machine.');
+                return;
+            }
         }
+
+        /**
+         * ############### FIRST PART OF IMPORT FINISHES
+         */
+
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        $repoImage = RepositoryImages::withoutGlobalScopes()->where('id', $vm->iaas_repository_image_id)->first();
+        $repo = Repositories::withoutGlobalScopes()->where('id', $repoImage->repository_id)->first();
+
+        $this->setProgress(19, 'Unmounting repository from compute member');
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][19] | Unmounting repository from compute member');
+        $result = ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
+
+        ComputeMemberXenService::setVmXenstoreData('api', config('app.url'), $vm, $computeMember);
+        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
+
+        /**
+         * ############### SECOND PART OF IMPORT STARTS
+         */
+        $this->postImportConfiguration(
+            vm: $vm,
+            step: 14
+        );
+
+        ComputeMemberXenService::updateMemberInformation($computeMember);
 
         //  We need to update CPU and RAM
         $this->setProgress(20, 'Setting CPU and RAM');
@@ -401,14 +423,16 @@ class Commit extends AbstractAction
                 ' should be an on-board volume in hypervisor. Also there can be another reasons, which are maybe ' .
                 'the storage volume is set to be not alive, which means we can be doomed! OR it is not set a sstorage');
 
+        $vm->update([
+            'iaas_compute_member_id' => $computeMember->id,
+            'iaas_repository_image_id' => $machineImage->id
+        ]);
+
         switch ($computePool->virtualization) {
             case 'xenserver-8.2':
                 $uuid = $this->importXenServer($vm, $computeMember, $repositoryServer, $storageVolume, $machineImage, $step);
-                $this->postImportConfiguration($vm, $computeMember, $uuid, $machineImage, $repositoryServer, $step);
                 break;
         }
-
-        ComputeMemberXenService::updateMemberInformation($computeMember);
 
         $this->setProgress($step + 9, 'Virtual machine imported');
     }
@@ -445,8 +469,11 @@ class Commit extends AbstractAction
         return $uuid;
     }
 
-    private function postImportConfiguration($vm, $computeMember, $uuid = null, $image = null, $repo = null, $step)
+    private function postImportConfiguration($vm, $step)
     {
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+        $uuid = $vm->hypervisor_uuid;
+
         if(!$uuid) {
             //  This means that we are running postImportConfiguration because the VM is imported already and
             //  we need to rerun the import process, and running the import again.
@@ -468,24 +495,13 @@ class Commit extends AbstractAction
         $vm->update([
             'hypervisor_uuid' => $vmParams['uuid'],
             'hypervisor_data' => $vmParams,
-            'iaas_compute_member_id' => $computeMember->id,
             'state' => $vmParams['power-state'],
-            'os' => $image->os,
-            'distro' => $image->distro,
-            'version' => $image->version,
             'is_draft' => false,
             'status' => 'halted'
         ]);
 
         Events::listen('imported:NextDeveloper\IAAS\VirtualMachines', $vm);
         Events::listen('imported-virtual-machine:NextDeveloper\IAAS\ComputeMembers', $computeMember);
-
-        $this->setProgress($step + 9, 'Unmounting repository from compute member');
-        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 9 . '] | Unmounting repository from compute member');
-        $result = ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
-
-        ComputeMemberXenService::setVmXenstoreData('api', config('app.url'), $vm, $computeMember);
-        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
     }
 
     private function setupXenDisks($step = 0)

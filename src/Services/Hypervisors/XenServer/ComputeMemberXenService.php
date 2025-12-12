@@ -1015,18 +1015,10 @@ physical interfaces and vlans of compute member');
             Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
                 'command: ' . $command);
         } else {
-            $vmName = $vm->uuid;
-
-            if(!ComputePoolsService::isIso27001Enabled(
-                ComputeMembersService::getComputePool($computeMember)
-            )) {
-                $vmName = $vm->name;
-            }
-
             $command = 'xe vm-import ';
             $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
             $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
-            $command .= ' | xargs -T {} xe vm-param-set uuid={} name-label="' . $vmName . '"';
+            $command .= ' | xargs -T {} xe vm-param-set uuid={} name-label="' . $vm->uuid . '"';
             $command .= '&&';
             $command .= ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-commit/' . $vmUuid . '\'';
             $command .= ' > /dev/null 2>&1 &';
@@ -1036,6 +1028,12 @@ physical interfaces and vlans of compute member');
         }
 
         $result = self::performCommand($command, $computeMember);
+
+        if(!$isLazyDeploy) {
+            $vm->update([
+                'hypervisor_uuid' => $result['output']
+            ]);
+        }
 
         return $result['output'];
     }

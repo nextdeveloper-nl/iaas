@@ -33,6 +33,7 @@ use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAM\Database\Models\Accounts;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -175,6 +176,17 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         return self::convertToApexChartData($cpuSeries);
+    }
+
+    /**
+     *
+     *
+     * @param VirtualMachines $vm
+     * @return RepositoryImages|null
+     */
+    public static function getRepositoryImage(VirtualMachines $vm) : ?RepositoryImages
+    {
+        return RepositoryImages::withoutGlobalScopes()->where('id', $vm->iaas_repository_image_id)->first();
     }
 
     public static function convertToApexChartData($rawData) {
@@ -750,5 +762,17 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     public static function getCloudInitConfiguration($vm)
     {
         return VirtualMachinesMetadataService::getCloudInitConfiguration($vm);
+    }
+
+    public static function finalizeCommit($vm)
+    {
+        $vm = self::fixHypervisorUuid($vm);
+
+        dispatch(new Commit($vm));
+    }
+
+    public static function fixHypervisorUuid($vm) : VirtualMachines
+    {
+        $vmParams = VirtualMachinesXenService::getVmParameters($vm);
     }
 }
