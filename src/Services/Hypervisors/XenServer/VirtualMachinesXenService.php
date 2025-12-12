@@ -357,6 +357,15 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('name', 'NFS ISO library')
             ->first();
 
+        if(!$storageVolume) {
+            ComputeMemberXenService::updateStorageVolumes($computeMember);
+
+            $storageVolume = ComputeMemberStorageVolumes::withoutGlobalScopes()
+                ->where('iaas_compute_member_id', $computeMember->id)
+                ->where('name', 'NFS ISO library')
+                ->first();
+        }
+
         $command = 'xe sr-scan uuid=' . $storageVolume->hypervisor_uuid;
         self::performCommand($command, $computeMember);
 
