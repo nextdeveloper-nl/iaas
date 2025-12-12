@@ -140,7 +140,7 @@ class Commit extends AbstractAction
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
         $repoImage = RepositoryImages::withoutGlobalScopes()->where('id', $vm->iaas_repository_image_id)->first();
-        $repo = Repositories::withoutGlobalScopes()->where('id', $repoImage->repository_id)->first();
+        $repo = Repositories::withoutGlobalScopes()->where('id', $repoImage->iaas_repository_id)->first();
 
         $this->setProgress(19, 'Unmounting repository from compute member');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][19] | Unmounting repository from compute member');
