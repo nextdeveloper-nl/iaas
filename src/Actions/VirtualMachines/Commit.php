@@ -358,7 +358,7 @@ class Commit extends AbstractAction
             );
         }
 
-        $computeMember->used_ram += $vm->ram;
+        $computeMember->used_ram += ($vm->ram / 1024);
         $computeMember->saveQuietly();
 
         $storageVolume = null;
