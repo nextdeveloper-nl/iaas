@@ -135,7 +135,7 @@ class Commit extends AbstractAction
          * ############### FIRST PART OF IMPORT FINISHES
          */
 
-        $vm = $vm->fresh();
+        $vm = $this->model->fresh();
 
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
@@ -364,6 +364,10 @@ class Commit extends AbstractAction
         $storageVolume = null;
 
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 1 . '] | Found the best compute member: ' . $computeMember->name);
+
+        $this->model->update([
+            'iaas_compute_member_id' => $computeMember->id,
+        ]);
 
         $this->setProgress($step + 2, 'Finding the best storage volume for your virtual machine.');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 2 . '] | Finding the best storage volume for your virtual machine.');
