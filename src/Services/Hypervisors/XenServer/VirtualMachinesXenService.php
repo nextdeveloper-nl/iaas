@@ -351,6 +351,15 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
+        //  We need to scan the volume before we try to mount because sometimes the config ISO cannot be found
+        $storageVolume = ComputeMemberStorageVolumes::withoutGlobalScopes()
+            ->where('iaas_compute_member_id', $computeMember->id)
+            ->where('name', 'NFS ISO library')
+            ->first();
+
+        $command = 'xe sr-scan uuid=' . $storageVolume->hypervisor_uuid;
+        self::performCommand($command, $computeMember);
+
         $command = 'xe vm-cd-insert vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename;
 
         if (config('leo.debug.iaas.compute_members'))

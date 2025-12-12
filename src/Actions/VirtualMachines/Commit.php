@@ -23,6 +23,7 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
+use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers\UtilizeComputeMembers;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes\UtilizeStorageVolumes;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
@@ -168,6 +169,8 @@ class Commit extends AbstractAction
         $this->setupNetworking(70);
 
         $this->setupIp(80);
+
+        (new GenerateCloudInitImage($this->model))->handle();
 
         $vm->update([
             'status' => 'halted',
