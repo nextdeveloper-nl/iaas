@@ -472,6 +472,7 @@ physical interfaces and vlans of compute member');
         $volumes = self::parseListResult($result['output']);
 
         foreach ($volumes as $volume) {
+            Log::debug('[ComputeMemberService@updateStorageVolumes] Updating the storage volumes for the compute member: ' . print_r($volume, true));
             /*
              * We will look at the array and try to understand if we have a local storage. If we have a local storage
              * we should add this compute member as storage member also. Because we need to register the volume as
@@ -624,7 +625,8 @@ physical interfaces and vlans of compute member');
             'hypervisor_data'  => $volume,
             'block_device_data' =>  $pbdParams,
             'iam_user_id'       =>  $computeMember->iam_user_id,
-            'iam_account_id'    =>  $computeMember->iam_account_id
+            'iam_account_id'    =>  $computeMember->iam_account_id,
+            'iaas_compute_member_id'    =>  $computeMember->id
         ];
 
         if(!$storageVolume) {
