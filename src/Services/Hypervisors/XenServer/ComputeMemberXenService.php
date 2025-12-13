@@ -73,6 +73,13 @@ class ComputeMemberXenService extends AbstractXenService
         return $tasks;
     }
 
+    public static function checkImportByVirtualMachine(ComputeMembers $computeMember, VirtualMachines $vm) : bool
+    {
+        $command = 'ps -ax | grep importing-' . $vm->uuid;
+        $output = self::performCommand($command, $computeMember);
+        dd($output);
+    }
+
     public static function updateMemberInformation(ComputeMembers $computeMember) : ComputeMembers
     {
         Log::info('[ComputeMemberService@sync] Checking if we can connect to: ' . $computeMember->name);

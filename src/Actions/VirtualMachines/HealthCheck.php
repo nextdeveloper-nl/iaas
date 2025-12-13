@@ -12,6 +12,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -77,6 +78,7 @@ class HealthCheck extends AbstractAction
 
         if($this->model->is_draft && $this->model->status == 'deploying') {
             //  Here we need to check if really it is being deployed
+            $checkImport = ComputeMemberXenService::checkImportByVirtualMachine($this->model);
         }
 
         if($this->model->is_lost) {
