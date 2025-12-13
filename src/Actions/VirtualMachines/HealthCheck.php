@@ -59,6 +59,17 @@ class HealthCheck extends AbstractAction
         $this->setProgress(10, 'Marking the server as checking health');
 
         if($this->model->is_draft) {
+            $isOlderThan15Mins = Carbon::now()->subMinutes(15)->isAfter($this->model->updated_at);
+
+            if($isOlderThan15Mins) {
+                CommentsService::createSystemComment('Virtual machine is in draft state for more than ' .
+                    '15 mins, therefore I am deleting it.', $this->model);
+                $this->model->delete();
+
+                $this->setFinished('The VM is older than 15 mins, that is why I removed it.');
+                return;
+            }
+
             $this->setFinished('Virtual machine is a draft. Skipping health check.');
             CommentsService::createSystemComment('Virtual machine is in draft state. Skipping health check.', $this->model);
             return;
