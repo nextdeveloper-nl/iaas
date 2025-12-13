@@ -79,14 +79,38 @@ class HealthCheck extends AbstractAction
             //  Here we need to check if really it is being deployed
             $computeMember = VirtualMachinesService::getComputeMember($this->model);
 
+            if(!$computeMember) {
+                Log::info('[VirtualMachines\HealthCheck] This server is in deploying state but it does ' .
+                    'not have compute member. This should be a faulty object, therefore I am deleting it.');
+
+                CommentsService::createSystemComment('Virtual machine is in faulty state and does not ' .
+                    'exists. Therefore I am deleting the object.', $this->model);
+
+                $this->model->delete();
+
+                $this->setFinished('Virtual machine is in faulty state and does not exists.');
+                return;
+            }
+
             $isImporting = ComputeMemberXenService::checkImportByVirtualMachine($computeMember, $this->model);
 
             if($isImporting) {
-                Log::info('[VirtualMachines\HealthCheck] The virtual machine is still being important, ' .
+                Log::info('[VirtualMachines\HealthCheck] The virtual machine is still being importing, ' .
                     'I am skipping the health check.');
 
                 $this->setFinished('Virtual machine is still being imported therefore ' .
                     'I am skipping health check.');
+                return;
+            } else {
+                Log::info('[VirtualMachines\HealthCheck] The virtual machine should be in deploying state ' .
+                    'but is not being imported, there must be a problem with the server. Therefore I am deleting it.');
+
+                CommentsService::createSystemComment('Virtual machine is in faulty state and does not ' .
+                    'exists. Therefore I am deleting the object.', $this->model);
+
+                $this->model->delete();
+
+                $this->setFinished('Virtual machine is in faulty state and does not exists.');
                 return;
             }
         }
