@@ -1010,14 +1010,16 @@ physical interfaces and vlans of compute member');
             ->first();
 
         if(!$isLazyDeploy) {
-            $command = 'xe vm-import ';
+            $command = 'echo "importing-' . $vm->uuid . '" > /dev/null 2>&1 && ';
+            $command .= 'xe vm-import ';
             $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
             $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
 
             Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
                 'command: ' . $command);
         } else {
-            $command = 'xe vm-import ';
+            $command = 'echo "importing-' . $vm->uuid . '" > /dev/null 2>&1 && ';
+            $command .= 'xe vm-import ';
             $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
             $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
             $command .= ' | xargs -T {} xe vm-param-set uuid={} name-label="' . $vm->uuid . '"';
