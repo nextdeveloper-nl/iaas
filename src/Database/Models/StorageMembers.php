@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Observers\StorageMembersObserver;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
 use Illuminate\Notifications\Notifiable;
 use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
+use NextDeveloper\Commons\Database\Traits\HasObject;
 
 /**
  * StorageMembers model.
@@ -56,7 +57,7 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  */
 class StorageMembers extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
     use SoftDeletes;
     use SSHable, Agentable;
 
@@ -251,6 +252,7 @@ class StorageMembers extends Model
             },
         );
     }
+
 
 
 

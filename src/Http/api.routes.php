@@ -1157,6 +1157,27 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('health-checks')->group(
+            function () {
+                Route::get('/', 'HealthChecks\HealthChecksController@index');
+                Route::get('/actions', 'HealthChecks\HealthChecksController@getActions');
+
+                Route::get('{iaas_health_checks}/tags ', 'HealthChecks\HealthChecksController@tags');
+                Route::post('{iaas_health_checks}/tags ', 'HealthChecks\HealthChecksController@saveTags');
+                Route::get('{iaas_health_checks}/addresses ', 'HealthChecks\HealthChecksController@addresses');
+                Route::post('{iaas_health_checks}/addresses ', 'HealthChecks\HealthChecksController@saveAddresses');
+
+                Route::get('/{iaas_health_checks}/{subObjects}', 'HealthChecks\HealthChecksController@relatedObjects');
+                Route::get('/{iaas_health_checks}', 'HealthChecks\HealthChecksController@show');
+
+                Route::post('/', 'HealthChecks\HealthChecksController@store');
+                Route::post('/{iaas_health_checks}/do/{action}', 'HealthChecks\HealthChecksController@doAction');
+
+                Route::patch('/{iaas_health_checks}', 'HealthChecks\HealthChecksController@update');
+                Route::delete('/{iaas_health_checks}', 'HealthChecks\HealthChecksController@destroy');
+            }
+        );
+
         Route::prefix('compute-members-perspective')->group(
             function () {
                 Route::get('/', 'ComputeMembersPerspective\ComputeMembersPerspectiveController@index');
@@ -1472,7 +1493,122 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('virtual-machine-backups-perspective')->group(
+            function () {
+                Route::get('/', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@index');
+                Route::get('/actions', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@getActions');
+
+                Route::get('{ivmbp}/tags ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@tags');
+                Route::post('{ivmbp}/tags ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@saveTags');
+                Route::get('{ivmbp}/addresses ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@addresses');
+                Route::post('{ivmbp}/addresses ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@saveAddresses');
+
+                Route::get('/{ivmbp}/{subObjects}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@relatedObjects');
+                Route::get('/{ivmbp}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@show');
+
+                Route::post('/', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@store');
+                Route::post('/{ivmbp}/do/{action}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@doAction');
+
+                Route::patch('/{ivmbp}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@update');
+                Route::delete('/{ivmbp}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('health-checks-performance')->group(
+            function () {
+                Route::get('/', 'HealthChecksPerformance\HealthChecksPerformanceController@index');
+                Route::get('/actions', 'HealthChecksPerformance\HealthChecksPerformanceController@getActions');
+
+                Route::get('{iaas_health_checks_performance}/tags ', 'HealthChecksPerformance\HealthChecksPerformanceController@tags');
+                Route::post('{iaas_health_checks_performance}/tags ', 'HealthChecksPerformance\HealthChecksPerformanceController@saveTags');
+                Route::get('{iaas_health_checks_performance}/addresses ', 'HealthChecksPerformance\HealthChecksPerformanceController@addresses');
+                Route::post('{iaas_health_checks_performance}/addresses ', 'HealthChecksPerformance\HealthChecksPerformanceController@saveAddresses');
+
+                Route::get('/{iaas_health_checks_performance}/{subObjects}', 'HealthChecksPerformance\HealthChecksPerformanceController@relatedObjects');
+                Route::get('/{iaas_health_checks_performance}', 'HealthChecksPerformance\HealthChecksPerformanceController@show');
+
+                Route::post('/', 'HealthChecksPerformance\HealthChecksPerformanceController@store');
+                Route::post('/{iaas_health_checks_performance}/do/{action}', 'HealthChecksPerformance\HealthChecksPerformanceController@doAction');
+
+                Route::patch('/{iaas_health_checks_performance}', 'HealthChecksPerformance\HealthChecksPerformanceController@update');
+                Route::delete('/{iaas_health_checks_performance}', 'HealthChecksPerformance\HealthChecksPerformanceController@destroy');
+            }
+        );
+
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1626,6 +1762,7 @@ Route::prefix('iaas')->group(
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );
+
 
 
 

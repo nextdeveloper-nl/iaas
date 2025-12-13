@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Observers\NetworkMembersObserver;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
 use Illuminate\Notifications\Notifiable;
 use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
+use NextDeveloper\Commons\Database\Traits\HasObject;
 
 /**
  * NetworkMembers model.
@@ -40,7 +41,7 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  */
 class NetworkMembers extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
     use SoftDeletes;
     use SSHable, Agentable;
 
@@ -199,6 +200,7 @@ class NetworkMembers extends Model
             },
         );
     }
+
 
 
 

@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Observers\StorageVolumesObserver;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
 use Illuminate\Notifications\Notifiable;
 use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
+use NextDeveloper\Commons\Database\Traits\HasObject;
 
 /**
  * StorageVolumes model.
@@ -45,7 +46,7 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  */
 class StorageVolumes extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -220,6 +221,7 @@ class StorageVolumes extends Model
             },
         );
     }
+
 
 
 

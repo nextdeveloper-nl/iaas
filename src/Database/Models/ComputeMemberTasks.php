@@ -11,6 +11,7 @@ use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
+use NextDeveloper\Commons\Database\Traits\HasObject;
 
 /**
  * ComputeMemberTasks model.
@@ -31,7 +32,7 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  */
 class ComputeMemberTasks extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
 
     public $timestamps = true;
 
@@ -39,77 +40,77 @@ class ComputeMemberTasks extends Model
 
 
     /**
-     * @var array
+     @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-        'hypervisor_uuid',
-        'name',
-        'description',
-        'error',
-        'progress',
-        'hypervisor_data',
-        'iaas_virtual_machine_id',
-        'iaas_compute_member_id',
+            'hypervisor_uuid',
+            'name',
+            'description',
+            'error',
+            'progress',
+            'hypervisor_data',
+            'iaas_virtual_machine_id',
+            'iaas_compute_member_id',
     ];
 
     /**
-     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
+      Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     * We are casting fields to objects so that we can work on them better
+     We are casting fields to objects so that we can work on them better
      *
-     * @var array
+     @var array
      */
     protected $casts = [
-        'id' => 'integer',
-        'name' => 'string',
-        'description' => 'string',
-        'error' => 'string',
-        'progress' => 'integer',
-        'hypervisor_data' => 'array',
-        'iaas_virtual_machine_id' => 'integer',
-        'iaas_compute_member_id' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+    'id' => 'integer',
+    'name' => 'string',
+    'description' => 'string',
+    'error' => 'string',
+    'progress' => 'integer',
+    'hypervisor_data' => 'array',
+    'iaas_virtual_machine_id' => 'integer',
+    'iaas_compute_member_id' => 'integer',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
     ];
 
     /**
-     * We are casting data fields.
+     We are casting data fields.
      *
-     * @var array
+     @var array
      */
     protected $dates = [
-        'created_at',
-        'updated_at',
+    'created_at',
+    'updated_at',
     ];
 
     /**
-     * @var array
+     @var array
      */
     protected $with = [
 
     ];
 
     /**
-     * @var int
+     @var int
      */
     protected $perPage = 20;
 
     /**
-     * @return void
+     @return void
      */
     public static function boot()
     {
@@ -126,11 +127,9 @@ class ComputeMemberTasks extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_compute_member_tasks');
 
-        if (!$modelScopes) {
-            $modelScopes = [];
+        if(!$modelScopes) { $modelScopes = [];
         }
-        if (!$globalScopes) {
-            $globalScopes = [];
+        if (!$globalScopes) { $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -138,7 +137,7 @@ class ComputeMemberTasks extends Model
             $modelScopes
         );
 
-        if ($scopes) {
+        if($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
@@ -146,4 +145,5 @@ class ComputeMemberTasks extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }
