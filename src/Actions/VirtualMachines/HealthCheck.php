@@ -58,7 +58,7 @@ class HealthCheck extends AbstractAction
 
         $this->setProgress(10, 'Marking the server as checking health');
 
-        if($this->model->is_draft) {
+        if($this->model->is_draft && $this->model->status == 'draft') {
             $isOlderThan15Mins = Carbon::now()->subMinutes(15)->isAfter($this->model->updated_at);
 
             if($isOlderThan15Mins) {
@@ -73,6 +73,10 @@ class HealthCheck extends AbstractAction
             $this->setFinished('Virtual machine is a draft. Skipping health check.');
             CommentsService::createSystemComment('Virtual machine is in draft state. Skipping health check.', $this->model);
             return;
+        }
+
+        if($this->model->is_draft && $this->model->status == 'deploying') {
+            //  Here we need to check if really it is being deployed
         }
 
         if($this->model->is_lost) {
