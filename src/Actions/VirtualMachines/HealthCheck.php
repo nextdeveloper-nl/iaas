@@ -72,13 +72,23 @@ class HealthCheck extends AbstractAction
             }
 
             $this->setFinished('Virtual machine is a draft. Skipping health check.');
-            CommentsService::createSystemComment('Virtual machine is in draft state. Skipping health check.', $this->model);
             return;
         }
 
         if($this->model->is_draft && $this->model->status == 'deploying') {
             //  Here we need to check if really it is being deployed
-            $checkImport = ComputeMemberXenService::checkImportByVirtualMachine($this->model);
+            $computeMember = VirtualMachinesService::getComputeMember($this->model);
+
+            $isImporting = ComputeMemberXenService::checkImportByVirtualMachine($computeMember, $this->model);
+
+            if($isImporting) {
+                Log::info('[VirtualMachines\HealthCheck] The virtual machine is still being important, ' .
+                    'I am skipping the health check.');
+
+                $this->setFinished('Virtual machine is still being imported therefore ' .
+                    'I am skipping health check.');
+                return;
+            }
         }
 
         if($this->model->is_lost) {

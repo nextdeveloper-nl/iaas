@@ -77,7 +77,16 @@ class ComputeMemberXenService extends AbstractXenService
     {
         $command = 'ps -ax | grep importing-' . $vm->uuid;
         $output = self::performCommand($command, $computeMember);
-        dd($output);
+        $output = $output['result'];
+
+        $lines = explode("\n", $output);
+
+        foreach ($lines as $line) {
+            if(Str::contains('importing-' . $vm->uuid))
+                return true;
+        }
+
+        return false;
     }
 
     public static function updateMemberInformation(ComputeMembers $computeMember) : ComputeMembers
