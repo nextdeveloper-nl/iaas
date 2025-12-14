@@ -1452,13 +1452,13 @@ physical interfaces and vlans of compute member');
     {
         if(config('leo.debug.iaas.compute_members'))
             Log::info('[ComputeMembersXenService@deployEventsService] Trying to find the VM with name '
-                . $vmName . ' on compute member: ' . $computeMember->name;
+                . $vmName . ' on compute member: ' . $computeMember->name);
 
         $command = 'xe vm-list name-label="' . $vmName . '"';
         $result = self::performCommand($command, $computeMember);
         $result = self::parseResult($result['output']);
 
-        dd($result);
+        return $result['uuid'];
     }
 
     public static function performCommand($command, ComputeMembers $computeMember) : ?array

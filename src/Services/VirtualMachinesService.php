@@ -780,6 +780,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
-        $vmParams = ComputeMemberXenService::getVirtualMachineUuidByName($computeMember, $vm->uuid);
+        $uuid = ComputeMemberXenService::getVirtualMachineUuidByName($computeMember, $vm->uuid);
+
+        UserHelper::runAsAdmin(function () use ($uuid, $vm) {
+            $vm->update([
+                'hypervisor_uuid' => $uuid
+            ]);
+        });
+
+        return $vm->fresh();
     }
 }
