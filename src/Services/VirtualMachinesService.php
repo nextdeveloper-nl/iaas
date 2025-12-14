@@ -774,6 +774,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $vm = self::fixHypervisorUuid($vm);
 
         dispatch(new Commit($vm));
+
+        return $vm;
     }
 
     public static function fixHypervisorUuid(VirtualMachines $vm) : VirtualMachines

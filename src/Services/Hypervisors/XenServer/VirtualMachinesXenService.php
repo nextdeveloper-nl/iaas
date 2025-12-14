@@ -319,7 +319,13 @@ class VirtualMachinesXenService extends AbstractXenService
             ];
 
             if($dbVdi)
-                $dbVdi->updateQuietly($data);
+                try {
+                    $dbVdi->updateQuietly($data);
+                } catch(\Exception $e) {
+                    dump($dbVdi);
+                    dump($data);
+                    dd( $e->getMessage() );
+                }
             else {
                 //  We need to check if we already have a record with the iaas_virtual_machine_id and device_number
                 //  If we have, we will update it, if not we will create a new one

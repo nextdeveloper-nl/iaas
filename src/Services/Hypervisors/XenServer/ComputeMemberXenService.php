@@ -1039,7 +1039,7 @@ physical interfaces and vlans of compute member');
             $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
             $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
             $command .= ' | xargs -I {} xe vm-param-set uuid={} name-label="' . $vm->uuid . '"';
-            $command .= '&&';
+            $command .= ' &&';
             $command .= ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-commit/' . $vmUuid;
             $command .= ' > /dev/null 2>&1 &';
 
