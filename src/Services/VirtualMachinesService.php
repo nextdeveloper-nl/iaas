@@ -771,6 +771,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->where('uuid', $vm)
             ->first();
 
+        UserHelper::setUserById($vm->iam_user_id);
+
         $vm = self::fixHypervisorUuid($vm);
 
         dispatch(new Commit($vm));
