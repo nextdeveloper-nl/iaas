@@ -772,6 +772,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->first();
 
         UserHelper::setUserById($vm->iam_user_id);
+        UserHelper::setCurrentAccountById($vm->iam_account_id);
 
         $vm = self::fixHypervisorUuid($vm);
 
