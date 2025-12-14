@@ -153,6 +153,10 @@ class Commit extends AbstractAction
         /**
          * ############### SECOND PART OF IMPORT STARTS
          */
+        $vm->update([
+            'state' =>  'configuring'
+        ]);
+
         $this->postImportConfiguration(
             vm: $vm,
             step: 14
