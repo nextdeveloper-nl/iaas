@@ -1038,9 +1038,9 @@ physical interfaces and vlans of compute member');
             $command .= 'xe vm-import ';
             $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
             $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
-            $command .= ' | xargs -T {} xe vm-param-set uuid={} name-label="' . $vm->uuid . '"';
+            $command .= ' | xargs -I {} xe vm-param-set uuid={} name-label="' . $vm->uuid . '"';
             $command .= '&&';
-            $command .= ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-commit/' . $vmUuid . '\'';
+            $command .= ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-commit/' . $vmUuid;
             $command .= ' > /dev/null 2>&1 &';
 
             Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
@@ -1446,6 +1446,19 @@ physical interfaces and vlans of compute member');
                 . $computeMember->name);
             return false;
         }
+    }
+
+    public static function getVirtualMachineUuidByName(ComputeMembers $computeMember, $vmName)
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployEventsService] Trying to find the VM with name '
+                . $vmName . ' on compute member: ' . $computeMember->name;
+
+        $command = 'xe vm-list name-label="' . $vmName . '"';
+        $result = self::performCommand($command, $computeMember);
+        $result = self::parseResult($result['output']);
+
+        dd($result);
     }
 
     public static function performCommand($command, ComputeMembers $computeMember) : ?array

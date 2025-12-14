@@ -33,6 +33,7 @@ use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAM\Database\Models\Accounts;
 use NextDeveloper\IAM\Database\Models\Users;
@@ -764,15 +765,21 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         return VirtualMachinesMetadataService::getCloudInitConfiguration($vm);
     }
 
-    public static function finalizeCommit($vm)
+    public static function finalizeCommit(string $vm)
     {
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('uuid', $vm)
+            ->first();
+
         $vm = self::fixHypervisorUuid($vm);
 
         dispatch(new Commit($vm));
     }
 
-    public static function fixHypervisorUuid($vm) : VirtualMachines
+    public static function fixHypervisorUuid(VirtualMachines $vm) : VirtualMachines
     {
-        $vmParams = VirtualMachinesXenService::getVmParameters($vm);
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        $vmParams = ComputeMemberXenService::getVirtualMachineUuidByName($computeMember, $vm->uuid);
     }
 }
