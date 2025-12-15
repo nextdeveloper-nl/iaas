@@ -248,6 +248,6 @@ class HealthCheck extends AbstractAction
 
         Events::fire('healthy:NextDeveloper\IAAS\VirtualMachines', $this->model);
         Events::fire('checked:NextDeveloper\IAAS\VirtualMachines', $this->model);
-        $this->setProgress(100, 'Virtual machine health check finished');
+        $this->setFinished('Virtual machine health check finished');
     }
 }
