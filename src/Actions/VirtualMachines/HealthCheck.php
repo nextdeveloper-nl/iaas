@@ -219,10 +219,6 @@ class HealthCheck extends AbstractAction
 
         $this->setProgress(75, 'Marking the server power state as: ' . $vmParams['power-state']);
 
-//        $dataToUpdate = [
-//            'console_data'  =>  $consoleParams[0]
-//        ];
-
         if($this->model->status != $vmParams['power-state']) {
             $dataToUpdate['status'] = $vmParams['power-state'];
 
@@ -242,7 +238,11 @@ class HealthCheck extends AbstractAction
             }
         }
 
-        $this->model->updateQuietly($dataToUpdate);
+        if($this->model->status != $vmParams['power-state']) {
+            $this->model->update([
+                'status' => $vmParams['power-state']
+            ]);
+        }
 
         CommentsService::createSystemComment('Everything is fine with health check.', $this->model);
 
