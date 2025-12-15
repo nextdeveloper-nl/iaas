@@ -43,7 +43,7 @@ class HealthCheck extends AbstractAction
         '100' => 'Virtual machine health check finished',
     ];
 
-    public function __construct(VirtualMachines $vm, $params = null, $previous = null)
+    public function __construct($vm = null, $params = null, $previous = null)
     {
         $this->queue = 'iaas-health-check';
 
@@ -178,7 +178,7 @@ class HealthCheck extends AbstractAction
         $this->setProgress(50, 'Checking if the virtual machine is alive');
 
         try {
-            $isVmThere = VirtualMachinesXenService::checkIfVmIsThere($this->model);
+            $isVmThere = VirtualMachinesXenService::getVmParameters($this->model);
         } catch (CannotConnectWithSshException $exception) {
             Log::error(__METHOD__ . ' | Cannot connect with SSH to the VM: ' . $this->model->uuid);
 
@@ -212,14 +212,16 @@ class HealthCheck extends AbstractAction
             return;
         }
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
-        $consoleParams = VirtualMachinesXenService::getConsoleParameters($this->model);
+        $vmParams = $isVmThere;
+
+        //  Not taking this anymore since it creates too much overload on to the process
+//        $consoleParams = VirtualMachinesXenService::getConsoleParameters($this->model);
 
         $this->setProgress(75, 'Marking the server power state as: ' . $vmParams['power-state']);
 
-        $dataToUpdate = [
-            'console_data'  =>  $consoleParams[0]
-        ];
+//        $dataToUpdate = [
+//            'console_data'  =>  $consoleParams[0]
+//        ];
 
         if($this->model->status != $vmParams['power-state']) {
             $dataToUpdate['status'] = $vmParams['power-state'];
