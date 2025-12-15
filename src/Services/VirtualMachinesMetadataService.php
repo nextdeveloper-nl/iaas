@@ -217,6 +217,11 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                     'passwd' => $hash,
                 ]
             ],
+            'chpasswd' => [
+                'expire' => true,
+                'list'  =>  ' |
+root:' . $vm->password,
+            ],
             'network' => [
                 'version' => 2,
                 'ethernets' => $networkCardsArray
