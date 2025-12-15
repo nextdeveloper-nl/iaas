@@ -219,8 +219,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             ],
             'chpasswd' => [
                 'expire' => true,
-                'list'  =>  ' |
-root:' . $vm->password,
+                'list'  =>  "{password}",
             ],
             'network' => [
                 'version' => 2,
@@ -228,6 +227,11 @@ root:' . $vm->password,
             ],
         ];
 
-        return yaml_emit($data);
+        $data = yaml_emit($data);
+
+        $data = str_replace('{password}', ' |
+    root:' . $vm->password, $data);
+
+        return $data;
     }
 }
