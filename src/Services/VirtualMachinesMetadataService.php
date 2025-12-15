@@ -239,6 +239,6 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
 //        $data = str_replace('{password}', ' |
 //    root:' . $vm->password, $userData);
 
-        return $data;
+        return $yaml;
     }
 }
