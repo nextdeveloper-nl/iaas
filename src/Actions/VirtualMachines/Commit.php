@@ -35,6 +35,7 @@ use NextDeveloper\IAAS\Services\RepositoriesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action converts a draft virtual machine to a live virtual machine. This action should be triggered when the
@@ -81,6 +82,9 @@ class Commit extends AbstractAction
     public function handle()
     {
         $this->setProgress(0, 'Committing virtual machine...');
+
+        if(!UserHelper::me())
+
 
         if($this->params['is_lazy_deploy']) {
             $this->setProgress(0, 'Lazy deploying virtual machine...');

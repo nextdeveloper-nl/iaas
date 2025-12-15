@@ -384,8 +384,9 @@ class VirtualMachinesXenService extends AbstractXenService
         $result = self::performCommand($command, $computeMember);
 
         if($result['output'] == '') {
-            //  This means that we dont have CD mounted on the server. We will mount a cdrom with device number default 255
-            $command = 'xe vm-cd-add vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename . ' device=255';
+            //  This means that we dont have CD mounted on the server. We will mount a cdrom with device number default 3
+            //  If we make it 255, older operating systems does not see the CDROM
+            $command = 'xe vm-cd-add vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename . ' device=3';
 
             if (config('leo.debug.iaas.compute_members'))
                 Log::debug('[VirtualMachinesXenService@mountCD] Mount command: ' . $command);
@@ -512,7 +513,7 @@ class VirtualMachinesXenService extends AbstractXenService
             $result = self::performCommand($command, $centralRepo);
 
             //  Creating the iso file
-            $command = 'genisoimage -output config-iso/' . $vm->uuid . '/config.iso -volid CIDATA -joliet -rock config-iso/' . $vm->uuid . '/user-data config-iso/' . $vm->uuid . '/meta-data';
+            $command = 'genisoimage -output config-iso/' . $vm->uuid . '/config.iso -volid cidata -joliet -rock config-iso/' . $vm->uuid . '/user-data config-iso/' . $vm->uuid . '/meta-data';
             $result = self::performCommand($command, $centralRepo);
 
             //  removing .base64 files

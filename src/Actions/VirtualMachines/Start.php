@@ -74,7 +74,7 @@ class Start extends AbstractAction
                 VirtualMachinesXenService::mountCD($this->model, $configImage, true);
             } else {
                 if($cdrom->size == 0) {
-                    VirtualMachinesXenService::mountCD($this->model, $configImage);
+                    VirtualMachinesXenService::mountCD($this->model, $configImage, true);
                 } else {
                     Log::info(__METHOD__ . ' CDROM is already mounted. Not remounting.');
                 }
