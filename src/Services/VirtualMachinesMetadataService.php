@@ -227,10 +227,17 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             ],
         ];
 
-        $data = yaml_emit($data);
+        $yaml = yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
+
+        // Remove YAML document markers
+        $yaml = preg_replace('/^---\s*\n/', '', $yaml);
+        $yaml = preg_replace('/\n\.\.\.\s*$/', '', $yaml);
+
+        // Prepend Cloud-Init header
+        $userData = "#cloud-config\n" . $yaml;
 
         $data = str_replace('{password}', ' |
-    root:' . $vm->password, $data);
+    root:' . $vm->password, $userData);
 
         return $data;
     }
