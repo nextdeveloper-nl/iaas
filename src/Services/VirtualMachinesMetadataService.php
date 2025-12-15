@@ -211,16 +211,12 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'users' => [
                 [
                     'name' => $vm->username,
-                    'sudo' => 'ALL=(ALL) NOPASSWD:ALL',
+                    'gecos' => 'Superuser',
                     'lock_passwd' => false,
                     'shell' => '/bin/bash',
                     'passwd' => $hash,
                 ]
             ],
-//            'chpasswd' => [
-//                'expire' => false,
-//                'list'  =>  "{password}",
-//            ],
             'network' => [
                 'version' => 2,
                 'ethernets' => $networkCardsArray
@@ -235,9 +231,6 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
 
         // Prepend Cloud-Init header
         $yaml = "#cloud-config\n" . $yaml;
-
-//        $data = str_replace('{password}', ' |
-//    root:' . $vm->password, $userData);
 
         return $yaml;
     }
