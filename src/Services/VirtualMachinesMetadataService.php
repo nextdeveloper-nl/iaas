@@ -218,7 +218,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                 ]
             ],
             'chpasswd' => [
-                'expire' => true,
+                'expire' => false,
                 'list'  =>  "{password}",
             ],
             'network' => [
