@@ -217,10 +217,10 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                     'passwd' => $hash,
                 ]
             ],
-            'network' => [
-                'version' => 2,
-                'ethernets' => $networkCardsArray
-            ],
+//            'network' => [
+//                'version' => 2,
+//                'ethernets' => $networkCardsArray
+//            ],
         ];
 
         $yaml = yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
