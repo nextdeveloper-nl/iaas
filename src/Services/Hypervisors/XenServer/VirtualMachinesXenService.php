@@ -487,29 +487,37 @@ class VirtualMachinesXenService extends AbstractXenService
         $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
 
         if ($centralRepo) {
-            //  Here we will write the user-data config to the xenserver before we create the iso
-            $userData = VirtualMachinesService::getCloudInitConfiguration($vm);
-            $base64UserData = base64_encode($userData);
-
             //  Creating the configuration folder
             $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
             $result = self::performCommand($command, $centralRepo);
 
-            //  Pushing the user-data file
-            $command = 'echo "' . $base64UserData . '" > config-iso/' . $vm->uuid . '/user-data.base64';
-            $result = self::performCommand($command, $centralRepo);
+            $uploadConfig = function($filename, $content, $vm, $centralRepo) {
+                //  Pushing the user-data file
+                $command = 'echo "' . $content . '" > config-iso/' . $vm->uuid . '/' . $filename . '.base64';
+                $result = self::performCommand($command, $centralRepo);
 
-            //  Decoding the user-data file
-            $command = 'base64 -d config-iso/' . $vm->uuid . '/user-data.base64 > config-iso/' . $vm->uuid . '/user-data';
-            $result = self::performCommand($command, $centralRepo);
+                //  Decoding the user-data file
+                $command = 'base64 -d config-iso/' . $vm->uuid . '/user-data.base64 > config-iso/' . $vm->uuid . '/' . $filename . '.base64';
+                $result = self::performCommand($command, $centralRepo);
+            };
+
+            $base64MetaData = base64_encode(json_encode(VirtualMachinesService::getMetadata($vm)));
+            $uploadConfig('pc-meta-data.json', $base64MetaData, $vm, $centralRepo);
+
+            //  Here we will write the user-data config to the xenserver before we create the iso
+            $base64UserData = base64_encode(VirtualMachinesService::getCloudInitConfiguration($vm));
+            $uploadConfig('user-data', $base64UserData, $vm, $centralRepo);
 
             //  Pushing the meta-data content to the file
             $metaDataBase64 = base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n");
-            $command = 'echo "' . $metaDataBase64 . '" > config-iso/' . $vm->uuid . '/meta-data.base64';
-            $result = self::performCommand($command, $centralRepo);
+            $uploadConfig('meta-data', $metaDataBase64, $vm, $centralRepo);
 
-            //  Decoding the meta-data file
-            $command = 'base64 -d config-iso/' . $vm->uuid . '/meta-data.base64 > config-iso/' . $vm->uuid . '/meta-data';
+            //  Pushing the apply-configuration ansible
+            $ansibleConfigurationScript = base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/apply-configuration.yml')));
+            $uploadConfig('ansible-configuration.yml', $ansibleConfigurationScript, $vm, $centralRepo);
+
+            //  Decoding the apply-configuration ansible
+            $command = 'base64 -d config-iso/' . $vm->uuid . '/apply-configuration.base64 > config-iso/' . $vm->uuid . '/apply-configuration.yml';
             $result = self::performCommand($command, $centralRepo);
 
             //  Creating the iso file
