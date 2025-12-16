@@ -497,7 +497,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 $result = self::performCommand($command, $centralRepo);
 
                 //  Decoding the user-data file
-                $command = 'base64 -d config-iso/' . $vm->uuid . '/user-data.base64 > config-iso/' . $vm->uuid . '/' . $filename . '.base64';
+                $command = 'base64 -d config-iso/' . $vm->uuid . '/user-data.base64 > config-iso/' . $vm->uuid . '/' . $filename . '';
                 $result = self::performCommand($command, $centralRepo);
             };
 
@@ -521,7 +521,13 @@ class VirtualMachinesXenService extends AbstractXenService
             $result = self::performCommand($command, $centralRepo);
 
             //  Creating the iso file
-            $command = 'genisoimage -output config-iso/' . $vm->uuid . '/config.iso -volid cidata -joliet -rock config-iso/' . $vm->uuid . '/user-data config-iso/' . $vm->uuid . '/meta-data';
+            $command = 'genisoimage -output ' .
+                'config-iso/' . $vm->uuid . '/config.iso ' .
+                '-volid cidata -joliet -rock ' .
+                'config-iso/' . $vm->uuid . '/user-data ' .
+                'config-iso/' . $vm->uuid . '/meta-data ' .
+                'config-iso/' . $vm->uuid . '/ansible-configuration.yml ' .
+                'config-iso/' . $vm->uuid . '/pc-meta-data.json';
             $result = self::performCommand($command, $centralRepo);
 
             //  removing .base64 files
