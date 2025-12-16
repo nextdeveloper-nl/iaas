@@ -501,20 +501,42 @@ class VirtualMachinesXenService extends AbstractXenService
                 $result = self::performCommand($command, $centralRepo);
             };
 
-            $base64MetaData = base64_encode(json_encode(VirtualMachinesService::getMetadata($vm)));
-            $uploadConfig('pc-meta-data.json', $base64MetaData, $vm, $centralRepo);
+            $uploadConfig(
+                filename: 'pc-meta-data.json',
+                content: base64_encode(json_encode(VirtualMachinesService::getMetadata($vm))),
+                vm: $vm,
+                centralRepo: $centralRepo
+            );
 
-            //  Here we will write the user-data config to the xenserver before we create the iso
-            $base64UserData = base64_encode(VirtualMachinesService::getCloudInitConfiguration($vm));
-            $uploadConfig('user-data', $base64UserData, $vm, $centralRepo);
+            $uploadConfig(
+                filename: 'user-data',
+                content: base64_encode(VirtualMachinesService::getCloudInitConfiguration($vm)),
+                vm: $vm,
+                centralRepo:  $centralRepo
+            );
 
-            //  Pushing the meta-data content to the file
-            $metaDataBase64 = base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n");
-            $uploadConfig('meta-data', $metaDataBase64, $vm, $centralRepo);
+            $uploadConfig(
+                filename: 'meta-data',
+                content: base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n"),
+                vm: $vm,
+                centralRepo: $centralRepo
+            );
 
-            //  Pushing the apply-configuration ansible
-            $ansibleConfigurationScript = base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/apply-configuration.yml')));
-            $uploadConfig('ansible-configuration.yml', $ansibleConfigurationScript, $vm, $centralRepo);
+            $configurationPack = [
+                'apply-configuration.yml',
+                'apply-locale.yml',
+                'change-hostname.yml',
+                'change-password.yml'
+            ];
+
+            foreach ($configurationPack as $pack) {
+                $uploadConfig(
+                    filename: $pack,
+                    content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/' . $pack))),
+                    vm: $vm,
+                    centralRepo: $centralRepo
+                );
+            }
 
             //  Creating the iso file
             $command = 'genisoimage -output ' .
@@ -522,8 +544,12 @@ class VirtualMachinesXenService extends AbstractXenService
                 '-volid cidata -joliet -rock ' .
                 'config-iso/' . $vm->uuid . '/user-data ' .
                 'config-iso/' . $vm->uuid . '/meta-data ' .
-                'config-iso/' . $vm->uuid . '/ansible-configuration.yml ' .
                 'config-iso/' . $vm->uuid . '/pc-meta-data.json';
+
+            foreach ($configurationPack as $pack) {
+                $command .= ' config-iso/' . $vm->uuid . '/' . $pack;
+            }
+
             $result = self::performCommand($command, $centralRepo);
 
             //  removing .base64 files
