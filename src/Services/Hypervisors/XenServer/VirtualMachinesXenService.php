@@ -497,7 +497,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 $result = self::performCommand($command, $centralRepo);
 
                 //  Decoding the user-data file
-                $command = 'base64 -d config-iso/' . $vm->uuid . '/user-data.base64 > config-iso/' . $vm->uuid . '/' . $filename . '';
+                $command = 'base64 -d config-iso/' . $vm->uuid . '/' . $filename . '.base64 > config-iso/' . $vm->uuid . '/' . $filename . '';
                 $result = self::performCommand($command, $centralRepo);
             };
 
