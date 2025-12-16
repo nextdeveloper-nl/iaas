@@ -516,10 +516,6 @@ class VirtualMachinesXenService extends AbstractXenService
             $ansibleConfigurationScript = base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/apply-configuration.yml')));
             $uploadConfig('ansible-configuration.yml', $ansibleConfigurationScript, $vm, $centralRepo);
 
-            //  Decoding the apply-configuration ansible
-            $command = 'base64 -d config-iso/' . $vm->uuid . '/apply-configuration.base64 > config-iso/' . $vm->uuid . '/apply-configuration.yml';
-            $result = self::performCommand($command, $centralRepo);
-
             //  Creating the iso file
             $command = 'genisoimage -output ' .
                 'config-iso/' . $vm->uuid . '/config.iso ' .
