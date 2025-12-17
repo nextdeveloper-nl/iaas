@@ -1,55 +1,29 @@
 ---
-- name: Get VM Metadata from BIOS UUID
+- name: Get VM Metadata from local JSON file
   hosts: all
   vars:
-    metadata_url: "https://apiv4.plusclouds.com/public/iaas/virtual-machines/meta-data?uuid="
+    metadata_file: "{{ playbook_dir }}/pc-meta-data.json"
+
   tasks:
-    - name: Ensure dmidecode is installed
-      package:
-        name: dmidecode
-        state: present
-
-    - name: Get system UUID using dmidecode on Debian 12 and Ubuntu
-      command: /usr/sbin/dmidecode -s system-uuid
-      register: system_uuid_result
-      changed_when: false
-      when: >
-        (ansible_distribution == "Debian" and ansible_distribution_major_version == "12") or
-        (ansible_distribution == "Ubuntu")
-
-    - name: Clean BIOS UUID
+    - name: Load metadata from local JSON file
       set_fact:
-        bios_uuid: "{{ system_uuid_result.stdout | trim }}"
+        metadata: "{{ lookup('file', metadata_file) | from_json }}"
 
-    - name: Display BIOS UUID (Debug)
+    - name: Show metadata content
       debug:
-        msg: "BIOS UUID is {{ bios_uuid }}"
-
-    - name: Query metadata service using BIOS UUID
-      uri:
-        url: "{{ metadata_url }}{{ bios_uuid }}"
-        method: GET
-        return_content: yes
-        status_code: 200
-        headers:
-          Accept: "application/json"
-      register: metadata_response
-
-    - name: Show metadata response
-      debug:
-        var: metadata_response.json
+        var: metadata
 
     - name: Extract values from metadata
       set_fact:
-        vm_user: "{{ metadata_response.json.username }}"
-        vm_password: "{{ metadata_response.json.password }}"
+        vm_user: "{{ metadata.username }}"
+        vm_password: "{{ metadata.password }}"
 
     - name: Apply password configuration
       include_tasks: change-password.yml
 
     - name: Extract values for hostname configuration
       set_fact:
-        hostname: "{{ metadata_response.json.hostname | default('default-hostname') }}"
+        hostname: "{{ metadata.hostname | default('default-hostname') }}"
 
     - name: Apply hostname configuration
       include_tasks: change-hostname.yml
