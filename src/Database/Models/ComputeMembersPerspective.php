@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Traits\Agentable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
+use NextDeveloper\Commons\Database\Traits\HasObject;
 
 /**
  * ComputeMembersPerspective model.
@@ -58,7 +59,7 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  */
 class ComputeMembersPerspective extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
     use SoftDeletes;
     use SSHable, Agentable;
 
@@ -221,6 +222,7 @@ class ComputeMembersPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
