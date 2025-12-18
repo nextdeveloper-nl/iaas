@@ -2,9 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
-use App\Services\IAAS\RepositoryImagesServices;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\MetaHelper;
 use NextDeveloper\Commons\Helpers\StateHelper;
@@ -26,12 +24,10 @@ use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers\UtilizeComputeMembers;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes\UtilizeStorageVolumes;
-use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\IpAddressesService;
-use NextDeveloper\IAAS\Services\RepositoriesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -132,6 +128,7 @@ class Commit extends AbstractAction
             if($this->params['is_lazy_deploy']) {
                 //  Since this deployment model is a lazy deploy at this point the deployment should stop.
                 $this->setFinished('Lazy deploying virtual machine.');
+                Log::info(__METHOD__ . ' Lazy deploying virtual machine with data: ' . print_r($vm, true));
                 return;
             }
         }
