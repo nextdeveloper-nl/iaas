@@ -28,6 +28,9 @@
     - name: Apply hostname configuration
       include_tasks: change-hostname.yml
 
+    - name: Enlarge disk
+      include_tasks: disk-resize.yml
+
 #    - name: Import zabbix-client.yml if enabled
 #      import_playbook: zabbix-client.yml
 #      when: is_zabbix_enabled | bool

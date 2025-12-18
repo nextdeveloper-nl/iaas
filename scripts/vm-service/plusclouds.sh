@@ -8,6 +8,7 @@ mkdir /mnt/tmp-configuration
 mount /dev/sr0 /mnt/tmp-configuration
 cp /mnt/tmp-configuration /tmp/pc-config -R
 umount /mnt/tmp-configuration
+sleep 1
 rm /mnt/tmp-configuration -R
 cd /tmp/pc-config
 ansible-playbook apply-configuration.yml -i localhost, -c local

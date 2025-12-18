@@ -526,7 +526,8 @@ class VirtualMachinesXenService extends AbstractXenService
                 'apply-configuration.yml',
                 'apply-locale.yml',
                 'change-hostname.yml',
-                'change-password.yml'
+                'change-password.yml',
+                'disk-resize.yml'
             ];
 
             foreach ($configurationPack as $pack) {
