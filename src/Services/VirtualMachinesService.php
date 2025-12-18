@@ -654,6 +654,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function fixUsername(VirtualMachines $vm)
     {
+        $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)->where('id', $vm->iaas_repository_image_id)->first();
+
         Log::info('[VirtualMachineService@fixUsername] Will try to fix the username. Current username: ' . $repoImage->default_username ?? 'root');
 
         if($vm->username)
@@ -667,13 +669,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 break;
             case 'linux':
             case 'application':
-                $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)->where('id', $vm->iaas_repository_image_id)->first();
                 Log::info('[VirtualMachineService@fixUsername] Fixing the username as: ' . $repoImage->default_username ?? 'root');
                 $vm->update(['username' => $repoImage->default_username ?? 'root']);
                 break;
             default:
-                dd('stop');
-                $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)->where('id', $vm->iaas_repository_image_id)->first();
                 $vm->update(['username' => $repoImage->default_username ?? 'root']);
         }
 
