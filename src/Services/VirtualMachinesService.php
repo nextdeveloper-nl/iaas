@@ -664,6 +664,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                     ->where('id', $vm->iaas_repository_image_id)
                     ->first();
 
+                Log::info('[VirtualMachineService@fixUsername] Fixing the username as: ' . $repoImage->default_username ?? 'root');
+
                 $vm->update([
                     'username' => $repoImage->default_username ?? 'root'
                 ]);
