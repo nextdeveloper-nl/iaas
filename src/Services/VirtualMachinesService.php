@@ -659,6 +659,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         if($vm->username)
             return $vm;
 
+        Log::info('[VirtualMachineService@fixUsername] VM Data: ' . print_r($vm, true));
+
         switch ($vm->os) {
             case 'microsoft windows':
                 $vm->update(['username' => 'Administrator']);
@@ -670,6 +672,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 $vm->update(['username' => $repoImage->default_username ?? 'root']);
                 break;
             default:
+                dd('stop');
+                $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)->where('id', $vm->iaas_repository_image_id)->first();
                 $vm->update(['username' => $repoImage->default_username ?? 'root']);
         }
 
