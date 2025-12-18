@@ -671,7 +671,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 break;
             default:
                 $vm->update(['username' => $repoImage->default_username ?? 'root']);
-        }g
+        }
 
         return $vm->fresh();
     }
