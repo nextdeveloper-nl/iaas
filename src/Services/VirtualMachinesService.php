@@ -659,11 +659,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 $vm->update([
                     'username' => 'Administrator'
                 ]);
-            } elseif($vm->os == 'linux') {
-                $vm->update([
-                    'username' => 'root'
-                ]);
-            } elseif($vm->os == 'application') {
+            } elseif($vm->os == 'linux' || $vm->os == 'application') {
                 $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
                     ->where('id', $vm->iaas_repository_image_id)
                     ->first();
