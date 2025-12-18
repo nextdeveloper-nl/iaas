@@ -139,6 +139,8 @@ class Commit extends AbstractAction
 
         $vm = $this->model->fresh();
 
+        Log::info(__METHOD__ . ' Lazy deploying, STEP 2,  virtual machine with data: ' . print_r($vm, true));
+
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
         $repoImage = RepositoryImages::withoutGlobalScopes()->where('id', $vm->iaas_repository_image_id)->first();
@@ -162,6 +164,8 @@ class Commit extends AbstractAction
             vm: $vm,
             step: 14
         );
+
+        Log::info(__METHOD__ . ' Lazy deploying, STEP 3, virtual machine with data: ' . print_r($vm, true));
 
         ComputeMemberXenService::updateMemberInformation($computeMember);
 

@@ -1,0 +1,21 @@
+---
+- name: Fix GPT to use full disk
+  command: sgdisk -e /dev/xvda
+  register: sgdisk_result
+  changed_when: "'Warning' not in sgdisk_result.stderr"
+
+- name: Reread partition table
+  command: partprobe /dev/xvda
+
+- name: Wait for kernel to settle
+  pause:
+    seconds: 2
+
+- name: Grow root partition (partition 2)
+  command: growpart /dev/xvda 2
+  register: growpart_result
+  failed_when: false
+  changed_when: growpart_result.rc == 0
+
+- name: Resize ext4 filesystem
+  command: resize2fs /dev/xvda2

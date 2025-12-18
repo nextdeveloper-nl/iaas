@@ -527,7 +527,9 @@ class VirtualMachinesXenService extends AbstractXenService
                 'apply-locale.yml',
                 'change-hostname.yml',
                 'change-password.yml',
-                'disk-resize.yml'
+                'disk-resize-debian12.yml',
+                'disk-resize-ubuntu22.yml',
+                'disk-resize-ubuntu24.yml'
             ];
 
             foreach ($configurationPack as $pack) {

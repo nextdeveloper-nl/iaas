@@ -29,8 +29,18 @@
       include_tasks: change-hostname.yml
 
     - name: Enlarge disk
-      include_tasks: disk-resize.yml
+      include_tasks: disk-resize-ubuntu22.yml
+      when:
+        - ansible_facts.distribution == "Ubuntu"
+        - ansible_facts.distribution_version == "22.04"
 
-#    - name: Import zabbix-client.yml if enabled
-#      import_playbook: zabbix-client.yml
-#      when: is_zabbix_enabled | bool
+    - name: Enlarge disk
+      include_tasks: disk-resize-ubuntu24.yml
+      when:
+        - ansible_facts.distribution == "Ubuntu"
+        - ansible_facts.distribution_version == "24.04"
+
+    - name: Enlarge disk
+      include_tasks: disk-resize-debian12.yml
+      when:
+        - ansible_facts.distribution == "Debian"

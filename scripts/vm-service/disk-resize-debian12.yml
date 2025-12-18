@@ -1,0 +1,58 @@
+---
+- name: Install disk resize dependencies (Debian 12)
+  apt:
+    name:
+      - cloud-guest-utils   # growpart
+      - util-linux          # sfdisk, partprobe
+      - gdisk               # sgdisk (if GPT)
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Detect root filesystem device
+  command: findmnt -n -o SOURCE /
+  register: root_device
+  become: true
+
+- name: Detect base disk
+  command: lsblk -no PKNAME {{ root_device.stdout }}
+  register: base_disk
+  become: true
+
+- name: Detect partition number
+  set_fact:
+    part_number: "{{ root_device.stdout | regex_search('[0-9]+$') }}"
+
+- name: Reread partition table
+  command: /usr/sbin/partprobe /dev/{{ base_disk.stdout }}
+  become: true
+  failed_when: false
+
+- name: Wait for kernel to settle
+  pause:
+    seconds: 2
+
+- name: Grow root partition
+  command: /usr/bin/growpart /dev/{{ base_disk.stdout }} {{ part_number }}
+  register: growpart_result
+  become: true
+  environment:
+    PATH: "/usr/sbin:/sbin:/usr/bin:/bin"
+  failed_when: false
+  changed_when: growpart_result.rc == 0
+
+- name: Resize ext4 filesystem
+  command: /sbin/resize2fs {{ root_device.stdout }}
+  become: true
+  when: ansible_facts.mounts
+    | selectattr('mount','equalto','/')
+    | selectattr('fstype','equalto','ext4')
+    | list | length > 0
+
+- name: Resize XFS filesystem
+  command: /usr/sbin/xfs_growfs /
+  become: true
+  when: ansible_facts.mounts
+    | selectattr('mount','equalto','/')
+    | selectattr('fstype','equalto','xfs')
+    | list | length > 0
