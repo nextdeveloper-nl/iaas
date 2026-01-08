@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Observers\AnsiblePlaybookExecutionsObserver;
 use NextDeveloper\IAAS\Database\Traits\Agentable;
 use Illuminate\Notifications\Notifiable;
 use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
+use NextDeveloper\Commons\Database\Traits\HasObject;
 
 /**
  * AnsiblePlaybookExecutions model.
@@ -46,7 +47,7 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  */
 class AnsiblePlaybookExecutions extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
     use SoftDeletes;
     use SSHable, Agentable;
 
@@ -198,6 +199,7 @@ class AnsiblePlaybookExecutions extends Model
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

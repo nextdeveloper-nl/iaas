@@ -12,6 +12,7 @@ use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\UuidId;
 use NextDeveloper\IAAS\Database\Observers\ComputeMemberNetworkInterfacesObserver;
 use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\HasObject;
 
 /**
  * ComputeMemberNetworkInterfaces model.
@@ -41,7 +42,7 @@ use Illuminate\Notifications\Notifiable;
  */
 class ComputeMemberNetworkInterfaces extends Model
 {
-    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
     use SoftDeletes;
 
     public $timestamps = true;
@@ -186,6 +187,7 @@ class ComputeMemberNetworkInterfaces extends Model
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
