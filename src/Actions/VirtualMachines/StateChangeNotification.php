@@ -131,6 +131,7 @@ class StateChangeNotification extends AbstractAction
             $bodyString = str_replace(':vm_name', $this->getVmDisplayName(), $this->resolveEventBody());
 
             $this->setProgress(70, 'Dispatching notification email.');
+
             (new Communicate($user))
                 ->sendEnvelopeNow(new SendStateChangeNotification($this->model, $user, $bodyString));
 

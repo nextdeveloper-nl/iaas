@@ -9,6 +9,7 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
+use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
@@ -21,6 +22,7 @@ use NextDeveloper\IAAS\Exceptions\SynchronizationException;
 use NextDeveloper\IAAS\Helpers\NetworkCalculationHelper;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\ComputeMemberStorageVolumesService;
+use NextDeveloper\IAAS\Services\ComputePoolsService;
 use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\StorageMembersService;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
@@ -69,6 +71,22 @@ class ComputeMemberXenService extends AbstractXenService
         }
 
         return $tasks;
+    }
+
+    public static function checkImportByVirtualMachine(ComputeMembers $computeMember, VirtualMachines $vm) : bool
+    {
+        $command = 'ps -ax | grep importing-' . $vm->uuid;
+        $output = self::performCommand($command, $computeMember);
+        $output = $output['output'];
+
+        $lines = explode("\n", $output);
+
+        foreach ($lines as $line) {
+            if(Str::contains('importing-' . $vm->uuid))
+                return true;
+        }
+
+        return false;
     }
 
     public static function updateMemberInformation(ComputeMembers $computeMember) : ComputeMembers
@@ -470,6 +488,7 @@ physical interfaces and vlans of compute member');
         $volumes = self::parseListResult($result['output']);
 
         foreach ($volumes as $volume) {
+            Log::debug('[ComputeMemberService@updateStorageVolumes] Updating the storage volumes for the compute member: ' . print_r($volume, true));
             /*
              * We will look at the array and try to understand if we have a local storage. If we have a local storage
              * we should add this compute member as storage member also. Because we need to register the volume as
@@ -622,7 +641,8 @@ physical interfaces and vlans of compute member');
             'hypervisor_data'  => $volume,
             'block_device_data' =>  $pbdParams,
             'iam_user_id'       =>  $computeMember->iam_user_id,
-            'iam_account_id'    =>  $computeMember->iam_account_id
+            'iam_account_id'    =>  $computeMember->iam_account_id,
+            'iaas_compute_member_id'    =>  $computeMember->id
         ];
 
         if(!$storageVolume) {
@@ -960,7 +980,10 @@ physical interfaces and vlans of compute member');
     public static function importVirtualMachine(
         ComputeMembers $computeMember,
         StorageVolumes $volume,
-        RepositoryImages $image
+        RepositoryImages $image,
+        VirtualMachines $vm,
+        bool $isLazyDeploy = false,
+        string $vmUuid = null
     )
     {
         if(config('leo.debug.iaas.compute_members'))
@@ -1002,14 +1025,35 @@ physical interfaces and vlans of compute member');
             ->where('iaas_storage_volume_id', $volume->id)
             ->first();
 
-        $command = 'xe vm-import ';
-        $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
-        $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
+        if(!$isLazyDeploy) {
+            $command = 'echo "importing-' . $vm->uuid . '" > /dev/null 2>&1 && ';
+            $command .= 'xe vm-import ';
+            $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
+            $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
 
-        Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
-            'command: ' . $command);
+            Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
+                'command: ' . $command);
+        } else {
+            $command = 'echo "importing-' . $vm->uuid . '" > /dev/null 2>&1 && ';
+            $command .= 'xe vm-import ';
+            $command .= 'filename=/mnt/plusclouds-repo/' . $repository->uuid . '/' . $image->filename;
+            $command .= ' sr-uuid=' . $mountedVolume->hypervisor_uuid;
+            $command .= ' | xargs -I {} xe vm-param-set uuid={} name-label="' . $vm->uuid . '"';
+            $command .= ' &&';
+            $command .= ' curl -X POST ' . config('leo.internal_endpoint') . '/public/iaas/finalize-commit/' . $vmUuid;
+            $command .= ' > /dev/null 2>&1 &';
+
+            Log::info('[ComputeMembersXenService@importVirtualMachine] Importing the virtual machine with ' .
+                'command: ' . $command);
+        }
 
         $result = self::performCommand($command, $computeMember);
+
+        if(!$isLazyDeploy) {
+            $vm->update([
+                'hypervisor_uuid' => $result['output']
+            ]);
+        }
 
         return $result['output'];
     }
@@ -1402,6 +1446,19 @@ physical interfaces and vlans of compute member');
                 . $computeMember->name);
             return false;
         }
+    }
+
+    public static function getVirtualMachineUuidByName(ComputeMembers $computeMember, $vmName)
+    {
+        if(config('leo.debug.iaas.compute_members'))
+            Log::info('[ComputeMembersXenService@deployEventsService] Trying to find the VM with name '
+                . $vmName . ' on compute member: ' . $computeMember->name);
+
+        $command = 'xe vm-list name-label="' . $vmName . '"';
+        $result = self::performCommand($command, $computeMember);
+        $result = self::parseResult($result['output']);
+
+        return $result['uuid'];
     }
 
     public static function performCommand($command, ComputeMembers $computeMember) : ?array

@@ -269,7 +269,9 @@ class InitiateMultilevelBackupJob extends AbstractAction
 
             $backupRepo = $vmBackupHelper->setData(
                 key: 'backup_repo',
-                default: ComputeMembersService::getDefaultBackupRepository($computeMember)
+                default: Repositories::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('id', $this->model->iaas_repository_id)
+                    ->first()
             );
 
             ComputeMemberXenService::mountRepository($computeMember, $backupRepo);

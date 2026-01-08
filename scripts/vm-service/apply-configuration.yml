@@ -1,0 +1,46 @@
+---
+- name: Get VM Metadata from local JSON file
+  hosts: all
+  vars:
+    metadata_file: "{{ playbook_dir }}/pc-meta-data.json"
+
+  tasks:
+    - name: Load metadata from local JSON file
+      set_fact:
+        metadata: "{{ lookup('file', metadata_file) | from_json }}"
+
+    - name: Show metadata content
+      debug:
+        var: metadata
+
+    - name: Extract values from metadata
+      set_fact:
+        vm_user: "{{ metadata.username }}"
+        vm_password: "{{ metadata.password }}"
+
+    - name: Apply password configuration
+      include_tasks: change-password.yml
+
+    - name: Extract values for hostname configuration
+      set_fact:
+        hostname: "{{ metadata.hostname | default('default-hostname') }}"
+
+    - name: Apply hostname configuration
+      include_tasks: change-hostname.yml
+
+    - name: Enlarge disk
+      include_tasks: disk-resize-ubuntu22.yml
+      when:
+        - ansible_facts.distribution == "Ubuntu"
+        - ansible_facts.distribution_version == "22.04"
+
+    - name: Enlarge disk
+      include_tasks: disk-resize-ubuntu24.yml
+      when:
+        - ansible_facts.distribution == "Ubuntu"
+        - ansible_facts.distribution_version == "24.04"
+
+    - name: Enlarge disk
+      include_tasks: disk-resize-debian12.yml
+      when:
+        - ansible_facts.distribution == "Debian"

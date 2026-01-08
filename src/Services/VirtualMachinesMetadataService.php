@@ -139,12 +139,8 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         ];
     }
 
-    public static function getCloudInitConfiguration($vm) : string
+    public static function getCloudInitNetworkConfiguration($vm) : string
     {
-        //  For encryption of the password
-        $salt = substr(str_replace('+', '.', base64_encode(random_bytes(16))), 0, 16);
-        $hash = crypt($vm->password, '$6$' . $salt . '$');
-
         $networkCards = VirtualMachinesService::getVirtualNetworkCards($vm);
 
         $networkCardsArray = [];
@@ -158,7 +154,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                 'dhcp4' => true,
             ];
 
-             $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+            $network = Networks::withoutGlobalScope(AuthorizationScope::class)
                 ->where('id', $networkCard->iaas_network_id)
                 ->first();
 
@@ -217,12 +213,56 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                     'passwd' => $hash,
                 ]
             ],
-            'network' => [
-                'version' => 2,
-                'ethernets' => $networkCardsArray
-            ],
+//            'network' => [
+//                'version' => 2,
+//                'ethernets' => $networkCardsArray
+//            ],
         ];
 
-        return yaml_emit($data);
+        $yaml = yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
+
+        // Remove YAML document markers
+        $yaml = preg_replace('/^---\s*\n/', '', $yaml);
+        $yaml = preg_replace('/\n\.\.\.\s*$/', '', $yaml);
+
+        // Prepend Cloud-Init header
+        $yaml = "#cloud-config\n" . $yaml;
+
+        return $yaml;
+    }
+
+    public static function getCloudInitConfiguration($vm) : string
+    {
+        //  For encryption of the password
+        $salt = substr(str_replace('+', '.', base64_encode(random_bytes(16))), 0, 16);
+        $hash = crypt($vm->password, '$6$' . $salt . '$');
+
+        $data = [
+            'instance_id' => $vm->uuid,
+            'hostname'  =>  $vm->hostname,
+            'manage_etc_hosts' => true,
+            'ssh_pwauth' => true,
+            'disable_root' => false,
+            'users' => [
+                [
+                    'name' => $vm->username,
+                    'gecos' => 'Superuser',
+                    'lock_passwd' => false,
+                    'shell' => '/bin/bash',
+                    'passwd' => $hash,
+                ]
+            ]
+        ];
+
+        $yaml = yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
+
+        // Remove YAML document markers
+        $yaml = preg_replace('/^---\s*\n/', '', $yaml);
+        $yaml = preg_replace('/\n\.\.\.\s*$/', '', $yaml);
+
+        // Prepend Cloud-Init header
+        $yaml = "#cloud-config\n" . $yaml;
+
+        return $yaml;
     }
 }

@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -318,7 +319,13 @@ class VirtualMachinesXenService extends AbstractXenService
             ];
 
             if($dbVdi)
-                $dbVdi->updateQuietly($data);
+                try {
+                    $dbVdi->updateQuietly($data);
+                } catch(\Exception $e) {
+                    dump($dbVdi);
+                    dump($data);
+                    dd( $e->getMessage() );
+                }
             else {
                 //  We need to check if we already have a record with the iaas_virtual_machine_id and device_number
                 //  If we have, we will update it, if not we will create a new one
@@ -351,6 +358,24 @@ class VirtualMachinesXenService extends AbstractXenService
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
 
+        //  We need to scan the volume before we try to mount because sometimes the config ISO cannot be found
+        $storageVolume = ComputeMemberStorageVolumes::withoutGlobalScopes()
+            ->where('iaas_compute_member_id', $computeMember->id)
+            ->where('name', 'NFS ISO library')
+            ->first();
+
+        if(!$storageVolume) {
+            ComputeMemberXenService::updateStorageVolumes($computeMember);
+
+            $storageVolume = ComputeMemberStorageVolumes::withoutGlobalScopes()
+                ->where('iaas_compute_member_id', $computeMember->id)
+                ->where('name', 'NFS ISO library')
+                ->first();
+        }
+
+        $command = 'xe sr-scan uuid=' . $storageVolume->hypervisor_uuid;
+        self::performCommand($command, $computeMember);
+
         $command = 'xe vm-cd-insert vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename;
 
         if (config('leo.debug.iaas.compute_members'))
@@ -359,8 +384,9 @@ class VirtualMachinesXenService extends AbstractXenService
         $result = self::performCommand($command, $computeMember);
 
         if($result['output'] == '') {
-            //  This means that we dont have CD mounted on the server. We will mount a cdrom with device number default 255
-            $command = 'xe vm-cd-add vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename . ' device=255';
+            //  This means that we dont have CD mounted on the server. We will mount a cdrom with device number default 3
+            //  If we make it 255, older operating systems does not see the CDROM
+            $command = 'xe vm-cd-add vm="' . $vm->hypervisor_data['name-label'] . '" cd-name=' . $image->filename . ' device=3';
 
             if (config('leo.debug.iaas.compute_members'))
                 Log::debug('[VirtualMachinesXenService@mountCD] Mount command: ' . $command);
@@ -461,33 +487,72 @@ class VirtualMachinesXenService extends AbstractXenService
         $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
 
         if ($centralRepo) {
-            //  Here we will write the user-data config to the xenserver before we create the iso
-            $userData = VirtualMachinesService::getCloudInitConfiguration($vm);
-            $base64UserData = base64_encode($userData);
-
             //  Creating the configuration folder
             $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
             $result = self::performCommand($command, $centralRepo);
 
-            //  Pushing the user-data file
-            $command = 'echo "' . $base64UserData . '" > config-iso/' . $vm->uuid . '/user-data.base64';
-            $result = self::performCommand($command, $centralRepo);
+            $uploadConfig = function($filename, $content, $vm, $centralRepo) {
+                //  Pushing the user-data file
+                $command = 'echo "' . $content . '" > config-iso/' . $vm->uuid . '/' . $filename . '.base64';
+                $result = self::performCommand($command, $centralRepo);
 
-            //  Decoding the user-data file
-            $command = 'base64 -d config-iso/' . $vm->uuid . '/user-data.base64 > config-iso/' . $vm->uuid . '/user-data';
-            $result = self::performCommand($command, $centralRepo);
+                //  Decoding the user-data file
+                $command = 'base64 -d config-iso/' . $vm->uuid . '/' . $filename . '.base64 > config-iso/' . $vm->uuid . '/' . $filename . '';
+                $result = self::performCommand($command, $centralRepo);
+            };
 
-            //  Pushing the meta-data content to the file
-            $metaDataBase64 = base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n");
-            $command = 'echo "' . $metaDataBase64 . '" > config-iso/' . $vm->uuid . '/meta-data.base64';
-            $result = self::performCommand($command, $centralRepo);
+            $uploadConfig(
+                filename: 'pc-meta-data.json',
+                content: base64_encode(json_encode(VirtualMachinesService::getMetadata($vm))),
+                vm: $vm,
+                centralRepo: $centralRepo
+            );
 
-            //  Decoding the meta-data file
-            $command = 'base64 -d config-iso/' . $vm->uuid . '/meta-data.base64 > config-iso/' . $vm->uuid . '/meta-data';
-            $result = self::performCommand($command, $centralRepo);
+            $uploadConfig(
+                filename: 'user-data',
+                content: base64_encode(VirtualMachinesService::getCloudInitConfiguration($vm)),
+                vm: $vm,
+                centralRepo:  $centralRepo
+            );
+
+            $uploadConfig(
+                filename: 'meta-data',
+                content: base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n"),
+                vm: $vm,
+                centralRepo: $centralRepo
+            );
+
+            $configurationPack = [
+                'apply-configuration.yml',
+                'apply-locale.yml',
+                'change-hostname.yml',
+                'change-password.yml',
+                'disk-resize-debian12.yml',
+                'disk-resize-ubuntu22.yml',
+                'disk-resize-ubuntu24.yml'
+            ];
+
+            foreach ($configurationPack as $pack) {
+                $uploadConfig(
+                    filename: $pack,
+                    content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/' . $pack))),
+                    vm: $vm,
+                    centralRepo: $centralRepo
+                );
+            }
 
             //  Creating the iso file
-            $command = 'genisoimage -output config-iso/' . $vm->uuid . '/config.iso -volid CIDATA -joliet -rock config-iso/' . $vm->uuid . '/user-data config-iso/' . $vm->uuid . '/meta-data';
+            $command = 'genisoimage -output ' .
+                'config-iso/' . $vm->uuid . '/config.iso ' .
+                '-volid cidata -joliet -rock ' .
+                'config-iso/' . $vm->uuid . '/user-data ' .
+                'config-iso/' . $vm->uuid . '/meta-data ' .
+                'config-iso/' . $vm->uuid . '/pc-meta-data.json';
+
+            foreach ($configurationPack as $pack) {
+                $command .= ' config-iso/' . $vm->uuid . '/' . $pack;
+            }
+
             $result = self::performCommand($command, $centralRepo);
 
             //  removing .base64 files

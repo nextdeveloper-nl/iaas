@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This class is responsible from managing the data for ComputeMembers
@@ -26,6 +27,48 @@ class ComputeMembersService extends AbstractComputeMembersService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    public static function scanLock($computeMember, $isEnabled = true)
+    {
+        UserHelper::runAsAdmin(function () use ($computeMember, $isEnabled) {
+            $computeMember->update([
+                ''
+            ]);
+        });
+    }
+
+    public static function addFeature($computeMember, $feature)
+    {
+        $features = $computeMember->features;
+
+        if(!$features) {
+            $computeMember->update([
+                'features' => [$feature]
+            ]);
+
+            return $computeMember->fresh();
+        }
+
+        if(!in_array($feature, $features)) {
+            $features[] = $feature;
+            $computeMember->update([
+                'features' => $features
+            ]);
+        }
+
+        return $computeMember->fresh();
+    }
+
+    public static function removeFeature($computeMember, $feature)
+    {
+        $features = $computeMember->features;
+
+        $features = array_diff($features, [$feature]);
+
+        $computeMember->update([
+            'features' => $features
+        ]);
+    }
+
     public static function getDefaultBackupRepository(ComputeMembers $member): ?Repositories
     {
         $cloud = self::getCloudNode($member);

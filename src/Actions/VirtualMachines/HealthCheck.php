@@ -12,6 +12,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -42,7 +43,7 @@ class HealthCheck extends AbstractAction
         '100' => 'Virtual machine health check finished',
     ];
 
-    public function __construct(VirtualMachines $vm, $params = null, $previous = null)
+    public function __construct(VirtualMachines $vm = null, $params = null, $previous = null)
     {
         $this->queue = 'iaas-health-check';
 
@@ -58,10 +59,60 @@ class HealthCheck extends AbstractAction
 
         $this->setProgress(10, 'Marking the server as checking health');
 
-        if($this->model->is_draft) {
+        if($this->model->is_draft && $this->model->status == 'draft') {
+            $isOlderThan15Mins = Carbon::now()->subMinutes(15)->isAfter($this->model->updated_at);
+
+            if($isOlderThan15Mins) {
+                CommentsService::createSystemComment('Virtual machine is in draft state for more than ' .
+                    '15 mins, therefore I am deleting it.', $this->model);
+                $this->model->delete();
+
+                $this->setFinished('The VM is older than 15 mins, that is why I removed it.');
+                return;
+            }
+
             $this->setFinished('Virtual machine is a draft. Skipping health check.');
-            CommentsService::createSystemComment('Virtual machine is in draft state. Skipping health check.', $this->model);
             return;
+        }
+
+        if($this->model->is_draft && $this->model->status == 'deploying') {
+            //  Here we need to check if really it is being deployed
+            $computeMember = VirtualMachinesService::getComputeMember($this->model);
+
+            if(!$computeMember) {
+                Log::info('[VirtualMachines\HealthCheck] This server is in deploying state but it does ' .
+                    'not have compute member. This should be a faulty object, therefore I am deleting it.');
+
+                CommentsService::createSystemComment('Virtual machine is in faulty state and does not ' .
+                    'exists. Therefore I am deleting the object.', $this->model);
+
+                $this->model->delete();
+
+                $this->setFinished('Virtual machine is in faulty state and does not exists.');
+                return;
+            }
+
+            $isImporting = ComputeMemberXenService::checkImportByVirtualMachine($computeMember, $this->model);
+
+            if($isImporting) {
+                Log::info('[VirtualMachines\HealthCheck] The virtual machine is still being importing, ' .
+                    'I am skipping the health check.');
+
+                $this->setFinished('Virtual machine is still being imported therefore ' .
+                    'I am skipping health check.');
+                return;
+            } else {
+                Log::info('[VirtualMachines\HealthCheck] The virtual machine should be in deploying state ' .
+                    'but is not being imported, there must be a problem with the server. Therefore I am deleting it.');
+
+                CommentsService::createSystemComment('Virtual machine is in faulty state and does not ' .
+                    'exists. Therefore I am deleting the object.', $this->model);
+
+                $this->model->delete();
+
+                $this->setFinished('Virtual machine is in faulty state and does not exists.');
+                return;
+            }
         }
 
         if($this->model->is_lost) {
@@ -127,7 +178,7 @@ class HealthCheck extends AbstractAction
         $this->setProgress(50, 'Checking if the virtual machine is alive');
 
         try {
-            $isVmThere = VirtualMachinesXenService::checkIfVmIsThere($this->model);
+            $isVmThere = VirtualMachinesXenService::getVmParameters($this->model);
         } catch (CannotConnectWithSshException $exception) {
             Log::error(__METHOD__ . ' | Cannot connect with SSH to the VM: ' . $this->model->uuid);
 
@@ -161,14 +212,12 @@ class HealthCheck extends AbstractAction
             return;
         }
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
-        $consoleParams = VirtualMachinesXenService::getConsoleParameters($this->model);
+        $vmParams = $isVmThere;
+
+        //  Not taking this anymore since it creates too much overload on to the process
+//        $consoleParams = VirtualMachinesXenService::getConsoleParameters($this->model);
 
         $this->setProgress(75, 'Marking the server power state as: ' . $vmParams['power-state']);
-
-        $dataToUpdate = [
-            'console_data'  =>  $consoleParams[0]
-        ];
 
         if($this->model->status != $vmParams['power-state']) {
             $dataToUpdate['status'] = $vmParams['power-state'];
@@ -189,12 +238,16 @@ class HealthCheck extends AbstractAction
             }
         }
 
-        $this->model->updateQuietly($dataToUpdate);
+        if($this->model->status != $vmParams['power-state']) {
+            $this->model->update([
+                'status' => $vmParams['power-state']
+            ]);
+        }
 
         CommentsService::createSystemComment('Everything is fine with health check.', $this->model);
 
         Events::fire('healthy:NextDeveloper\IAAS\VirtualMachines', $this->model);
         Events::fire('checked:NextDeveloper\IAAS\VirtualMachines', $this->model);
-        $this->setProgress(100, 'Virtual machine health check finished');
+        $this->setFinished('Virtual machine health check finished');
     }
 }

@@ -5,10 +5,11 @@ namespace NextDeveloper\IAAS\Http\Middlewares;
 use Closure;
 use Illuminate\Http\Request;
 use NextDeveloper\IAAS\Database\Models\Accounts;
+use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAM\Helpers\UserHelper;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckEligibility
+class CheckIaasAccount
 {
     /**
      * Checks if the user is suspended. If it is suspended then we will not allow them to make a request apart from GET.
@@ -20,16 +21,16 @@ class CheckEligibility
         $iamAccount = UserHelper::currentAccount();
         $iamUser = UserHelper::getAccountOwner($iamAccount);
 
-        if($request->getMethod() != 'GET'){
-            if(!$iamAccount->common_country_id || !$iamUser->is_profile_verified) {
-                return response()->json([
-                    'errors' => [
-                        'status'    => 403,
-                        'message'   => 'Cannot use infrastructure without country or validated profile.',
-                        'details'   => 'Due to laws and regulations, to use infrastructure services you should have a validated account with a validated user.'
-                    ],
-                ], 403);
-            }
+        $iaasAccount = IaasHelper::getAccount($iamAccount);
+
+        if(!$iaasAccount->is_service_enabled) {
+            return response()->json([
+                'errors' => [
+                    'status'    => 403,
+                    'message'   => 'IAAS services are not enabled for this account',
+                    'details'   => 'Please contact support to enable IAAS services for your account.'
+                ],
+            ], 403);
         }
 
         /** @noinspection $next **/

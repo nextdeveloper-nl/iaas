@@ -33,6 +33,8 @@ use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
 use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAM\Database\Models\Accounts;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -175,6 +177,17 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         return self::convertToApexChartData($cpuSeries);
+    }
+
+    /**
+     *
+     *
+     * @param VirtualMachines $vm
+     * @return RepositoryImages|null
+     */
+    public static function getRepositoryImage(VirtualMachines $vm) : ?RepositoryImages
+    {
+        return RepositoryImages::withoutGlobalScopes()->where('id', $vm->iaas_repository_image_id)->first();
     }
 
     public static function convertToApexChartData($rawData) {
@@ -641,31 +654,26 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function fixUsername(VirtualMachines $vm)
     {
-        if($vm->username == null || $vm->username == '') {
-            if($vm->os == 'microsoft windows') {
-                $vm->update([
-                    'username' => 'Administrator'
-                ]);
-            } elseif($vm->os == 'linux') {
-                $vm->update([
-                    'username' => 'root'
-                ]);
-            } elseif($vm->os == 'application') {
-                $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
-                    ->where('id', $vm->iaas_repository_image_id)
-                    ->first();
+        $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)->where('id', $vm->iaas_repository_image_id)->first();
 
-                $vm->update([
-                    'username' => $repoImage->default_username ?? 'root'
-                ]);
-            } else {
-                //  If the OS is not known, we are setting the username to root
-                Log::warning('The OS is not known, setting username to root');
+        Log::info('[VirtualMachineService@fixUsername] Will try to fix the username. Current username: ' . $repoImage->default_username ?? 'root');
 
-                $vm->update([
-                    'username' => 'root'
-                ]);
-            }
+        if($vm->username)
+            return $vm;
+
+        Log::info('[VirtualMachineService@fixUsername] VM Data: ' . print_r($vm, true));
+
+        switch ($vm->os) {
+            case 'microsoft windows':
+                $vm->update(['username' => 'Administrator']);
+                break;
+            case 'linux':
+            case 'application':
+                Log::info('[VirtualMachineService@fixUsername] Fixing the username as: ' . $repoImage->default_username ?? 'root');
+                $vm->update(['username' => $repoImage->default_username ?? 'root']);
+                break;
+            default:
+                $vm->update(['username' => $repoImage->default_username ?? 'root']);
         }
 
         return $vm->fresh();
@@ -750,5 +758,36 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     public static function getCloudInitConfiguration($vm)
     {
         return VirtualMachinesMetadataService::getCloudInitConfiguration($vm);
+    }
+
+    public static function finalizeCommit(string $vm)
+    {
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('uuid', $vm)
+            ->first();
+
+        UserHelper::setUserById($vm->iam_user_id);
+        UserHelper::setCurrentAccountById($vm->iam_account_id);
+
+        $vm = self::fixHypervisorUuid($vm);
+
+        dispatch(new Commit($vm));
+
+        return $vm;
+    }
+
+    public static function fixHypervisorUuid(VirtualMachines $vm) : VirtualMachines
+    {
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        $uuid = ComputeMemberXenService::getVirtualMachineUuidByName($computeMember, $vm->uuid);
+
+        UserHelper::runAsAdmin(function () use ($uuid, $vm) {
+            $vm->update([
+                'hypervisor_uuid' => $uuid
+            ]);
+        });
+
+        return $vm->fresh();
     }
 }

@@ -62,19 +62,21 @@ class Start extends AbstractAction
             if(!$configImage) {
                 //  If we do not have a configuration image we will create it
                 Log::info('[Start@handle] . No configuration image found. Dispatching the job to create it.');
-                dispatch(new GenerateCloudInitImage($this->model))->onQueue('iaas');
-            } else {
-                //  Check if the CDROM is mounted, if not we will mount and add the configuration iso
-                $cdrom = VirtualMachinesService::getCdrom($this->model);
+                (new GenerateCloudInitImage($this->model))->handle();
 
-                if($cdrom == null) {
+                $configImage = RepositoryImagesService::getCloudInitImage($this->model);
+            }
+
+            //  Check if the CDROM is mounted, if not we will mount and add the configuration iso
+            $cdrom = VirtualMachinesService::getCdrom($this->model);
+
+            if($cdrom == null) {
+                VirtualMachinesXenService::mountCD($this->model, $configImage, true);
+            } else {
+                if($cdrom->size == 0) {
                     VirtualMachinesXenService::mountCD($this->model, $configImage, true);
                 } else {
-                    if($cdrom->size == 0) {
-                        VirtualMachinesXenService::mountCD($this->model, $configImage);
-                    } else {
-                        Log::info(__METHOD__ . ' CDROM is already mounted. Not remounting.');
-                    }
+                    Log::info(__METHOD__ . ' CDROM is already mounted. Not remounting.');
                 }
             }
         }

@@ -9,7 +9,7 @@ use NextDeveloper\IAM\Helpers\UserHelper;
 
 class IaasHelper
 {
-    public static function getAccount(\NextDeveloper\IAM\Database\Models\Accounts $account)
+    public static function getAccount(\NextDeveloper\IAM\Database\Models\Accounts $account) : Accounts
     {
         return Accounts::where('iam_account_id', $account->id)->first();
     }

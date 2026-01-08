@@ -1,0 +1,51 @@
+---
+- name: Install disk resize dependencies (Debian 12)
+  apt:
+    name:
+      - cloud-guest-utils   # growpart
+      - util-linux          # sfdisk, partprobe
+      - gdisk               # sgdisk (if GPT)
+    state: present
+    update_cache: yes
+
+- name: Detect root filesystem device
+  command: findmnt -n -o SOURCE /
+  register: root_device
+
+- name: Detect base disk
+  command: lsblk -no PKNAME {{ root_device.stdout }}
+  register: base_disk
+
+- name: Detect partition number
+  set_fact:
+    part_number: "{{ root_device.stdout | regex_search('[0-9]+$') }}"
+
+- name: Reread partition table
+  command: /usr/sbin/partprobe /dev/{{ base_disk.stdout }}
+  failed_when: false
+
+- name: Wait for kernel to settle
+  pause:
+    seconds: 2
+
+- name: Grow root partition to maximum size
+  command: /usr/bin/growpart /dev/{{ base_disk.stdout }} {{ part_number }}
+  register: growpart_result
+  environment:
+    PATH: "/usr/sbin:/sbin:/usr/bin:/bin"
+  failed_when: false
+  changed_when: growpart_result.rc == 0
+
+- name: Ensure root filesystem is ext4
+  assert:
+    that:
+      - >
+        ansible_facts.mounts
+        | selectattr('mount','equalto','/')
+        | selectattr('fstype','equalto','ext4')
+        | list
+        | length > 0
+    fail_msg: "Root filesystem is not ext4; refusing to resize"
+
+- name: Resize ext4 filesystem to maximum size
+  command: /sbin/resize2fs {{ root_device.stdout }}

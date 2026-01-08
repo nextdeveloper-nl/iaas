@@ -3,7 +3,6 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\MetaHelper;
 use NextDeveloper\Commons\Helpers\StateHelper;
@@ -22,6 +21,7 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
+use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers\UtilizeComputeMembers;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes\UtilizeStorageVolumes;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
@@ -31,6 +31,7 @@ use NextDeveloper\IAAS\Services\IpAddressesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action converts a draft virtual machine to a live virtual machine. This action should be triggered when the
@@ -53,18 +54,37 @@ class Commit extends AbstractAction
 
     public $timeout = 3600;
 
-    public function __construct(VirtualMachines $vm)
+    public const PARAMS = [
+        'is_lazy_deploy'  =>  'boolean',
+    ];
+
+    public function __construct(VirtualMachines $vm, $params = null, $previous = null)
     {
         $this->model = $vm;
 
         $this->queue = 'iaas';
 
-        parent::__construct();
+        if($params) {
+            if(!array_key_exists('is_lazy_deploy', $params)) {
+                $params['is_lazy_deploy'] = false;
+            }
+        } else {
+            $params['is_lazy_deploy'] = false;
+        }
+
+        parent::__construct($params, $previous);
     }
 
     public function handle()
     {
         $this->setProgress(0, 'Committing virtual machine...');
+
+        if(!UserHelper::me())
+
+
+        if($this->params['is_lazy_deploy']) {
+            $this->setProgress(0, 'Lazy deploying virtual machine...');
+        }
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -104,10 +124,50 @@ class Commit extends AbstractAction
         if (!$vm->hypervisor_uuid) {
             $this->setProgress(10, 'Importing virtual machine to the related compute member');
             $this->importVirtualMachine(10);
-        } else {
-            $this->setProgress(10, 'Virtual machine already imported, ' .
-                'skipping to disk configuration');
+
+            if($this->params['is_lazy_deploy']) {
+                //  Since this deployment model is a lazy deploy at this point the deployment should stop.
+                $this->setFinished('Lazy deploying virtual machine.');
+                Log::info(__METHOD__ . ' Lazy deploying virtual machine with data: ' . print_r($vm, true));
+                return;
+            }
         }
+
+        /**
+         * ############### FIRST PART OF IMPORT FINISHES
+         */
+
+        $vm = $this->model->fresh();
+
+        Log::info(__METHOD__ . ' Lazy deploying, STEP 2,  virtual machine with data: ' . print_r($vm, true));
+
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        $repoImage = RepositoryImages::withoutGlobalScopes()->where('id', $vm->iaas_repository_image_id)->first();
+        $repo = Repositories::withoutGlobalScopes()->where('id', $repoImage->iaas_repository_id)->first();
+
+        $this->setProgress(19, 'Unmounting repository from compute member');
+        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][19] | Unmounting repository from compute member');
+        $result = ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
+
+        ComputeMemberXenService::setVmXenstoreData('api', config('app.url'), $vm, $computeMember);
+        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
+
+        /**
+         * ############### SECOND PART OF IMPORT STARTS
+         */
+        $vm->update([
+            'state' =>  'configuring'
+        ]);
+
+        $this->postImportConfiguration(
+            vm: $vm,
+            step: 14
+        );
+
+        Log::info(__METHOD__ . ' Lazy deploying, STEP 3, virtual machine with data: ' . print_r($vm, true));
+
+        ComputeMemberXenService::updateMemberInformation($computeMember);
 
         //  We need to update CPU and RAM
         $this->setProgress(20, 'Setting CPU and RAM');
@@ -118,6 +178,8 @@ class Commit extends AbstractAction
         $this->setupNetworking(70);
 
         $this->setupIp(80);
+
+        (new GenerateCloudInitImage($this->model))->handle();
 
         $vm->update([
             'status' => 'halted',
@@ -308,12 +370,16 @@ class Commit extends AbstractAction
             );
         }
 
-        $computeMember->used_ram += $vm->ram;
+        $computeMember->used_ram += ($vm->ram / 1024);
         $computeMember->saveQuietly();
 
         $storageVolume = null;
 
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 1 . '] | Found the best compute member: ' . $computeMember->name);
+
+        $this->model->update([
+            'iaas_compute_member_id' => $computeMember->id,
+        ]);
 
         $this->setProgress($step + 2, 'Finding the best storage volume for your virtual machine.');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 2 . '] | Finding the best storage volume for your virtual machine.');
@@ -375,13 +441,16 @@ class Commit extends AbstractAction
                 ' should be an on-board volume in hypervisor. Also there can be another reasons, which are maybe ' .
                 'the storage volume is set to be not alive, which means we can be doomed! OR it is not set a sstorage');
 
+        $vm->update([
+            'iaas_compute_member_id' => $computeMember->id,
+            'iaas_repository_image_id' => $machineImage->id
+        ]);
+
         switch ($computePool->virtualization) {
             case 'xenserver-8.2':
                 $uuid = $this->importXenServer($vm, $computeMember, $repositoryServer, $storageVolume, $machineImage, $step);
                 break;
         }
-
-        ComputeMemberXenService::updateMemberInformation($computeMember);
 
         $this->setProgress($step + 9, 'Virtual machine imported');
     }
@@ -394,7 +463,48 @@ class Commit extends AbstractAction
 
         $this->setProgress($step + 5, 'Importing virtual machine image');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 5 . '] | Importing virtual machine image');
-        $uuid = ComputeMemberXenService::importVirtualMachine($computeMember, $volume, $image);
+
+        $uuid = '';
+
+        if($this->params['is_lazy_deploy']) {
+            $uuid = ComputeMemberXenService::importVirtualMachine(
+                computeMember: $computeMember,
+                volume: $volume,
+                image: $image,
+                vm: $vm,
+                isLazyDeploy: $this->params['is_lazy_deploy'],
+                vmUuid: $vm->uuid
+            );
+        } else {
+            $uuid = ComputeMemberXenService::importVirtualMachine(
+                computeMember: $computeMember,
+                volume: $volume,
+                image: $image,
+                vm: $vm,
+            );
+        }
+
+        return $uuid;
+    }
+
+    private function postImportConfiguration($vm, $step)
+    {
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+        $uuid = $vm->hypervisor_uuid;
+
+        if(!$uuid) {
+            //  This means that we are running postImportConfiguration because the VM is imported already and
+            //  we need to rerun the import process, and running the import again.
+
+            //  Here we are assuming that the uuid is pushed by the hypervisor to API by triggering the API when
+            //  the import is finished. Therefore the hypervisor_uuid should be in the $vm object.
+
+            if(!$vm->hypervisor_uuid) {
+                $this->setFinishedWithError('We expected this VM (' . $vm->uuid . ') to be imported, ' .
+                    'and hypervisor_uuid should be set. But that is not the case, therefore we are stopping ' .
+                    'for import.');
+            }
+        }
 
         $this->setProgress($step + 6, 'Updating virtual machine parameters');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 6 . '] | Updating virtual machine parameters');
@@ -403,26 +513,13 @@ class Commit extends AbstractAction
         $vm->update([
             'hypervisor_uuid' => $vmParams['uuid'],
             'hypervisor_data' => $vmParams,
-            'iaas_compute_member_id' => $computeMember->id,
             'state' => $vmParams['power-state'],
-            'os' => $image->os,
-            'distro' => $image->distro,
-            'version' => $image->version,
             'is_draft' => false,
             'status' => 'halted'
         ]);
 
         Events::listen('imported:NextDeveloper\IAAS\VirtualMachines', $vm);
         Events::listen('imported-virtual-machine:NextDeveloper\IAAS\ComputeMembers', $computeMember);
-
-        $this->setProgress($step + 9, 'Unmounting repository from compute member');
-        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 9 . '] | Unmounting repository from compute member');
-        $result = ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
-
-        ComputeMemberXenService::setVmXenstoreData('api', config('app.url'), $vm, $computeMember);
-        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
-
-        return true;
     }
 
     private function setupXenDisks($step = 0)

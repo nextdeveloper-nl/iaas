@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -34,6 +35,17 @@ class Scan extends AbstractAction
     public function handle()
     {
         $this->setProgress(0, 'Initiate compute member started');
+
+        $runningTasks = ComputeMemberXenService::getRunningTasks($this->model);
+
+        foreach ($runningTasks as $task) {
+            if(Str::contains($task['name-label'], 'import', true)) {
+                $this->setFinished('There is an import process for this compute member, therefore I cannot ' .
+                    'scan. If I continue to scan I will create wrong data in database.');
+                return;
+            }
+        }
+
 
         if($this->shouldRunCheckpoint(10)) {
             ComputeMemberXenService::updateMemberInformation($this->model);

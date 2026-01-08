@@ -23,6 +23,11 @@ class ComputePoolsService extends AbstractComputePoolsService
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
+    public static function isIso27001Enabled(ComputePools $computePools) :bool
+    {
+        return $computePools->is_iso27001_enabled;
+    }
+
     public static function getPricingTable(ComputePools $computePool, $minimumRam = 1) : array {
         $computeMembers = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_compute_pool_id', $computePool->id)
