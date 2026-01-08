@@ -77,7 +77,7 @@ class ComputeMemberXenService extends AbstractXenService
     {
         $command = 'ps -ax | grep importing-' . $vm->uuid;
         $output = self::performCommand($command, $computeMember);
-        $output = $output['result'];
+        $output = $output['output'];
 
         $lines = explode("\n", $output);
 

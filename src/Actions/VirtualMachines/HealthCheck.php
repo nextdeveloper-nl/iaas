@@ -43,7 +43,7 @@ class HealthCheck extends AbstractAction
         '100' => 'Virtual machine health check finished',
     ];
 
-    public function __construct($vm = null, $params = null, $previous = null)
+    public function __construct(VirtualMachines $vm = null, $params = null, $previous = null)
     {
         $this->queue = 'iaas-health-check';
 
