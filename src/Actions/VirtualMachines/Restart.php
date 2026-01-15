@@ -43,6 +43,12 @@ class Restart extends AbstractAction
             return;
         }
 
+        if($this->model->is_locked) {
+            CommentsService::createSystemComment('Cannot restart this the virtual machine because it is locked.', $this->model);
+            $this->setFinished('Virtual machine is locked, therefore I cannot continue.');
+            return;
+        }
+
         (new Fix($this->model))->handle();
 
         Events::fire('restarting:NextDeveloper\IAAS\VirtualMachines', $this->model);

@@ -49,6 +49,12 @@ class Start extends AbstractAction
             return;
         }
 
+        if($this->model->is_locked) {
+            CommentsService::createSystemComment('Cannot start this the virtual machine because it is locked.', $this->model);
+            $this->setFinished('Virtual machine is locked, therefore I cannot continue.');
+            return;
+        }
+
         Events::fire('starting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         dispatch(new Fix($this->model));

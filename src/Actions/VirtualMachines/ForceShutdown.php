@@ -54,6 +54,12 @@ class ForceShutdown extends AbstractAction
             return;
         }
 
+        if($this->model->is_locked) {
+            CommentsService::createSystemComment('Cannot force shutdown this the virtual machine because it is locked.', $this->model);
+            $this->setFinished('Virtual machine is locked, therefore I cannot continue.');
+            return;
+        }
+
         Events::fire('unplugging:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         $vm = VirtualMachinesXenService::forceShutdown($this->model);

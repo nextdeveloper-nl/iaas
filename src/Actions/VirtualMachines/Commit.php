@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\MetaHelper;
 use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
@@ -93,6 +94,12 @@ class Commit extends AbstractAction
 
         if($this->model->deleted_at != null) {
             $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
+        if($this->model->is_locked) {
+            CommentsService::createSystemComment('Cannot commit the configuration for the virtual machine because it is locked.', $this->model);
+            $this->setFinished('Virtual machine is locked, therefore I cannot continue.');
             return;
         }
 

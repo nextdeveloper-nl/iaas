@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
@@ -38,6 +39,12 @@ class EjectCd extends AbstractAction
 
         if($this->model->deleted_at != null) {
             $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
+        if($this->model->is_locked) {
+            CommentsService::createSystemComment('Cannot eject cd of this the virtual machine because it is locked.', $this->model);
+            $this->setFinished('Virtual machine is locked, therefore I cannot continue.');
             return;
         }
 

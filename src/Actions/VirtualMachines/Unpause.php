@@ -43,6 +43,12 @@ class Unpause extends AbstractAction
             return;
         }
 
+        if($this->model->is_locked) {
+            CommentsService::createSystemComment('Cannot unpause this the virtual machine because it is locked.', $this->model);
+            $this->setFinished('Virtual machine is locked, therefore I cannot continue.');
+            return;
+        }
+
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
         if(!array_key_exists('power-state', $vmParams)) {
