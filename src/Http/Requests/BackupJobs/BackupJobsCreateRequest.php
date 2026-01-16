@@ -19,6 +19,7 @@ class BackupJobsCreateRequest extends AbstractFormRequest
         'iaas_backup_retention_policy_id' => 'nullable|exists:iaas_backup_retention_policies,uuid|uuid',
         'object_type' => 'required|string',
         'object_id' => 'required',
+        'email_notification_recipients' => 'array',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

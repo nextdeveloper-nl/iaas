@@ -56,6 +56,7 @@ class BackupJobs extends Model
             'object_id',
             'iam_account_id',
             'iam_user_id',
+           'email_notification_recipients'
     ];
 
     /**
@@ -85,6 +86,7 @@ class BackupJobs extends Model
     'iaas_backup_retention_policy_id' => 'integer',
     'object_type' => 'string',
     'object_id' => 'integer',
+    'email_notification_recipients' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
