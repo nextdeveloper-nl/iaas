@@ -79,26 +79,36 @@ class FinishBackupJob extends AbstractAction
 
         UserHelper::setAdminAsCurrentUser();
 
-        $originalVm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', $this->model->object_id)
-            ->first();
+        try {
+            $originalVm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $this->model->object_id)
+                ->first();
 
-        $vmOwner = VirtualMachinesService::getOwner($originalVm);
+            if (!$originalVm) {
+                $this->setFinishedWithError('Cannot find Virtual Machine object');
+                return;
+            }
 
-        (new Communicate($vmOwner))->sendNotification(
-            subject: 'Backup is finished for VM: ' . $originalVm->name,
-            message: 'The backup job for virtual machine: ' . $originalVm->name
-        );
+            $vmBackup = VirtualMachineBackups::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $this->params['iaas_virtual_machine_backup_id'])
+                ->first();
 
-        /**
-         * Here we should do;
-         *
-         * 1) Check if the xe vm-export job is still running in the compute member. (skipped now)
-         * 2) Check if the file is in the repository
-         * 3) Hash the file
-         * 4) Save it
-         * 5) Send email if the backup is finished
-         */
+            if (!$vmBackup) {
+                $this->setFinishedWithError('Cannot find Virtual Machine Backup object');
+                return;
+            }
+
+            $this->setProgress(25, self::CHECKPOINTS['25']);
+
+            $this->sendNotification($originalVm);
+
+            /**
+             * 1) Check if the xe vm-export job is still running in the compute member. (skipped now)
+             * 2) Check if the file is in the repository
+             * 3) Hash the file
+             * 4) Save it
+             * 5) Send email if the backup is finished
+             */
 
         $vmBackup = VirtualMachineBackups::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $this->params['iaas_virtual_machine_backup_id'])
@@ -135,6 +145,47 @@ class FinishBackupJob extends AbstractAction
             dispatch(new Delete($clonedVm));
         }
 
-        Events::fire('backup-completed:NextDeveloper\IAAS\BackupJobs', $vmBackup);
+            Events::fire('backup-completed:NextDeveloper\IAAS\BackupJobs', $vmBackup);
+
+            $this->setFinished('Backup process completed successfully.');
+        } catch (\Exception $e) {
+            Log::error('[FinishBackupJob@handle] Exception occurred: ' . $e->getMessage());
+            $this->setFinishedWithError('An error occurred while finishing the backup job: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Sends notification to the recipients or the owner.
+     *
+     * @param VirtualMachines $originalVm
+     * @return void
+     */
+    private function sendNotification(VirtualMachines $originalVm): void
+    {
+        $subject = 'Backup is finished for VM: ' . $originalVm->name;
+        $message = 'Hi There,' . PHP_EOL . PHP_EOL .
+            'The backup job for the virtual machine "' . $originalVm->name . '" has been completed successfully.' . PHP_EOL .
+            'You can now access the backup in your designated repository.' . PHP_EOL . PHP_EOL .
+            'Best regards,' . PHP_EOL .
+            'PlusClouds Team';
+
+        // Check for custom recipients, already cast to array
+        $recipients = $this->model->email_notification_recipients;
+        if ($recipients) {foreach ($recipients as $recipient) {
+                (new Communicate(trim($recipient)))->sendNotification(
+                    subject: $subject,
+                    message: $message
+                );
+            }
+            return;
+        }
+
+        $vmOwner = VirtualMachinesService::getOwner($originalVm);
+        if ($vmOwner) {
+            (new Communicate($vmOwner))->sendNotification(
+                subject: $subject,
+                message: $message
+            );
+        }
     }
 }
