@@ -1,0 +1,15 @@
+---
+- name: Check if post-boot-script.sh exists next to the playbook
+  ansible.builtin.stat:
+    path: "{{ playbook_dir }}/post-boot-script.sh"
+  register: post-boot-script
+
+- name: Ensure post-boot-script.sh is executable
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/post-boot-script.sh"
+    mode: '0755'
+  when: post-boot-script.stat.exists
+
+- name: Run post-boot-script.sh if it exists
+  ansible.builtin.command: "{{ playbook_dir }}/post-boot-script.sh"
+  when: post-boot-script.stat.exists

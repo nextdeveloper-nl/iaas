@@ -44,3 +44,6 @@
       include_tasks: disk-resize-debian12.yml
       when:
         - ansible_facts.distribution == "Debian"
+
+    - name: Run post boot script
+      include_tasks: run-post-boot-script.yml

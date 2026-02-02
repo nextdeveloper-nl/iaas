@@ -21,7 +21,7 @@ class GenerateCloudInitImage implements ShouldQueue
     {
         $this->vm = $vm;
 
-        $this->queue = 'iaas';
+        $this->queue = 'iaas-config';
     }
 
     public function handle()

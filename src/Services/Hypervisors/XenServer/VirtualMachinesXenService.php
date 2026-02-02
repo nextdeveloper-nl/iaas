@@ -529,13 +529,26 @@ class VirtualMachinesXenService extends AbstractXenService
                 'change-password.yml',
                 'disk-resize-debian12.yml',
                 'disk-resize-ubuntu22.yml',
-                'disk-resize-ubuntu24.yml'
+                'disk-resize-ubuntu24.yml',
+                'run-post-boot-script.yml'
             ];
 
             foreach ($configurationPack as $pack) {
                 $uploadConfig(
                     filename: $pack,
                     content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/' . $pack))),
+                    vm: $vm,
+                    centralRepo: $centralRepo
+                );
+            }
+
+            //  Here we are creating the post boot script if the VM has it
+            if($vm->post_boot_script) {
+                $script = $vm->post_boot_script;
+
+                $uploadConfig(
+                    filename: 'post-boot-script.sh',
+                    content: base64_encode($script),
                     vm: $vm,
                     centralRepo: $centralRepo
                 );

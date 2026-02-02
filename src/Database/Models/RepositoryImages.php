@@ -63,7 +63,6 @@ class RepositoryImages extends Model
 
     protected $table = 'iaas_repository_images';
 
-
     /**
      * @var array
      */
