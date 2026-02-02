@@ -52,6 +52,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $iaas_virtual_machine_id
  * @property boolean $has_plusclouds_service
  * @property boolean $is_cloudinit_image
+ * @property string $post_boot_script
  */
 class RepositoryImages extends Model
 {
@@ -64,120 +65,122 @@ class RepositoryImages extends Model
 
 
     /**
-     @var array
+     * @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-            'name',
-            'description',
-            'path',
-            'filename',
-            'default_username',
-            'default_password',
-            'is_active',
-            'is_iso',
-            'is_virtual_machine_image',
-            'is_docker_image',
-            'os',
-            'distro',
-            'version',
-            'release_version',
-            'is_latest',
-            'extra',
-            'cpu_type',
-            'supported_virtualizations',
-            'iaas_repository_id',
-            'hash',
-            'iam_account_id',
-            'iam_user_id',
-            'size',
-            'ram',
-            'cpu',
-            'is_public',
-            'iaas_virtual_machine_id',
-            'has_plusclouds_service',
-            'is_cloudinit_image',
+        'name',
+        'description',
+        'path',
+        'filename',
+        'default_username',
+        'default_password',
+        'is_active',
+        'is_iso',
+        'is_virtual_machine_image',
+        'is_docker_image',
+        'os',
+        'distro',
+        'version',
+        'release_version',
+        'is_latest',
+        'extra',
+        'cpu_type',
+        'supported_virtualizations',
+        'iaas_repository_id',
+        'hash',
+        'iam_account_id',
+        'iam_user_id',
+        'size',
+        'ram',
+        'cpu',
+        'is_public',
+        'iaas_virtual_machine_id',
+        'has_plusclouds_service',
+        'is_cloudinit_image',
+        'post_boot_script'
     ];
 
     /**
-      Here we have the fulltext fields. We can use these for fulltext search if enabled.
+     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     We are casting fields to objects so that we can work on them better
+     * We are casting fields to objects so that we can work on them better
      *
-     @var array
+     * @var array
      */
     protected $casts = [
-    'id' => 'integer',
-    'name' => 'string',
-    'description' => 'string',
-    'path' => 'string',
-    'filename' => 'string',
-    'default_username' => 'string',
-    'default_password' => 'string',
-    'is_active' => 'boolean',
-    'is_iso' => 'boolean',
-    'is_virtual_machine_image' => 'boolean',
-    'is_docker_image' => 'boolean',
-    'os' => 'string',
-    'distro' => 'string',
-    'version' => 'string',
-    'release_version' => 'string',
-    'is_latest' => 'boolean',
-    'extra' => 'string',
-    'cpu_type' => 'string',
-    'supported_virtualizations' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
-    'iaas_repository_id' => 'integer',
-    'hash' => 'string',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
-    'size' => 'integer',
-    'ram' => 'integer',
-    'cpu' => 'integer',
-    'is_public' => 'boolean',
-    'iaas_virtual_machine_id' => 'integer',
-    'has_plusclouds_service' => 'boolean',
-    'is_cloudinit_image' => 'boolean',
+        'id' => 'integer',
+        'name' => 'string',
+        'description' => 'string',
+        'path' => 'string',
+        'filename' => 'string',
+        'default_username' => 'string',
+        'default_password' => 'string',
+        'is_active' => 'boolean',
+        'is_iso' => 'boolean',
+        'is_virtual_machine_image' => 'boolean',
+        'is_docker_image' => 'boolean',
+        'os' => 'string',
+        'distro' => 'string',
+        'version' => 'string',
+        'release_version' => 'string',
+        'is_latest' => 'boolean',
+        'extra' => 'string',
+        'cpu_type' => 'string',
+        'supported_virtualizations' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+        'iaas_repository_id' => 'integer',
+        'hash' => 'string',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'size' => 'integer',
+        'ram' => 'integer',
+        'cpu' => 'integer',
+        'is_public' => 'boolean',
+        'iaas_virtual_machine_id' => 'integer',
+        'has_plusclouds_service' => 'boolean',
+        'is_cloudinit_image' => 'boolean',
+        'post_boot_script' => 'string',
     ];
 
     /**
-     We are casting data fields.
+     * We are casting data fields.
      *
-     @var array
+     * @var array
      */
     protected $dates = [
-    'created_at',
-    'updated_at',
-    'deleted_at',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $with = [
 
     ];
 
     /**
-     @var int
+     * @var int
      */
     protected $perPage = 20;
 
     /**
-     @return void
+     * @return void
      */
     public static function boot()
     {
@@ -194,9 +197,11 @@ class RepositoryImages extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_repository_images');
 
-        if(!$modelScopes) { $modelScopes = [];
+        if (!$modelScopes) {
+            $modelScopes = [];
         }
-        if (!$globalScopes) { $globalScopes = [];
+        if (!$globalScopes) {
+            $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -204,39 +209,34 @@ class RepositoryImages extends Model
             $modelScopes
         );
 
-        if($scopes) {
+        if ($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
         }
     }
 
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function accounts(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-    
-    public function repositories() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function repositories(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Repositories::class);
     }
-    
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function users(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
-    
-    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function virtualMachines(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
 
 
 }
