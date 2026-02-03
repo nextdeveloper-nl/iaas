@@ -542,6 +542,8 @@ class VirtualMachinesXenService extends AbstractXenService
                 );
             }
 
+            logger()->info('[VirtualMachineXenService@updateConfigurationIso] Is updating the post_book_script?]');
+
             //  Here we are creating the post boot script if the VM has it
             if($vm->post_boot_script) {
                 $script = $vm->post_boot_script;
@@ -552,6 +554,8 @@ class VirtualMachinesXenService extends AbstractXenService
                     vm: $vm,
                     centralRepo: $centralRepo
                 );
+            } else {
+                logger()->info('[VirtualMachineXenService@updateConfigurationIso] We are not updating the post_book_script.]');
             }
 
             //  Creating the iso file
