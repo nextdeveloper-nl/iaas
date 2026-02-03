@@ -124,6 +124,7 @@ class VirtualMachinesPerspective extends Model
             'responsible',
             'iaas_compute_pool_id',
             'snapshot_of_virtual_machine',
+        'post_boot_script',
             'iam_account_id',
             'iam_user_id',
     ];
@@ -189,6 +190,7 @@ class VirtualMachinesPerspective extends Model
     'responsible' => 'string',
     'iaas_compute_pool_id' => 'integer',
     'snapshot_of_virtual_machine' => 'integer',
+        'post_boot_script'  =>  'string',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',

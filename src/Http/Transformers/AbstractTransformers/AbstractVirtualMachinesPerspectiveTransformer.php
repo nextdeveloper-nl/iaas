@@ -99,6 +99,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
                 'is_lost' => $model->is_lost,
                 'is_locked' => $model->is_locked,
                 'is_snapshot' => $model->is_snapshot,
+                'post_boot_script' => $model->post_boot_script,
                 'auto_backup_interval' => $model->auto_backup_interval,
                 'auto_backup_time' => $model->auto_backup_time,
                 'maintainer' => $model->maintainer,
