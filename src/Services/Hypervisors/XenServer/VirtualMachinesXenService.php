@@ -544,6 +544,8 @@ class VirtualMachinesXenService extends AbstractXenService
 
             logger()->info('[VirtualMachineXenService@updateConfigurationIso] Is updating the post_book_script?]');
 
+            logger()->info('[VirtualMachineXenService@updateConfigurationIso] Post boot script is: ' . $vm->post_boot_script);
+
             //  Here we are creating the post boot script if the VM has it
             if($vm->post_boot_script) {
                 $script = $vm->post_boot_script;
@@ -564,7 +566,8 @@ class VirtualMachinesXenService extends AbstractXenService
                 '-volid cidata -joliet -rock ' .
                 'config-iso/' . $vm->uuid . '/user-data ' .
                 'config-iso/' . $vm->uuid . '/meta-data ' .
-                'config-iso/' . $vm->uuid . '/pc-meta-data.json';
+                'config-iso/' . $vm->uuid . '/pc-meta-data.json' .
+                'config-iso/' . $vm->uuid . '/post-boot-script.sh';
 
             foreach ($configurationPack as $pack) {
                 $command .= ' config-iso/' . $vm->uuid . '/' . $pack;
