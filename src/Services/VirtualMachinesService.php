@@ -345,9 +345,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function getPasswordById($id)
     {
-        return ResponseHelper::status(
-            self::getRawPasswordById($id)
-        );
+        return self::getRawPasswordById($id);
     }
 
     public static function update($id, array $data)
