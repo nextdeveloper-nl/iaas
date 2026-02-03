@@ -566,7 +566,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 '-volid cidata -joliet -rock ' .
                 'config-iso/' . $vm->uuid . '/user-data ' .
                 'config-iso/' . $vm->uuid . '/meta-data ' .
-                'config-iso/' . $vm->uuid . '/pc-meta-data.json' .
+                'config-iso/' . $vm->uuid . '/pc-meta-data.json ' .
                 'config-iso/' . $vm->uuid . '/post-boot-script.sh';
 
             foreach ($configurationPack as $pack) {
