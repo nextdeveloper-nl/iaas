@@ -487,7 +487,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
         $updatedVm = parent::update($id, $data);
 
-        if($vm->post_boot_script != $updatedVm->post_boot_script) {
+        if(
+            ($vm->post_boot_script != $updatedVm->post_boot_script) ||
+            ($vm->password != $updatedVm->password) ||
+            ($vm->hostname != $updatedVm->hostname)
+        ) {
             dispatch(new GenerateCloudInitImage($vm));
         }
 
