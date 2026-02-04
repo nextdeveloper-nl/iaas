@@ -31,6 +31,7 @@ use NextDeveloper\IAAS\Exceptions\CannotFindAvailableResourceException;
 use NextDeveloper\IAAS\Exceptions\CannotUpdateResourcesException;
 use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
+use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
@@ -485,6 +486,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         $updatedVm = parent::update($id, $data);
+
+        if($vm->post_boot_script != $updatedVm->post_boot_script) {
+            dispatch(new GenerateCloudInitImage($vm));
+        }
 
         if($vm->hypervisor_uuid) {
             dispatch(new Commit($vm));
