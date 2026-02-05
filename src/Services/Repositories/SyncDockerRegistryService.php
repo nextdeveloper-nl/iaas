@@ -12,7 +12,7 @@ use NextDeveloper\IAM\Helpers\UserHelper;
 
 class SyncDockerRegistryService
 {
-    public static function syncRepoImages(Repositories $repo) : Repositories
+    public static function syncRepoImages(Repositories $repo)
     {
         $images = DockerRegistryService::getDockerImages($repo);
 

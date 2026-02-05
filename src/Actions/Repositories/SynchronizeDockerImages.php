@@ -17,13 +17,13 @@ class SynchronizeDockerImages extends AbstractAction
         'docker-images-synced:NextDeveloper\IAAS\Repositories'
     ];
 
-    public function __construct(Repositories $repo)
+    public function __construct(Repositories $repo, $params = null, $previousAction = null)
     {
-        parent::__construct();
+        $this->model = $repo;
 
         $this->queue = 'iaas';
 
-        $this->model = $repo;
+        parent::__construct($params, $previousAction);
     }
 
     public function handle()
