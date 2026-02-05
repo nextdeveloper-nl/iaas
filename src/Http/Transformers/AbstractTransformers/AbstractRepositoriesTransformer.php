@@ -54,41 +54,42 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
      */
     public function transform(Repositories $model)
     {
-                                                $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                                                            $commonCurrencyId = \NextDeveloper\Commons\Database\Models\Currencies::where('id', $model->common_currency_id)->first();
-                                                            $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
-                        
+        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+        $commonCurrencyId = \NextDeveloper\Commons\Database\Models\Currencies::where('id', $model->common_currency_id)->first();
+        $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
+
         return $this->buildPayload(
             [
-            'id'  =>  $model->uuid,
-            'name'  =>  $model->name,
-            'description'  =>  $model->description,
-            'ssh_username'  =>  $model->ssh_username,
-            'ssh_password'  =>  $model->ssh_password,
-            'ip_addr'  =>  $model->ip_addr,
-            'is_active'  =>  $model->is_active,
-            'is_public'  =>  $model->is_public,
-            'last_hash'  =>  $model->last_hash,
-            'is_vm_repo'  =>  $model->is_vm_repo,
-            'is_iso_repo'  =>  $model->is_iso_repo,
-            'is_docker_registry'  =>  $model->is_docker_registry,
-            'iso_path'  =>  $model->iso_path,
-            'vm_path'  =>  $model->vm_path,
-            'docker_registry_port'  =>  $model->docker_registry_port,
-            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
-            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
-            'created_at'  =>  $model->created_at,
-            'updated_at'  =>  $model->updated_at,
-            'deleted_at'  =>  $model->deleted_at,
-            'local_ip_addr'  =>  $model->local_ip_addr,
-            'is_behind_firewall'  =>  $model->is_behind_firewall,
-            'is_management_agent_available'  =>  $model->is_management_agent_available,
-            'ssh_port'  =>  $model->ssh_port,
-            'is_backup_repository'  =>  $model->is_backup_repository,
-            'price_pergb'  =>  $model->price_pergb,
-            'common_currency_id'  =>  $commonCurrencyId ? $commonCurrencyId->uuid : null,
-            'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
+                'id' => $model->uuid,
+                'name' => $model->name,
+                'description' => $model->description,
+                'ssh_username' => $model->ssh_username,
+                'ssh_password' => $model->ssh_password,
+                'ip_addr' => $model->ip_addr,
+                'is_active' => $model->is_active,
+                'is_public' => $model->is_public,
+                'last_hash' => $model->last_hash,
+                'is_vm_repo' => $model->is_vm_repo,
+                'is_iso_repo' => $model->is_iso_repo,
+                'is_docker_registry' => $model->is_docker_registry,
+                'iso_path' => $model->iso_path,
+                'vm_path' => $model->vm_path,
+                'docker_registry_port' => $model->docker_registry_port,
+                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
+                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
+                'created_at' => $model->created_at,
+                'updated_at' => $model->updated_at,
+                'deleted_at' => $model->deleted_at,
+                'local_ip_addr' => $model->local_ip_addr,
+                'is_behind_firewall' => $model->is_behind_firewall,
+                'is_management_agent_available' => $model->is_management_agent_available,
+                'ssh_port' => $model->ssh_port,
+                'is_backup_repository' => $model->is_backup_repository,
+                'registry_username' => $model->registry_username,
+                'price_pergb' => $model->price_pergb,
+                'common_currency_id' => $commonCurrencyId ? $commonCurrencyId->uuid : null,
+                'iaas_cloud_node_id' => $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
             ]
         );
     }
@@ -177,13 +178,6 @@ class AbstractRepositoriesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
 
 
 }

@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Services;
 
 use NextDeveloper\IAAS\Actions\Repositories\SynchronizeIsos;
+use NextDeveloper\IAAS\Database\Filters\RepositoryImagesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -21,6 +22,11 @@ class RepositoryImagesService extends AbstractRepositoryImagesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+    public static function syncRepositoryImages(Repositories $repo)
+    {
+
+    }
+
     public static function getRepositoryOfImage(RepositoryImages $image) : Repositories
     {
         return Repositories::withoutGlobalScope(AuthorizationScope::class)

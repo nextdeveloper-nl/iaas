@@ -33,6 +33,8 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property boolean $is_vm_repo
  * @property boolean $is_iso_repo
  * @property boolean $is_docker_registry
+ * @property string $registry_username
+ * @property string $registry_password
  * @property string $iso_path
  * @property string $vm_path
  * @property integer $docker_registry_port
@@ -62,107 +64,111 @@ class Repositories extends Model
 
 
     /**
-     @var array
+     * @var array
      */
     protected $guarded = [];
 
     protected $fillable = [
-            'name',
-            'description',
-            'ssh_username',
-            'ssh_password',
-            'ip_addr',
-            'is_active',
-            'is_public',
-            'last_hash',
-            'is_vm_repo',
-            'is_iso_repo',
-            'is_docker_registry',
-            'iso_path',
-            'vm_path',
-            'docker_registry_port',
-            'iam_account_id',
-            'iam_user_id',
-            'local_ip_addr',
-            'is_behind_firewall',
-            'is_management_agent_available',
-            'ssh_port',
-            'is_backup_repository',
-            'price_pergb',
-            'common_currency_id',
-            'iaas_cloud_node_id',
+        'name',
+        'description',
+        'ssh_username',
+        'ssh_password',
+        'ip_addr',
+        'is_active',
+        'is_public',
+        'last_hash',
+        'is_vm_repo',
+        'is_iso_repo',
+        'is_docker_registry',
+        'iso_path',
+        'vm_path',
+        'docker_registry_port',
+        'iam_account_id',
+        'iam_user_id',
+        'local_ip_addr',
+        'is_behind_firewall',
+        'is_management_agent_available',
+        'ssh_port',
+        'is_backup_repository',
+        'price_pergb',
+        'common_currency_id',
+        'iaas_cloud_node_id',
+        'registry_username',
+        'registry_password',
     ];
 
     /**
-      Here we have the fulltext fields. We can use these for fulltext search if enabled.
+     * Here we have the fulltext fields. We can use these for fulltext search if enabled.
      */
     protected $fullTextFields = [
 
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $appends = [
 
     ];
 
     /**
-     We are casting fields to objects so that we can work on them better
+     * We are casting fields to objects so that we can work on them better
      *
-     @var array
+     * @var array
      */
     protected $casts = [
-    'id' => 'integer',
-    'name' => 'string',
-    'description' => 'string',
-    'ssh_username' => 'string',
-    'ssh_password' => 'string',
-    'is_active' => 'boolean',
-    'is_public' => 'boolean',
-    'last_hash' => 'string',
-    'is_vm_repo' => 'boolean',
-    'is_iso_repo' => 'boolean',
-    'is_docker_registry' => 'boolean',
-    'iso_path' => 'string',
-    'vm_path' => 'string',
-    'docker_registry_port' => 'integer',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
-    'is_behind_firewall' => 'boolean',
-    'is_management_agent_available' => 'boolean',
-    'ssh_port' => 'integer',
-    'is_backup_repository' => 'boolean',
-    'common_currency_id' => 'integer',
-    'iaas_cloud_node_id' => 'integer',
+        'id' => 'integer',
+        'name' => 'string',
+        'description' => 'string',
+        'ssh_username' => 'string',
+        'ssh_password' => 'string',
+        'is_active' => 'boolean',
+        'is_public' => 'boolean',
+        'last_hash' => 'string',
+        'is_vm_repo' => 'boolean',
+        'is_iso_repo' => 'boolean',
+        'is_docker_registry' => 'boolean',
+        'iso_path' => 'string',
+        'vm_path' => 'string',
+        'docker_registry_port' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'is_behind_firewall' => 'boolean',
+        'is_management_agent_available' => 'boolean',
+        'ssh_port' => 'integer',
+        'is_backup_repository' => 'boolean',
+        'common_currency_id' => 'integer',
+        'iaas_cloud_node_id' => 'integer',
+        'registry_username' => 'string',
+        'registry_password' => 'string',
     ];
 
     /**
-     We are casting data fields.
+     * We are casting data fields.
      *
-     @var array
+     * @var array
      */
     protected $dates = [
-    'created_at',
-    'updated_at',
-    'deleted_at',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     /**
-     @var array
+     * @var array
      */
     protected $with = [
 
     ];
 
     /**
-     @var int
+     * @var int
      */
     protected $perPage = 20;
 
     /**
-     @return void
+     * @return void
      */
     public static function boot()
     {
@@ -179,9 +185,11 @@ class Repositories extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_repositories');
 
-        if(!$modelScopes) { $modelScopes = [];
+        if (!$modelScopes) {
+            $modelScopes = [];
         }
-        if (!$globalScopes) { $globalScopes = [];
+        if (!$globalScopes) {
+            $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -189,24 +197,24 @@ class Repositories extends Model
             $modelScopes
         );
 
-        if($scopes) {
+        if ($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }
         }
     }
 
-    public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function accounts(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-    
-    public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function users(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
-    
-    public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\HasMany
+
+    public function repositoryImages(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
     }
@@ -222,14 +230,12 @@ class Repositories extends Model
         );
     }
 
-
-
-
-
-
-
-
-
-
-
+    protected function registryPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: function ($value) {
+                return encrypt($value);
+            },
+        );
+    }
 }
