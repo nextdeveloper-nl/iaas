@@ -19,6 +19,8 @@ class SynchronizeDockerImages extends AbstractAction
 
     public function __construct(Repositories $repo, $params = null, $previousAction = null)
     {
+        trigger_error('This class is deprecated because there is no reason to host image information in database or sync.');
+
         $this->model = $repo;
 
         $this->queue = 'iaas';

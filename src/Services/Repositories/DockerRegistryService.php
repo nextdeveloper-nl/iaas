@@ -88,12 +88,10 @@ class DockerRegistryService
         return $data['tags'] ?? [];
     }
 
-    public static function deleteDockerImage(RepositoryImages $image)
+    public static function deleteDockerImage(Repositories $repo, $image, $tag)
     {
-        $repo = Repositories::where('id', $image->iaas_repository_id)->first();
-
         // 1. Get manifest digest
-        $manifestUrl = $image->path;
+        $manifestUrl = $repo->vm_path . '/v2/' . $image . '/manifests/' . $tag;
 
         $ch = curl_init($manifestUrl);
 
@@ -142,10 +140,8 @@ class DockerRegistryService
             throw new Exception('Digest not found');
         }
 
-        $imageName = explode('@', $image->filename)[0];
-
         // 2. Delete manifest
-        $deleteUrl = $repo->vm_path . '/v2/' . $imageName . '/manifests/' . $digest;
+        $deleteUrl = $repo->vm_path . '/v2/' . $image . '/manifests/' . $digest;
         $ch = curl_init($deleteUrl);
 
         if($repo->registry_username) {
