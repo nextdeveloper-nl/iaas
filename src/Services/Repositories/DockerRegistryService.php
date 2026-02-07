@@ -85,7 +85,13 @@ class DockerRegistryService
         curl_close($ch);
 
         $data = json_decode($response, true);
-        return $data['tags'] ?? [];
+        $tags = $data['tags'];
+
+        usort($tags, function($a, $b) {
+            return version_compare($a, $b);
+        });
+
+        return $tags ?? [];
     }
 
     public static function deleteDockerImage(Repositories $repo, $image, $tag)
