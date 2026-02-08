@@ -6,7 +6,6 @@ use NextDeveloper\Commons\Http\Requests\AbstractFormRequest;
 
 class RepositoryImagesUpdateRequest extends AbstractFormRequest
 {
-
     /**
      * @return array
      */
