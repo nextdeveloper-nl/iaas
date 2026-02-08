@@ -21,6 +21,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $id
  * @property string $uuid
  * @property string $name
+ * @property string $description
  * @property string $image_name
  * @property string $os
  * @property string $distro
