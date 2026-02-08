@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Actions\RepositoryImages;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Helpers\RandomHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
@@ -48,6 +49,7 @@ class CloneImage extends AbstractAction
         if($this->params['is_soft_clone']) {
             //  Our default is to make a soft_clone instead of a hard clone.
             $newImage = $this->model->replicate();
+            $newImage->uuid = RandomHelper::uuid();
             $newImage->name = 'Clone of ' . $newImage->name;
             $newImage->is_public = false;
             $newImage->save();
