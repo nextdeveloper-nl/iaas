@@ -41,20 +41,27 @@ class Delete extends AbstractAction
         // Fire the event before deletion
         Events::fire('deleting:NextDeveloper\IAAS\RepositoryImages', $this->model);
 
-        // Directly delete the image from the repository
-        $isDeleted = $this->deleteImageFromServer();
+        /**
+         * This behaviour changed because we are now using soft images, instead of hard images.
+         * We should make garbage collection for the images as well.
+         */
 
-        if(!$isDeleted) {
-            // If deletion failed, set an error message
-            $this->setFinishedWithError('Failed to delete machine image from server.');
-            return;
-        }
+//        // Directly delete the image from the repository
+//        $isDeleted = $this->deleteImageFromServer();
+//
+//        if(!$isDeleted) {
+//            // If deletion failed, set an error message
+//            $this->setFinishedWithError('Failed to delete machine image from server.');
+//            return;
+//        }
 
         //  This means the image is deleted from the server, now we can delete the model
         $this->model->delete();
 
         // Fire the event after deletion
         Events::fire('deleted:NextDeveloper\IAAS\RepositoryImages', $this->model);
+
+        //  @TODO: We should add a cleanup background process here.
 
         $this->setProgress(100, 'Machine image deleted.');
     }
