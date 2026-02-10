@@ -622,8 +622,12 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         if(!$vm)
             return [];
 
-        if(!$vm->console_data)
-            return [];
+        if(!$vm->console_data) {
+            $consoleParams = VirtualMachinesXenService::getConsoleParameters($vm);
+            $vm->update([
+                'console_data' =>   $consoleParams[0]
+            ]);
+        }
 
         if($vm->status == 'draft' || $vm->status == 'halted')
             return [];
