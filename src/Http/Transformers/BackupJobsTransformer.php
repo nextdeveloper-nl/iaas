@@ -38,8 +38,10 @@ class BackupJobsTransformer extends AbstractBackupJobsTransformer
 
         $object = app($object)->where('id', $model->object_id)->first();
 
-        $transformed['object_type'] = Str::replace('\Database\Models', '', get_class($object));
-        $transformed['object_id'] = $object->uuid;
+        if($object) {
+            $transformed['object_type'] = Str::replace('\Database\Models', '', get_class($object));
+            $transformed['object_id'] = $object->uuid;
+        }
 
         Cache::set(
             CacheHelper::getKey('BackupJobs', $model->uuid, 'Transformed'),
