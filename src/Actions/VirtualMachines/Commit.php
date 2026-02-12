@@ -105,7 +105,7 @@ class Commit extends AbstractAction
         $vm = VirtualMachinesService::fixUsername($vm);
         $vm = VirtualMachinesService::fixHostname($vm);
 
-        dispatch(new GenerateCloudInitImage($vm));
+        (new GenerateCloudInitImage($vm))->handle();
 
         if (!$vm->is_draft && $vm->status != 'pending-update') {
             $this->setProgress(100, 'Virtual machine is not in draft or pending update state');
