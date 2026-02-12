@@ -80,9 +80,6 @@ class Commit extends AbstractAction
     {
         $this->setProgress(0, 'Committing virtual machine...');
 
-        if(!UserHelper::me())
-
-
         if($this->params['is_lazy_deploy']) {
             $this->setProgress(0, 'Lazy deploying virtual machine...');
         }
@@ -107,6 +104,8 @@ class Commit extends AbstractAction
 
         $vm = VirtualMachinesService::fixUsername($vm);
         $vm = VirtualMachinesService::fixHostname($vm);
+
+        dispatch(new GenerateCloudInitImage($vm));
 
         if (!$vm->is_draft && $vm->status != 'pending-update') {
             $this->setProgress(100, 'Virtual machine is not in draft or pending update state');
