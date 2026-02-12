@@ -595,7 +595,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function getConsoleData(VirtualMachines $vm) : array
     {
-        if($vm->status == 'halted') {
+        if($vm->status == 'halted' || $vm->status == 'draft') {
             return [
                 'console'   =>  'Not available while the server is shutdown.'
             ];
