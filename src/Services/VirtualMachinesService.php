@@ -656,10 +656,28 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             base64_encode($password),
         ];
 
+        /**
+         * HERE WE ARE CACHING THE URL IN REDIS
+         */
+        $consoleRedisSession = Str::random(32);
+
+        $redis = new \Predis\Client([
+            'scheme' => 'tcp',
+            'host'   => getenv('REDIS_HOST') ?: '127.0.0.1',
+            'port'   => getenv('REDIS_PORT') ?: 6379,
+            'password' => getenv('REDIS_PASSWORD') ?: null,
+            'database' => 2,
+        ]);
+
+        $redis->setex('leo:console:' . $consoleRedisSession, 30, 'http://' . $password . '@' . $endpoint);
+
+        /** FINISHED CACHING    **/
+
         return [
             'data' => $encrypt(implode('|', $data)),
             't'    => $t,
-            'sign'  =>  md5($key.$t.$endpoint.$key)
+            'sign'  =>  md5($key.$t.$endpoint.$key),
+            'service'   => $consoleRedisSession,
         ];
     }
 
