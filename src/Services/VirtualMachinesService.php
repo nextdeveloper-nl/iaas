@@ -663,9 +663,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
         $redis = new \Predis\Client([
             'scheme' => 'tcp',
-            'host'   => getenv('REDIS_HOST') ?: '127.0.0.1',
-            'port'   => getenv('REDIS_PORT') ?: 6379,
-            'password' => getenv('REDIS_PASSWORD') ?: null,
+            'host'   => config('database.redis.default.host'),
+            'port'   => config('database.redis.default.port'),
+            'password' => config('database.redis.default.password'),
             'database' => 2,
         ]);
 
