@@ -26,7 +26,7 @@ class VirtualMachinesPerspectiveService extends AbstractVirtualMachinesPerspecti
             $model = VirtualMachinesPerspective::filter($filter);
 
             if(array_key_exists('iamAccountId', $filter->filters())) {
-                $iamAccount = Accounts::where('uuid', $filter->filters()['iamAccountId'])->first();
+                $iamAccount = Accounts::withoutGlobalScopes()->where('uuid', $filter->filters()['iamAccountId'])->first();
 
                 if(!$iamAccount) {
                     return new Collection();
