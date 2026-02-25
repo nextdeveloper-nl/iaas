@@ -54,44 +54,44 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
      */
     public function transform(RepositoryImagesPerspective $model)
     {
-        $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
-        $iaasRepositoryId = \NextDeveloper\IAAS\Database\Models\Repositories::where('id', $model->iaas_repository_id)->first();
-        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-
+                                                $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
+                                                            $iaasRepositoryId = \NextDeveloper\IAAS\Database\Models\Repositories::where('id', $model->iaas_repository_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                        
         return $this->buildPayload(
             [
-                'id' => $model->uuid,
-                'name' => $model->name,
-                'description' => $model->description,
-                'image_name' => $model->image_name,
-                'post_boot_script' => $model->post_boot_script,
-                'os' => $model->os,
-                'distro' => $model->distro,
-                'version' => $model->version,
-                'cpu_type' => $model->cpu_type,
-                'extra' => $model->extra,
-                'release_version' => $model->release_version,
-                'is_latest' => $model->is_latest,
-                'supported_virtualizations' => $model->supported_virtualizations,
-                'is_iso' => $model->is_iso,
-                'is_public' => $model->is_public,
-                'is_virtual_machine_image' => $model->is_virtual_machine_image,
-                'is_docker_image' => $model->is_docker_image,
-                'cpu' => $model->cpu,
-                'ram' => $model->ram,
-                'size' => $model->size,
-                'iaas_virtual_machine_id' => $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
-                'iaas_repository_id' => $iaasRepositoryId ? $iaasRepositoryId->uuid : null,
-                'repository_name' => $model->repository_name,
-                'is_backup_repository' => $model->is_backup_repository,
-                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
-                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
-                'has_plusclouds_service' => $model->has_plusclouds_service,
-                'is_backup' => $model->is_backup,
-                'created_at' => $model->created_at,
-                'updated_at' => $model->updated_at,
-                'deleted_at' => $model->deleted_at,
+            'id'  =>  $model->uuid,
+            'name'  =>  $model->name,
+            'image_name'  =>  $model->image_name,
+            'description'  =>  $model->description,
+            'post_boot_script'  =>  $model->post_boot_script,
+            'os'  =>  $model->os,
+            'distro'  =>  $model->distro,
+            'version'  =>  $model->version,
+            'cpu_type'  =>  $model->cpu_type,
+            'extra'  =>  $model->extra,
+            'release_version'  =>  $model->release_version,
+            'is_latest'  =>  $model->is_latest,
+            'supported_virtualizations'  =>  $model->supported_virtualizations,
+            'is_iso'  =>  $model->is_iso,
+            'is_public'  =>  $model->is_public,
+            'is_virtual_machine_image'  =>  $model->is_virtual_machine_image,
+            'is_docker_image'  =>  $model->is_docker_image,
+            'cpu'  =>  $model->cpu,
+            'ram'  =>  $model->ram,
+            'size'  =>  $model->size,
+            'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
+            'iaas_repository_id'  =>  $iaasRepositoryId ? $iaasRepositoryId->uuid : null,
+            'repository_name'  =>  $model->repository_name,
+            'is_backup_repository'  =>  $model->is_backup_repository,
+            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'has_plusclouds_service'  =>  $model->has_plusclouds_service,
+            'is_backup'  =>  $model->is_backup,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
@@ -180,6 +180,7 @@ class AbstractRepositoryImagesPerspectiveTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 }

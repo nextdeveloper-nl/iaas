@@ -150,4 +150,5 @@ class VirtualMachineStatsQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

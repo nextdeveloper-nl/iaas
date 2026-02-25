@@ -110,6 +110,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'auto_backup_time'  =>  $model->auto_backup_time,
             'snapshot_of_virtual_machine'  =>  $model->snapshot_of_virtual_machine,
             'backup_repository_id'  =>  $backupRepositoryId ? $backupRepositoryId->uuid : null,
+            'post_boot_script'  =>  $model->post_boot_script,
             ]
         );
     }
@@ -198,6 +199,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

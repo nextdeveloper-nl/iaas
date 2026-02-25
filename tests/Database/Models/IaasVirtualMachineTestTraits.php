@@ -71,6 +71,7 @@ trait IaasVirtualMachineTestTraits
                 'lock_password'  =>  'a',
                 'auto_backup_interval'  =>  'a',
                 'auto_backup_time'  =>  'a',
+                'post_boot_script'  =>  'a',
                 'cpu'  =>  '1',
                 'ram'  =>  '1',
                 'snapshot_of_virtual_machine'  =>  '1',
@@ -591,6 +592,25 @@ trait IaasVirtualMachineTestTraits
             $request = new Request(
                 [
                 'auto_backup_time'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasVirtualMachineQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachine::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualmachine_event_post_boot_script_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'post_boot_script'  =>  'a'
                 ]
             );
 

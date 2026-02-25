@@ -94,6 +94,7 @@ class AbstractRepositoryImagesTransformer extends AbstractTransformer
             'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
             'has_plusclouds_service'  =>  $model->has_plusclouds_service,
             'is_cloudinit_image'  =>  $model->is_cloudinit_image,
+            'post_boot_script'  =>  $model->post_boot_script,
             ]
         );
     }
@@ -182,6 +183,7 @@ class AbstractRepositoryImagesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

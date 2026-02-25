@@ -35,6 +35,23 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->imageName($value);
     }
         
+    public function description($value)
+    {
+        return $this->builder->where('description', 'ilike', '%' . $value . '%');
+    }
+
+        
+    public function postBootScript($value)
+    {
+        return $this->builder->where('post_boot_script', 'ilike', '%' . $value . '%');
+    }
+
+        //  This is an alias function of postBootScript
+    public function post_boot_script($value)
+    {
+        return $this->postBootScript($value);
+    }
+        
     public function os($value)
     {
         return $this->builder->where('os', 'ilike', '%' . $value . '%');
@@ -328,6 +345,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
 
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

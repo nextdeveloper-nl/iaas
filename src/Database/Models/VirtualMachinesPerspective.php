@@ -57,6 +57,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property boolean $is_snapshot
  * @property string $auto_backup_interval
  * @property string $auto_backup_time
+ * @property string $post_boot_script
  * @property string $maintainer
  * @property string $responsible
  * @property integer $iaas_compute_pool_id
@@ -120,11 +121,11 @@ class VirtualMachinesPerspective extends Model
             'is_snapshot',
             'auto_backup_interval',
             'auto_backup_time',
+            'post_boot_script',
             'maintainer',
             'responsible',
             'iaas_compute_pool_id',
             'snapshot_of_virtual_machine',
-        'post_boot_script',
             'iam_account_id',
             'iam_user_id',
     ];
@@ -186,11 +187,11 @@ class VirtualMachinesPerspective extends Model
     'is_snapshot' => 'boolean',
     'auto_backup_interval' => 'string',
     'auto_backup_time' => 'string',
+    'post_boot_script' => 'string',
     'maintainer' => 'string',
     'responsible' => 'string',
     'iaas_compute_pool_id' => 'integer',
     'snapshot_of_virtual_machine' => 'integer',
-        'post_boot_script'  =>  'string',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
@@ -256,6 +257,7 @@ class VirtualMachinesPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

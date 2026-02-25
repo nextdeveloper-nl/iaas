@@ -737,27 +737,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('repositories')->group(
-            function () {
-                Route::get('/', 'Repositories\RepositoriesController@index');
-                Route::get('/actions', 'Repositories\RepositoriesController@getActions');
-
-                Route::get('{iaas_repositories}/tags ', 'Repositories\RepositoriesController@tags');
-                Route::post('{iaas_repositories}/tags ', 'Repositories\RepositoriesController@saveTags');
-                Route::get('{iaas_repositories}/addresses ', 'Repositories\RepositoriesController@addresses');
-                Route::post('{iaas_repositories}/addresses ', 'Repositories\RepositoriesController@saveAddresses');
-
-                Route::get('/{iaas_repositories}/{subObjects}', 'Repositories\RepositoriesController@relatedObjects');
-                Route::get('/{iaas_repositories}', 'Repositories\RepositoriesController@show');
-
-                Route::post('/', 'Repositories\RepositoriesController@store');
-                Route::post('/{iaas_repositories}/do/{action}', 'Repositories\RepositoriesController@doAction');
-
-                Route::patch('/{iaas_repositories}', 'Repositories\RepositoriesController@update');
-                Route::delete('/{iaas_repositories}', 'Repositories\RepositoriesController@destroy');
-            }
-        );
-
         Route::prefix('virtual-machine-metrics')->group(
             function () {
                 Route::get('/', 'VirtualMachineMetrics\VirtualMachineMetricsController@index');
@@ -839,6 +818,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_virtual_disk_image_stats}', 'VirtualDiskImageStats\VirtualDiskImageStatsController@update');
                 Route::delete('/{iaas_virtual_disk_image_stats}', 'VirtualDiskImageStats\VirtualDiskImageStatsController@destroy');
+            }
+        );
+
+        Route::prefix('repositories')->group(
+            function () {
+                Route::get('/', 'Repositories\RepositoriesController@index');
+                Route::get('/actions', 'Repositories\RepositoriesController@getActions');
+
+                Route::get('{iaas_repositories}/tags ', 'Repositories\RepositoriesController@tags');
+                Route::post('{iaas_repositories}/tags ', 'Repositories\RepositoriesController@saveTags');
+                Route::get('{iaas_repositories}/addresses ', 'Repositories\RepositoriesController@addresses');
+                Route::post('{iaas_repositories}/addresses ', 'Repositories\RepositoriesController@saveAddresses');
+
+                Route::get('/{iaas_repositories}/{subObjects}', 'Repositories\RepositoriesController@relatedObjects');
+                Route::get('/{iaas_repositories}', 'Repositories\RepositoriesController@show');
+
+                Route::post('/', 'Repositories\RepositoriesController@store');
+                Route::post('/{iaas_repositories}/do/{action}', 'Repositories\RepositoriesController@doAction');
+
+                Route::patch('/{iaas_repositories}', 'Repositories\RepositoriesController@update');
+                Route::delete('/{iaas_repositories}', 'Repositories\RepositoriesController@destroy');
             }
         );
 
@@ -1094,27 +1094,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('backup-jobs')->group(
-            function () {
-                Route::get('/', 'BackupJobs\BackupJobsController@index');
-                Route::get('/actions', 'BackupJobs\BackupJobsController@getActions');
-
-                Route::get('{iaas_backup_jobs}/tags ', 'BackupJobs\BackupJobsController@tags');
-                Route::post('{iaas_backup_jobs}/tags ', 'BackupJobs\BackupJobsController@saveTags');
-                Route::get('{iaas_backup_jobs}/addresses ', 'BackupJobs\BackupJobsController@addresses');
-                Route::post('{iaas_backup_jobs}/addresses ', 'BackupJobs\BackupJobsController@saveAddresses');
-
-                Route::get('/{iaas_backup_jobs}/{subObjects}', 'BackupJobs\BackupJobsController@relatedObjects');
-                Route::get('/{iaas_backup_jobs}', 'BackupJobs\BackupJobsController@show');
-
-                Route::post('/', 'BackupJobs\BackupJobsController@store');
-                Route::post('/{iaas_backup_jobs}/do/{action}', 'BackupJobs\BackupJobsController@doAction');
-
-                Route::patch('/{iaas_backup_jobs}', 'BackupJobs\BackupJobsController@update');
-                Route::delete('/{iaas_backup_jobs}', 'BackupJobs\BackupJobsController@destroy');
-            }
-        );
-
         Route::prefix('backup-retention-policies')->group(
             function () {
                 Route::get('/', 'BackupRetentionPolicies\BackupRetentionPoliciesController@index');
@@ -1154,6 +1133,27 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_compute_member_tasks}', 'ComputeMemberTasks\ComputeMemberTasksController@update');
                 Route::delete('/{iaas_compute_member_tasks}', 'ComputeMemberTasks\ComputeMemberTasksController@destroy');
+            }
+        );
+
+        Route::prefix('backup-jobs')->group(
+            function () {
+                Route::get('/', 'BackupJobs\BackupJobsController@index');
+                Route::get('/actions', 'BackupJobs\BackupJobsController@getActions');
+
+                Route::get('{iaas_backup_jobs}/tags ', 'BackupJobs\BackupJobsController@tags');
+                Route::post('{iaas_backup_jobs}/tags ', 'BackupJobs\BackupJobsController@saveTags');
+                Route::get('{iaas_backup_jobs}/addresses ', 'BackupJobs\BackupJobsController@addresses');
+                Route::post('{iaas_backup_jobs}/addresses ', 'BackupJobs\BackupJobsController@saveAddresses');
+
+                Route::get('/{iaas_backup_jobs}/{subObjects}', 'BackupJobs\BackupJobsController@relatedObjects');
+                Route::get('/{iaas_backup_jobs}', 'BackupJobs\BackupJobsController@show');
+
+                Route::post('/', 'BackupJobs\BackupJobsController@store');
+                Route::post('/{iaas_backup_jobs}/do/{action}', 'BackupJobs\BackupJobsController@doAction');
+
+                Route::patch('/{iaas_backup_jobs}', 'BackupJobs\BackupJobsController@update');
+                Route::delete('/{iaas_backup_jobs}', 'BackupJobs\BackupJobsController@destroy');
             }
         );
 
@@ -1430,48 +1430,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('repository-images-perspective')->group(
-            function () {
-                Route::get('/', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@index');
-                Route::get('/actions', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@getActions');
-
-                Route::get('{irip}/tags ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@tags');
-                Route::post('{irip}/tags ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@saveTags');
-                Route::get('{irip}/addresses ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@addresses');
-                Route::post('{irip}/addresses ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@saveAddresses');
-
-                Route::get('/{irip}/{subObjects}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@relatedObjects');
-                Route::get('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@show');
-
-                Route::post('/', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@store');
-                Route::post('/{irip}/do/{action}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@doAction');
-
-                Route::patch('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@update');
-                Route::delete('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@destroy');
-            }
-        );
-
-        Route::prefix('virtual-machines-perspective')->group(
-            function () {
-                Route::get('/', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@index');
-                Route::get('/actions', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@getActions');
-
-                Route::get('{ivmp}/tags ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@tags');
-                Route::post('{ivmp}/tags ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@saveTags');
-                Route::get('{ivmp}/addresses ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@addresses');
-                Route::post('{ivmp}/addresses ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@saveAddresses');
-
-                Route::get('/{ivmp}/{subObjects}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@relatedObjects');
-                Route::get('/{ivmp}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@show');
-
-                Route::post('/', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@store');
-                Route::post('/{ivmp}/do/{action}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@doAction');
-
-                Route::patch('/{ivmp}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@update');
-                Route::delete('/{ivmp}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@destroy');
-            }
-        );
-
         Route::prefix('compute-member-storage-volumes-perspective')->group(
             function () {
                 Route::get('/', 'ComputeMemberStorageVolumesPerspective\ComputeMemberStorageVolumesPerspectiveController@index');
@@ -1535,14 +1493,197 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('virtual-machines-perspective')->group(
+            function () {
+                Route::get('/', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@index');
+                Route::get('/actions', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@getActions');
+
+                Route::get('{ivmp}/tags ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@tags');
+                Route::post('{ivmp}/tags ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@saveTags');
+                Route::get('{ivmp}/addresses ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@addresses');
+                Route::post('{ivmp}/addresses ', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@saveAddresses');
+
+                Route::get('/{ivmp}/{subObjects}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@relatedObjects');
+                Route::get('/{ivmp}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@show');
+
+                Route::post('/', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@store');
+                Route::post('/{ivmp}/do/{action}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@doAction');
+
+                Route::patch('/{ivmp}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@update');
+                Route::delete('/{ivmp}', 'VirtualMachinesPerspective\VirtualMachinesPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('repository-images-perspective')->group(
+            function () {
+                Route::get('/', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@index');
+                Route::get('/actions', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@getActions');
+
+                Route::get('{irip}/tags ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@tags');
+                Route::post('{irip}/tags ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@saveTags');
+                Route::get('{irip}/addresses ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@addresses');
+                Route::post('{irip}/addresses ', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@saveAddresses');
+
+                Route::get('/{irip}/{subObjects}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@relatedObjects');
+                Route::get('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@show');
+
+                Route::post('/', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@store');
+                Route::post('/{irip}/do/{action}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@doAction');
+
+                Route::patch('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@update');
+                Route::delete('/{irip}', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('kpi-performance')->group(
+            function () {
+                Route::get('/', 'KpiPerformance\KpiPerformanceController@index');
+                Route::get('/actions', 'KpiPerformance\KpiPerformanceController@getActions');
+
+                Route::get('{iaas_kpi_performance}/tags ', 'KpiPerformance\KpiPerformanceController@tags');
+                Route::post('{iaas_kpi_performance}/tags ', 'KpiPerformance\KpiPerformanceController@saveTags');
+                Route::get('{iaas_kpi_performance}/addresses ', 'KpiPerformance\KpiPerformanceController@addresses');
+                Route::post('{iaas_kpi_performance}/addresses ', 'KpiPerformance\KpiPerformanceController@saveAddresses');
+
+                Route::get('/{iaas_kpi_performance}/{subObjects}', 'KpiPerformance\KpiPerformanceController@relatedObjects');
+                Route::get('/{iaas_kpi_performance}', 'KpiPerformance\KpiPerformanceController@show');
+
+                Route::post('/', 'KpiPerformance\KpiPerformanceController@store');
+                Route::post('/{iaas_kpi_performance}/do/{action}', 'KpiPerformance\KpiPerformanceController@doAction');
+
+                Route::patch('/{iaas_kpi_performance}', 'KpiPerformance\KpiPerformanceController@update');
+                Route::delete('/{iaas_kpi_performance}', 'KpiPerformance\KpiPerformanceController@destroy');
+            }
+        );
+
+        Route::prefix('active-alarms-perspective')->group(
+            function () {
+                Route::get('/', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@index');
+                Route::get('/actions', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@getActions');
+
+                Route::get('{iaas_active_alarms_perspective}/tags ', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@tags');
+                Route::post('{iaas_active_alarms_perspective}/tags ', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@saveTags');
+                Route::get('{iaas_active_alarms_perspective}/addresses ', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@addresses');
+                Route::post('{iaas_active_alarms_perspective}/addresses ', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_active_alarms_perspective}/{subObjects}', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@relatedObjects');
+                Route::get('/{iaas_active_alarms_perspective}', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@show');
+
+                Route::post('/', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@store');
+                Route::post('/{iaas_active_alarms_perspective}/do/{action}', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@doAction');
+
+                Route::patch('/{iaas_active_alarms_perspective}', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@update');
+                Route::delete('/{iaas_active_alarms_perspective}', 'ActiveAlarmsPerspective\ActiveAlarmsPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('largest-tenants')->group(
+            function () {
+                Route::get('/', 'LargestTenants\LargestTenantsController@index');
+                Route::get('/actions', 'LargestTenants\LargestTenantsController@getActions');
+
+                Route::get('{iaas_largest_tenants}/tags ', 'LargestTenants\LargestTenantsController@tags');
+                Route::post('{iaas_largest_tenants}/tags ', 'LargestTenants\LargestTenantsController@saveTags');
+                Route::get('{iaas_largest_tenants}/addresses ', 'LargestTenants\LargestTenantsController@addresses');
+                Route::post('{iaas_largest_tenants}/addresses ', 'LargestTenants\LargestTenantsController@saveAddresses');
+
+                Route::get('/{iaas_largest_tenants}/{subObjects}', 'LargestTenants\LargestTenantsController@relatedObjects');
+                Route::get('/{iaas_largest_tenants}', 'LargestTenants\LargestTenantsController@show');
+
+                Route::post('/', 'LargestTenants\LargestTenantsController@store');
+                Route::post('/{iaas_largest_tenants}/do/{action}', 'LargestTenants\LargestTenantsController@doAction');
+
+                Route::patch('/{iaas_largest_tenants}', 'LargestTenants\LargestTenantsController@update');
+                Route::delete('/{iaas_largest_tenants}', 'LargestTenants\LargestTenantsController@destroy');
+            }
+        );
+
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-        Route::prefix('registries')->group(function() {
-            Route::get('/{repo}/containers', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'index']);
-            Route::get('/{repo}/containers/{image}/tags', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'tagsIndex']);
 
-            Route::delete('/{repo}/containers/{image}/tags/{tag}', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'destroy']);
-        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        Route::prefix('registries')->group(
+            function () {
+                Route::get('/{repo}/containers', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'index']);
+                Route::get('/{repo}/containers/{image}/tags', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'tagsIndex']);
+
+                Route::delete('/{repo}/containers/{image}/tags/{tag}', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'destroy']);
+            }
+        );
 
         Route::get('/configurations/dhcp-servers/{server}', [\NextDeveloper\IAAS\Http\Controllers\DhcpServers\DhcpServersConfigurationController::class, 'show']);
         Route::get('/console/{iaas_virtual_machines}', [\NextDeveloper\IAAS\Http\Controllers\VirtualMachines\VirtualMachinesConsoleController::class, 'getConsoleData']);
@@ -1553,3 +1694,4 @@ Route::prefix('iaas')->group(
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );
+

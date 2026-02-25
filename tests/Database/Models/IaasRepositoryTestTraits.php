@@ -65,6 +65,8 @@ trait IaasRepositoryTestTraits
                 'last_hash'  =>  'a',
                 'iso_path'  =>  'a',
                 'vm_path'  =>  'a',
+                'registry_username'  =>  'a',
+                'registry_password'  =>  'a',
                 'docker_registry_port'  =>  '1',
                 'ssh_port'  =>  '1',
                             ],
@@ -469,6 +471,44 @@ trait IaasRepositoryTestTraits
             $request = new Request(
                 [
                 'vm_path'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasRepositoryQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasRepository::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasrepository_event_registry_username_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'registry_username'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasRepositoryQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasRepository::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasrepository_event_registry_password_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'registry_password'  =>  'a'
                 ]
             );
 

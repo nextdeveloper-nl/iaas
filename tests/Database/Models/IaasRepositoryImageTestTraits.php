@@ -71,6 +71,7 @@ trait IaasRepositoryImageTestTraits
                 'extra'  =>  'a',
                 'cpu_type'  =>  'a',
                 'hash'  =>  'a',
+                'post_boot_script'  =>  'a',
                 'size'  =>  '1',
                 'ram'  =>  '1',
                 'cpu'  =>  '1',
@@ -590,6 +591,25 @@ trait IaasRepositoryImageTestTraits
             $request = new Request(
                 [
                 'hash'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasRepositoryImageQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasRepositoryImage::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasrepositoryimage_event_post_boot_script_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'post_boot_script'  =>  'a'
                 ]
             );
 

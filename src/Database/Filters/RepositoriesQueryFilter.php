@@ -84,6 +84,28 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->vmPath($value);
     }
+        
+    public function registryUsername($value)
+    {
+        return $this->builder->where('registry_username', 'ilike', '%' . $value . '%');
+    }
+
+        //  This is an alias function of registryUsername
+    public function registry_username($value)
+    {
+        return $this->registryUsername($value);
+    }
+        
+    public function registryPassword($value)
+    {
+        return $this->builder->where('registry_password', 'ilike', '%' . $value . '%');
+    }
+
+        //  This is an alias function of registryPassword
+    public function registry_password($value)
+    {
+        return $this->registryPassword($value);
+    }
     
     public function dockerRegistryPort($value)
     {
@@ -328,6 +350,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
