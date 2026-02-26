@@ -66,7 +66,6 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
             'id'  =>  $model->uuid,
             'name'  =>  $model->name,
             'size'  =>  $model->size,
-            'physical_utilisation'  =>  $model->physical_utilisation,
             'available_operations'  =>  $model->available_operations,
             'current_operations'  =>  $model->current_operations,
             'is_cdrom'  =>  $model->is_cdrom,
@@ -80,6 +79,7 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'physical_utilisation'  =>  $model->physical_utilisation,
             'is_draft'  =>  $model->is_draft,
             'iaas_repository_image_id'  =>  $iaasRepositoryImageId ? $iaasRepositoryImageId->uuid : null,
             'iaas_storage_pool_id'  =>  $iaasStoragePoolId ? $iaasStoragePoolId->uuid : null,
@@ -174,6 +174,8 @@ class AbstractVirtualDiskImagesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

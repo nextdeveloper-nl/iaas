@@ -166,9 +166,14 @@ class CloudNodes extends Model
         }
     }
 
-    public function computePools() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function storagePools() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
+    }
+
+    public function networkPools() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
     }
 
     public function datacenters() : \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -176,14 +181,9 @@ class CloudNodes extends Model
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
     }
     
-    public function networkPools() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function computePools() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
-    }
-
-    public function storagePools() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
     }
 
     public function networks() : \Illuminate\Database\Eloquent\Relations\HasMany
@@ -197,6 +197,8 @@ class CloudNodes extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

@@ -34,8 +34,8 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
- * @property boolean $is_bridge
  * @property string $hypervisor_uuid
+ * @property boolean $is_bridge
  * @property string $network_uuid
  * @property string $network_name
  * @property $vlan_data
@@ -67,8 +67,8 @@ class ComputeMemberNetworkInterfaces extends Model
             'iaas_compute_member_id',
             'iam_account_id',
             'iam_user_id',
-            'is_bridge',
             'hypervisor_uuid',
+            'is_bridge',
             'network_uuid',
             'network_name',
             'vlan_data',
@@ -106,8 +106,8 @@ class ComputeMemberNetworkInterfaces extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
-    'is_bridge' => 'boolean',
     'hypervisor_uuid' => 'string',
+    'is_bridge' => 'boolean',
     'network_uuid' => 'string',
     'network_name' => 'string',
     'vlan_data' => 'array',
@@ -187,6 +187,8 @@ class ComputeMemberNetworkInterfaces extends Model
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

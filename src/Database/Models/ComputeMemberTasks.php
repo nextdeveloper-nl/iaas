@@ -24,6 +24,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property string $description
  * @property string $error
  * @property integer $progress
+ * @property string $status
  * @property $hypervisor_data
  * @property integer $iaas_virtual_machine_id
  * @property integer $iaas_compute_member_id
@@ -50,6 +51,7 @@ class ComputeMemberTasks extends Model
             'description',
             'error',
             'progress',
+            'status',
             'hypervisor_data',
             'iaas_virtual_machine_id',
             'iaas_compute_member_id',
@@ -80,6 +82,7 @@ class ComputeMemberTasks extends Model
     'description' => 'string',
     'error' => 'string',
     'progress' => 'integer',
+    'status' => 'string',
     'hypervisor_data' => 'array',
     'iaas_virtual_machine_id' => 'integer',
     'iaas_compute_member_id' => 'integer',
@@ -145,6 +148,8 @@ class ComputeMemberTasks extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 }

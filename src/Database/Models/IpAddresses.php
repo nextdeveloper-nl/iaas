@@ -22,13 +22,13 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property string $uuid
  * @property $ip_addr
  * @property boolean $is_reserved
- * @property integer $iaas_network_id
- * @property integer $iaas_virtual_network_card_id
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property integer $iaas_network_id
+ * @property integer $iaas_virtual_network_card_id
  * @property $custom_mac_addr
  */
 class IpAddresses extends Model
@@ -49,10 +49,10 @@ class IpAddresses extends Model
     protected $fillable = [
             'ip_addr',
             'is_reserved',
-            'iaas_network_id',
-            'iaas_virtual_network_card_id',
             'iam_account_id',
             'iam_user_id',
+            'iaas_network_id',
+            'iaas_virtual_network_card_id',
             'custom_mac_addr',
     ];
 
@@ -78,11 +78,11 @@ class IpAddresses extends Model
     protected $casts = [
     'id' => 'integer',
     'is_reserved' => 'boolean',
-    'iaas_network_id' => 'integer',
-    'iaas_virtual_network_card_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'iaas_network_id' => 'integer',
+    'iaas_virtual_network_card_id' => 'integer',
     ];
 
     /**
@@ -143,11 +143,6 @@ class IpAddresses extends Model
         }
     }
 
-    public function ipAddressHistories() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddressHistories::class);
-    }
-
     public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
@@ -158,7 +153,14 @@ class IpAddresses extends Model
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
     }
     
+    public function ipAddressHistories() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddressHistories::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

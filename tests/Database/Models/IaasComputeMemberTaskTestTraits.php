@@ -61,6 +61,7 @@ trait IaasComputeMemberTaskTestTraits
                 'name'  =>  'a',
                 'description'  =>  'a',
                 'error'  =>  'a',
+                'status'  =>  'a',
                 'progress'  =>  '1',
                         ],
                 ['http_errors' => false]
@@ -388,6 +389,25 @@ trait IaasComputeMemberTaskTestTraits
             $request = new Request(
                 [
                 'error'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasComputeMemberTaskQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasComputeMemberTask::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaascomputemembertask_event_status_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'status'  =>  'a'
                 ]
             );
 

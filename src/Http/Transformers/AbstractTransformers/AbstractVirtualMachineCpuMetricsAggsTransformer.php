@@ -66,6 +66,7 @@ class AbstractVirtualMachineCpuMetricsAggsTransformer extends AbstractTransforme
             'stddev9'  =>  $model->stddev9,
             'ema9'  =>  $model->ema9,
             'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
             ]
         );
     }
@@ -154,6 +155,8 @@ class AbstractVirtualMachineCpuMetricsAggsTransformer extends AbstractTransforme
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

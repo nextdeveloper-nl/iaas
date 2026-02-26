@@ -35,6 +35,12 @@ class ComputeMemberTasksQueryFilter extends AbstractQueryFilter
         return $this->builder->where('error', 'ilike', '%' . $value . '%');
     }
 
+        
+    public function status($value)
+    {
+        return $this->builder->where('status', 'ilike', '%' . $value . '%');
+    }
+
     
     public function progress($value)
     {
@@ -125,6 +131,8 @@ class ComputeMemberTasksQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 }

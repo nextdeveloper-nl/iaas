@@ -58,6 +58,11 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
     public function allowedOperations() :array
     {
         return [
+            'iaas_largest_tenants_perspective:read',
+            'iaas_kpi_performance:read',
+            'iaas_cloud_nodes_performance:read',
+            'iaas_active_alarms_perspective:read',
+
             'iaas_cloud_nodes:read',
             'iaas_cloud_nodes:update',
             'iaas_cloud_nodes:create',

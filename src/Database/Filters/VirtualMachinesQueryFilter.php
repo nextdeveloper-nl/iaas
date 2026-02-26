@@ -399,6 +399,21 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     }
 
     
+    public function iaasRepositoryImageId($value)
+    {
+            $iaasRepositoryImage = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('uuid', $value)->first();
+
+        if($iaasRepositoryImage) {
+            return $this->builder->where('iaas_repository_image_id', '=', $iaasRepositoryImage->id);
+        }
+    }
+
+        //  This is an alias function of iaasRepositoryImage
+    public function iaas_repository_image_id($value)
+    {
+        return $this->iaasRepositoryImage($value);
+    }
+    
     public function templateId($value)
     {
             $template = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
@@ -427,21 +442,6 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     public function common_domain_id($value)
     {
         return $this->commonDomain($value);
-    }
-    
-    public function iaasRepositoryImageId($value)
-    {
-            $iaasRepositoryImage = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('uuid', $value)->first();
-
-        if($iaasRepositoryImage) {
-            return $this->builder->where('iaas_repository_image_id', '=', $iaasRepositoryImage->id);
-        }
-    }
-
-        //  This is an alias function of iaasRepositoryImage
-    public function iaas_repository_image_id($value)
-    {
-        return $this->iaasRepositoryImage($value);
     }
     
     public function iaasComputePoolId($value)
@@ -475,6 +475,8 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

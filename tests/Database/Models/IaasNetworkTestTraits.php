@@ -62,8 +62,8 @@ trait IaasNetworkTestTraits
                 'vxlan'  =>  'a',
                 'vlan'  =>  '1',
                 'bandwidth'  =>  '1',
-                'speed_limit'  =>  '1',
                 'mtu'  =>  '1',
+                'speed_limit'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -422,12 +422,12 @@ trait IaasNetworkTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasnetwork_event_speed_limit_filter()
+    public function test_iaasnetwork_event_mtu_filter()
     {
         try {
             $request = new Request(
                 [
-                'speed_limit'  =>  '1'
+                'mtu'  =>  '1'
                 ]
             );
 
@@ -441,12 +441,12 @@ trait IaasNetworkTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasnetwork_event_mtu_filter()
+    public function test_iaasnetwork_event_speed_limit_filter()
     {
         try {
             $request = new Request(
                 [
-                'mtu'  =>  '1'
+                'speed_limit'  =>  '1'
                 ]
             );
 

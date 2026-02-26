@@ -57,10 +57,11 @@ class AbstractNetworksTransformer extends AbstractTransformer
                                                 $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
                                                             $iaasDhcpServerId = \NextDeveloper\IAAS\Database\Models\DhcpServers::where('id', $model->iaas_dhcp_server_id)->first();
                                                             $iaasGatewayId = \NextDeveloper\IAAS\Database\Models\Gateways::where('id', $model->iaas_gateway_id)->first();
-                                                            $iaasNetworkPoolId = \NextDeveloper\IAAS\Database\Models\NetworkPools::where('id', $model->iaas_network_pool_id)->first();
-                                                            $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                                                            $iaasNetworkPoolId = \NextDeveloper\IAAS\Database\Models\NetworkPools::where('id', $model->iaas_network_pool_id)->first();
+                                                            $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
+                                                            $commonCurrencyId = \NextDeveloper\Commons\Database\Models\Currencies::where('id', $model->common_currency_id)->first();
                                                             $iaasDatacenterId = \NextDeveloper\IAAS\Database\Models\Datacenters::where('id', $model->iaas_datacenter_id)->first();
                         
         return $this->buildPayload(
@@ -73,10 +74,6 @@ class AbstractNetworksTransformer extends AbstractTransformer
             'is_public'  =>  $model->is_public,
             'is_vpn'  =>  $model->is_vpn,
             'is_management'  =>  $model->is_management,
-            'is_dmz'  =>  $model->is_dmz,
-            'price_pergb'  =>  $model->price_pergb,
-            'price_perip'  =>  $model->price_perip,
-            'speed_limit'  =>  $model->speed_limit,
             'ip_addr'  =>  $model->ip_addr,
             'ip_addr_range_start'  =>  $model->ip_addr_range_start,
             'ip_addr_range_end'  =>  $model->ip_addr_range_end,
@@ -85,14 +82,19 @@ class AbstractNetworksTransformer extends AbstractTransformer
             'common_domain_id'  =>  $commonDomainId ? $commonDomainId->uuid : null,
             'iaas_dhcp_server_id'  =>  $iaasDhcpServerId ? $iaasDhcpServerId->uuid : null,
             'iaas_gateway_id'  =>  $iaasGatewayId ? $iaasGatewayId->uuid : null,
-            'iaas_network_pool_id'  =>  $iaasNetworkPoolId ? $iaasNetworkPoolId->uuid : null,
-            'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'is_dmz'  =>  $model->is_dmz,
+            'price_pergb'  =>  $model->price_pergb,
+            'price_perip'  =>  $model->price_perip,
+            'speed_limit'  =>  $model->speed_limit,
+            'iaas_network_pool_id'  =>  $iaasNetworkPoolId ? $iaasNetworkPoolId->uuid : null,
+            'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
             'cidr'  =>  $model->cidr,
+            'common_currency_id'  =>  $commonCurrencyId ? $commonCurrencyId->uuid : null,
             'iaas_datacenter_id'  =>  $iaasDatacenterId ? $iaasDatacenterId->uuid : null,
             ]
         );
@@ -182,6 +184,8 @@ class AbstractNetworksTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 
