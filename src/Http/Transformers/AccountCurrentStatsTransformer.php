@@ -23,20 +23,7 @@ class AccountCurrentStatsTransformer extends AbstractAccountCurrentStatsTransfor
      */
     public function transform(AccountCurrentStats $model)
     {
-        $transformed = Cache::get(
-            CacheHelper::getKey('AccountCurrentStats', $model->uuid, 'Transformed')
-        );
-
-        if($transformed) {
-            return $transformed;
-        }
-
         $transformed = parent::transform($model);
-
-        Cache::set(
-            CacheHelper::getKey('AccountCurrentStats', $model->uuid, 'Transformed'),
-            $transformed
-        );
 
         return $transformed;
     }

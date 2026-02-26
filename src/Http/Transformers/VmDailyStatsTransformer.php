@@ -23,21 +23,7 @@ class VmDailyStatsTransformer extends AbstractVmDailyStatsTransformer
      */
     public function transform(VmDailyStats $model)
     {
-        $transformed = Cache::get(
-            CacheHelper::getKey('VmDailyStats', $model->uuid, 'Transformed')
-        );
-
-        if($transformed) {
-            return $transformed;
-        }
-
         $transformed = parent::transform($model);
-
-        Cache::set(
-            CacheHelper::getKey('VmDailyStats', $model->uuid, 'Transformed'),
-            $transformed
-        );
-
         return $transformed;
     }
 }

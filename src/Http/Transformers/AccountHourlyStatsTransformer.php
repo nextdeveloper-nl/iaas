@@ -23,20 +23,7 @@ class AccountHourlyStatsTransformer extends AbstractAccountHourlyStatsTransforme
      */
     public function transform(AccountHourlyStats $model)
     {
-        $transformed = Cache::get(
-            CacheHelper::getKey('AccountHourlyStats', $model->uuid, 'Transformed')
-        );
-
-        if($transformed) {
-            return $transformed;
-        }
-
         $transformed = parent::transform($model);
-
-        Cache::set(
-            CacheHelper::getKey('AccountHourlyStats', $model->uuid, 'Transformed'),
-            $transformed
-        );
 
         return $transformed;
     }

@@ -23,20 +23,7 @@ class VmHourlyStatsTransformer extends AbstractVmHourlyStatsTransformer
      */
     public function transform(VmHourlyStats $model)
     {
-        $transformed = Cache::get(
-            CacheHelper::getKey('VmHourlyStats', $model->uuid, 'Transformed')
-        );
-
-        if($transformed) {
-            return $transformed;
-        }
-
         $transformed = parent::transform($model);
-
-        Cache::set(
-            CacheHelper::getKey('VmHourlyStats', $model->uuid, 'Transformed'),
-            $transformed
-        );
 
         return $transformed;
     }

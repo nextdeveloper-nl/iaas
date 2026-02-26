@@ -23,20 +23,7 @@ class CloudNodeDailyStatsTransformer extends AbstractCloudNodeDailyStatsTransfor
      */
     public function transform(CloudNodeDailyStats $model)
     {
-        $transformed = Cache::get(
-            CacheHelper::getKey('CloudNodeDailyStats', $model->uuid, 'Transformed')
-        );
-
-        if($transformed) {
-            return $transformed;
-        }
-
         $transformed = parent::transform($model);
-
-        Cache::set(
-            CacheHelper::getKey('CloudNodeDailyStats', $model->uuid, 'Transformed'),
-            $transformed
-        );
 
         return $transformed;
     }
