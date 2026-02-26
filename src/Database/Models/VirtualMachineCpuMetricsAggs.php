@@ -18,20 +18,19 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  *
  * @package  NextDeveloper\IAAS\Database\Models
  * @property integer $id
- * @property integer $iaas_virtual_machine_id
+ * @property string $iaas_virtual_machine_id
  * @property \Carbon\Carbon $timestamp
  * @property $avg_cpu
  * @property $sma9
  * @property $stddev9
  * @property $ema9
  * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
  */
 class VirtualMachineCpuMetricsAggs extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
 
-    public $timestamps = true;
+    public $timestamps = false;
 
     protected $table = 'iaas_virtual_machine_cpu_metrics_agg';
 
@@ -71,10 +70,8 @@ class VirtualMachineCpuMetricsAggs extends Model
      */
     protected $casts = [
     'id' => 'integer',
-    'iaas_virtual_machine_id' => 'integer',
     'timestamp' => 'datetime',
     'created_at' => 'datetime',
-    'updated_at' => 'datetime',
     ];
 
     /**
@@ -85,7 +82,6 @@ class VirtualMachineCpuMetricsAggs extends Model
     protected $dates = [
     'timestamp',
     'created_at',
-    'updated_at',
     ];
 
     /**
@@ -136,6 +132,8 @@ class VirtualMachineCpuMetricsAggs extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

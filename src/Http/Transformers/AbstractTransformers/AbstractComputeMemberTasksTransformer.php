@@ -65,7 +65,6 @@ class AbstractComputeMemberTasksTransformer extends AbstractTransformer
             'description'  =>  $model->description,
             'error'  =>  $model->error,
             'progress'  =>  $model->progress,
-            'status'  =>  $model->status,
             'hypervisor_data'  =>  $model->hypervisor_data,
             'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
             'iaas_compute_member_id'  =>  $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
@@ -159,6 +158,8 @@ class AbstractComputeMemberTasksTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

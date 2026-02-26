@@ -59,7 +59,7 @@ trait IaasVirtualMachineCpuMetricsAggTestTraits
             'POST', '/iaas/iaasvirtualmachinecpumetricsagg', [
             'form_params'   =>  [
                     'timestamp'  =>  now(),
-                        ],
+                    ],
                 ['http_errors' => false]
             ]
         );
@@ -379,25 +379,6 @@ trait IaasVirtualMachineCpuMetricsAggTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinecpumetricsagg_event_updated_at_filter_start()
-    {
-        try {
-            $request = new Request(
-                [
-                'updated_atStart'  =>  now()
-                ]
-            );
-
-            $filter = new IaasVirtualMachineCpuMetricsAggQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineCpuMetricsAgg::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
     public function test_iaasvirtualmachinecpumetricsagg_event_timestamp_filter_end()
     {
         try {
@@ -423,25 +404,6 @@ trait IaasVirtualMachineCpuMetricsAggTestTraits
             $request = new Request(
                 [
                 'created_atEnd'  =>  now()
-                ]
-            );
-
-            $filter = new IaasVirtualMachineCpuMetricsAggQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineCpuMetricsAgg::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasvirtualmachinecpumetricsagg_event_updated_at_filter_end()
-    {
-        try {
-            $request = new Request(
-                [
-                'updated_atEnd'  =>  now()
                 ]
             );
 
@@ -482,26 +444,6 @@ trait IaasVirtualMachineCpuMetricsAggTestTraits
                 [
                 'created_atStart'  =>  now(),
                 'created_atEnd'  =>  now()
-                ]
-            );
-
-            $filter = new IaasVirtualMachineCpuMetricsAggQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineCpuMetricsAgg::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasvirtualmachinecpumetricsagg_event_updated_at_filter_start_and_end()
-    {
-        try {
-            $request = new Request(
-                [
-                'updated_atStart'  =>  now(),
-                'updated_atEnd'  =>  now()
                 ]
             );
 

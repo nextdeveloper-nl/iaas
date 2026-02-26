@@ -24,12 +24,12 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property string $description
  * @property integer $keep_for_days
  * @property integer $keep_last_n_backups
- * @property boolean $is_public
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property boolean $is_public
  */
 class BackupRetentionPolicies extends Model
 {
@@ -51,9 +51,9 @@ class BackupRetentionPolicies extends Model
             'description',
             'keep_for_days',
             'keep_last_n_backups',
-            'is_public',
             'iam_account_id',
             'iam_user_id',
+            'is_public',
     ];
 
     /**
@@ -81,10 +81,10 @@ class BackupRetentionPolicies extends Model
     'description' => 'string',
     'keep_for_days' => 'integer',
     'keep_last_n_backups' => 'integer',
-    'is_public' => 'boolean',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'is_public' => 'boolean',
     ];
 
     /**
@@ -146,6 +146,8 @@ class BackupRetentionPolicies extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

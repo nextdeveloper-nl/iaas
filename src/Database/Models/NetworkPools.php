@@ -184,6 +184,11 @@ class NetworkPools extends Model
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Datacenters::class);
     }
     
+    public function networkPoolStats() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPoolStats::class);
+    }
+
     public function networks() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Networks::class);
@@ -194,12 +199,9 @@ class NetworkPools extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkMembers::class);
     }
 
-    public function networkPoolStats() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkPoolStats::class);
-    }
-
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

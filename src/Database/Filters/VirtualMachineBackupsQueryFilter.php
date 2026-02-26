@@ -133,6 +133,50 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     }
 
     
+    public function backupStartsStart($date)
+    {
+        return $this->builder->where('backup_starts', '>=', $date);
+    }
+
+    public function backupStartsEnd($date)
+    {
+        return $this->builder->where('backup_starts', '<=', $date);
+    }
+
+    //  This is an alias function of backupStarts
+    public function backup_starts_start($value)
+    {
+        return $this->backupStartsStart($value);
+    }
+
+    //  This is an alias function of backupStarts
+    public function backup_starts_end($value)
+    {
+        return $this->backupStartsEnd($value);
+    }
+
+    public function backupEndsStart($date)
+    {
+        return $this->builder->where('backup_ends', '>=', $date);
+    }
+
+    public function backupEndsEnd($date)
+    {
+        return $this->builder->where('backup_ends', '<=', $date);
+    }
+
+    //  This is an alias function of backupEnds
+    public function backup_ends_start($value)
+    {
+        return $this->backupEndsStart($value);
+    }
+
+    //  This is an alias function of backupEnds
+    public function backup_ends_end($value)
+    {
+        return $this->backupEndsEnd($value);
+    }
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -197,50 +241,6 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     public function deleted_at_end($value)
     {
         return $this->deletedAtEnd($value);
-    }
-
-    public function backupStartsStart($date)
-    {
-        return $this->builder->where('backup_starts', '>=', $date);
-    }
-
-    public function backupStartsEnd($date)
-    {
-        return $this->builder->where('backup_starts', '<=', $date);
-    }
-
-    //  This is an alias function of backupStarts
-    public function backup_starts_start($value)
-    {
-        return $this->backupStartsStart($value);
-    }
-
-    //  This is an alias function of backupStarts
-    public function backup_starts_end($value)
-    {
-        return $this->backupStartsEnd($value);
-    }
-
-    public function backupEndsStart($date)
-    {
-        return $this->builder->where('backup_ends', '>=', $date);
-    }
-
-    public function backupEndsEnd($date)
-    {
-        return $this->builder->where('backup_ends', '<=', $date);
-    }
-
-    //  This is an alias function of backupEnds
-    public function backup_ends_start($value)
-    {
-        return $this->backupEndsStart($value);
-    }
-
-    //  This is an alias function of backupEnds
-    public function backup_ends_end($value)
-    {
-        return $this->backupEndsEnd($value);
     }
 
     public function iaasVirtualMachineId($value)
@@ -309,6 +309,8 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

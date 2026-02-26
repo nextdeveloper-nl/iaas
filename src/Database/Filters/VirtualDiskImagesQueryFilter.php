@@ -60,25 +60,6 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
     }
 
     
-    public function deviceNumber($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('device_number', $operator, $value);
-    }
-
-        //  This is an alias function of deviceNumber
-    public function device_number($value)
-    {
-        return $this->deviceNumber($value);
-    }
-    
     public function physicalUtilisation($value)
     {
         $operator = substr($value, 0, 1);
@@ -96,6 +77,25 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
     public function physical_utilisation($value)
     {
         return $this->physicalUtilisation($value);
+    }
+    
+    public function deviceNumber($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('device_number', $operator, $value);
+    }
+
+        //  This is an alias function of deviceNumber
+    public function device_number($value)
+    {
+        return $this->deviceNumber($value);
     }
     
     public function utilization($value)
@@ -281,6 +281,8 @@ class VirtualDiskImagesQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

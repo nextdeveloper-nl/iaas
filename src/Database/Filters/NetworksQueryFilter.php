@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                                    
+                                
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -58,20 +58,6 @@ class NetworksQueryFilter extends AbstractQueryFilter
     }
 
     
-    public function mtu($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('mtu', $operator, $value);
-    }
-
-    
     public function speedLimit($value)
     {
         $operator = substr($value, 0, 1);
@@ -90,6 +76,20 @@ class NetworksQueryFilter extends AbstractQueryFilter
     {
         return $this->speedLimit($value);
     }
+    
+    public function mtu($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('mtu', $operator, $value);
+    }
+
     
     public function isPublic($value)
     {
@@ -246,26 +246,6 @@ class NetworksQueryFilter extends AbstractQueryFilter
         return $this->iaasGateway($value);
     }
     
-    public function iamAccountId($value)
-    {
-            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
-
-        if($iamAccount) {
-            return $this->builder->where('iam_account_id', '=', $iamAccount->id);
-        }
-    }
-
-    
-    public function iamUserId($value)
-    {
-            $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
-
-        if($iamUser) {
-            return $this->builder->where('iam_user_id', '=', $iamUser->id);
-        }
-    }
-
-    
     public function iaasNetworkPoolId($value)
     {
             $iaasNetworkPool = \NextDeveloper\IAAS\Database\Models\NetworkPools::where('uuid', $value)->first();
@@ -296,20 +276,25 @@ class NetworksQueryFilter extends AbstractQueryFilter
         return $this->iaasCloudNode($value);
     }
     
-    public function commonCurrencyId($value)
+    public function iamAccountId($value)
     {
-            $commonCurrency = \NextDeveloper\Commons\Database\Models\Currencies::where('uuid', $value)->first();
+            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
 
-        if($commonCurrency) {
-            return $this->builder->where('common_currency_id', '=', $commonCurrency->id);
+        if($iamAccount) {
+            return $this->builder->where('iam_account_id', '=', $iamAccount->id);
         }
     }
 
-        //  This is an alias function of commonCurrency
-    public function common_currency_id($value)
+    
+    public function iamUserId($value)
     {
-        return $this->commonCurrency($value);
+            $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
+
+        if($iamUser) {
+            return $this->builder->where('iam_user_id', '=', $iamUser->id);
+        }
     }
+
     
     public function iaasDatacenterId($value)
     {
@@ -327,6 +312,8 @@ class NetworksQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

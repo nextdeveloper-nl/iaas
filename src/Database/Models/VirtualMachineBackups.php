@@ -30,6 +30,8 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $ram
  * @property integer $cpu
  * @property string $hash
+ * @property \Carbon\Carbon $backup_starts
+ * @property \Carbon\Carbon $backup_ends
  * @property string $backup_type
  * @property integer $iaas_virtual_machine_id
  * @property integer $iam_account_id
@@ -38,11 +40,8 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  * @property string $status
- * @property \Carbon\Carbon $backup_starts
- * @property \Carbon\Carbon $backup_ends
  * @property integer $iaas_repository_image_id
  * @property integer $iaas_backup_job_id
- * @property $data
  * @property integer $progress
  */
 class VirtualMachineBackups extends Model
@@ -71,16 +70,15 @@ class VirtualMachineBackups extends Model
             'ram',
             'cpu',
             'hash',
+            'backup_starts',
+            'backup_ends',
             'backup_type',
             'iaas_virtual_machine_id',
             'iam_account_id',
             'iam_user_id',
             'status',
-            'backup_starts',
-            'backup_ends',
             'iaas_repository_image_id',
             'iaas_backup_job_id',
-            'data',
             'progress',
     ];
 
@@ -115,17 +113,16 @@ class VirtualMachineBackups extends Model
     'ram' => 'integer',
     'cpu' => 'integer',
     'hash' => 'string',
+    'backup_starts' => 'datetime',
+    'backup_ends' => 'datetime',
     'backup_type' => 'string',
     'iaas_virtual_machine_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
     'status' => 'string',
-    'backup_starts' => 'datetime',
-    'backup_ends' => 'datetime',
     'iaas_repository_image_id' => 'integer',
     'iaas_backup_job_id' => 'integer',
-    'data' => 'array',
     'progress' => 'integer',
     ];
 
@@ -135,11 +132,11 @@ class VirtualMachineBackups extends Model
      @var array
      */
     protected $dates = [
+    'backup_starts',
+    'backup_ends',
     'created_at',
     'updated_at',
     'deleted_at',
-    'backup_starts',
-    'backup_ends',
     ];
 
     /**
@@ -199,6 +196,8 @@ class VirtualMachineBackups extends Model
             },
         );
     }
+
+
 
 
 

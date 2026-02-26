@@ -64,12 +64,12 @@ class AbstractBackupRetentionPoliciesTransformer extends AbstractTransformer
             'description'  =>  $model->description,
             'keep_for_days'  =>  $model->keep_for_days,
             'keep_last_n_backups'  =>  $model->keep_last_n_backups,
-            'is_public'  =>  $model->is_public,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'is_public'  =>  $model->is_public,
             ]
         );
     }
@@ -158,6 +158,8 @@ class AbstractBackupRetentionPoliciesTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

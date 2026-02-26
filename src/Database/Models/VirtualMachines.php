@@ -48,16 +48,16 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $iaas_compute_member_id
  * @property integer $iam_account_id
  * @property integer $iam_user_id
+ * @property integer $template_id
  * @property array $tags
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
- * @property integer $iaas_repository_image_id
- * @property integer $template_id
  * @property boolean $is_draft
  * @property integer $common_domain_id
  * @property string $lock_password
  * @property boolean $is_template
+ * @property integer $iaas_repository_image_id
  * @property integer $iaas_compute_pool_id
  * @property string $auto_backup_interval
  * @property string $auto_backup_time
@@ -109,13 +109,13 @@ class VirtualMachines extends Model
             'iaas_compute_member_id',
             'iam_account_id',
             'iam_user_id',
-            'tags',
-            'iaas_repository_image_id',
             'template_id',
+            'tags',
             'is_draft',
             'common_domain_id',
             'lock_password',
             'is_template',
+            'iaas_repository_image_id',
             'iaas_compute_pool_id',
             'auto_backup_interval',
             'auto_backup_time',
@@ -170,16 +170,16 @@ class VirtualMachines extends Model
     'hypervisor_data' => 'array',
     'iaas_cloud_node_id' => 'integer',
     'iaas_compute_member_id' => 'integer',
+    'template_id' => 'integer',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
-    'iaas_repository_image_id' => 'integer',
-    'template_id' => 'integer',
     'is_draft' => 'boolean',
     'common_domain_id' => 'integer',
     'lock_password' => 'string',
     'is_template' => 'boolean',
+    'iaas_repository_image_id' => 'integer',
     'iaas_compute_pool_id' => 'integer',
     'auto_backup_interval' => 'string',
     'auto_backup_time' => 'string',
@@ -247,14 +247,19 @@ class VirtualMachines extends Model
         }
     }
 
+    public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
+    }
+
     public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
     }
 
-    public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function virtualMachineMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class);
     }
 
     public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\HasMany
@@ -282,11 +287,6 @@ class VirtualMachines extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
     }
 
-    public function virtualMachineMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class);
-    }
-
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
@@ -303,6 +303,8 @@ class VirtualMachines extends Model
 
         return $this->fresh();
     }
+
+
 
 
 

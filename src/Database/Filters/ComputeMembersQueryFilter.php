@@ -94,6 +94,25 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->eventsToken($value);
     }
     
+    public function sshPort($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('ssh_port', $operator, $value);
+    }
+
+        //  This is an alias function of sshPort
+    public function ssh_port($value)
+    {
+        return $this->sshPort($value);
+    }
+    
     public function totalSocket($value)
     {
         $operator = substr($value, 0, 1);
@@ -189,6 +208,44 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->usedRam($value);
     }
     
+    public function runningVm($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('running_vm', $operator, $value);
+    }
+
+        //  This is an alias function of runningVm
+    public function running_vm($value)
+    {
+        return $this->runningVm($value);
+    }
+    
+    public function haltedVm($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('halted_vm', $operator, $value);
+    }
+
+        //  This is an alias function of haltedVm
+    public function halted_vm($value)
+    {
+        return $this->haltedVm($value);
+    }
+    
     public function totalVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -246,63 +303,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->benchmarkScore($value);
     }
     
-    public function sshPort($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('ssh_port', $operator, $value);
-    }
-
-        //  This is an alias function of sshPort
-    public function ssh_port($value)
-    {
-        return $this->sshPort($value);
-    }
-    
-    public function runningVm($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('running_vm', $operator, $value);
-    }
-
-        //  This is an alias function of runningVm
-    public function running_vm($value)
-    {
-        return $this->runningVm($value);
-    }
-    
-    public function haltedVm($value)
-    {
-        $operator = substr($value, 0, 1);
-
-        if ($operator != '<' || $operator != '>') {
-            $operator = '=';
-        } else {
-            $value = substr($value, 1);
-        }
-
-        return $this->builder->where('halted_vm', $operator, $value);
-    }
-
-        //  This is an alias function of haltedVm
-    public function halted_vm($value)
-    {
-        return $this->haltedVm($value);
-    }
-    
     public function freeRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -333,6 +333,17 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         return $this->isBehindFirewall($value);
     }
      
+    public function isManagementAgentAvailable($value)
+    {
+        return $this->builder->where('is_management_agent_available', $value);
+    }
+
+        //  This is an alias function of isManagementAgentAvailable
+    public function is_management_agent_available($value)
+    {
+        return $this->isManagementAgentAvailable($value);
+    }
+     
     public function isInMaintenance($value)
     {
         return $this->builder->where('is_in_maintenance', $value);
@@ -353,17 +364,6 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     public function is_alive($value)
     {
         return $this->isAlive($value);
-    }
-     
-    public function isManagementAgentAvailable($value)
-    {
-        return $this->builder->where('is_management_agent_available', $value);
-    }
-
-        //  This is an alias function of isManagementAgentAvailable
-    public function is_management_agent_available($value)
-    {
-        return $this->isManagementAgentAvailable($value);
     }
      
     public function isEventServiceRunning($value)
@@ -523,6 +523,8 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
 
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
 
 
 

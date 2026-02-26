@@ -62,6 +62,11 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_kpi_performance:read',
             'iaas_cloud_nodes_performance:read',
             'iaas_active_alarms_perspective:read',
+            'iaas_vm_hourly_stats:read',
+            'iaas_account_hourly_stats:read',
+            'iaas_account_current_stats:read',
+            'iaas_cloud_node_daily_stats:read',
+            'iaas_vm_daily_stats:read',
 
             'iaas_cloud_nodes:read',
             'iaas_cloud_nodes:update',

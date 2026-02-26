@@ -17,7 +17,6 @@ class ComputeMemberTasksCreateRequest extends AbstractFormRequest
         'description' => 'nullable|string',
         'error' => 'nullable|string',
         'progress' => 'nullable|integer',
-        'status' => 'nullable|string',
         'hypervisor_data' => 'nullable',
         'iaas_virtual_machine_id' => 'nullable|exists:iaas_virtual_machines,uuid|uuid',
         'iaas_compute_member_id' => 'nullable|exists:iaas_compute_members,uuid|uuid',

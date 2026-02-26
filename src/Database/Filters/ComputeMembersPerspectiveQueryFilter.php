@@ -512,4 +512,6 @@ class ComputeMembersPerspectiveQueryFilter extends AbstractQueryFilter
 
 
 
+
+
 }

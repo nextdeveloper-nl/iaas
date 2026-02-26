@@ -71,9 +71,9 @@ trait IaasVirtualMachineBackupTestTraits
                 'ram'  =>  '1',
                 'cpu'  =>  '1',
                 'progress'  =>  '1',
-                                'backup_starts'  =>  now(),
+                    'backup_starts'  =>  now(),
                     'backup_ends'  =>  now(),
-                ],
+                            ],
                 ['http_errors' => false]
             ]
         );
@@ -602,6 +602,44 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
+    public function test_iaasvirtualmachinebackup_event_backup_starts_filter_start()
+    {
+        try {
+            $request = new Request(
+                [
+                'backup_startsStart'  =>  now()
+                ]
+            );
+
+            $filter = new IaasVirtualMachineBackupQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineBackup::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasvirtualmachinebackup_event_backup_ends_filter_start()
+    {
+        try {
+            $request = new Request(
+                [
+                'backup_endsStart'  =>  now()
+                ]
+            );
+
+            $filter = new IaasVirtualMachineBackupQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineBackup::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
     public function test_iaasvirtualmachinebackup_event_created_at_filter_start()
     {
         try {
@@ -659,12 +697,12 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_starts_filter_start()
+    public function test_iaasvirtualmachinebackup_event_backup_starts_filter_end()
     {
         try {
             $request = new Request(
                 [
-                'backup_startsStart'  =>  now()
+                'backup_startsEnd'  =>  now()
                 ]
             );
 
@@ -678,12 +716,12 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_ends_filter_start()
+    public function test_iaasvirtualmachinebackup_event_backup_ends_filter_end()
     {
         try {
             $request = new Request(
                 [
-                'backup_endsStart'  =>  now()
+                'backup_endsEnd'  =>  now()
                 ]
             );
 
@@ -754,11 +792,12 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_starts_filter_end()
+    public function test_iaasvirtualmachinebackup_event_backup_starts_filter_start_and_end()
     {
         try {
             $request = new Request(
                 [
+                'backup_startsStart'  =>  now(),
                 'backup_startsEnd'  =>  now()
                 ]
             );
@@ -773,11 +812,12 @@ trait IaasVirtualMachineBackupTestTraits
         $this->assertTrue(true);
     }
 
-    public function test_iaasvirtualmachinebackup_event_backup_ends_filter_end()
+    public function test_iaasvirtualmachinebackup_event_backup_ends_filter_start_and_end()
     {
         try {
             $request = new Request(
                 [
+                'backup_endsStart'  =>  now(),
                 'backup_endsEnd'  =>  now()
                 ]
             );
@@ -839,46 +879,6 @@ trait IaasVirtualMachineBackupTestTraits
                 [
                 'deleted_atStart'  =>  now(),
                 'deleted_atEnd'  =>  now()
-                ]
-            );
-
-            $filter = new IaasVirtualMachineBackupQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineBackup::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasvirtualmachinebackup_event_backup_starts_filter_start_and_end()
-    {
-        try {
-            $request = new Request(
-                [
-                'backup_startsStart'  =>  now(),
-                'backup_startsEnd'  =>  now()
-                ]
-            );
-
-            $filter = new IaasVirtualMachineBackupQueryFilter($request);
-
-            $model = \NextDeveloper\IAAS\Database\Models\IaasVirtualMachineBackup::filter($filter)->first();
-        } catch (\Exception $e) {
-            $this->assertFalse(false, $e->getMessage());
-        }
-
-        $this->assertTrue(true);
-    }
-
-    public function test_iaasvirtualmachinebackup_event_backup_ends_filter_start_and_end()
-    {
-        try {
-            $request = new Request(
-                [
-                'backup_endsStart'  =>  now(),
-                'backup_endsEnd'  =>  now()
                 ]
             );
 
