@@ -88,7 +88,15 @@ class AbstractVirtualMachineBackupsPerspectiveTransformer extends AbstractTransf
             'distro'  =>  $model->distro,
             'cpu_type'  =>  $model->cpu_type,
             'supported_virtualizations'  =>  $model->supported_virtualizations,
+            'backup_job_type'  =>  $model->backup_job_type,
+            'retention_policy_name'  =>  $model->retention_policy_name,
+            'keep_for_days'  =>  $model->keep_for_days,
+            'keep_last_n_backups'  =>  $model->keep_last_n_backups,
             'hostname'  =>  $model->hostname,
+            'virtual_machine_name'  =>  $model->virtual_machine_name,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
@@ -177,6 +185,7 @@ class AbstractVirtualMachineBackupsPerspectiveTransformer extends AbstractTransf
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

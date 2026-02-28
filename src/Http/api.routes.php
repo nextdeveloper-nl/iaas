@@ -1451,27 +1451,6 @@ Route::prefix('iaas')->group(
             }
         );
 
-        Route::prefix('virtual-machine-backups-perspective')->group(
-            function () {
-                Route::get('/', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@index');
-                Route::get('/actions', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@getActions');
-
-                Route::get('{ivmbp}/tags ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@tags');
-                Route::post('{ivmbp}/tags ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@saveTags');
-                Route::get('{ivmbp}/addresses ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@addresses');
-                Route::post('{ivmbp}/addresses ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@saveAddresses');
-
-                Route::get('/{ivmbp}/{subObjects}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@relatedObjects');
-                Route::get('/{ivmbp}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@show');
-
-                Route::post('/', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@store');
-                Route::post('/{ivmbp}/do/{action}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@doAction');
-
-                Route::patch('/{ivmbp}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@update');
-                Route::delete('/{ivmbp}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@destroy');
-            }
-        );
-
         Route::prefix('health-checks-performance')->group(
             function () {
                 Route::get('/', 'HealthChecksPerformance\HealthChecksPerformanceController@index');
@@ -1745,7 +1724,111 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('virtual-machine-backups-perspective')->group(
+            function () {
+                Route::get('/', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@index');
+                Route::get('/actions', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@getActions');
+
+                Route::get('{ivmbp}/tags ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@tags');
+                Route::post('{ivmbp}/tags ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@saveTags');
+                Route::get('{ivmbp}/addresses ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@addresses');
+                Route::post('{ivmbp}/addresses ', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@saveAddresses');
+
+                Route::get('/{ivmbp}/{subObjects}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@relatedObjects');
+                Route::get('/{ivmbp}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@show');
+
+                Route::post('/', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@store');
+                Route::post('/{ivmbp}/do/{action}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@doAction');
+
+                Route::patch('/{ivmbp}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@update');
+                Route::delete('/{ivmbp}', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@destroy');
+            }
+        );
+
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2008,6 +2091,7 @@ Route::prefix('iaas')->group(
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );
+
 
 
 

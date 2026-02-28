@@ -216,4 +216,5 @@ class NetworksPerspectiveQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

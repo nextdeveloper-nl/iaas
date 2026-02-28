@@ -54,16 +54,16 @@ class AbstractAccountHourlyStatsTransformer extends AbstractTransformer
      */
     public function transform(AccountHourlyStats $model)
     {
-        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-
+                                                $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                        
         return $this->buildPayload(
             [
-                'id' => $model->id,
-                'stat_hour' => $model->stat_hour->toISOString(),
-                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
-                'vm_count' => $model->vm_count,
-                'total_vcpus' => $model->total_vcpus,
-                'total_ram_gb' => $model->total_ram_gb,
+            'id'  =>  $model->id,
+            'stat_hour'  =>  $model->stat_hour,
+            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'vm_count'  =>  $model->vm_count,
+            'total_vcpus'  =>  $model->total_vcpus,
+            'total_ram_gb'  =>  $model->total_ram_gb,
             ]
         );
     }
@@ -152,4 +152,5 @@ class AbstractAccountHourlyStatsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

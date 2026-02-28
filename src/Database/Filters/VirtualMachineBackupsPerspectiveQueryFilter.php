@@ -88,11 +88,44 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->cpuType($value);
     }
         
+    public function backupJobType($value)
+    {
+        return $this->builder->where('backup_job_type', 'ilike', '%' . $value . '%');
+    }
+
+        //  This is an alias function of backupJobType
+    public function backup_job_type($value)
+    {
+        return $this->backupJobType($value);
+    }
+        
+    public function retentionPolicyName($value)
+    {
+        return $this->builder->where('retention_policy_name', 'ilike', '%' . $value . '%');
+    }
+
+        //  This is an alias function of retentionPolicyName
+    public function retention_policy_name($value)
+    {
+        return $this->retentionPolicyName($value);
+    }
+        
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
     }
 
+        
+    public function virtualMachineName($value)
+    {
+        return $this->builder->where('virtual_machine_name', 'ilike', '%' . $value . '%');
+    }
+
+        //  This is an alias function of virtualMachineName
+    public function virtual_machine_name($value)
+    {
+        return $this->virtualMachineName($value);
+    }
     
     public function cpu($value)
     {
@@ -150,6 +183,44 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     }
 
     
+    public function keepForDays($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('keep_for_days', $operator, $value);
+    }
+
+        //  This is an alias function of keepForDays
+    public function keep_for_days($value)
+    {
+        return $this->keepForDays($value);
+    }
+    
+    public function keepLastNBackups($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('keep_last_n_backups', $operator, $value);
+    }
+
+        //  This is an alias function of keepLastNBackups
+    public function keep_last_n_backups($value)
+    {
+        return $this->keepLastNBackups($value);
+    }
+    
     public function isLatest($value)
     {
         return $this->builder->where('is_latest', $value);
@@ -203,6 +274,72 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     public function backup_ends_end($value)
     {
         return $this->backupEndsEnd($value);
+    }
+
+    public function createdAtStart($date)
+    {
+        return $this->builder->where('created_at', '>=', $date);
+    }
+
+    public function createdAtEnd($date)
+    {
+        return $this->builder->where('created_at', '<=', $date);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_start($value)
+    {
+        return $this->createdAtStart($value);
+    }
+
+    //  This is an alias function of createdAt
+    public function created_at_end($value)
+    {
+        return $this->createdAtEnd($value);
+    }
+
+    public function updatedAtStart($date)
+    {
+        return $this->builder->where('updated_at', '>=', $date);
+    }
+
+    public function updatedAtEnd($date)
+    {
+        return $this->builder->where('updated_at', '<=', $date);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_start($value)
+    {
+        return $this->updatedAtStart($value);
+    }
+
+    //  This is an alias function of updatedAt
+    public function updated_at_end($value)
+    {
+        return $this->updatedAtEnd($value);
+    }
+
+    public function deletedAtStart($date)
+    {
+        return $this->builder->where('deleted_at', '>=', $date);
+    }
+
+    public function deletedAtEnd($date)
+    {
+        return $this->builder->where('deleted_at', '<=', $date);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_start($value)
+    {
+        return $this->deletedAtStart($value);
+    }
+
+    //  This is an alias function of deletedAt
+    public function deleted_at_end($value)
+    {
+        return $this->deletedAtEnd($value);
     }
 
     public function iaasVirtualMachineId($value)
@@ -286,6 +423,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     }
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -12,6 +12,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
 use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
 use NextDeveloper\Commons\Database\Traits\Taggable;
 use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * VirtualMachineBackupsPerspective model.
@@ -43,13 +44,22 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  * @property string $distro
  * @property string $cpu_type
  * @property array $supported_virtualizations
+ * @property string $backup_job_type
+ * @property string $retention_policy_name
+ * @property integer $keep_for_days
+ * @property integer $keep_last_n_backups
  * @property string $hostname
+ * @property string $virtual_machine_name
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $deleted_at
  */
 class VirtualMachineBackupsPerspective extends Model
 {
     use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
+    use SoftDeletes;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $table = 'iaas_virtual_machine_backups_perspective';
 
@@ -84,7 +94,12 @@ class VirtualMachineBackupsPerspective extends Model
             'distro',
             'cpu_type',
             'supported_virtualizations',
+            'backup_job_type',
+            'retention_policy_name',
+            'keep_for_days',
+            'keep_last_n_backups',
             'hostname',
+            'virtual_machine_name',
     ];
 
     /**
@@ -130,7 +145,15 @@ class VirtualMachineBackupsPerspective extends Model
     'distro' => 'string',
     'cpu_type' => 'string',
     'supported_virtualizations' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'backup_job_type' => 'string',
+    'retention_policy_name' => 'string',
+    'keep_for_days' => 'integer',
+    'keep_last_n_backups' => 'integer',
     'hostname' => 'string',
+    'virtual_machine_name' => 'string',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
     /**
@@ -141,6 +164,9 @@ class VirtualMachineBackupsPerspective extends Model
     protected $dates = [
     'backup_starts',
     'backup_ends',
+    'created_at',
+    'updated_at',
+    'deleted_at',
     ];
 
     /**
@@ -191,6 +217,7 @@ class VirtualMachineBackupsPerspective extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 
