@@ -15,7 +15,6 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVmBackupHe
  */
 class VmBackupHeatmapByCloudStatsTransformer extends AbstractVmBackupHeatmapByCloudStatsTransformer
 {
-
     /**
      * @param VmBackupHeatmapByCloudStats $model
      *
@@ -23,20 +22,7 @@ class VmBackupHeatmapByCloudStatsTransformer extends AbstractVmBackupHeatmapByCl
      */
     public function transform(VmBackupHeatmapByCloudStats $model)
     {
-        $transformed = Cache::get(
-            CacheHelper::getKey('VmBackupHeatmapByCloudStats', $model->uuid, 'Transformed')
-        );
-
-        if($transformed) {
-            return $transformed;
-        }
-
         $transformed = parent::transform($model);
-
-        Cache::set(
-            CacheHelper::getKey('VmBackupHeatmapByCloudStats', $model->uuid, 'Transformed'),
-            $transformed
-        );
 
         return $transformed;
     }

@@ -23,20 +23,7 @@ class VmBackupJobsPerspectiveTransformer extends AbstractVmBackupJobsPerspective
      */
     public function transform(VmBackupJobsPerspective $model)
     {
-        $transformed = Cache::get(
-            CacheHelper::getKey('VmBackupJobsPerspective', $model->uuid, 'Transformed')
-        );
-
-        if($transformed) {
-            return $transformed;
-        }
-
         $transformed = parent::transform($model);
-
-        Cache::set(
-            CacheHelper::getKey('VmBackupJobsPerspective', $model->uuid, 'Transformed'),
-            $transformed
-        );
 
         return $transformed;
     }

@@ -23,20 +23,7 @@ class VmBackupHeatmapStatsTransformer extends AbstractVmBackupHeatmapStatsTransf
      */
     public function transform(VmBackupHeatmapStats $model)
     {
-        $transformed = Cache::get(
-            CacheHelper::getKey('VmBackupHeatmapStats', $model->uuid, 'Transformed')
-        );
-
-        if($transformed) {
-            return $transformed;
-        }
-
         $transformed = parent::transform($model);
-
-        Cache::set(
-            CacheHelper::getKey('VmBackupHeatmapStats', $model->uuid, 'Transformed'),
-            $transformed
-        );
 
         return $transformed;
     }
