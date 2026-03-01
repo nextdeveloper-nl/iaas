@@ -57,7 +57,8 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
 
     public function allowedOperations() :array
     {
-        return [
+        $data = [
+            'iaas_vm_backup_heatmap_by_cloud:read',
             'iaas_largest_tenants_perspective:read',
             'iaas_kpi_performance:read',
             'iaas_cloud_nodes_performance:read',
@@ -214,6 +215,8 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_backup_jobs:update',
             'iaas_backup_jobs:delete',
         ];
+
+        return array_merge($data, (new CloudResourceOwner())->allowedOperations());
     }
 
     public function getLevel(): int

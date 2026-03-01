@@ -68,6 +68,16 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
     public function allowedOperations() :array
     {
         return [
+            'iaas_vm_backup_heatmap:read',
+            'iaas_kpi_performance:read',
+            'iaas_active_alarms_perspective:read',
+            'iaas_vm_hourly_stats:read',
+            'iaas_account_hourly_stats:read',
+            'iaas_account_current_stats:read',
+            'iaas_vm_daily_stats:read',
+            'iaas_vm_backup_jobs_perspective:read',
+            'iaas_vm_backup_stats:read',
+
             'iaas_accounts:read',
 
             'iaas_datacenters:read',
