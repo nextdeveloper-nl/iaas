@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use App\Services\IAAS\VirtualMachineServices;
 use Illuminate\Database\Eloquent\Collection;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachinesPerspectiveQueryFilter;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
@@ -48,5 +49,10 @@ class VirtualMachinesPerspectiveService extends AbstractVirtualMachinesPerspecti
         }
 
         return parent::get($filter, $params);
+    }
+
+    public static function delete($id)
+    {
+        return VirtualMachineBackupsService::delete($id);
     }
 }

@@ -2,11 +2,13 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Actions\BackupJobs\FinishBackupJob;
 use NextDeveloper\IAAS\Database\Models\BackupJobs;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
+use NextDeveloper\IAAS\Jobs\DeleteVirtualMachineBackupJob;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachineBackupsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -59,5 +61,19 @@ class VirtualMachineBackupsService extends AbstractVirtualMachineBackupsService
         (new FinishBackupJob($backupJob, [
             'iaas_virtual_machine_backup_id'   =>  $vmBackup->id
         ]))->handle();
+    }
+
+    public static function delete($id)
+    {
+        $backup = null;
+
+        if(Str::isUuid($id))
+            $backup = VirtualMachineBackups::where('uuid', $id)->first();
+        else
+            $backup = VirtualMachineBackups::where('id', $id)->first();
+
+        dispatch(new DeleteVirtualMachineBackupJob($backup));
+
+        return null;
     }
 }

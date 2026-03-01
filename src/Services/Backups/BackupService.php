@@ -2,10 +2,12 @@
 
 namespace NextDeveloper\IAAS\Services\Backups;
 
+use Illuminate\Support\Collection;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAAS\Database\Models\BackupJobs;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineBackupsPerspective;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -81,5 +83,13 @@ class BackupService
         ]);
 
         return $backup->fresh();
+    }
+
+    public static function getBackupsForDeletion() : Collection
+    {
+        return VirtualMachineBackupsPerspective::withoutGlobalScope(AuthorizationScope::class)
+            ->whereRaw('NOW() - created_at > keep_for_days * INTERVAL \'1 day\'')
+            ->where('keep_for_days', '!=', '-1')
+            ->get();
     }
 }
