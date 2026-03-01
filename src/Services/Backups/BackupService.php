@@ -85,11 +85,12 @@ class BackupService
         return $backup->fresh();
     }
 
-    public static function getBackupsForDeletion() : Collection
+    public static function getBackupsForDeletion(BackupJobs $job) : Collection
     {
         return VirtualMachineBackupsPerspective::withoutGlobalScope(AuthorizationScope::class)
             ->whereRaw('NOW() - created_at > keep_for_days * INTERVAL \'1 day\'')
-            ->where('keep_for_days', '!=', '-1')
+            ->where('iaas_backup_job_id', $job->id)
+            ->where('keep_for_days', '!=', -1)
             ->get();
     }
 }

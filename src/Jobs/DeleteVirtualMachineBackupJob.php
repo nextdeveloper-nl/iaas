@@ -2,27 +2,15 @@
 
 namespace NextDeveloper\IAAS\Jobs;
 
-use Google\Service\Compute;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
-use NextDeveloper\Commons\Services\CommentsService;
-use NextDeveloper\Communication\Helpers\Communicate;
-use NextDeveloper\IAAS\Actions\ComputeMembers\ScanVirtualMachines;
-use NextDeveloper\IAAS\Actions\ComputeMembers\UpdateResources;
-use NextDeveloper\IAAS\Actions\ComputeMembers\UpdateStorageVolumes;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
-use NextDeveloper\IAAS\Database\Models\ComputeMembers;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberTasks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
-use NextDeveloper\IAAS\Database\Models\VirtualMachineBackupsPerspective;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -41,20 +29,29 @@ class DeleteVirtualMachineBackupJob implements ShouldQueue
     {
         UserHelper::setAdminAsCurrentUser();
 
+        $repoImage = RepositoryImages::where('id', $this->vmBackups->iaas_repository_image_id)->first();
+
+        if(!$repoImage) {
+            logger()->error('Trying to delete virtual machine backup without a repository image');
+            return;
+        }
+
         $repository = Repositories::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', $this->vmBackups->iaas_repository_id)
+            ->where('id', $repoImage->iaas_repository_id)
             ->first();
 
         $explodedPath = explode(':', $this->vmBackups->path);
 
         try {
-            $result = $repository->performSSHCommand('ls ' . $explodedPath[1]);
+            $result = $repository->performSSHCommand('rm ' . $explodedPath[1]);
 
-            logger()->debug($result['output']);
+            logger()->debug('[DeleteVirtualMachineBackupJob] Output : ' . $result['output']);
 
-            //$this->vmBackups->delete();
+            $this->vmBackups->delete();
         } catch (CannotConnectWithSshException $exception) {
             StateHelper::setState($repository, 'ssh_error', $exception->getMessage());
+        } catch (\Exception $exception) {
+            StateHelper::setState($this->vmBackups, 'delete_exception', $exception->getMessage());
         }
     }
 }
