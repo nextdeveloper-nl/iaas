@@ -74,6 +74,12 @@ class AbstractBackupJobsTransformer extends AbstractTransformer
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
             'email_notification_recipients'  =>  $model->email_notification_recipients,
+            'expected_rpo_hours'  =>  $model->expected_rpo_hours,
+            'expected_rto_hours'  =>  $model->expected_rto_hours,
+            'is_enabled'  =>  $model->is_enabled,
+            'sla_target_pct'  =>  $model->sla_target_pct,
+            'notification_webhook'  =>  $model->notification_webhook,
+            'max_allowed_failures'  =>  $model->max_allowed_failures,
             ]
         );
     }
@@ -162,6 +168,7 @@ class AbstractBackupJobsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

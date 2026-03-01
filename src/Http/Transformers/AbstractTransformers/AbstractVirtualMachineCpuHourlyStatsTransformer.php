@@ -167,4 +167,5 @@ class AbstractVirtualMachineCpuHourlyStatsTransformer extends AbstractTransforme
 
 
 
+
 }

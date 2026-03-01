@@ -40,7 +40,105 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->objectType($value);
     }
+        
+    public function notificationWebhook($value)
+    {
+        return $this->builder->where('notification_webhook', 'ilike', '%' . $value . '%');
+    }
+
+        //  This is an alias function of notificationWebhook
+    public function notification_webhook($value)
+    {
+        return $this->notificationWebhook($value);
+    }
     
+    public function expectedRpoHours($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('expected_rpo_hours', $operator, $value);
+    }
+
+        //  This is an alias function of expectedRpoHours
+    public function expected_rpo_hours($value)
+    {
+        return $this->expectedRpoHours($value);
+    }
+    
+    public function expectedRtoHours($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('expected_rto_hours', $operator, $value);
+    }
+
+        //  This is an alias function of expectedRtoHours
+    public function expected_rto_hours($value)
+    {
+        return $this->expectedRtoHours($value);
+    }
+    
+    public function slaTargetPct($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('sla_target_pct', $operator, $value);
+    }
+
+        //  This is an alias function of slaTargetPct
+    public function sla_target_pct($value)
+    {
+        return $this->slaTargetPct($value);
+    }
+    
+    public function maxAllowedFailures($value)
+    {
+        $operator = substr($value, 0, 1);
+
+        if ($operator != '<' || $operator != '>') {
+            $operator = '=';
+        } else {
+            $value = substr($value, 1);
+        }
+
+        return $this->builder->where('max_allowed_failures', $operator, $value);
+    }
+
+        //  This is an alias function of maxAllowedFailures
+    public function max_allowed_failures($value)
+    {
+        return $this->maxAllowedFailures($value);
+    }
+    
+    public function isEnabled($value)
+    {
+        return $this->builder->where('is_enabled', $value);
+    }
+
+        //  This is an alias function of isEnabled
+    public function is_enabled($value)
+    {
+        return $this->isEnabled($value);
+    }
+     
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -158,6 +256,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
 
     
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

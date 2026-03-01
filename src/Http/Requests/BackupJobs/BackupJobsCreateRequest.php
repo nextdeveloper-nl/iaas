@@ -20,6 +20,12 @@ class BackupJobsCreateRequest extends AbstractFormRequest
         'object_type' => 'required|string',
         'object_id' => 'required',
         'email_notification_recipients' => 'nullable',
+        'expected_rpo_hours' => 'nullable|numeric',
+        'expected_rto_hours' => 'nullable|numeric',
+        'is_enabled' => 'nullable|boolean',
+        'sla_target_pct' => 'numeric',
+        'notification_webhook' => 'nullable|string',
+        'max_allowed_failures' => 'nullable|integer',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

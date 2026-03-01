@@ -176,4 +176,5 @@ class AbstractComputeMemberEventsTransformer extends AbstractTransformer
 
 
 
+
 }

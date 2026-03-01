@@ -32,6 +32,12 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
  * @property array $email_notification_recipients
+ * @property $expected_rpo_hours
+ * @property $expected_rto_hours
+ * @property boolean $is_enabled
+ * @property $sla_target_pct
+ * @property string $notification_webhook
+ * @property integer $max_allowed_failures
  */
 class BackupJobs extends Model
 {
@@ -58,6 +64,12 @@ class BackupJobs extends Model
             'iam_account_id',
             'iam_user_id',
             'email_notification_recipients',
+            'expected_rpo_hours',
+            'expected_rto_hours',
+            'is_enabled',
+            'sla_target_pct',
+            'notification_webhook',
+            'max_allowed_failures',
     ];
 
     /**
@@ -91,6 +103,12 @@ class BackupJobs extends Model
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
     'email_notification_recipients' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
+    'expected_rpo_hours' => 'double',
+    'expected_rto_hours' => 'double',
+    'is_enabled' => 'boolean',
+    'sla_target_pct' => 'double',
+    'notification_webhook' => 'string',
+    'max_allowed_failures' => 'integer',
     ];
 
     /**
@@ -152,6 +170,7 @@ class BackupJobs extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

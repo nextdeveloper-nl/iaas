@@ -1178,6 +1178,27 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('backup-job-replications')->group(
+            function () {
+                Route::get('/', 'BackupJobReplications\BackupJobReplicationsController@index');
+                Route::get('/actions', 'BackupJobReplications\BackupJobReplicationsController@getActions');
+
+                Route::get('{iaas_backup_job_replications}/tags ', 'BackupJobReplications\BackupJobReplicationsController@tags');
+                Route::post('{iaas_backup_job_replications}/tags ', 'BackupJobReplications\BackupJobReplicationsController@saveTags');
+                Route::get('{iaas_backup_job_replications}/addresses ', 'BackupJobReplications\BackupJobReplicationsController@addresses');
+                Route::post('{iaas_backup_job_replications}/addresses ', 'BackupJobReplications\BackupJobReplicationsController@saveAddresses');
+
+                Route::get('/{iaas_backup_job_replications}/{subObjects}', 'BackupJobReplications\BackupJobReplicationsController@relatedObjects');
+                Route::get('/{iaas_backup_job_replications}', 'BackupJobReplications\BackupJobReplicationsController@show');
+
+                Route::post('/', 'BackupJobReplications\BackupJobReplicationsController@store');
+                Route::post('/{iaas_backup_job_replications}/do/{action}', 'BackupJobReplications\BackupJobReplicationsController@doAction');
+
+                Route::patch('/{iaas_backup_job_replications}', 'BackupJobReplications\BackupJobReplicationsController@update');
+                Route::delete('/{iaas_backup_job_replications}', 'BackupJobReplications\BackupJobReplicationsController@destroy');
+            }
+        );
+
         Route::prefix('compute-members-perspective')->group(
             function () {
                 Route::get('/', 'ComputeMembersPerspective\ComputeMembersPerspectiveController@index');
@@ -1724,6 +1745,48 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('vm-backup-jobs-perspective')->group(
+            function () {
+                Route::get('/', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@index');
+                Route::get('/actions', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@getActions');
+
+                Route::get('{iaas_vm_backup_jobs_perspective}/tags ', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@tags');
+                Route::post('{iaas_vm_backup_jobs_perspective}/tags ', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@saveTags');
+                Route::get('{iaas_vm_backup_jobs_perspective}/addresses ', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@addresses');
+                Route::post('{iaas_vm_backup_jobs_perspective}/addresses ', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@saveAddresses');
+
+                Route::get('/{iaas_vm_backup_jobs_perspective}/{subObjects}', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@relatedObjects');
+                Route::get('/{iaas_vm_backup_jobs_perspective}', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@show');
+
+                Route::post('/', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@store');
+                Route::post('/{iaas_vm_backup_jobs_perspective}/do/{action}', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@doAction');
+
+                Route::patch('/{iaas_vm_backup_jobs_perspective}', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@update');
+                Route::delete('/{iaas_vm_backup_jobs_perspective}', 'VmBackupJobsPerspective\VmBackupJobsPerspectiveController@destroy');
+            }
+        );
+
+        Route::prefix('vm-backup-stats')->group(
+            function () {
+                Route::get('/', 'VmBackupStats\VmBackupStatsController@index');
+                Route::get('/actions', 'VmBackupStats\VmBackupStatsController@getActions');
+
+                Route::get('{iaas_vm_backup_stats}/tags ', 'VmBackupStats\VmBackupStatsController@tags');
+                Route::post('{iaas_vm_backup_stats}/tags ', 'VmBackupStats\VmBackupStatsController@saveTags');
+                Route::get('{iaas_vm_backup_stats}/addresses ', 'VmBackupStats\VmBackupStatsController@addresses');
+                Route::post('{iaas_vm_backup_stats}/addresses ', 'VmBackupStats\VmBackupStatsController@saveAddresses');
+
+                Route::get('/{iaas_vm_backup_stats}/{subObjects}', 'VmBackupStats\VmBackupStatsController@relatedObjects');
+                Route::get('/{iaas_vm_backup_stats}', 'VmBackupStats\VmBackupStatsController@show');
+
+                Route::post('/', 'VmBackupStats\VmBackupStatsController@store');
+                Route::post('/{iaas_vm_backup_stats}/do/{action}', 'VmBackupStats\VmBackupStatsController@doAction');
+
+                Route::patch('/{iaas_vm_backup_stats}', 'VmBackupStats\VmBackupStatsController@update');
+                Route::delete('/{iaas_vm_backup_stats}', 'VmBackupStats\VmBackupStatsController@destroy');
+            }
+        );
+
         Route::prefix('virtual-machine-backups-perspective')->group(
             function () {
                 Route::get('/', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@index');
@@ -1745,7 +1808,137 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('vm-backup-heatmap')->group(
+            function () {
+                Route::get('/', 'VmBackupHeatmap\VmBackupHeatmapController@index');
+                Route::get('/actions', 'VmBackupHeatmap\VmBackupHeatmapController@getActions');
+
+                Route::get('{iaas_vm_backup_heatmap}/tags ', 'VmBackupHeatmap\VmBackupHeatmapController@tags');
+                Route::post('{iaas_vm_backup_heatmap}/tags ', 'VmBackupHeatmap\VmBackupHeatmapController@saveTags');
+                Route::get('{iaas_vm_backup_heatmap}/addresses ', 'VmBackupHeatmap\VmBackupHeatmapController@addresses');
+                Route::post('{iaas_vm_backup_heatmap}/addresses ', 'VmBackupHeatmap\VmBackupHeatmapController@saveAddresses');
+
+                Route::get('/{iaas_vm_backup_heatmap}/{subObjects}', 'VmBackupHeatmap\VmBackupHeatmapController@relatedObjects');
+                Route::get('/{iaas_vm_backup_heatmap}', 'VmBackupHeatmap\VmBackupHeatmapController@show');
+
+                Route::post('/', 'VmBackupHeatmap\VmBackupHeatmapController@store');
+                Route::post('/{iaas_vm_backup_heatmap}/do/{action}', 'VmBackupHeatmap\VmBackupHeatmapController@doAction');
+
+                Route::patch('/{iaas_vm_backup_heatmap}', 'VmBackupHeatmap\VmBackupHeatmapController@update');
+                Route::delete('/{iaas_vm_backup_heatmap}', 'VmBackupHeatmap\VmBackupHeatmapController@destroy');
+            }
+        );
+
+        Route::prefix('vm-backup-heatmap-by-cloud')->group(
+            function () {
+                Route::get('/', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@index');
+                Route::get('/actions', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@getActions');
+
+                Route::get('{iaas_vm_backup_heatmap_by_cloud}/tags ', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@tags');
+                Route::post('{iaas_vm_backup_heatmap_by_cloud}/tags ', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@saveTags');
+                Route::get('{iaas_vm_backup_heatmap_by_cloud}/addresses ', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@addresses');
+                Route::post('{iaas_vm_backup_heatmap_by_cloud}/addresses ', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@saveAddresses');
+
+                Route::get('/{iaas_vm_backup_heatmap_by_cloud}/{subObjects}', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@relatedObjects');
+                Route::get('/{iaas_vm_backup_heatmap_by_cloud}', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@show');
+
+                Route::post('/', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@store');
+                Route::post('/{iaas_vm_backup_heatmap_by_cloud}/do/{action}', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@doAction');
+
+                Route::patch('/{iaas_vm_backup_heatmap_by_cloud}', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@update');
+                Route::delete('/{iaas_vm_backup_heatmap_by_cloud}', 'VmBackupHeatmapByCloud\VmBackupHeatmapByCloudController@destroy');
+            }
+        );
+
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2091,6 +2284,7 @@ Route::prefix('iaas')->group(
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );
+
 
 
 

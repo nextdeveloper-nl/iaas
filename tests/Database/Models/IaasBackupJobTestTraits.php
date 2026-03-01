@@ -61,6 +61,11 @@ trait IaasBackupJobTestTraits
                 'name'  =>  'a',
                 'type'  =>  'a',
                 'object_type'  =>  'a',
+                'notification_webhook'  =>  'a',
+                'expected_rpo_hours'  =>  '1',
+                'expected_rto_hours'  =>  '1',
+                'sla_target_pct'  =>  '1',
+                'max_allowed_failures'  =>  '1',
                             ],
                 ['http_errors' => false]
             ]
@@ -387,6 +392,101 @@ trait IaasBackupJobTestTraits
             $request = new Request(
                 [
                 'object_type'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasBackupJobQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasBackupJob::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasbackupjob_event_notification_webhook_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'notification_webhook'  =>  'a'
+                ]
+            );
+
+            $filter = new IaasBackupJobQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasBackupJob::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasbackupjob_event_expected_rpo_hours_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'expected_rpo_hours'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasBackupJobQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasBackupJob::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasbackupjob_event_expected_rto_hours_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'expected_rto_hours'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasBackupJobQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasBackupJob::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasbackupjob_event_sla_target_pct_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'sla_target_pct'  =>  '1'
+                ]
+            );
+
+            $filter = new IaasBackupJobQueryFilter($request);
+
+            $model = \NextDeveloper\IAAS\Database\Models\IaasBackupJob::filter($filter)->first();
+        } catch (\Exception $e) {
+            $this->assertFalse(false, $e->getMessage());
+        }
+
+        $this->assertTrue(true);
+    }
+
+    public function test_iaasbackupjob_event_max_allowed_failures_filter()
+    {
+        try {
+            $request = new Request(
+                [
+                'max_allowed_failures'  =>  '1'
                 ]
             );
 
