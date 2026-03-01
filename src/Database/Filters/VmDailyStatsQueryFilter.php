@@ -97,4 +97,5 @@ class VmDailyStatsQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

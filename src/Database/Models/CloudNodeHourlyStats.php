@@ -132,4 +132,5 @@ class CloudNodeHourlyStats extends Model
 
 
 
+
 }

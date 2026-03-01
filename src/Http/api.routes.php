@@ -1787,6 +1787,48 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('vm-backup-heatmap-by-cloud-stats')->group(
+            function () {
+                Route::get('/', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@index');
+                Route::get('/actions', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@getActions');
+
+                Route::get('{ivbhbcs}/tags ', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@tags');
+                Route::post('{ivbhbcs}/tags ', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@saveTags');
+                Route::get('{ivbhbcs}/addresses ', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@addresses');
+                Route::post('{ivbhbcs}/addresses ', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@saveAddresses');
+
+                Route::get('/{ivbhbcs}/{subObjects}', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@relatedObjects');
+                Route::get('/{ivbhbcs}', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@show');
+
+                Route::post('/', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@store');
+                Route::post('/{ivbhbcs}/do/{action}', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@doAction');
+
+                Route::patch('/{ivbhbcs}', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@update');
+                Route::delete('/{ivbhbcs}', 'VmBackupHeatmapByCloudStats\VmBackupHeatmapByCloudStatsController@destroy');
+            }
+        );
+
+        Route::prefix('vm-backup-heatmap-stats')->group(
+            function () {
+                Route::get('/', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@index');
+                Route::get('/actions', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@getActions');
+
+                Route::get('{iaas_vm_backup_heatmap_stats}/tags ', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@tags');
+                Route::post('{iaas_vm_backup_heatmap_stats}/tags ', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@saveTags');
+                Route::get('{iaas_vm_backup_heatmap_stats}/addresses ', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@addresses');
+                Route::post('{iaas_vm_backup_heatmap_stats}/addresses ', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@saveAddresses');
+
+                Route::get('/{iaas_vm_backup_heatmap_stats}/{subObjects}', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@relatedObjects');
+                Route::get('/{iaas_vm_backup_heatmap_stats}', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@show');
+
+                Route::post('/', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@store');
+                Route::post('/{iaas_vm_backup_heatmap_stats}/do/{action}', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@doAction');
+
+                Route::patch('/{iaas_vm_backup_heatmap_stats}', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@update');
+                Route::delete('/{iaas_vm_backup_heatmap_stats}', 'VmBackupHeatmapStats\VmBackupHeatmapStatsController@destroy');
+            }
+        );
+
         Route::prefix('virtual-machine-backups-perspective')->group(
             function () {
                 Route::get('/', 'VirtualMachineBackupsPerspective\VirtualMachineBackupsPerspectiveController@index');
@@ -1853,419 +1895,6 @@ Route::prefix('iaas')->group(
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         Route::prefix('registries')->group(
             function () {
                 Route::get('/{repo}/containers', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'index']);
@@ -2284,6 +1913,7 @@ Route::prefix('iaas')->group(
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );
+
 
 
 
