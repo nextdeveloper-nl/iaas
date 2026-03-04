@@ -245,8 +245,15 @@ class VirtualMachinesXenService extends AbstractXenService
 
         //  If the iso27001 is not enabled, we can set the name-label to the VM name
         //  Otherwise, we need to set the name-label to the VM uuid
-        if (!$computePool->is_iso27001_enabled)
+        if (!$computePool->is_iso27001_enabled) {
             $command = 'xe vm-param-set name-label="' . $vm->name . '" uuid=' . $vm->hypervisor_uuid;
+
+            $vm->update([
+                'hypervisor_data' => VirtualMachinesXenService::getVmParameters($vm)
+            ]);
+
+            $vm = $vm->fresh();
+        }
 
         $result = self::performCommand($command, $computeMember);
 
@@ -353,6 +360,8 @@ class VirtualMachinesXenService extends AbstractXenService
             Log::error('[VirtualMachinesXenService@mountCD] I am mounting the' .
                 ' CD (' . $image->name . '/' . $image->uuid . ') to the VM (' .
                 $vm->name . '/' . $vm->uuid . ')');
+
+        $vm = $vm->fresh();
 
         $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
