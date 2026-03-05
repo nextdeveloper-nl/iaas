@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Actions\Accounts;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Common\Cache\CacheHelper;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\IAAS\Database\Models\Accounts;
 
@@ -40,8 +41,11 @@ class EnableService extends AbstractAction
         $this->setProgress(0, 'Starting to enable service');
 
         $this->model->updateQuietly([
-            'is_service_enabled' => true
+            'is_service_enabled' => true,
+            'limits'    =>  config('iaas.limits')
         ]);
+
+        CacheHelper::deleteKeys(get_class($this->model), $this->model->uuid);
 
         $this->setProgress(100, 'Service enabled');
     }

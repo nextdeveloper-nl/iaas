@@ -32,22 +32,20 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
      */
     public function apply(Builder $builder, Model $model)
     {
-        $isPublicExists = DatabaseHelper::isColumnExists($model->getTable(), 'is_public');
 
-        /**
-         * Here user will be able to list all models, because by default, sales manager can see everybody.
-         */
-        $builder->where([
-            'iam_account_id'    =>  UserHelper::currentAccount()->id
-        ]);
-
-        if($isPublicExists)
-            $builder->orWhere('is_public', true);
     }
 
     public function checkPrivileges(Users $users = null)
     {
         //return UserHelper::hasRole(self::NAME, $users);
+    }
+
+    public function checkUpdatePolicy(Model $model, Users $user): bool
+    {
+        if ($model->getTable() == 'iaas_accounts')
+            return true;
+
+        return parent::checkUpdatePolicy($model, $user);
     }
 
     public function getModule()
