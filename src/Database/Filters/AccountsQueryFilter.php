@@ -4,7 +4,9 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-    
+use NextDeveloper\IAM\Database\Abstract\AuthorizationModel;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -23,23 +25,23 @@ class AccountsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('is_service_enabled', $value);
     }
 
-        //  This is an alias function of isServiceEnabled
+    //  This is an alias function of isServiceEnabled
     public function is_service_enabled($value)
     {
         return $this->isServiceEnabled($value);
     }
-     
+
     public function isSuspended($value)
     {
         return $this->builder->where('is_suspended', $value);
     }
 
-        //  This is an alias function of isSuspended
+    //  This is an alias function of isSuspended
     public function is_suspended($value)
     {
         return $this->isSuspended($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -108,51 +110,15 @@ class AccountsQueryFilter extends AbstractQueryFilter
 
     public function iamAccountId($value)
     {
-            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
+        $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::withoutGlobalScope(AuthorizationScope::class)->where('uuid', $value)->first();
 
-        if($iamAccount) {
+        if ($iamAccount) {
             return $this->builder->where('iam_account_id', '=', $iamAccount->id);
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }
