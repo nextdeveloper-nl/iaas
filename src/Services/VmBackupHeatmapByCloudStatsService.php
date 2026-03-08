@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAAS\Database\Filters\VmBackupHeatmapByCloudStatsQueryFilter;
 use NextDeveloper\IAAS\Database\Models\VmBackupHeatmapByCloudStats;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVmBackupHeatmapByCloudStatsService;
@@ -20,6 +21,6 @@ class VmBackupHeatmapByCloudStatsService extends AbstractVmBackupHeatmapByCloudS
 
     public static function get(VmBackupHeatmapByCloudStatsQueryFilter $filter = null, array $params = []): \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        return VmBackupHeatmapByCloudStats::orderBy('backup_date', 'asc')->get();
+        return VmBackupHeatmapByCloudStats::withoutGlobalScope(LimitScope::class)->orderBy('backup_date', 'asc')->get();
     }
 }
