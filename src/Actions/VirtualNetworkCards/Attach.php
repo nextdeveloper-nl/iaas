@@ -134,6 +134,6 @@ class Attach extends AbstractAction
             //  But we need to make VM interface scan.
         }
 
-        $this->setProgress(100, 'Virtual machine initiated');
+        $this->setFinished( 'Virtual machine initiated');
     }
 }
