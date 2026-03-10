@@ -79,7 +79,6 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             'iaas_vm_backup_stats:read',
 
             'iaas_accounts:read',
-
             'iaas_datacenters:read',
             'iaas_cloud_nodes:read',
             'iaas_compute_members:read',
@@ -156,6 +155,16 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             'iaas_backup_jobs:create',
             'iaas_backup_jobs:update',
             'iaas_backup_jobs:delete',
+
+            'iaas_env_var_group_vars:read',
+            'iaas_env_var_group_vars:create',
+            'iaas_env_var_group_vars:update',
+            'iaas_env_var_group_vars:delete',
+
+            'iaas_env_var_groups:read',
+            'iaas_env_var_groups:create',
+            'iaas_env_var_groups:update',
+            'iaas_env_var_groups:delete'
         ];
     }
 
