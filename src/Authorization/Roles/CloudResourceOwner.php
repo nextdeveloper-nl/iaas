@@ -39,7 +39,7 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
          */
         $builder->where('iam_account_id', UserHelper::currentAccount()->id);
 
-        if($isPublicExists)
+        if ($isPublicExists)
             $builder->orWhere('is_public', true);
     }
 
@@ -50,7 +50,9 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
 
     public function checkRules(Users $users): bool
     {
-        if(!TurkishMustHaveNIN::can($users)) { throw new MustHaveNIN(); }
+        if (!TurkishMustHaveNIN::can($users)) {
+            throw new MustHaveNIN();
+        }
 
         return true;
     }
@@ -65,7 +67,7 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
         return true;
     }
 
-    public function allowedOperations() :array
+    public function allowedOperations(): array
     {
         return [
             'iaas_vm_backup_heatmaps:read',
@@ -164,7 +166,17 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             'iaas_env_var_groups:read',
             'iaas_env_var_groups:create',
             'iaas_env_var_groups:update',
-            'iaas_env_var_groups:delete'
+            'iaas_env_var_groups:delete',
+
+            'iaas_virtual_machine_env_var_groups:read',
+            'iaas_virtual_machine_env_var_groups:create',
+            'iaas_virtual_machine_env_var_groups:update',
+            'iaas_virtual_machine_env_var_groups:delete',
+
+            'iaas_virtual_machine_env_vars:read',
+            'iaas_virtual_machine_env_vars:create',
+            'iaas_virtual_machine_env_vars:update',
+            'iaas_virtual_machine_env_vars:delete',
         ];
     }
 
@@ -185,11 +197,11 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
 
     public function canBeApplied($column)
     {
-        if(self::DB_PREFIX === '*') {
+        if (self::DB_PREFIX === '*') {
             return true;
         }
 
-        if(Str::startsWith($column, self::DB_PREFIX)) {
+        if (Str::startsWith($column, self::DB_PREFIX)) {
             return true;
         }
 
