@@ -124,7 +124,7 @@ class Attach extends AbstractAction
 
             $vif->update($data);
 
-            $this->setProgress(100, 'Network card initiated.');
+            $this->setFinished('Network card initiated.');
             return;
         }
 
