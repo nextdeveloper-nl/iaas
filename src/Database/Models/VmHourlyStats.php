@@ -138,4 +138,5 @@ class VmHourlyStats extends Model
 
 
 
+
 }

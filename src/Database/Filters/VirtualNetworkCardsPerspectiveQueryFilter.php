@@ -235,4 +235,5 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

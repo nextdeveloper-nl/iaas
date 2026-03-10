@@ -1199,6 +1199,111 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('ssh-public-key-virtual-machines')->group(
+            function () {
+                Route::get('/', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@index');
+                Route::get('/actions', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@getActions');
+
+                Route::get('{ispkvm}/tags ', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@tags');
+                Route::post('{ispkvm}/tags ', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@saveTags');
+                Route::get('{ispkvm}/addresses ', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@addresses');
+                Route::post('{ispkvm}/addresses ', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@saveAddresses');
+
+                Route::get('/{ispkvm}/{subObjects}', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@relatedObjects');
+                Route::get('/{ispkvm}', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@show');
+
+                Route::post('/', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@store');
+                Route::post('/{ispkvm}/do/{action}', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@doAction');
+
+                Route::patch('/{ispkvm}', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@update');
+                Route::delete('/{ispkvm}', 'SshPublicKeyVirtualMachines\SshPublicKeyVirtualMachinesController@destroy');
+            }
+        );
+
+        Route::prefix('env-var-groups')->group(
+            function () {
+                Route::get('/', 'EnvVarGroups\EnvVarGroupsController@index');
+                Route::get('/actions', 'EnvVarGroups\EnvVarGroupsController@getActions');
+
+                Route::get('{iaas_env_var_groups}/tags ', 'EnvVarGroups\EnvVarGroupsController@tags');
+                Route::post('{iaas_env_var_groups}/tags ', 'EnvVarGroups\EnvVarGroupsController@saveTags');
+                Route::get('{iaas_env_var_groups}/addresses ', 'EnvVarGroups\EnvVarGroupsController@addresses');
+                Route::post('{iaas_env_var_groups}/addresses ', 'EnvVarGroups\EnvVarGroupsController@saveAddresses');
+
+                Route::get('/{iaas_env_var_groups}/{subObjects}', 'EnvVarGroups\EnvVarGroupsController@relatedObjects');
+                Route::get('/{iaas_env_var_groups}', 'EnvVarGroups\EnvVarGroupsController@show');
+
+                Route::post('/', 'EnvVarGroups\EnvVarGroupsController@store');
+                Route::post('/{iaas_env_var_groups}/do/{action}', 'EnvVarGroups\EnvVarGroupsController@doAction');
+
+                Route::patch('/{iaas_env_var_groups}', 'EnvVarGroups\EnvVarGroupsController@update');
+                Route::delete('/{iaas_env_var_groups}', 'EnvVarGroups\EnvVarGroupsController@destroy');
+            }
+        );
+
+        Route::prefix('env-var-group-vars')->group(
+            function () {
+                Route::get('/', 'EnvVarGroupVars\EnvVarGroupVarsController@index');
+                Route::get('/actions', 'EnvVarGroupVars\EnvVarGroupVarsController@getActions');
+
+                Route::get('{iaas_env_var_group_vars}/tags ', 'EnvVarGroupVars\EnvVarGroupVarsController@tags');
+                Route::post('{iaas_env_var_group_vars}/tags ', 'EnvVarGroupVars\EnvVarGroupVarsController@saveTags');
+                Route::get('{iaas_env_var_group_vars}/addresses ', 'EnvVarGroupVars\EnvVarGroupVarsController@addresses');
+                Route::post('{iaas_env_var_group_vars}/addresses ', 'EnvVarGroupVars\EnvVarGroupVarsController@saveAddresses');
+
+                Route::get('/{iaas_env_var_group_vars}/{subObjects}', 'EnvVarGroupVars\EnvVarGroupVarsController@relatedObjects');
+                Route::get('/{iaas_env_var_group_vars}', 'EnvVarGroupVars\EnvVarGroupVarsController@show');
+
+                Route::post('/', 'EnvVarGroupVars\EnvVarGroupVarsController@store');
+                Route::post('/{iaas_env_var_group_vars}/do/{action}', 'EnvVarGroupVars\EnvVarGroupVarsController@doAction');
+
+                Route::patch('/{iaas_env_var_group_vars}', 'EnvVarGroupVars\EnvVarGroupVarsController@update');
+                Route::delete('/{iaas_env_var_group_vars}', 'EnvVarGroupVars\EnvVarGroupVarsController@destroy');
+            }
+        );
+
+        Route::prefix('virtual-machine-env-var-groups')->group(
+            function () {
+                Route::get('/', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@index');
+                Route::get('/actions', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@getActions');
+
+                Route::get('{ivmevg}/tags ', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@tags');
+                Route::post('{ivmevg}/tags ', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@saveTags');
+                Route::get('{ivmevg}/addresses ', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@addresses');
+                Route::post('{ivmevg}/addresses ', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@saveAddresses');
+
+                Route::get('/{ivmevg}/{subObjects}', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@relatedObjects');
+                Route::get('/{ivmevg}', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@show');
+
+                Route::post('/', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@store');
+                Route::post('/{ivmevg}/do/{action}', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@doAction');
+
+                Route::patch('/{ivmevg}', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@update');
+                Route::delete('/{ivmevg}', 'VirtualMachineEnvVarGroups\VirtualMachineEnvVarGroupsController@destroy');
+            }
+        );
+
+        Route::prefix('virtual-machine-env-vars')->group(
+            function () {
+                Route::get('/', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@index');
+                Route::get('/actions', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@getActions');
+
+                Route::get('{iaas_virtual_machine_env_vars}/tags ', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@tags');
+                Route::post('{iaas_virtual_machine_env_vars}/tags ', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@saveTags');
+                Route::get('{iaas_virtual_machine_env_vars}/addresses ', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@addresses');
+                Route::post('{iaas_virtual_machine_env_vars}/addresses ', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@saveAddresses');
+
+                Route::get('/{iaas_virtual_machine_env_vars}/{subObjects}', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@relatedObjects');
+                Route::get('/{iaas_virtual_machine_env_vars}', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@show');
+
+                Route::post('/', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@store');
+                Route::post('/{iaas_virtual_machine_env_vars}/do/{action}', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@doAction');
+
+                Route::patch('/{iaas_virtual_machine_env_vars}', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@update');
+                Route::delete('/{iaas_virtual_machine_env_vars}', 'VirtualMachineEnvVars\VirtualMachineEnvVarsController@destroy');
+            }
+        );
+
         Route::prefix('compute-members-perspective')->group(
             function () {
                 Route::get('/', 'ComputeMembersPerspective\ComputeMembersPerspectiveController@index');
@@ -1895,6 +2000,101 @@ Route::prefix('iaas')->group(
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         Route::prefix('registries')->group(
             function () {
                 Route::get('/{repo}/containers', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'index']);
@@ -1913,6 +2113,7 @@ Route::prefix('iaas')->group(
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );
+
 
 
 

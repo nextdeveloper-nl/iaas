@@ -287,6 +287,21 @@ class VirtualMachines extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
     }
 
+    public function sshPublicKeyVirtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\SshPublicKeyVirtualMachines::class);
+    }
+
+    public function virtualMachineEnvVarGroups() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVarGroups::class);
+    }
+
+    public function virtualMachineEnvVars() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars::class);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
@@ -303,6 +318,7 @@ class VirtualMachines extends Model
 
         return $this->fresh();
     }
+
 
 
 
