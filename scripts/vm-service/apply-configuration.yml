@@ -45,5 +45,13 @@
       when:
         - ansible_facts.distribution == "Debian"
 
+    - name: Extract environment variables
+      set_fact:
+        env_vars: "{{ metadata.env_vars | default({}) }}"
+
+    - name: Apply environment variables
+      include_tasks: apply-env-vars.yml
+      when: metadata.env_vars is defined and metadata.env_vars | length > 0
+
     - name: Run post boot script
       include_tasks: run-post-boot-script.yml

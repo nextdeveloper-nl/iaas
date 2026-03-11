@@ -539,6 +539,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 'disk-resize-debian12.yml',
                 'disk-resize-ubuntu22.yml',
                 'disk-resize-ubuntu24.yml',
+                'apply-env-vars.yml',
                 'run-post-boot-script.yml'
             ];
 
