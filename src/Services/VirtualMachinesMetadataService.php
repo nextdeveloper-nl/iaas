@@ -13,9 +13,12 @@ use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\EnvVarGroupVars;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVarGroups;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
@@ -238,21 +241,39 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         $hash = crypt($vm->password, '$6$' . $salt . '$');
 
         $data = [
-            'instance_id' => $vm->uuid,
-            'hostname'  =>  $vm->hostname,
+            'instance_id'      => $vm->uuid,
+            'hostname'         => $vm->hostname,
             'manage_etc_hosts' => true,
-            'ssh_pwauth' => true,
-            'disable_root' => false,
-            'users' => [
+            'ssh_pwauth'       => true,
+            'disable_root'     => false,
+            'users'            => [
                 [
-                    'name' => $vm->username,
-                    'gecos' => 'Superuser',
+                    'name'        => $vm->username,
+                    'gecos'       => 'Superuser',
                     'lock_passwd' => false,
-                    'shell' => '/bin/bash',
-                    'passwd' => $hash,
+                    'shell'       => '/bin/bash',
+                    'passwd'      => $hash,
                 ]
-            ]
+            ],
         ];
+
+        $envVars = self::collectEnvVars($vm);
+
+        if (!empty($envVars)) {
+            $envContent = '';
+            foreach ($envVars as $key => $value) {
+                $envContent .= strtoupper($key) . '=' . $value . "\n";
+            }
+
+            $data['write_files'] = [
+                [
+                    'path'        => '/etc/environment',
+                    'content'     => $envContent,
+                    'permissions' => '0644',
+                    'append'      => true,
+                ]
+            ];
+        }
 
         $yaml = yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
 
@@ -264,5 +285,37 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         $yaml = "#cloud-config\n" . $yaml;
 
         return $yaml;
+    }
+
+    private static function collectEnvVars(VirtualMachines $vm): array
+    {
+        $envVars = [];
+
+        // 1. Collect from EnvVarGroups linked to this VM, ordered by priority (lower = first, can be overridden)
+        $vmEnvVarGroups = VirtualMachineEnvVarGroups::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->orderBy('priority')
+            ->get();
+
+        foreach ($vmEnvVarGroups as $vmGroup) {
+            $groupVars = EnvVarGroupVars::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_env_var_group_id', $vmGroup->iaas_env_var_group_id)
+                ->get();
+
+            foreach ($groupVars as $var) {
+                $envVars[$var->key] = $var->value;
+            }
+        }
+
+        // 2. Direct VM env vars override group vars
+        $directVars = VirtualMachineEnvVars::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->get();
+
+        foreach ($directVars as $var) {
+            $envVars[$var->key] = $var->value;
+        }
+
+        return $envVars;
     }
 }
