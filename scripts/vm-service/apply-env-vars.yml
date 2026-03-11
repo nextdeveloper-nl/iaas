@@ -4,15 +4,13 @@
     msg: "env_vars is not defined"
   when: env_vars is not defined or env_vars | length == 0
 
-- name: Apply environment variables to /etc/environment
-  lineinfile:
-    path: /etc/environment
-    regexp: "^{{ item.key }}="
-    line: "{{ item.key }}={{ item.value }}"
-    state: present
-    create: yes
+- name: Write environment variables to /etc/profile.d/plusclouds-env.sh
+  copy:
+    dest: /etc/profile.d/plusclouds-env.sh
+    content: |
+      {% for key, value in env_vars.items() %}
+      export {{ key }}={{ value | quote }}
+      {% endfor %}
     owner: root
     group: root
     mode: '0644'
-  loop: "{{ env_vars | dict2items }}"
-  no_log: "{{ item.value is defined and (item.key | lower | regex_search('secret|password|token|key')) | bool }}"
