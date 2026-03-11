@@ -16,10 +16,12 @@ use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\EnvVarGroupVars;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
+use NextDeveloper\IAAS\Database\Models\SshPublicKeyVirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVarGroups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAM\Database\Models\SshPublicKeys;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotCreateVirtualMachine;
@@ -138,7 +140,8 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             ],
             'compute_pool' => $computePoolArray,
             'cloud_node' => $cloudPoolArray,
-            'ssh_keys' => [],
+            'ssh_keys' => self::collectSshKeys($vm),
+            'env_vars' => self::collectEnvVars($vm),
         ];
     }
 
@@ -240,21 +243,27 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         $salt = substr(str_replace('+', '.', base64_encode(random_bytes(16))), 0, 16);
         $hash = crypt($vm->password, '$6$' . $salt . '$');
 
+        $user = [
+            'name'        => $vm->username,
+            'gecos'       => 'Superuser',
+            'lock_passwd' => false,
+            'shell'       => '/bin/bash',
+            'passwd'      => $hash,
+        ];
+
+        $sshKeys = self::collectSshKeys($vm);
+
+        if (!empty($sshKeys)) {
+            $user['ssh_authorized_keys'] = array_column($sshKeys, 'public_key');
+        }
+
         $data = [
             'instance_id'      => $vm->uuid,
             'hostname'         => $vm->hostname,
             'manage_etc_hosts' => true,
             'ssh_pwauth'       => true,
             'disable_root'     => false,
-            'users'            => [
-                [
-                    'name'        => $vm->username,
-                    'gecos'       => 'Superuser',
-                    'lock_passwd' => false,
-                    'shell'       => '/bin/bash',
-                    'passwd'      => $hash,
-                ]
-            ],
+            'users'            => [$user],
         ];
 
         $envVars = self::collectEnvVars($vm);
@@ -285,6 +294,32 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         $yaml = "#cloud-config\n" . $yaml;
 
         return $yaml;
+    }
+
+    private static function collectSshKeys(VirtualMachines $vm): array
+    {
+        $sshKeys = [];
+
+        $pivots = SshPublicKeyVirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->get();
+
+        foreach ($pivots as $pivot) {
+            $key = SshPublicKeys::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $pivot->iam_ssh_public_key_id)
+                ->first();
+
+            if ($key) {
+                $sshKeys[] = [
+                    'name'        => $key->name,
+                    'public_key'  => $key->public_key,
+                    'key_type'    => $key->key_type,
+                    'fingerprint' => $key->fingerprint,
+                ];
+            }
+        }
+
+        return $sshKeys;
     }
 
     private static function collectEnvVars(VirtualMachines $vm): array
