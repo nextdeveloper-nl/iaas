@@ -14,3 +14,15 @@
     owner: root
     group: root
     mode: '0644'
+
+- name: Write environment variables to /etc/environment
+  lineinfile:
+    path: /etc/environment
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value | quote }}"
+    state: present
+    create: yes
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ env_vars | dict2items }}"
