@@ -58,15 +58,13 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
                                                             $sourceId = \NextDeveloper\Commons\Database\Models\Ai.ids::where('id', $model->source_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
             'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
             'key'  =>  $model->key,
             'value'  =>  $model->value,
-            'source_type'  =>  $model->source_type,
-            'source_id'  =>  $sourceId ? $sourceId->uuid : null,
             'is_secret'  =>  $model->is_secret,
             'description'  =>  $model->description,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,

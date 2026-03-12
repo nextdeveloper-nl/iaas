@@ -4,7 +4,7 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -17,36 +17,24 @@ class EnvVarGroupVarsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function key($value)
     {
         return $this->builder->where('key', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function value($value)
     {
         return $this->builder->where('value', 'ilike', '%' . $value . '%');
     }
 
-        
-    public function sourceType($value)
-    {
-        return $this->builder->where('source_type', 'ilike', '%' . $value . '%');
-    }
-
-        //  This is an alias function of sourceType
-    public function source_type($value)
-    {
-        return $this->sourceType($value);
-    }
-        
     public function description($value)
     {
         return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function isSecret($value)
     {
         return $this->builder->where('is_secret', $value);
@@ -57,7 +45,7 @@ class EnvVarGroupVarsQueryFilter extends AbstractQueryFilter
     {
         return $this->isSecret($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -138,7 +126,7 @@ class EnvVarGroupVarsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasEnvVarGroup($value);
     }
-    
+
     public function sourceId($value)
     {
             $source = \NextDeveloper\Commons\Database\Models\Ai.ids::where('uuid', $value)->first();
@@ -153,7 +141,7 @@ class EnvVarGroupVarsQueryFilter extends AbstractQueryFilter
     {
         return $this->source($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -163,7 +151,7 @@ class EnvVarGroupVarsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -173,6 +161,6 @@ class EnvVarGroupVarsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }

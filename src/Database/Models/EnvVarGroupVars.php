@@ -23,8 +23,6 @@ use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
  * @property integer $iaas_env_var_group_id
  * @property string $key
  * @property string $value
- * @property string $source_type
- * @property integer $source_id
  * @property boolean $is_secret
  * @property string $description
  * @property integer $iam_account_id
@@ -52,8 +50,6 @@ class EnvVarGroupVars extends Model
             'iaas_env_var_group_id',
             'key',
             'value',
-            'source_type',
-            'source_id',
             'is_secret',
             'description',
             'iam_account_id',
@@ -84,8 +80,6 @@ class EnvVarGroupVars extends Model
     'iaas_env_var_group_id' => 'integer',
     'key' => 'string',
     'value' => 'string',
-    'source_type' => 'string',
-    'source_id' => 'integer',
     'is_secret' => 'boolean',
     'description' => 'string',
     'created_at' => 'datetime',
@@ -155,6 +149,6 @@ class EnvVarGroupVars extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\EnvVarGroups::class);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }
