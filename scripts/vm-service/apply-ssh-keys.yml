@@ -1,0 +1,23 @@
+---
+- name: Ensure ssh_keys is defined and not empty
+  fail:
+    msg: "ssh_keys is not defined"
+  when: ssh_keys is not defined or ssh_keys | length == 0
+
+- name: Apply SSH public keys for vm_user
+  authorized_key:
+    user: "{{ vm_user }}"
+    key: "{{ item.public_key }}"
+    state: present
+    comment: "{{ item.name }}"
+  loop: "{{ ssh_keys }}"
+  when: item.public_key is defined and item.public_key | length > 0
+
+- name: Apply SSH public keys for root
+  authorized_key:
+    user: root
+    key: "{{ item.public_key }}"
+    state: present
+    comment: "{{ item.name }}"
+  loop: "{{ ssh_keys }}"
+  when: item.public_key is defined and item.public_key | length > 0

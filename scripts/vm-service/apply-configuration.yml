@@ -53,5 +53,13 @@
       include_tasks: apply-env-vars.yml
       when: metadata.env_vars is defined and metadata.env_vars | length > 0
 
+    - name: Extract SSH keys
+      set_fact:
+        ssh_keys: "{{ metadata.ssh_keys | default([]) }}"
+
+    - name: Apply SSH keys
+      include_tasks: apply-ssh-keys.yml
+      when: metadata.ssh_keys is defined and metadata.ssh_keys | length > 0
+
     - name: Run post boot script
       include_tasks: run-post-boot-script.yml
