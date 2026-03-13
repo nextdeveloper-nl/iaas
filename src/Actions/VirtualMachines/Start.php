@@ -59,33 +59,33 @@ class Start extends AbstractAction
 
         dispatch(new Fix($this->model));
 
-//        if(config('iaas.cloud-init.available')) {
-//            Log::info('[Start@handle] . Cloud init is available. So I am moving to configuration iso update.');
-//            //  Here we need to deploy the configuration iso
-//
-//            $configImage = RepositoryImagesService::getCloudInitImage($this->model);
-//
-//            if(!$configImage) {
-//                //  If we do not have a configuration image we will create it
-//                Log::info('[Start@handle] . No configuration image found. Dispatching the job to create it.');
-//                (new GenerateCloudInitImage($this->model))->handle();
-//
-//                $configImage = RepositoryImagesService::getCloudInitImage($this->model);
-//            }
-//
-//            //  Check if the CDROM is mounted, if not we will mount and add the configuration iso
-//            $cdrom = VirtualMachinesService::getCdrom($this->model);
-//
-//            if($cdrom == null) {
-//                VirtualMachinesXenService::mountCD($this->model, $configImage, true);
-//            } else {
-//                if($cdrom->size == 0) {
-//                    VirtualMachinesXenService::mountCD($this->model, $configImage, true);
-//                } else {
-//                    Log::info(__METHOD__ . ' CDROM is already mounted. Not remounting.');
-//                }
-//            }
-//        }
+        if(config('iaas.cloud-init.available')) {
+            Log::info('[Start@handle] . Cloud init is available. So I am moving to configuration iso update.');
+            //  Here we need to deploy the configuration iso
+
+            $configImage = RepositoryImagesService::getCloudInitImage($this->model);
+
+            if(!$configImage) {
+                //  If we do not have a configuration image we will create it
+                Log::info('[Start@handle] . No configuration image found. Dispatching the job to create it.');
+                (new GenerateCloudInitImage($this->model))->handle();
+
+                $configImage = RepositoryImagesService::getCloudInitImage($this->model);
+            }
+
+            //  Check if the CDROM is mounted, if not we will mount and add the configuration iso
+            $cdrom = VirtualMachinesService::getCdrom($this->model);
+
+            if($cdrom == null) {
+                VirtualMachinesXenService::mountCD($this->model, $configImage, true);
+            } else {
+                if($cdrom->size == 0) {
+                    VirtualMachinesXenService::mountCD($this->model, $configImage, true);
+                } else {
+                    Log::info(__METHOD__ . ' CDROM is already mounted. Not remounting.');
+                }
+            }
+        }
 
         VirtualMachinesXenService::updateConfigurationIso($this->model);
 
