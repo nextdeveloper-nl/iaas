@@ -8,6 +8,7 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * This action restarts the Virtual Machine
@@ -50,6 +51,8 @@ class Restart extends AbstractAction
         }
 
         (new Fix($this->model))->handle();
+
+        VirtualMachinesXenService::updateConfigurationIso($this->model);
 
         Events::fire('restarting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 

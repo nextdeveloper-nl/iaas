@@ -52,6 +52,8 @@ class ForceRestart extends AbstractAction
 
         Events::fire('unplugging:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
+        VirtualMachinesXenService::updateConfigurationIso($this->model);
+
         $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
 
         if(!array_key_exists('power-state', $vmParams)) {
