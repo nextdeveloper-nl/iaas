@@ -487,11 +487,104 @@ class VirtualMachinesXenService extends AbstractXenService
         return true;
     }
 
+    public static function updateConfigurationIsoForWindows(VirtualMachines $vm): bool
+    {
+        if (config('leo.debug.iaas.compute_members'))
+            Log::error('[VirtualMachinesXenService@updateConfigurationIsoForWindows] I am updating the' .
+                ' configuration ISO of the Windows VM (' . $vm->name . '/' . $vm->uuid . ')');
+
+        $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
+
+        if ($centralRepo) {
+            $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
+            $command .= PHP_EOL;
+
+            $uploadConfig = function($filename, $content, $vm, $centralRepo) {
+                $command = 'echo "' . $content . '" > config-iso/' . $vm->uuid . '/' . $filename . '.base64';
+                $command .= PHP_EOL;
+                $command .= 'base64 -d config-iso/' . $vm->uuid . '/' . $filename . '.base64 > config-iso/' . $vm->uuid . '/' . $filename . '';
+                $command .= PHP_EOL;
+
+                return $command;
+            };
+
+            //  Upload pc-meta-data.json
+            $command .= $uploadConfig(
+                filename: 'pc-meta-data.json',
+                content: base64_encode(json_encode(VirtualMachinesService::getMetadata($vm))),
+                vm: $vm,
+                centralRepo: $centralRepo
+            );
+
+            //  Upload Windows PowerShell configuration scripts
+            $configurationPack = [
+                'apply-configuration.ps1',
+                'change-hostname.ps1',
+                'change-password.ps1',
+                'apply-env-vars.ps1',
+                'apply-ssh-keys.ps1',
+                'register-startup-task.ps1',
+            ];
+
+            foreach ($configurationPack as $pack) {
+                $command .= $uploadConfig(
+                    filename: $pack,
+                    content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/windows-vm-service/' . $pack))),
+                    vm: $vm,
+                    centralRepo: $centralRepo
+                );
+            }
+
+            //  Creating the iso file
+            $command .= 'genisoimage -output ' .
+                'config-iso/' . $vm->uuid . '/config.iso ' .
+                '-volid cidata -joliet -rock ' .
+                'config-iso/' . $vm->uuid . '/pc-meta-data.json';
+
+            foreach ($configurationPack as $pack) {
+                $command .= ' config-iso/' . $vm->uuid . '/' . $pack;
+            }
+
+            //  Removing .base64 files
+            $command .= PHP_EOL;
+            $command .= 'rm -f config-iso/' . $vm->uuid . '/*.base64';
+
+            //  Moving the iso to the central repository
+            $command .= PHP_EOL;
+            $command .= 'mv config-iso/' . $vm->uuid . '/config.iso ' . $centralRepo->iso_path . '/config-' . $vm->uuid . '.iso';
+
+            //  Removing the config-iso folder
+            $command .= PHP_EOL;
+            $command .= 'rm -f config-iso/' . $vm->uuid . '/config.iso';
+
+            $result = self::performCommand($command, $centralRepo);
+
+            $configImage = RepositoryImagesService::getCloudInitImage($vm);
+
+            if (!$configImage) {
+                RepositoryImagesService::syncRepoImageByFilename(
+                    filename: 'config-' . $vm->uuid . '.iso',
+                    repo: $centralRepo,
+                    type: 'iso',
+                    isActive: true
+                );
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     public static function updateConfigurationIso(VirtualMachines $vm): bool
     {
         if (config('leo.debug.iaas.compute_members'))
             Log::error('[VirtualMachinesXenService@updateConfigurationIso] I am updating the' .
                 ' configuration ISO of the VM (' . $vm->name . '/' . $vm->uuid . ')');
+
+        if($vm->os == 'Microsoft Windows') {
+            return self::updateConfigurationIsoForWindows($vm);
+        }
 
         //  Here if we have a central repository server we should move it to that repository
         $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
