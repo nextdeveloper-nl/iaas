@@ -609,8 +609,6 @@ class VirtualMachinesXenService extends AbstractXenService
             $command .= PHP_EOL;
             $command .= 'rm -f config-iso/' . $vm->uuid . '/config.iso';
 
-            dd($command);
-
             $result = self::performCommand($command, $centralRepo);
 
             $configImage = RepositoryImagesService::getCloudInitImage($vm);
