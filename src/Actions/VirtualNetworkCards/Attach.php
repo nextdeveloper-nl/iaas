@@ -54,6 +54,7 @@ class Attach extends AbstractAction
             ]);
 
             Events::fire('attached:NextDeveloper\IAAS\VirtualNetworkCards', $vif);
+            $this->setFinished('Network card is attached.');
             return;
         }
 
