@@ -50,7 +50,6 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             ];
         }
 
-        $vm = VirtualMachinesService::fixUsername($vm);
         $vm = VirtualMachinesService::fixHostname($vm);
 
         $vdis = VirtualMachinesService::getVirtualDiskImages($vm);

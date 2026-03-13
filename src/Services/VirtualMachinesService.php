@@ -682,29 +682,35 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         ];
     }
 
+    /**
+     * This function is deprecated because it is using a wrong logic.
+     *
+     * @param VirtualMachines $vm
+     * @return VirtualMachines|null
+     */
     public static function fixUsername(VirtualMachines $vm)
     {
-        $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)->where('id', $vm->iaas_repository_image_id)->first();
-
-        Log::info('[VirtualMachineService@fixUsername] Will try to fix the username. Current username: ' . $repoImage->default_username ?? 'root');
-
-        if($vm->username)
-            return $vm;
-
-        Log::info('[VirtualMachineService@fixUsername] VM Data: ' . print_r($vm, true));
-
-        switch ($vm->os) {
-            case 'microsoft windows':
-                $vm->update(['username' => 'Administrator']);
-                break;
-            case 'linux':
-            case 'application':
-                Log::info('[VirtualMachineService@fixUsername] Fixing the username as: ' . $repoImage->default_username ?? 'root');
-                $vm->update(['username' => $repoImage->default_username ?? 'root']);
-                break;
-            default:
-                $vm->update(['username' => $repoImage->default_username ?? 'root']);
-        }
+//        $repoImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)->where('id', $vm->iaas_repository_image_id)->first();
+//
+//        Log::info('[VirtualMachineService@fixUsername] Will try to fix the username. Current username: ' . $repoImage->default_username ?? 'root');
+//
+//        if($vm->username)
+//            return $vm;
+//
+//        Log::info('[VirtualMachineService@fixUsername] VM Data: ' . print_r($vm, true));
+//
+//        switch ($vm->os) {
+//            case 'microsoft windows':
+//                $vm->update(['username' => 'Administrator']);
+//                break;
+//            case 'linux':
+//            case 'application':
+//                Log::info('[VirtualMachineService@fixUsername] Fixing the username as: ' . $repoImage->default_username ?? 'root');
+//                $vm->update(['username' => $repoImage->default_username ?? 'root']);
+//                break;
+//            default:
+//                $vm->update(['username' => $repoImage->default_username ?? 'root']);
+//        }
 
         return $vm->fresh();
     }

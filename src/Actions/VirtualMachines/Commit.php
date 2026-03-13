@@ -109,7 +109,7 @@ class Commit extends AbstractAction
 
         $vm = $this->model;
 
-        $vm = VirtualMachinesService::fixUsername($vm);
+        //$vm = VirtualMachinesService::fixUsername($vm);
         $vm = VirtualMachinesService::fixHostname($vm);
 
         (new GenerateCloudInitImage($vm))->handle();

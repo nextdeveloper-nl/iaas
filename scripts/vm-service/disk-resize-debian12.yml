@@ -5,6 +5,8 @@
       - cloud-guest-utils   # growpart
       - util-linux          # sfdisk, partprobe
       - gdisk               # sgdisk (if GPT)
+      - lvm2                # pvresize, lvextend
+      - xfsprogs            # xfs_growfs (if XFS)
     state: present
     update_cache: yes
 
@@ -14,14 +16,39 @@
 
 - name: Detect base disk
   command: lsblk -no PKNAME {{ root_device.stdout }}
-  register: base_disk
+  register: base_disk_raw
+  failed_when: false
+
+- name: Set base disk (fallback to xvda if LVM device has no parent)
+  set_fact:
+    base_disk: "{{ base_disk_raw.stdout | trim if base_disk_raw.stdout | trim != '' else 'xvda' }}"
 
 - name: Detect partition number
   set_fact:
     part_number: "{{ root_device.stdout | regex_search('[0-9]+$') }}"
 
+- name: Detect if root is on an LVM logical volume
+  command: lsblk -no TYPE {{ root_device.stdout }}
+  register: root_device_type
+  failed_when: false
+
+- name: Set LVM flag
+  set_fact:
+    is_lvm: "{{ 'lvm' in root_device_type.stdout }}"
+
+- name: Detect physical partition backing the LVM PV
+  shell: pvs --noheadings -o pv_name | tr -d ' '
+  register: lvm_pv
+  when: is_lvm
+  failed_when: false
+
+- name: Set LVM physical partition
+  set_fact:
+    lvm_pv_device: "{{ lvm_pv.stdout_lines | first | default('/dev/' + base_disk + part_number) }}"
+  when: is_lvm
+
 - name: Reread partition table
-  command: /usr/sbin/partprobe /dev/{{ base_disk.stdout }}
+  command: /usr/sbin/partprobe /dev/{{ base_disk }}
   failed_when: false
 
 - name: Wait for kernel to settle
@@ -29,23 +56,57 @@
     seconds: 2
 
 - name: Grow root partition to maximum size
-  command: /usr/bin/growpart /dev/{{ base_disk.stdout }} {{ part_number }}
+  command: /usr/bin/growpart /dev/{{ base_disk }} {{ part_number }}
   register: growpart_result
   environment:
     PATH: "/usr/sbin:/sbin:/usr/bin:/bin"
   failed_when: false
   changed_when: growpart_result.rc == 0
+  when: not is_lvm or part_number != ''
 
-- name: Ensure root filesystem is ext4
-  assert:
-    that:
-      - >
-        ansible_facts.mounts
-        | selectattr('mount','equalto','/')
-        | selectattr('fstype','equalto','ext4')
-        | list
-        | length > 0
-    fail_msg: "Root filesystem is not ext4; refusing to resize"
+# --- LVM path ---
 
-- name: Resize ext4 filesystem to maximum size
+- name: Resize LVM physical volume
+  command: pvresize {{ lvm_pv_device }}
+  when: is_lvm
+
+- name: Extend LVM logical volume to use all free space
+  command: lvextend -l +100%FREE {{ root_device.stdout }}
+  when: is_lvm
+  failed_when: false
+
+- name: Detect root filesystem type (LVM)
+  command: findmnt -n -o FSTYPE /
+  register: root_fstype_lvm
+  when: is_lvm
+
+- name: Resize ext4 filesystem on LVM volume
   command: /sbin/resize2fs {{ root_device.stdout }}
+  when:
+    - is_lvm
+    - "'ext4' in root_fstype_lvm.stdout"
+
+- name: Resize XFS filesystem on LVM volume
+  command: xfs_growfs /
+  when:
+    - is_lvm
+    - "'xfs' in root_fstype_lvm.stdout"
+
+# --- Non-LVM path ---
+
+- name: Detect root filesystem type (plain)
+  command: findmnt -n -o FSTYPE /
+  register: root_fstype_plain
+  when: not is_lvm
+
+- name: Resize ext4 filesystem on plain partition
+  command: /sbin/resize2fs {{ root_device.stdout }}
+  when:
+    - not is_lvm
+    - "'ext4' in root_fstype_plain.stdout"
+
+- name: Resize XFS filesystem on plain partition
+  command: xfs_growfs /
+  when:
+    - not is_lvm
+    - "'xfs' in root_fstype_plain.stdout"

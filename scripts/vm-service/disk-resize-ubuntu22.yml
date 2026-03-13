@@ -17,5 +17,50 @@
   failed_when: false
   changed_when: growpart_result.rc == 0
 
-- name: Resize ext4 filesystem
+- name: Detect if root partition is LVM
+  command: lsblk -no TYPE /dev/xvda2
+  register: xvda2_type
+  failed_when: false
+
+- name: Set LVM flag
+  set_fact:
+    is_lvm: "{{ 'lvm' in xvda2_type.stdout }}"
+
+# --- LVM path ---
+
+- name: Resize LVM physical volume
+  command: pvresize /dev/xvda2
+  when: is_lvm
+
+- name: Get LVM logical volume path for root
+  command: findmnt -n -o SOURCE /
+  register: lvm_root_device
+  when: is_lvm
+
+- name: Extend LVM logical volume to use all free space
+  command: lvextend -l +100%FREE {{ lvm_root_device.stdout }}
+  when: is_lvm
+  failed_when: false
+
+- name: Detect root filesystem type (LVM)
+  command: findmnt -n -o FSTYPE /
+  register: root_fstype_lvm
+  when: is_lvm
+
+- name: Resize ext4 filesystem on LVM volume
+  command: resize2fs {{ lvm_root_device.stdout }}
+  when:
+    - is_lvm
+    - "'ext4' in root_fstype_lvm.stdout"
+
+- name: Resize XFS filesystem on LVM volume
+  command: xfs_growfs /
+  when:
+    - is_lvm
+    - "'xfs' in root_fstype_lvm.stdout"
+
+# --- Non-LVM path ---
+
+- name: Resize ext4 filesystem on plain partition
   command: resize2fs /dev/xvda2
+  when: not is_lvm
