@@ -11,34 +11,60 @@
   pause:
     seconds: 2
 
-- name: Grow root partition (partition 2)
-  command: growpart /dev/xvda 2
-  register: growpart_result
-  failed_when: false
-  changed_when: growpart_result.rc == 0
+- name: Detect root filesystem device
+  command: findmnt -n -o SOURCE /
+  register: root_device
 
-- name: Detect if root partition is LVM
-  command: lsblk -no TYPE /dev/xvda2
-  register: xvda2_type
+- name: Detect if root is an LVM logical volume
+  command: lsblk -no TYPE {{ root_device.stdout }}
+  register: root_device_type
   failed_when: false
 
 - name: Set LVM flag
   set_fact:
-    is_lvm: "{{ 'lvm' in xvda2_type.stdout }}"
+    is_lvm: "{{ 'lvm' in root_device_type.stdout }}"
 
 # --- LVM path ---
 
-- name: Resize LVM physical volume
-  command: pvresize /dev/xvda2
+- name: Find LVM physical volume device
+  shell: pvs --noheadings -o pv_name | tr -d ' '
+  register: lvm_pv
+  when: is_lvm
+  failed_when: false
+
+- name: Set LVM PV device
+  set_fact:
+    lvm_pv_device: "{{ lvm_pv.stdout_lines | first }}"
   when: is_lvm
 
-- name: Get LVM logical volume path for root
-  command: findmnt -n -o SOURCE /
-  register: lvm_root_device
+- name: Detect partition number of LVM PV
+  set_fact:
+    lvm_part_number: "{{ lvm_pv_device | regex_search('[0-9]+$') }}"
+  when: is_lvm
+
+- name: Detect base disk of LVM PV
+  set_fact:
+    lvm_base_disk: "{{ lvm_pv_device | regex_replace('[0-9]+$', '') | basename }}"
+  when: is_lvm
+
+- name: Grow LVM physical partition to maximum size
+  command: growpart /dev/{{ lvm_base_disk }} {{ lvm_part_number }}
+  register: growpart_lvm_result
+  failed_when: false
+  changed_when: growpart_lvm_result.rc == 0
+  when: is_lvm
+
+- name: Wait for kernel to settle after growpart (LVM)
+  pause:
+    seconds: 2
+  when: is_lvm
+
+- name: Resize LVM physical volume
+  command: pvresize {{ lvm_pv_device }}
   when: is_lvm
 
 - name: Extend LVM logical volume to use all free space
-  command: lvextend -l +100%FREE {{ lvm_root_device.stdout }}
+  command: lvextend -l +100%FREE {{ root_device.stdout }}
   when: is_lvm
   failed_when: false
 
@@ -48,7 +74,7 @@
   when: is_lvm
 
 - name: Resize ext4 filesystem on LVM volume
-  command: resize2fs {{ lvm_root_device.stdout }}
+  command: resize2fs {{ root_device.stdout }}
   when:
     - is_lvm
     - "'ext4' in root_fstype_lvm.stdout"
@@ -61,6 +87,19 @@
 
 # --- Non-LVM path ---
 
+- name: Detect base disk and partition number for plain partition
+  set_fact:
+    plain_part_number: "{{ root_device.stdout | regex_search('[0-9]+$') }}"
+    plain_base_disk: "{{ root_device.stdout | regex_replace('[0-9]+$', '') | basename }}"
+  when: not is_lvm
+
+- name: Grow root partition to maximum size
+  command: growpart /dev/{{ plain_base_disk }} {{ plain_part_number }}
+  register: growpart_plain_result
+  failed_when: false
+  changed_when: growpart_plain_result.rc == 0
+  when: not is_lvm
+
 - name: Resize ext4 filesystem on plain partition
-  command: resize2fs /dev/xvda2
+  command: resize2fs {{ root_device.stdout }}
   when: not is_lvm
