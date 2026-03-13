@@ -587,17 +587,20 @@ class VirtualMachinesXenService extends AbstractXenService
                 $command .= ' config-iso/' . $vm->uuid . '/' . $pack;
             }
 
-            $result = self::performCommand($command, $centralRepo);
+            //$result = self::performCommand($command, $centralRepo);
 
             //  removing .base64 files
-            $command = 'rm -f config-iso/' . $vm->uuid . '/*.base64';
-            $result = self::performCommand($command, $centralRepo);
+            $command .= PHP_EOL;
+            $command .= 'rm -f config-iso/' . $vm->uuid . '/*.base64';
+            //$result = self::performCommand($command, $centralRepo);
 
             //  Moving the iso to the central repository
+            $command .= PHP_EOL;
             $command = 'mv config-iso/' . $vm->uuid . '/config.iso ' . $centralRepo->iso_path . '/config-' . $vm->uuid . '.iso';
-            $result = self::performCommand($command, $centralRepo);
+            //$result = self::performCommand($command, $centralRepo);
 
             //  Removing the config-iso folder
+            $command .= PHP_EOL;
             $command = 'rm -f config-iso/' . $vm->uuid . '/config.iso';
             $result = self::performCommand($command, $centralRepo);
 
