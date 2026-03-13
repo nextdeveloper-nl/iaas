@@ -55,7 +55,6 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
     public function transform(VirtualMachineEnvVars $model)
     {
                                                 $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
-                                                            $sourceId = \NextDeveloper\Commons\Database\Models\Ai.ids::where('id', $model->source_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
 
