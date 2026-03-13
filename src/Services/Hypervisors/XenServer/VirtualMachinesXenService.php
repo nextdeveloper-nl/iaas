@@ -23,6 +23,7 @@ use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use PHP_CodeSniffer\Tokenizers\PHP;
 
 class VirtualMachinesXenService extends AbstractXenService
 {
@@ -498,33 +499,38 @@ class VirtualMachinesXenService extends AbstractXenService
         if ($centralRepo) {
             //  Creating the configuration folder
             $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
-            $result = self::performCommand($command, $centralRepo);
+            $command .= PHP_EOL;
+            //$result = self::performCommand($command, $centralRepo);
 
             $uploadConfig = function($filename, $content, $vm, $centralRepo) {
                 //  Pushing the user-data file
                 $command = 'echo "' . $content . '" > config-iso/' . $vm->uuid . '/' . $filename . '.base64';
-                $result = self::performCommand($command, $centralRepo);
+                $command .= PHP_EOL;
+                // $result = self::performCommand($command, $centralRepo);
 
                 //  Decoding the user-data file
-                $command = 'base64 -d config-iso/' . $vm->uuid . '/' . $filename . '.base64 > config-iso/' . $vm->uuid . '/' . $filename . '';
-                $result = self::performCommand($command, $centralRepo);
+                $command .= 'base64 -d config-iso/' . $vm->uuid . '/' . $filename . '.base64 > config-iso/' . $vm->uuid . '/' . $filename . '';
+                $command .= PHP_EOL;
+
+                return $command;
+                //$result = self::performCommand($command, $centralRepo);
             };
 
-            $uploadConfig(
+            $command .= $uploadConfig(
                 filename: 'pc-meta-data.json',
                 content: base64_encode(json_encode(VirtualMachinesService::getMetadata($vm))),
                 vm: $vm,
                 centralRepo: $centralRepo
             );
 
-            $uploadConfig(
+            $command .= $uploadConfig(
                 filename: 'user-data',
                 content: base64_encode(VirtualMachinesService::getCloudInitConfiguration($vm)),
                 vm: $vm,
                 centralRepo:  $centralRepo
             );
 
-            $uploadConfig(
+            $command .= $uploadConfig(
                 filename: 'meta-data',
                 content: base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n"),
                 vm: $vm,
@@ -545,7 +551,7 @@ class VirtualMachinesXenService extends AbstractXenService
             ];
 
             foreach ($configurationPack as $pack) {
-                $uploadConfig(
+                $command .= $uploadConfig(
                     filename: $pack,
                     content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/' . $pack))),
                     vm: $vm,
@@ -561,7 +567,7 @@ class VirtualMachinesXenService extends AbstractXenService
             if($vm->post_boot_script) {
                 $script = $vm->post_boot_script;
 
-                $uploadConfig(
+                $command .= $uploadConfig(
                     filename: 'post-boot-script.sh',
                     content: base64_encode($script),
                     vm: $vm,
@@ -572,7 +578,7 @@ class VirtualMachinesXenService extends AbstractXenService
             }
 
             //  Creating the iso file
-            $command = 'genisoimage -output ' .
+            $command .= 'genisoimage -output ' .
                 'config-iso/' . $vm->uuid . '/config.iso ' .
                 '-volid cidata -joliet -rock ' .
                 'config-iso/' . $vm->uuid . '/user-data ' .
@@ -596,12 +602,15 @@ class VirtualMachinesXenService extends AbstractXenService
 
             //  Moving the iso to the central repository
             $command .= PHP_EOL;
-            $command = 'mv config-iso/' . $vm->uuid . '/config.iso ' . $centralRepo->iso_path . '/config-' . $vm->uuid . '.iso';
+            $command .= 'mv config-iso/' . $vm->uuid . '/config.iso ' . $centralRepo->iso_path . '/config-' . $vm->uuid . '.iso';
             //$result = self::performCommand($command, $centralRepo);
 
             //  Removing the config-iso folder
             $command .= PHP_EOL;
-            $command = 'rm -f config-iso/' . $vm->uuid . '/config.iso';
+            $command .= 'rm -f config-iso/' . $vm->uuid . '/config.iso';
+
+            dd($command);
+
             $result = self::performCommand($command, $centralRepo);
 
             $configImage = RepositoryImagesService::getCloudInitImage($vm);
