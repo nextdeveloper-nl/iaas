@@ -4,19 +4,19 @@
     name: jq
     state: present
 
-- name: Check if /root/startup.sh exists
+- name: Check if /opt/plusclouds/startup.sh exists
   stat:
-    path: /root/startup.sh
+    path: /opt/plusclouds/startup.sh
   register: startup_script
 
 - name: Ensure startup.sh is executable
   file:
-    path: /root/startup.sh
+    path: /opt/plusclouds/startup.sh
     mode: '0700'
   when: startup_script.stat.exists
 
-- name: Run /root/startup.sh with metadata file path
-  command: /root/startup.sh {{ metadata_file }}
+- name: Run /opt/plusclouds/startup.sh with metadata file path
+  command: /opt/plusclouds/startup.sh {{ metadata_file }}
   when: startup_script.stat.exists
   register: startup_result
   failed_when: false
