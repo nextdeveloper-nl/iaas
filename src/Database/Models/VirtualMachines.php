@@ -64,6 +64,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $snapshot_of_virtual_machine
  * @property integer $backup_repository_id
  * @property string $post_boot_script
+ * @property array $tokens
  */
 class VirtualMachines extends Model
 {
@@ -122,6 +123,7 @@ class VirtualMachines extends Model
             'snapshot_of_virtual_machine',
             'backup_repository_id',
             'post_boot_script',
+            'tokens',
     ];
 
     /**
@@ -186,6 +188,7 @@ class VirtualMachines extends Model
     'snapshot_of_virtual_machine' => 'integer',
     'backup_repository_id' => 'integer',
     'post_boot_script' => 'string',
+    'tokens' => 'array',
     ];
 
     /**

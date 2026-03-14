@@ -37,5 +37,36 @@ return [
 
     'platforms' =>  [
         'xenserver82'   =>  ''
-    ]
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Virtual Machine Lifecycle & CRUD Hooks
+    |--------------------------------------------------------------------------
+    | Register handler classes per hook. Each class must implement
+    | NextDeveloper\IAAS\Contracts\VirtualMachineHandlerInterface.
+    |
+    | Lifecycle hooks : booting, booted, shutting_down, shutdown,
+    |                   suspended, resumed, deploying, deployed
+    | CRUD hooks      : creating, created, updating, updated, deleting, deleted
+    |
+    | Example:
+    | 'booting' => [\App\Handlers\VirtualMachines\VncTokenGenerator::class],
+    */
+    'vm_hooks'  =>  [
+        'booting'       => [],
+        'booted'        => [],
+        'shutting_down' => [],
+        'shutdown'      => [],
+        'suspended'     => [],
+        'resumed'       => [],
+        'deploying'     => [],
+        'deployed'      => [],
+        'creating'      => [],
+        'created'       => [],
+        'updating'      => [],
+        'updated'       => [],
+        'deleting'      => [],
+        'deleted'       => [],
+    ],
 ];

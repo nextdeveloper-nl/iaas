@@ -826,4 +826,61 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
         return $vm->fresh();
     }
+
+    /**
+     * Generate a secure token for the given service and store it in the VM's tokens map.
+     * If a token already exists for that service it will be rotated.
+     *
+     * @param  VirtualMachines  $vm
+     * @param  string           $service  e.g. 'vnc', 'rdp', 'custom_service'
+     * @param  int              $length   Token length in bytes (default 32)
+     * @return string           The generated token
+     */
+    public static function generateToken(VirtualMachines $vm, string $service, int $length = 32): string
+    {
+        $token = Str::random($length);
+
+        $tokens = $vm->tokens ?? [];
+        $tokens[$service] = $token;
+
+        UserHelper::runAsAdmin(function () use ($vm, $tokens) {
+            $vm->update(['tokens' => $tokens]);
+        });
+
+        return $token;
+    }
+
+    /**
+     * Retrieve the token for the given service, or null if it does not exist.
+     *
+     * @param  VirtualMachines  $vm
+     * @param  string           $service
+     * @return string|null
+     */
+    public static function getToken(VirtualMachines $vm, string $service): ?string
+    {
+        return $vm->tokens[$service] ?? null;
+    }
+
+    /**
+     * Revoke (remove) the token for the given service.
+     *
+     * @param  VirtualMachines  $vm
+     * @param  string           $service
+     * @return void
+     */
+    public static function revokeToken(VirtualMachines $vm, string $service): void
+    {
+        $tokens = $vm->tokens ?? [];
+
+        if (!array_key_exists($service, $tokens)) {
+            return;
+        }
+
+        unset($tokens[$service]);
+
+        UserHelper::runAsAdmin(function () use ($vm, $tokens) {
+            $vm->update(['tokens' => $tokens]);
+        });
+    }
 }
