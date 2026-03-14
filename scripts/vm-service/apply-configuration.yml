@@ -63,3 +63,6 @@
 
     - name: Run post boot script
       include_tasks: run-post-boot-script.yml
+
+    - name: Run image startup script
+      include_tasks: run-startup-script.yml
