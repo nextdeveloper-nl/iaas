@@ -644,7 +644,8 @@ class VirtualMachinesXenService extends AbstractXenService
                 'disk-resize-ubuntu24.yml',
                 'apply-env-vars.yml',
                 'apply-ssh-keys.yml',
-                'run-post-boot-script.yml'
+                'run-post-boot-script.yml',
+                'run-startup-script.yml'
             ];
 
             foreach ($configurationPack as $pack) {
