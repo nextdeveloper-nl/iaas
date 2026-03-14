@@ -383,6 +383,10 @@ class VirtualMachinesXenService extends AbstractXenService
                 ->first();
         }
 
+        if(!$storageVolume) {
+            throw new \Exception('Storage volume not found, we need to add the NFS ISO library to make sure it is correctly configured.');
+        }
+
         $command = 'xe sr-scan uuid=' . $storageVolume->hypervisor_uuid;
         self::performCommand($command, $computeMember);
 

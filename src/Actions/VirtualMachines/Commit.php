@@ -65,15 +65,13 @@ class Commit extends AbstractAction
 
         $this->queue = 'iaas';
 
-        $this->params['is_lazy_deploy'] = true;
-
-//        if($params) {
-//            if(!array_key_exists('is_lazy_deploy', $params)) {
-//                $params['is_lazy_deploy'] = false;
-//            }
-//        } else {
-//            $params['is_lazy_deploy'] = false;
-//        }
+        if($params) {
+            if(!array_key_exists('is_lazy_deploy', $params)) {
+                $params['is_lazy_deploy'] = true;
+            }
+        } else {
+            $params['is_lazy_deploy'] = true;
+        }
 
         parent::__construct($params, $previous);
     }
