@@ -80,11 +80,8 @@ class Commit extends AbstractAction
     {
         $this->setProgress(0, 'Committing virtual machine...');
 
-        //  Is lazy deploy is always true
-        $this->params['is_lazy_deploy'] = true;
-
         if(array_key_exists('is_lazy_deploy', $this->params)) {
-            if($this->params['is_lazy_deploy']) {
+            if($this->params['is_lazy_deploy'] == true) {
                 $this->setProgress(0, 'Lazy deploying virtual machine...');
             }
         }

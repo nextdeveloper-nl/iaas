@@ -141,6 +141,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'cloud_node' => $cloudPoolArray,
             'ssh_keys' => self::collectSshKeys($vm),
             'env_vars' => self::collectEnvVars($vm),
+            'tokens'   => $vm->tokens ?? [],
         ];
     }
 
@@ -266,6 +267,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         ];
 
         $envVars = self::collectEnvVars($vm);
+        $writeFiles = [];
 
         if (!empty($envVars)) {
             $envContent = '';
@@ -273,14 +275,27 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                 $envContent .= strtoupper($key) . '=' . $value . "\n";
             }
 
-            $data['write_files'] = [
-                [
-                    'path'        => '/etc/environment',
-                    'content'     => $envContent,
-                    'permissions' => '0644',
-                    'append'      => true,
-                ]
+            $writeFiles[] = [
+                'path'        => '/etc/environment',
+                'content'     => $envContent,
+                'permissions' => '0644',
+                'append'      => true,
             ];
+        }
+
+        $tokens = $vm->tokens ?? [];
+
+        if (!empty($tokens)) {
+            $writeFiles[] = [
+                'path'        => '/etc/plusclouds/tokens.json',
+                'content'     => json_encode($tokens, JSON_PRETTY_PRINT),
+                'permissions' => '0600',
+                'owner'       => 'root:root',
+            ];
+        }
+
+        if (!empty($writeFiles)) {
+            $data['write_files'] = $writeFiles;
         }
 
         $yaml = yaml_emit($data, YAML_UTF8_ENCODING, YAML_LN_BREAK);
