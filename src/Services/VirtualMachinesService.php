@@ -32,6 +32,7 @@ use NextDeveloper\IAAS\Exceptions\CannotFindAvailableResourceException;
 use NextDeveloper\IAAS\Exceptions\CannotUpdateResourcesException;
 use NextDeveloper\IAAS\Helpers\IaasHelper;
 use NextDeveloper\IAAS\Helpers\ResourceCalculationHelper;
+use GuzzleHttp\Client;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
@@ -680,6 +681,155 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             'sign'  =>  md5($key.$t.$endpoint.$key),
             'service'   => $consoleRedisSession,
         ];
+    }
+
+    /**
+     * Returns console connection data using a fresh XenAPI session token.
+     *
+     * Unlike getConsoleData(), this method obtains a live session_ref from the
+     * XenServer XMLRPC API and appends it to the console URL as a query parameter.
+     * This is the correct approach for XenServer 8.2+ which requires an authenticated
+     * session rather than HTTP Basic Auth to proxy VNC connections.
+     *
+     * The resulting HTTPS console URL is stored in Redis for 30 seconds.
+     *
+     * @param VirtualMachines $vm
+     * @return array
+     */
+    public static function getConsoleDataWithSessionRef(VirtualMachines $vm): array
+    {
+        if ($vm->status == 'halted' || $vm->status == 'draft') {
+            return ['console' => 'Not available while the server is shutdown.'];
+        }
+
+        if ($vm->console_data == null) {
+            (new HealthCheck($vm))->handle();
+        }
+
+        $vm = $vm->fresh();
+
+        if (!$vm) {
+            return [];
+        }
+
+        if (!$vm->console_data) {
+            $consoleParams = VirtualMachinesXenService::getConsoleParameters($vm);
+            $vm->update(['console_data' => $consoleParams[0]]);
+            $vm = $vm->fresh();
+        }
+
+        if ($vm->status == 'draft' || $vm->status == 'halted') {
+            return [];
+        }
+
+        if (!array_key_exists('uuid', $vm->console_data)) {
+            dispatch(new HealthCheck($vm));
+            return [];
+        }
+
+        $computeMember = self::getComputeMember($vm);
+
+        $ipAddr = $computeMember->is_behind_firewall
+            ? $computeMember->local_ip_addr
+            : $computeMember->ip_addr;
+
+        if (Str::contains($ipAddr, '/')) {
+            $ipAddr = explode('/', $ipAddr)[0];
+        }
+
+        $sessionRef = self::getXenApiSessionRef(
+            $ipAddr,
+            $computeMember->ssh_username,
+            decrypt($computeMember->ssh_password)
+        );
+
+        if (!$sessionRef) {
+            Log::error(__METHOD__ . ' | Could not obtain XenAPI session for compute member: ' . $computeMember->uuid);
+            return [];
+        }
+
+        $consoleUrl = 'https://' . $ipAddr . '/console?uuid=' . $vm->console_data['uuid'] . '&session_id=' . $sessionRef;
+
+        Log::info(__METHOD__ . ' | Console URL built for VM: ' . $vm->uuid);
+
+        $consoleRedisSession = Str::random(32);
+
+        $redis = new \Predis\Client([
+            'scheme'   => 'tcp',
+            'host'     => config('database.redis.default.host'),
+            'port'     => config('database.redis.default.port'),
+            'password' => config('database.redis.default.password'),
+            'database' => 2,
+        ]);
+
+        $redis->setex('leo:console:' . $consoleRedisSession, 30, $consoleUrl);
+
+        return [
+            'service' => $consoleRedisSession,
+        ];
+    }
+
+    /**
+     * Authenticates against the XenServer XMLRPC API and returns a session reference.
+     *
+     * @param string $ipAddr   Compute member IP (no scheme, no port).
+     * @param string $username XenServer root username.
+     * @param string $password XenServer root password.
+     * @return string|null     The OpaqueRef session token, or null on failure.
+     */
+    private static function getXenApiSessionRef(string $ipAddr, string $username, string $password): ?string
+    {
+        // Build the XMLRPC payload manually — ext-xmlrpc is not available in PHP 8+
+        $xmlPayload = '<?xml version="1.0"?>' .
+            '<methodCall>' .
+                '<methodName>session.login_with_password</methodName>' .
+                '<params>' .
+                    '<param><value><string>' . htmlspecialchars($username, ENT_XML1) . '</string></value></param>' .
+                    '<param><value><string>' . htmlspecialchars($password, ENT_XML1) . '</string></value></param>' .
+                    '<param><value><string>1.0</string></value></param>' .
+                    '<param><value><string>plusclouds-iaas</string></value></param>' .
+                '</params>' .
+            '</methodCall>';
+
+        try {
+            $client = new Client([
+                'base_uri'        => 'https://' . $ipAddr,
+                'timeout'         => 10,
+                'connect_timeout' => 5,
+                'verify'          => false, // XenServer uses self-signed certificates
+            ]);
+
+            $response = $client->post('/RPC2', [
+                'body'    => $xmlPayload,
+                'headers' => ['Content-Type' => 'text/xml'],
+            ]);
+
+            $xml = simplexml_load_string((string) $response->getBody());
+
+            if (!$xml) {
+                Log::error(__METHOD__ . ' | Could not parse XenAPI XMLRPC response.');
+                return null;
+            }
+
+            // XenAPI wraps the result in a struct with Status and Value members
+            $members = $xml->xpath('//struct/member');
+            $result  = [];
+
+            foreach ($members as $member) {
+                $result[(string) $member->name] = (string) $member->value->string;
+            }
+
+            if (isset($result['Status'], $result['Value']) && $result['Status'] === 'Success') {
+                return $result['Value'];
+            }
+
+            Log::error(__METHOD__ . ' | XenAPI login failed. Response: ' . print_r($result, true));
+            return null;
+
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' | XenAPI XMLRPC call failed: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**

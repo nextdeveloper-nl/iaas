@@ -21,26 +21,23 @@ local function fail(status, message)
     ngx.exit(status)
 end
 
--- Capture the raw Sec-WebSocket-Protocol header at outer scope so it is
--- accessible after get_token() returns (the local inside the function is gone).
-local ws_protocol_raw = ngx.req.get_headers()["Sec-WebSocket-Protocol"]
-
 local function get_token()
-    if not ws_protocol_raw or ws_protocol_raw == "" then
+    local ws_protocol = ngx.req.get_headers()["Sec-WebSocket-Protocol"]
+    if not ws_protocol or ws_protocol == "" then
         ngx.log(ngx.WARN, "Sec-WebSocket-Protocol header is missing")
         return nil
     end
 
-    ngx.log(ngx.INFO, "Sec-WebSocket-Protocol received: ", ws_protocol_raw)
+    ngx.log(ngx.INFO, "Sec-WebSocket-Protocol received: ", ws_protocol)
 
-    for part in ws_protocol_raw:gmatch("[^,%s]+") do
+    for part in ws_protocol:gmatch("[^,%s]+") do
         if part ~= "binary" and part ~= "base64" and part ~= "null" then
             ngx.log(ngx.INFO, "Token extracted from Sec-WebSocket-Protocol: ", part)
             return part
         end
     end
 
-    ngx.log(ngx.WARN, "No valid token found in Sec-WebSocket-Protocol: ", ws_protocol_raw)
+    ngx.log(ngx.WARN, "No valid token found in Sec-WebSocket-Protocol: ", ws_protocol)
     return nil
 end
 
@@ -118,74 +115,24 @@ if session_url == ngx.null or not session_url then
     fail(ngx.HTTP_UNAUTHORIZED, "token expired or invalid")
 end
 
--- Trim any trailing whitespace or newlines that could break pattern matching
-session_url = session_url:gsub("%s+$", "")
-
 ngx.log(ngx.INFO, "Session URL from Redis: ", session_url)
 
--- Parse http://user:password@host/path?query into parts
--- No trailing $ anchor to avoid failures caused by invisible trailing characters
-local user, password, host, path = session_url:match("^https?://([^:]+):([^@]+)@([^/]+)(/.+)")
+-- -------------------------------------------------------
+-- Parse the new URL format produced by getConsoleDataWithSessionRef:
+--   https://<host>/console?uuid=<uuid>&session_id=<OpaqueRef>
+-- No embedded credentials — the session_id query param authenticates the request.
+-- -------------------------------------------------------
+local host, path = session_url:match("^https?://([^/]+)(/.+)$")
 
 if not host then
     ngx.log(ngx.ERR, "Failed to parse session URL: ", session_url)
     fail(ngx.HTTP_INTERNAL_SERVER_ERROR, "session error")
 end
 
-ngx.log(ngx.INFO, "Parsed - host: ", host, " path: ", path, " user: ", user)
+ngx.log(ngx.INFO, "Parsed - host: ", host, " path: ", path)
 
-
--- Encode credentials as Basic Auth header
-local credentials = ngx.encode_base64(user .. ":" .. password)
-
--- When proxy_pass uses a variable, nginx ignores the path inside the variable and
--- sends the original request URI to the upstream instead. To ensure XenServer receives
--- the correct /console?uuid=... path, we rewrite the request URI here before proxying.
-local uri_path = path:match("^([^?]+)") or "/"
-local uri_args = path:match("^[^?]+%?(.+)$")
-
-ngx.req.set_uri(uri_path)
-if uri_args then
-    ngx.req.set_uri_args(uri_args)
-end
-
--- Build a cleaned Sec-WebSocket-Protocol value: keep standard subprotocols,
--- strip the one-time auth token so XenServer receives e.g. "binary".
-local ws_protocol_parts = {}
-if ws_protocol_raw then
-    for part in ws_protocol_raw:gmatch("[^,%s]+") do
-        if part ~= token then
-            table.insert(ws_protocol_parts, part)
-        end
-    end
-end
-local ws_protocol = table.concat(ws_protocol_parts, ", ")
-if ws_protocol == "" then
-    ws_protocol = "binary"
-end
-
--- Set proxy target to just the base URL — path is handled by the rewritten URI above
-ngx.var.proxy_target = "http://" .. host
+-- Forward to XenServer over HTTPS. The session_id is already in the query string.
+ngx.var.proxy_target = "https://" .. host .. path
 ngx.var.proxy_host   = host
-ngx.var.proxy_auth   = "Basic " .. credentials
-ngx.var.ws_protocol  = ws_protocol
 
--- Log all request headers that will be forwarded to XenServer
-local all_headers = ngx.req.get_headers()
-local header_list = {}
-for k, v in pairs(all_headers) do
-    if type(v) == "table" then
-        table.insert(header_list, k .. ": " .. table.concat(v, ", "))
-    else
-        table.insert(header_list, k .. ": " .. tostring(v))
-    end
-end
-ngx.log(ngx.WARN, "UPSTREAM HEADERS: ", table.concat(header_list, " | "))
-
-ngx.log(ngx.WARN, "DEBUG proxy_auth=", ngx.var.proxy_auth or "NIL",
-          " proxy_target=", ngx.var.proxy_target or "NIL",
-          " proxy_host=", ngx.var.proxy_host or "NIL",
-          " ws_protocol=", ngx.var.ws_protocol or "NIL")
-
-ngx.log(ngx.INFO, "Console proxy authorized - target: http://", host, uri_path, "?", uri_args or "",
-        " ws_protocol=", ws_protocol)
+ngx.log(ngx.INFO, "Console proxy authorized - target: https://", host, path)

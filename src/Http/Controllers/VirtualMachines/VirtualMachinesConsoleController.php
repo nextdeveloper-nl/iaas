@@ -36,4 +36,29 @@ class VirtualMachinesConsoleController extends AbstractController
 
         return ResponsableFactory::makeResponse($this, $console);
     }
+
+    /**
+     * Returns console connection data using a fresh XenAPI session token.
+     * This method is intended for XenServer 8.2+ and the /xenserver82 nginx endpoint.
+     *
+     * @param  $virtualMachinesId
+     * @param  VirtualMachinesUpdateRequest $request
+     * @return mixed|null
+     */
+    public function getConsoleDataWithSessionRef($virtualMachinesId, VirtualMachinesUpdateRequest $request)
+    {
+        $vm = VirtualMachines::where('uuid', $virtualMachinesId)->first();
+
+        if (!$vm) {
+            return ResponseHelper::error('Virtual machine not found.');
+        }
+
+        $console = VirtualMachinesService::getConsoleDataWithSessionRef($vm);
+
+        if (!$console) {
+            return ResponseHelper::error('Virtual machine console is not available at the moment. Please make sure that virtual machine is running. Otherwise please create a support ticket.');
+        }
+
+        return ResponsableFactory::makeResponse($this, $console);
+    }
 }
