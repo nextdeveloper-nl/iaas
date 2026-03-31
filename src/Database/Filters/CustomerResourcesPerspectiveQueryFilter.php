@@ -84,7 +84,8 @@ class CustomerResourcesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isAccountSuspended($value)
     {
-        return $this->builder->where('is_account_suspended', $value);
+        $bool = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
+        return $this->builder->whereRaw("is_account_suspended = $bool");
     }
 
     //  This is an alias function of isAccountSuspended
@@ -95,7 +96,8 @@ class CustomerResourcesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isCrmSuspended($value)
     {
-        return $this->builder->where('is_crm_suspended', $value);
+        $bool = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
+        return $this->builder->whereRaw("is_crm_suspended = $bool");
     }
 
     //  This is an alias function of isCrmSuspended
@@ -106,7 +108,8 @@ class CustomerResourcesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isCrmDisabled($value)
     {
-        return $this->builder->where('is_crm_disabled', $value);
+        $bool = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
+        return $this->builder->whereRaw("is_crm_disabled = $bool");
     }
 
     //  This is an alias function of isCrmDisabled
@@ -117,7 +120,8 @@ class CustomerResourcesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function isAccountingDisabled($value)
     {
-        return $this->builder->where('is_accounting_disabled', $value);
+        $bool = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
+        return $this->builder->whereRaw("is_accounting_disabled = $bool");
     }
 
     //  This is an alias function of isAccountingDisabled
@@ -145,12 +149,6 @@ class CustomerResourcesPerspectiveQueryFilter extends AbstractQueryFilter
         }
 
         return $this->builder->where('iam_account_id', null);
-    }
-
-    //  This is an alias function of iamAccountId
-    public function iam_account_id($value)
-    {
-        return $this->iamAccountId($value);
     }
 
     public function iaasCloudNodeId($value)

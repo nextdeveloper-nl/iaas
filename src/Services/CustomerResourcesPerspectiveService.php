@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use NextDeveloper\IAAS\Database\Filters\CustomerResourcesPerspectiveQueryFilter;
 use NextDeveloper\IAAS\Database\Models\CustomerResourcesPerspective;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * This class is responsible from managing the data for CustomerResourcesPerspective
@@ -45,7 +46,7 @@ class CustomerResourcesPerspectiveService
             $filter->orderBy($params['orderBy']);
         }
 
-        $model = CustomerResourcesPerspective::filter($filter);
+        $model = CustomerResourcesPerspective::withoutGlobalScope(AuthorizationScope::class)->filter($filter);
 
         if ($enablePaginate) {
             $modelCount = $model->count();

@@ -32,7 +32,8 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
      */
     public function apply(Builder $builder, Model $model)
     {
-
+        if($model->getTable() === 'iaas_customer_resources_perspective')
+            return;
     }
 
     public function checkPrivileges(Users $users = null)
