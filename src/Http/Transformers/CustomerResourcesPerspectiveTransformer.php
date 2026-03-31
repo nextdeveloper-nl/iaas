@@ -24,6 +24,7 @@ class CustomerResourcesPerspectiveTransformer extends AbstractTransformer
         $data = [
             'id'                     => $model->resource_uuid,
             'iam_account_id'         => $model->account_uuid,
+            'crm_account_uuid'       => $model->crm_account_uuid,
             'account_name'           => $model->account_name,
             'user_name'              => $model->user_name,
             'user_email'             => $model->user_email,

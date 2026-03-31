@@ -13,6 +13,7 @@ use NextDeveloper\IAAS\Database\Observers\CustomerResourcesPerspectiveObserver;
  * @package  NextDeveloper\IAAS\Database\Models
  * @property integer $iam_account_id
  * @property string $account_uuid
+ * @property string $crm_account_uuid
  * @property string $account_name
  * @property string $user_name
  * @property string $user_email
@@ -50,6 +51,7 @@ class CustomerResourcesPerspective extends Model
     protected $fillable = [
         'iam_account_id',
         'account_uuid',
+        'crm_account_uuid',
         'account_name',
         'user_name',
         'user_email',
@@ -89,6 +91,7 @@ class CustomerResourcesPerspective extends Model
     protected $casts = [
         'iam_account_id'         => 'integer',
         'resource_id'            => 'integer',
+        'crm_account_uuid'       => 'string',
         'account_name'           => 'string',
         'user_name'              => 'string',
         'user_email'             => 'string',

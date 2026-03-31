@@ -140,6 +140,17 @@ class CustomerResourcesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $value);
     }
 
+    public function crmAccountUuid($value)
+    {
+        return $this->builder->where('crm_account_uuid', $value);
+    }
+
+    //  This is an alias function of crmAccountUuid
+    public function crm_account_uuid($value)
+    {
+        return $this->crmAccountUuid($value);
+    }
+
     public function iamAccountId($value)
     {
         $account = \NextDeveloper\IAM\Database\Models\Accounts::findByRef($value);
