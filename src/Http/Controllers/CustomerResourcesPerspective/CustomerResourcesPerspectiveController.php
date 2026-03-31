@@ -1,0 +1,49 @@
+<?php
+
+namespace NextDeveloper\IAAS\Http\Controllers\CustomerResourcesPerspective;
+
+use Illuminate\Http\Request;
+use NextDeveloper\Commons\Http\Response\ResponsableFactory;
+use NextDeveloper\IAAS\Database\Filters\CustomerResourcesPerspectiveQueryFilter;
+use NextDeveloper\IAAS\Database\Models\CustomerResourcesPerspective;
+use NextDeveloper\IAAS\Http\Controllers\AbstractController;
+use NextDeveloper\IAAS\Services\CustomerResourcesPerspectiveService;
+
+class CustomerResourcesPerspectiveController extends AbstractController
+{
+    private $model = CustomerResourcesPerspective::class;
+
+    /**
+     * This method returns the list of customer resources perspectives.
+     *
+     * optional http params:
+     * - paginate: If you set paginate parameter, the result will be returned paginated.
+     *
+     * @param  CustomerResourcesPerspectiveQueryFilter $filter  An object that builds search query
+     * @param  Request                                 $request Laravel request object, this holds all data about request. Automatically populated.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index(CustomerResourcesPerspectiveQueryFilter $filter, Request $request)
+    {
+        $data = CustomerResourcesPerspectiveService::get($filter, $request->all());
+
+        return ResponsableFactory::makeResponse($this, $data);
+    }
+
+    /**
+     * This method receives ID for the related model and returns the item to the client.
+     *
+     * @param  $ref
+     * @return mixed|null
+     */
+    public function show($ref)
+    {
+        //  Here we are not using Laravel Route Model Binding. Please check routeBinding.md file
+        //  in NextDeveloper Platform Project
+        $model = CustomerResourcesPerspectiveService::getByRef($ref);
+
+        return ResponsableFactory::makeResponse($this, $model);
+    }
+
+    // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+}

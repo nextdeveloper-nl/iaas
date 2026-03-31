@@ -1619,6 +1619,13 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('customer-resources-perspective')->group(
+            function () {
+                Route::get('/', 'CustomerResourcesPerspective\CustomerResourcesPerspectiveController@index');
+                Route::get('/{icrp}', 'CustomerResourcesPerspective\CustomerResourcesPerspectiveController@show');
+            }
+        );
+
         Route::prefix('repository-images-perspective')->group(
             function () {
                 Route::get('/', 'RepositoryImagesPerspective\RepositoryImagesPerspectiveController@index');
@@ -1999,102 +2006,6 @@ Route::prefix('iaas')->group(
 
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         Route::prefix('registries')->group(
             function () {
                 Route::get('/{repo}/containers', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'index']);
@@ -2113,12 +2024,3 @@ Route::prefix('iaas')->group(
         Route::post('/events', [\NextDeveloper\IAAS\Http\Controllers\ComputeMembers\ComputeMemberEventsController::class, 'store']);
     }
 );
-
-
-
-
-
-
-
-
-
