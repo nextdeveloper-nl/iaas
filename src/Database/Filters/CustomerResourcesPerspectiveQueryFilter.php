@@ -153,5 +153,22 @@ class CustomerResourcesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->iamAccountId($value);
     }
 
+    public function iaasCloudNodeId($value)
+    {
+        $cloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::findByRef($value);
+
+        if ($cloudNode) {
+            return $this->builder->where('iaas_cloud_node_id', $cloudNode->id);
+        }
+
+        return $this->builder->where('iaas_cloud_node_id', null);
+    }
+
+    //  This is an alias function of iaasCloudNodeId
+    public function iaas_cloud_node_id($value)
+    {
+        return $this->iaasCloudNodeId($value);
+    }
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }

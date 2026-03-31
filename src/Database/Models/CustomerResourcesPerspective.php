@@ -25,6 +25,7 @@ use NextDeveloper\IAAS\Database\Observers\CustomerResourcesPerspectiveObserver;
  * @property string $resource_uuid
  * @property string $resource_name
  * @property string $resource_status
+ * @property integer $iaas_cloud_node_id
  * @property integer $cpu
  * @property integer $ram
  * @property \Carbon\Carbon $created_at
@@ -61,6 +62,7 @@ class CustomerResourcesPerspective extends Model
         'resource_uuid',
         'resource_name',
         'resource_status',
+        'iaas_cloud_node_id',
         'cpu',
         'ram',
     ];
@@ -97,6 +99,7 @@ class CustomerResourcesPerspective extends Model
         'resource_type'          => 'string',
         'resource_name'          => 'string',
         'resource_status'        => 'string',
+        'iaas_cloud_node_id'     => 'integer',
         'cpu'                    => 'integer',
         'ram'                    => 'integer',
         'created_at'             => 'datetime',

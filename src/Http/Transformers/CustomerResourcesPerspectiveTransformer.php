@@ -19,6 +19,8 @@ class CustomerResourcesPerspectiveTransformer extends AbstractTransformer
      */
     public function transform(CustomerResourcesPerspective $model)
     {
+        $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
+
         $data = [
             'id'                     => $model->resource_uuid,
             'iam_account_id'         => $model->account_uuid,
@@ -29,6 +31,7 @@ class CustomerResourcesPerspectiveTransformer extends AbstractTransformer
             'is_crm_suspended'       => $model->is_crm_suspended,
             'is_crm_disabled'        => $model->is_crm_disabled,
             'is_accounting_disabled' => $model->is_accounting_disabled,
+            'iaas_cloud_node_id'     => $iaasCloudNodeId?->uuid,
             'resource_type'          => $model->resource_type,
             'resource_uuid'          => $model->resource_uuid,
             'resource_name'          => $model->resource_name,
