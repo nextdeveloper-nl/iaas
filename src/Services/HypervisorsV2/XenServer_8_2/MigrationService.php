@@ -5,8 +5,10 @@ namespace NextDeveloper\IAAS\Services\HypervisorsV2\XenServer_8_2;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\StorageMembers;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -961,15 +963,19 @@ class MigrationService implements MigrationInterface
         $this->updateStep($migration, 'recreating-vm', 90,
             'Created ' . count($metadata['disks']) . ' VBD(s)');
 
-        // ── 8. Build source→target network hypervisor UUID map ────────────────
-        $networkMapping = $options['network_mapping'] ?? [];
-        $targetNetworkUuidBySource = [];
+        // ── 8. Build source hypervisor network UUID → target XenServer network UUID map ──
+        //
+        // ComputeMemberNetworkInterfaces stores per-host network UUIDs (network_uuid).
+        // If the network does not yet exist on the target host, we create it automatically
+        // using ComputeMemberXenService::createNetwork(), which also handles xe network-create
+        // + xe vlan-create and syncs the result back into ComputeMemberNetworkInterfaces.
+        $networkMapping            = $options['network_mapping'] ?? [];
+        $targetNetworkUuidBySource = []; // source hypervisor_uuid (network) → target XenServer network_uuid
 
         foreach ($networkMapping as $map) {
             $sourceNetworkId = $map['source_network']['id'] ?? null;
-            $targetNetworkId = $map['target_network']['id'] ?? null;
 
-            if (!$sourceNetworkId || !$targetNetworkId) {
+            if (!$sourceNetworkId) {
                 continue;
             }
 
@@ -977,13 +983,38 @@ class MigrationService implements MigrationInterface
                 ->where('id', $sourceNetworkId)
                 ->first();
 
-            $targetNetwork = Networks::withoutGlobalScope(AuthorizationScope::class)
-                ->where('id', $targetNetworkId)
+            if (!$sourceNetwork) {
+                continue;
+            }
+
+            // Prefer the plan-mapped target network; fall back to source network (same VLAN/name)
+            $targetNetworkId = $map['target_network']['id'] ?? null;
+            $networkForCreate = $targetNetworkId
+                ? Networks::withoutGlobalScope(AuthorizationScope::class)->where('id', $targetNetworkId)->first()
+                : $sourceNetwork;
+
+            if (!$networkForCreate) {
+                $networkForCreate = $sourceNetwork;
+            }
+
+            // Check if the target host already has this VLAN in its ComputeMemberNetworkInterfaces
+            $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_compute_member_id', $target->id)
+                ->where('vlan', $networkForCreate->vlan)
                 ->first();
 
-            if ($sourceNetwork && $targetNetwork) {
-                $targetNetworkUuidBySource[$sourceNetwork->hypervisor_uuid] = $targetNetwork->hypervisor_uuid;
+            if (!$cmni) {
+                // Network does not exist on the target host — create it now
+                Log::info(__METHOD__ . ' | Network VLAN ' . $networkForCreate->vlan
+                    . ' not found on target "' . $target->name . '" — creating it');
+
+                $cmni = ComputeMemberXenService::createNetwork($target, $networkForCreate);
+
+                Log::info(__METHOD__ . ' | Network created on target: network_uuid=' . $cmni->network_uuid
+                    . ', vlan=' . $cmni->vlan);
             }
+
+            $targetNetworkUuidBySource[$sourceNetwork->hypervisor_uuid] = $cmni->network_uuid;
         }
 
         // ── 9. Create VIFs (attach NICs), preserving MAC addresses ───────────
@@ -993,8 +1024,8 @@ class MigrationService implements MigrationInterface
 
             if (!$targetNetworkUuid) {
                 throw new \Exception(
-                    'No target network UUID mapping found for source network UUID: ' . $sourceNetworkUuid
-                    . '. Ensure all NICs have a matching network in the evacuation plan.'
+                    'Could not resolve a target network UUID for source network UUID: ' . $sourceNetworkUuid
+                    . '. Verify the evacuation plan has a network mapping for all NICs.'
                 );
             }
 
@@ -1014,7 +1045,8 @@ class MigrationService implements MigrationInterface
                 );
             }
 
-            Log::info(__METHOD__ . ' | Created VIF: device=' . $nic['device'] . ', mac=' . $nic['mac']);
+            Log::info(__METHOD__ . ' | Created VIF: device=' . $nic['device'] . ', mac=' . $nic['mac']
+                . ', network_uuid=' . $targetNetworkUuid);
         }
 
         $this->updateStep($migration, 'recreating-vm', 92,
