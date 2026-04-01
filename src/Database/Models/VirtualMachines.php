@@ -64,7 +64,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $snapshot_of_virtual_machine
  * @property integer $backup_repository_id
  * @property string $post_boot_script
- * @property array $tokens
+ * @property $tokens
  */
 class VirtualMachines extends Model
 {
@@ -250,26 +250,6 @@ class VirtualMachines extends Model
         }
     }
 
-    public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
-    }
-
-    public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
-    }
-
-    public function virtualMachineMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class);
-    }
-
-    public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
-    }
-
     public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
@@ -285,9 +265,19 @@ class VirtualMachines extends Model
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
     }
     
-    public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
+    }
+    
+    public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
+    }
+
+    public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
     }
 
     public function sshPublicKeyVirtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
@@ -295,14 +285,24 @@ class VirtualMachines extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\SshPublicKeyVirtualMachines::class);
     }
 
-    public function virtualMachineEnvVarGroups() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVarGroups::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
     }
 
     public function virtualMachineEnvVars() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars::class);
+    }
+
+    public function virtualMachineEnvVarGroups() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVarGroups::class);
+    }
+
+    public function virtualMachineMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
@@ -321,6 +321,7 @@ class VirtualMachines extends Model
 
         return $this->fresh();
     }
+
 
 
 

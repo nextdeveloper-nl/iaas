@@ -139,15 +139,16 @@ class VirtualMachineEnvVarGroups extends Model
         }
     }
 
-    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
-    }
-    
     public function envVarGroups() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\EnvVarGroups::class);
     }
     
+    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
+    }
+    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

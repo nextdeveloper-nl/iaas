@@ -221,24 +221,24 @@ class StorageMembers extends Model
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\StoragePools::class);
     }
     
-    public function storageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
-    }
-
     public function computeMemberStorageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes::class);
     }
 
-    public function storageMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function storageVolumes() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageMemberDevices::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageVolumes::class);
     }
 
     public function storageMemberStats() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageMemberStats::class);
+    }
+
+    public function storageMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\StorageMemberDevices::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
@@ -252,6 +252,7 @@ class StorageMembers extends Model
             },
         );
     }
+
 
 
 

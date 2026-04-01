@@ -54,23 +54,26 @@ class AbstractEnvVarGroupVarsTransformer extends AbstractTransformer
      */
     public function transform(EnvVarGroupVars $model)
     {
-        $iaasEnvVarGroupId = \NextDeveloper\IAAS\Database\Models\EnvVarGroups::where('id', $model->iaas_env_var_group_id)->first();
-        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-
+                                                $iaasEnvVarGroupId = \NextDeveloper\IAAS\Database\Models\EnvVarGroups::where('id', $model->iaas_env_var_group_id)->first();
+                                                            $sourceId = \NextDeveloper\Commons\Database\Models\Ai.ids::where('id', $model->source_id)->first();
+                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+                        
         return $this->buildPayload(
             [
-                'id' => $model->uuid,
-                'iaas_env_var_group_id' => $iaasEnvVarGroupId ? $iaasEnvVarGroupId->uuid : null,
-                'key' => $model->key,
-                'value' => $model->value,
-                'is_secret' => $model->is_secret,
-                'description' => $model->description,
-                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
-                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
-                'created_at' => $model->created_at,
-                'updated_at' => $model->updated_at,
-                'deleted_at' => $model->deleted_at,
+            'id'  =>  $model->uuid,
+            'iaas_env_var_group_id'  =>  $iaasEnvVarGroupId ? $iaasEnvVarGroupId->uuid : null,
+            'key'  =>  $model->key,
+            'value'  =>  $model->value,
+            'source_type'  =>  $model->source_type,
+            'source_id'  =>  $sourceId ? $sourceId->uuid : null,
+            'is_secret'  =>  $model->is_secret,
+            'description'  =>  $model->description,
+            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
+            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'created_at'  =>  $model->created_at,
+            'updated_at'  =>  $model->updated_at,
+            'deleted_at'  =>  $model->deleted_at,
             ]
         );
     }
@@ -159,4 +162,5 @@ class AbstractEnvVarGroupVarsTransformer extends AbstractTransformer
         return $this->collection($addresses, new AddressesTransformer());
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 }

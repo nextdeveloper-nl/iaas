@@ -154,4 +154,5 @@ class VirtualMachineCpuHourlyStatsQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

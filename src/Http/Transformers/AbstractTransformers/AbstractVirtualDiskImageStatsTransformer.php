@@ -171,4 +171,5 @@ class AbstractVirtualDiskImageStatsTransformer extends AbstractTransformer
 
 
 
+
 }

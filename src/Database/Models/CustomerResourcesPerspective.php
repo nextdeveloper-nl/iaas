@@ -6,6 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use NextDeveloper\Commons\Database\Traits\Filterable;
 use NextDeveloper\IAAS\Database\Observers\CustomerResourcesPerspectiveObserver;
+use NextDeveloper\Commons\Database\Traits\HasStates;
+use Illuminate\Notifications\Notifiable;
+use NextDeveloper\Commons\Database\Traits\UuidId;
+use NextDeveloper\Commons\Database\Traits\HasObject;
+use NextDeveloper\Commons\Common\Cache\Traits\CleanCache;
+use NextDeveloper\Commons\Database\Traits\Taggable;
+use NextDeveloper\Commons\Database\Traits\RunAsAdministrator;
 
 /**
  * CustomerResourcesPerspective model.
@@ -13,11 +20,11 @@ use NextDeveloper\IAAS\Database\Observers\CustomerResourcesPerspectiveObserver;
  * @package  NextDeveloper\IAAS\Database\Models
  * @property integer $iam_account_id
  * @property string $account_uuid
- * @property string $crm_account_uuid
  * @property string $account_name
  * @property string $user_name
  * @property string $user_email
  * @property boolean $is_account_suspended
+ * @property string $crm_account_uuid
  * @property boolean $is_crm_suspended
  * @property boolean $is_crm_disabled
  * @property boolean $is_accounting_disabled
@@ -26,22 +33,22 @@ use NextDeveloper\IAAS\Database\Observers\CustomerResourcesPerspectiveObserver;
  * @property string $resource_uuid
  * @property string $resource_name
  * @property string $resource_status
- * @property integer $iaas_cloud_node_id
  * @property integer $cpu
  * @property integer $ram
+ * @property integer $iaas_cloud_node_id
+ * @property string $hypervisor_name_label
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $deleted_at
  */
 class CustomerResourcesPerspective extends Model
 {
-    use Filterable;
+    use Filterable, UuidId, CleanCache, Taggable, HasStates, RunAsAdministrator, HasObject;
     use SoftDeletes;
 
     public $timestamps = false;
 
     protected $table = 'iaas_customer_resources_perspective';
 
-    protected $primaryKey = 'resource_id';
 
     /**
      @var array
@@ -49,24 +56,25 @@ class CustomerResourcesPerspective extends Model
     protected $guarded = [];
 
     protected $fillable = [
-        'iam_account_id',
-        'account_uuid',
-        'crm_account_uuid',
-        'account_name',
-        'user_name',
-        'user_email',
-        'is_account_suspended',
-        'is_crm_suspended',
-        'is_crm_disabled',
-        'is_accounting_disabled',
-        'resource_type',
-        'resource_id',
-        'resource_uuid',
-        'resource_name',
-        'resource_status',
-        'iaas_cloud_node_id',
-        'cpu',
-        'ram',
+            'iam_account_id',
+            'account_uuid',
+            'account_name',
+            'user_name',
+            'user_email',
+            'is_account_suspended',
+            'crm_account_uuid',
+            'is_crm_suspended',
+            'is_crm_disabled',
+            'is_accounting_disabled',
+            'resource_type',
+            'resource_id',
+            'resource_uuid',
+            'resource_name',
+            'resource_status',
+            'cpu',
+            'ram',
+            'iaas_cloud_node_id',
+            'hypervisor_name_label',
     ];
 
     /**
@@ -89,24 +97,40 @@ class CustomerResourcesPerspective extends Model
      @var array
      */
     protected $casts = [
-        'iam_account_id'         => 'integer',
-        'resource_id'            => 'integer',
-        'crm_account_uuid'       => 'string',
-        'account_name'           => 'string',
-        'user_name'              => 'string',
-        'user_email'             => 'string',
-        'is_account_suspended'   => 'boolean',
-        'is_crm_suspended'       => 'boolean',
-        'is_crm_disabled'        => 'boolean',
-        'is_accounting_disabled' => 'boolean',
-        'resource_type'          => 'string',
-        'resource_name'          => 'string',
-        'resource_status'        => 'string',
-        'iaas_cloud_node_id'     => 'integer',
-        'cpu'                    => 'integer',
-        'ram'                    => 'integer',
-        'created_at'             => 'datetime',
-        'deleted_at'             => 'datetime',
+    'account_name' => 'string',
+    'user_name' => 'string',
+    'user_email' => 'string',
+    'is_account_suspended' => 'boolean',
+    'is_crm_suspended' => 'boolean',
+    'is_crm_disabled' => 'boolean',
+    'is_accounting_disabled' => 'boolean',
+    'resource_type' => 'string',
+    'resource_id' => 'integer',
+    'resource_name' => 'string',
+    'resource_status' => 'string',
+    'cpu' => 'integer',
+    'ram' => 'integer',
+    'iaas_cloud_node_id' => 'integer',
+    'hypervisor_name_label' => 'string',
+    'created_at' => 'datetime',
+    'deleted_at' => 'datetime',
+    ];
+
+    /**
+     We are casting data fields.
+     *
+     @var array
+     */
+    protected $dates = [
+    'created_at',
+    'deleted_at',
+    ];
+
+    /**
+     @var array
+     */
+    protected $with = [
+
     ];
 
     /**
@@ -121,6 +145,7 @@ class CustomerResourcesPerspective extends Model
     {
         parent::boot();
 
+        //  We create and add Observer even if we wont use it.
         parent::observe(CustomerResourcesPerspectiveObserver::class);
 
         self::registerScopes();
@@ -131,11 +156,9 @@ class CustomerResourcesPerspective extends Model
         $globalScopes = config('iaas.scopes.global');
         $modelScopes = config('iaas.scopes.iaas_customer_resources_perspective');
 
-        if (!$modelScopes) {
-            $modelScopes = [];
+        if(!$modelScopes) { $modelScopes = [];
         }
-        if (!$globalScopes) {
-            $globalScopes = [];
+        if (!$globalScopes) { $globalScopes = [];
         }
 
         $scopes = array_merge(
@@ -143,7 +166,7 @@ class CustomerResourcesPerspective extends Model
             $modelScopes
         );
 
-        if ($scopes) {
+        if($scopes) {
             foreach ($scopes as $scope) {
                 static::addGlobalScope(app($scope));
             }

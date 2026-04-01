@@ -193,16 +193,6 @@ class Networks extends Model
         }
     }
 
-    public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);
-    }
-
-    public function networkStats() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkStats::class);
-    }
-
     public function cloudNodes() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
@@ -228,12 +218,23 @@ class Networks extends Model
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
     }
     
+    public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);
+    }
+
+    public function networkStats() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\NetworkStats::class);
+    }
+
     public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
 
 
 

@@ -171,4 +171,5 @@ class VirtualMachineCpuAlertsQueryFilter extends AbstractQueryFilter
 
 
 
+
 }

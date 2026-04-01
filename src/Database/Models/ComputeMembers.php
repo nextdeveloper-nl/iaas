@@ -240,14 +240,24 @@ class ComputeMembers extends Model
         }
     }
 
-    public function computeMemberMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberMetrics::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
 
-    public function computeMemberEvents() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function computeMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberEvents::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberDevices::class);
+    }
+
+    public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
+    }
+    
+    public function computeMemberNetworkInterfaces() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces::class);
     }
 
     public function computeMemberStats() : \Illuminate\Database\Eloquent\Relations\HasMany
@@ -260,24 +270,14 @@ class ComputeMembers extends Model
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes::class);
     }
 
-    public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function computeMemberEvents() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
-    }
-    
-    public function computeMemberDevices() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberDevices::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberEvents::class);
     }
 
-    public function computeMemberNetworkInterfaces() : \Illuminate\Database\Eloquent\Relations\HasMany
+    public function computeMemberMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces::class);
-    }
-
-    public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\ComputeMemberMetrics::class);
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
@@ -291,6 +291,7 @@ class ComputeMembers extends Model
             },
         );
     }
+
 
 
 

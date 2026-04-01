@@ -202,6 +202,11 @@ class Repositories extends Model
         }
     }
 
+    public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
+    }
+
     public function accounts() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
@@ -212,11 +217,6 @@ class Repositories extends Model
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
     
-    public function repositoryImages() : \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\RepositoryImages::class);
-    }
-
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
@@ -236,6 +236,7 @@ class Repositories extends Model
             },
         );
     }
+
 
 
 

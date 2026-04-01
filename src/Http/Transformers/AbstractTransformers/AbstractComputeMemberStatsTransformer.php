@@ -172,4 +172,5 @@ class AbstractComputeMemberStatsTransformer extends AbstractTransformer
 
 
 
+
 }
