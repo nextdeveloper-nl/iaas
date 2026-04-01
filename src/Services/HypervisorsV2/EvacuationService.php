@@ -201,10 +201,13 @@ class EvacuationService
             }
 
             if (!$matchedNetwork) {
-                // Network mismatch is a warning — operator can supply a manual mapping before migration starts
-                $warnings[] = 'No matching network on target for NIC "' . $nic->name . '"'
+                // No existing network found on the target — the migration will auto-create it
+                // using ComputeMemberXenService::createNetwork() during the recreate-vm step.
+                // This is reflected as match_confidence = 'will_create' in the mapping below.
+                $warnings[] = 'No existing network found on target for NIC "' . $nic->name . '"'
                     . ' (source: "' . ($sourceNetwork?->name ?? 'unknown') . '"'
-                    . ', VLAN: ' . ($sourceNetwork?->vlan ?? 'none') . ').';
+                    . ', VLAN: ' . ($sourceNetwork?->vlan ?? 'none') . ')'
+                    . ' — it will be created automatically on the target host during migration.';
             }
 
             $networkMapping[] = [
@@ -347,14 +350,14 @@ class EvacuationService
 
     /**
      * Returns the confidence level of a network match.
-     * 'exact' — matched by VLAN
-     * 'name'  — matched by network name only
-     * 'none'  — no match found
+     * 'exact'       — matched by VLAN on the target cloud node
+     * 'name'        — matched by network name only
+     * 'will_create' — no existing match; network will be auto-created on the target host during migration
      */
     private static function networkMatchConfidence(?Networks $source, ?Networks $target): string
     {
         if (!$target) {
-            return 'none';
+            return 'will_create';
         }
 
         if ($source && $source->vlan && $source->vlan === $target->vlan) {

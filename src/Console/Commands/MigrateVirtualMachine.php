@@ -446,7 +446,7 @@ class MigrateVirtualMachine extends Command
         foreach ($plan['network_mapping'] as $m) {
             $target = $m['target_network']['name'] ?? 'NONE';
             $conf   = $m['match_confidence'];
-            $color  = match ($conf) { 'exact' => 'green', 'name' => 'yellow', default => 'red' };
+            $color  = match ($conf) { 'exact' => 'green', 'name' => 'yellow', 'will_create' => 'cyan', default => 'red' };
             $this->line(sprintf(
                 '  NIC  %-30s → %-30s [<fg=%s>%s</>]',
                 $m['nic']['name'],
