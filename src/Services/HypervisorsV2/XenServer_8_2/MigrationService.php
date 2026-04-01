@@ -229,6 +229,11 @@ class MigrationService implements MigrationInterface
                 continue;
             }
 
+            // Use xe vbd-param-list to get the full VBD record (xe vbd-list
+            // only outputs a subset of fields and may omit userdevice).
+            $vbdResult = self::performCommand('xe vbd-param-list uuid=' . trim($vbd['uuid']), $source);
+            $vbdParams = AbstractXenService::parseResult($vbdResult['output']);
+
             $result    = self::performCommand('xe vdi-param-list uuid=' . $vdiUuid, $source);
             $vdiParams = AbstractXenService::parseResult($result['output']);
 
@@ -236,12 +241,12 @@ class MigrationService implements MigrationInterface
             $vhdPath = '/var/run/sr-mount/' . $srUuid . '/' . $vdiUuid . '.vhd';
 
             $disks[] = [
-                'vbd_uuid'       => trim($vbd['uuid']),
-                'vbd_device'     => trim($vbd['device'] ?? ''),
-                'vbd_userdevice' => trim($vbd['userdevice'] ?? ''),
-                'vbd_bootable'   => trim($vbd['bootable'] ?? 'false'),
-                'vbd_mode'       => trim($vbd['mode'] ?? 'RW'),
-                'vbd_type'       => trim($vbd['type'] ?? 'Disk'),
+                'vbd_uuid'       => trim($vbdParams['uuid'] ?? $vbd['uuid']),
+                'vbd_device'     => trim($vbdParams['device'] ?? $vbd['device'] ?? ''),
+                'vbd_userdevice' => trim($vbdParams['userdevice'] ?? $vbd['userdevice'] ?? ''),
+                'vbd_bootable'   => trim($vbdParams['bootable'] ?? $vbd['bootable'] ?? 'false'),
+                'vbd_mode'       => trim($vbdParams['mode'] ?? $vbd['mode'] ?? 'RW'),
+                'vbd_type'       => trim($vbdParams['type'] ?? $vbd['type'] ?? 'Disk'),
                 'vdi_uuid'       => $vdiUuid,
                 'vdi_name'       => trim($vdiParams['name-label'] ?? ''),
                 'vdi_size_bytes' => (int) trim($vdiParams['virtual-size'] ?? '0'),
@@ -1015,11 +1020,22 @@ class MigrationService implements MigrationInterface
 
             $bootable = (($disk['vbd_bootable'] ?? 'false') === 'true') ? 'true' : 'false';
 
+            // Derive userdevice from device name if not explicitly stored
+            // (xe vbd-list omits userdevice on some XenServer versions).
+            $userDevice = $disk['vbd_userdevice'] ?? '';
+            if ($userDevice === '') {
+                $deviceName = $disk['vbd_device'] ?? '';
+                $letter     = preg_replace('/^(?:xvd|hd|sd|vd)/', '', $deviceName);
+                $userDevice = ($letter !== '' && ctype_alpha($letter[0]))
+                    ? (string)(ord(strtolower($letter[0])) - ord('a'))
+                    : '0';
+            }
+
             $result = self::performCommand(
                 'xe vbd-create'
                 . ' vm-uuid=' . $newVmUuid
                 . ' vdi-uuid=' . $targetVdiUuid
-                . ' device=' . escapeshellarg($disk['vbd_userdevice'])
+                . ' device=' . escapeshellarg($userDevice)
                 . ' bootable=' . $bootable
                 . ' mode=' . escapeshellarg(strtoupper($disk['vbd_mode'] ?? 'RW'))
                 . ' type=' . escapeshellarg($disk['vbd_type'] ?? 'Disk'),
@@ -1033,7 +1049,7 @@ class MigrationService implements MigrationInterface
             }
 
             Log::info(__METHOD__ . ' | Created VBD for VDI: ' . $targetVdiUuid
-                . ' (device=' . $disk['vbd_userdevice'] . ', bootable=' . $bootable . ')');
+                . ' (device=' . $userDevice . ', bootable=' . $bootable . ')');
         }
 
         $this->updateStep($migration, 'recreating-vm', 90,
@@ -1510,7 +1526,7 @@ class MigrationService implements MigrationInterface
     {
         $password = decrypt($storageMember->ssh_password);
 
-        return 'echo ' . escapeshellarg($password . "\n") . ' | sudo -S -i -- ' . $command;
+        return 'echo ' . escapeshellarg($password) . ' | sudo -S -p \'\' -- ' . $command;
     }
 
     /**
