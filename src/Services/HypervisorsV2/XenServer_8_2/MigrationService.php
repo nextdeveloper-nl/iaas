@@ -1510,7 +1510,7 @@ class MigrationService implements MigrationInterface
     {
         $password = decrypt($storageMember->ssh_password);
 
-        return 'echo ' . escapeshellarg($password) . ' | sudo -S -i -- ' . $command;
+        return 'echo ' . escapeshellarg($password . "\n") . ' | sudo -S -i -- ' . $command;
     }
 
     /**
