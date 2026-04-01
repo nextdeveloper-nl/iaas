@@ -714,7 +714,7 @@ class MigrationService implements MigrationInterface
 
             $commands[] = [
                 'host'    => $sourceStorageMember->name,
-                'command' => self::sudo('rsync -avz --checksum --partial --progress '
+                'command' => self::sudo('rsync -av --partial --progress '
                     . escapeshellarg($sourcePath) . ' '
                     . escapeshellarg($targetPath), $sourceStorageMember),
                 'note'    => 'Copy VHD: ' . $vdiUuid . '.vhd',
@@ -792,7 +792,7 @@ class MigrationService implements MigrationInterface
                 Log::info(__METHOD__ . ' | Starting rsync: ' . $sourcePath . ' -> ' . $targetPath);
 
                 $rsyncResult = self::performStorageCommand(
-                    self::sudo('rsync -avz --checksum --partial --progress '
+                    self::sudo('rsync -av --partial --progress '
                         . escapeshellarg($sourcePath) . ' '
                         . escapeshellarg($targetPath), $sourceStorageMember),
                     $sourceStorageMember
