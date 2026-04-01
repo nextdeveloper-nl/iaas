@@ -602,19 +602,24 @@ class MigrationService implements MigrationInterface
             ->where('iaas_storage_volume_id', $migration->source_iaas_storage_volume_id)
             ->firstOrFail();
 
-        $sourceServerPath = rtrim($sourceCmVolume->block_device_data['device-config']['serverpath'] ?? '', '/');
+        $sourceServerPath = rtrim(trim($sourceCmVolume->block_device_data['device-config']['serverpath'] ?? ''), '/')
+            . '/' . $sourceCmVolume->hypervisor_uuid;
 
         $targetCmVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_compute_member_id', $migration->target_iaas_compute_member_id)
             ->where('iaas_storage_volume_id', $migration->target_iaas_storage_volume_id)
             ->firstOrFail();
 
-        $targetNfsServer     = $targetCmVolume->block_device_data['device-config']['server'] ?? null;
-        $targetNfsServerPath = rtrim($targetCmVolume->block_device_data['device-config']['serverpath'] ?? '', '/');
+        $targetNfsServer     = trim($targetCmVolume->block_device_data['device-config']['server'] ?? '');
+        $targetNfsServerPath = rtrim(trim($targetCmVolume->block_device_data['device-config']['serverpath'] ?? ''), '/');
 
         if (!$targetNfsServer || !$targetNfsServerPath) {
             throw new \Exception('Target NFS coordinates missing from block_device_data. Cannot proceed with copy.');
         }
+
+        // XenServer creates a subdirectory named after the SR's hypervisor_uuid inside the NFS export.
+        // VHD files live at <serverpath>/<sr-hypervisor-uuid>/<vdi-uuid>.vhd
+        $targetNfsServerPath = $targetNfsServerPath . '/' . $targetCmVolume->hypervisor_uuid;
 
         $mountPoint = '/tmp/migration-' . $migration->uuid;
 
