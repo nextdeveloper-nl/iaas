@@ -630,7 +630,7 @@ class MigrationService implements MigrationInterface
 
         $commands[] = [
             'host'    => $sourceStorageMember->name,
-            'command' => self::sudo('mkdir -p ' . escapeshellarg($mountPoint)),
+            'command' => self::sudo('mkdir -p ' . escapeshellarg($mountPoint), $sourceStorageMember),
             'note'    => 'Create temporary NFS mount point',
         ];
 
@@ -638,7 +638,7 @@ class MigrationService implements MigrationInterface
             'host'    => $sourceStorageMember->name,
             'command' => self::sudo('mount -t nfs '
                 . escapeshellarg($targetNfsServer . ':' . $targetNfsServerPath)
-                . ' ' . escapeshellarg($mountPoint)),
+                . ' ' . escapeshellarg($mountPoint), $sourceStorageMember),
             'note'    => 'Mount target NFS share at ' . $targetNfsServer . ':' . $targetNfsServerPath,
         ];
 
@@ -651,7 +651,7 @@ class MigrationService implements MigrationInterface
                 'host'    => $sourceStorageMember->name,
                 'command' => self::sudo('rsync -avz --checksum --partial --progress '
                     . escapeshellarg($sourcePath) . ' '
-                    . escapeshellarg($targetPath)),
+                    . escapeshellarg($targetPath), $sourceStorageMember),
                 'note'    => 'Copy VHD: ' . $vdiUuid . '.vhd',
             ];
 
@@ -670,13 +670,13 @@ class MigrationService implements MigrationInterface
 
         $commands[] = [
             'host'    => $sourceStorageMember->name,
-            'command' => self::sudo('umount ' . escapeshellarg($mountPoint)),
+            'command' => self::sudo('umount ' . escapeshellarg($mountPoint), $sourceStorageMember),
             'note'    => 'Unmount temporary NFS mount point (always runs)',
         ];
 
         $commands[] = [
             'host'    => $sourceStorageMember->name,
-            'command' => self::sudo('rmdir ' . escapeshellarg($mountPoint)),
+            'command' => self::sudo('rmdir ' . escapeshellarg($mountPoint), $sourceStorageMember),
             'note'    => 'Remove temporary mount point directory (always runs)',
         ];
 
@@ -729,7 +729,7 @@ class MigrationService implements MigrationInterface
                 $rsyncResult = self::performStorageCommand(
                     self::sudo('rsync -avz --checksum --partial --progress '
                         . escapeshellarg($sourcePath) . ' '
-                        . escapeshellarg($targetPath)),
+                        . escapeshellarg($targetPath), $sourceStorageMember),
                     $sourceStorageMember
                 );
 
@@ -774,8 +774,8 @@ class MigrationService implements MigrationInterface
                 ];
             }
         } finally {
-            self::performStorageCommand(self::sudo('umount ' . escapeshellarg($mountPoint)), $sourceStorageMember);
-            self::performStorageCommand(self::sudo('rmdir ' . escapeshellarg($mountPoint)), $sourceStorageMember);
+            self::performStorageCommand(self::sudo('umount ' . escapeshellarg($mountPoint), $sourceStorageMember), $sourceStorageMember);
+            self::performStorageCommand(self::sudo('rmdir ' . escapeshellarg($mountPoint), $sourceStorageMember), $sourceStorageMember);
 
             Log::info(__METHOD__ . ' | Unmounted and cleaned up: ' . $mountPoint);
         }
@@ -1500,21 +1500,17 @@ class MigrationService implements MigrationInterface
     }
 
     /**
-     * Wraps a command for execution as root on an Ubuntu storage member.
+     * Wraps a command so it runs as root via sudo on an Ubuntu storage member.
      *
-     * Uses `sudo su -c "..."` rather than plain `sudo` so that mount and other
-     * privileged operations that require a full root environment work correctly.
-     *
-     * Single-quoted arguments produced by escapeshellarg() are safe inside the
-     * double-quoted -c string — bash treats single quotes literally there.
-     * UUIDs, NFS IPs, and Linux paths never contain double quotes or backslashes,
-     * so no additional escaping is required.
-     *
-     * Applied consistently so dry-run output matches what is actually executed.
+     * Uses `echo password | sudo -S -i -- command` to supply the password
+     * non-interactively over stdin (no TTY required).
+     * The password is read from StorageMembers.ssh_password at call time.
      */
-    private static function sudo(string $command): string
+    private static function sudo(string $command, StorageMembers $storageMember): string
     {
-        return 'sudo su -c "' . $command . '"';
+        $password = decrypt($storageMember->ssh_password);
+
+        return 'echo ' . escapeshellarg($password) . ' | sudo -S -i -- ' . $command;
     }
 
     /**
