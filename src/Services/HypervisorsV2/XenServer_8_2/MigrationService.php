@@ -574,11 +574,18 @@ class MigrationService implements MigrationInterface
      */
     public function copyVhdFiles(VirtualMachineMigrations $migration): void
     {
-        $this->updateStep($migration, 'copying-vhd', 45, 'Preparing VHD copy via storage members');
-
         $options = is_array($migration->options)
             ? $migration->options
             : (json_decode($migration->options, true) ?? []);
+
+        $isDryRun = !empty($options['dry_run']);
+
+        $this->updateStep(
+            $migration,
+            'copying-vhd',
+            45,
+            $isDryRun ? 'Dry-run: resolving VHD copy commands (no SSH executed)' : 'Preparing VHD copy via storage members'
+        );
 
         if (empty($options['coalesced_vhd_paths'])) {
             throw new \Exception('No coalesced VHD paths found. Run validateAndCoalesceVhd before this step.');
@@ -590,7 +597,6 @@ class MigrationService implements MigrationInterface
             ->firstOrFail();
 
         // ── Resolve NFS coordinates from ComputeMemberStorageVolumes ──────────
-        // Source: local serverpath where VHDs live on source Ubuntu storage
         $sourceCmVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_compute_member_id', $migration->source_iaas_compute_member_id)
             ->where('iaas_storage_volume_id', $migration->source_iaas_storage_volume_id)
@@ -598,7 +604,6 @@ class MigrationService implements MigrationInterface
 
         $sourceServerPath = rtrim($sourceCmVolume->block_device_data['device-config']['serverpath'] ?? '', '/');
 
-        // Target: NFS server IP and export path to mount on source storage
         $targetCmVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_compute_member_id', $migration->target_iaas_compute_member_id)
             ->where('iaas_storage_volume_id', $migration->target_iaas_storage_volume_id)
@@ -611,18 +616,85 @@ class MigrationService implements MigrationInterface
             throw new \Exception('Target NFS coordinates missing from block_device_data. Cannot proceed with copy.');
         }
 
-        // ── Create temp mount point on source storage member ──────────────────
         $mountPoint = '/tmp/migration-' . $migration->uuid;
 
+        // ── Build the full ordered command list ───────────────────────────────
+        $vhdPaths = $options['coalesced_vhd_paths'];
+
+        $commands = [];
+
+        $commands[] = [
+            'host'    => $sourceStorageMember->name,
+            'command' => self::sudo('mkdir -p ' . escapeshellarg($mountPoint)),
+            'note'    => 'Create temporary NFS mount point',
+        ];
+
+        $commands[] = [
+            'host'    => $sourceStorageMember->name,
+            'command' => self::sudo('mount -t nfs '
+                . escapeshellarg($targetNfsServer . ':' . $targetNfsServerPath)
+                . ' ' . escapeshellarg($mountPoint)),
+            'note'    => 'Mount target NFS share at ' . $targetNfsServer . ':' . $targetNfsServerPath,
+        ];
+
+        foreach ($vhdPaths as $vhdPath) {
+            $vdiUuid    = basename($vhdPath, '.vhd');
+            $sourcePath = $sourceServerPath . '/' . $vdiUuid . '.vhd';
+            $targetPath = $mountPoint . '/' . $vdiUuid . '.vhd';
+
+            $commands[] = [
+                'host'    => $sourceStorageMember->name,
+                'command' => self::sudo('rsync -avz --checksum --partial --progress '
+                    . escapeshellarg($sourcePath) . ' '
+                    . escapeshellarg($targetPath)),
+                'note'    => 'Copy VHD: ' . $vdiUuid . '.vhd',
+            ];
+
+            $commands[] = [
+                'host'    => $sourceStorageMember->name,
+                'command' => 'stat -c%s ' . escapeshellarg($sourcePath),
+                'note'    => 'Integrity check — source size of ' . $vdiUuid . '.vhd',
+            ];
+
+            $commands[] = [
+                'host'    => $sourceStorageMember->name,
+                'command' => 'stat -c%s ' . escapeshellarg($targetPath),
+                'note'    => 'Integrity check — target size of ' . $vdiUuid . '.vhd',
+            ];
+        }
+
+        $commands[] = [
+            'host'    => $sourceStorageMember->name,
+            'command' => self::sudo('umount ' . escapeshellarg($mountPoint)),
+            'note'    => 'Unmount temporary NFS mount point (always runs)',
+        ];
+
+        $commands[] = [
+            'host'    => $sourceStorageMember->name,
+            'command' => self::sudo('rmdir ' . escapeshellarg($mountPoint)),
+            'note'    => 'Remove temporary mount point directory (always runs)',
+        ];
+
+        // ── Dry-run: persist the command list and return without executing ─────
+        if ($isDryRun) {
+            $options['dry_run_commands'] = $commands;
+
+            $migration->updateQuietly([
+                'options'      => json_encode($options),
+                'step_message' => 'Dry-run complete — ' . count($commands) . ' command(s) listed in options.dry_run_commands',
+            ]);
+
+            Log::info(__METHOD__ . ' | Dry-run: ' . count($commands) . ' command(s) listed, nothing executed.');
+
+            return;
+        }
+
+        // ── Live run: execute commands ────────────────────────────────────────
         $this->updateStep($migration, 'copying-vhd', 46, 'Mounting target NFS share on source storage');
 
-        self::performStorageCommand('mkdir -p ' . escapeshellarg($mountPoint), $sourceStorageMember);
+        self::performStorageCommand($commands[0]['command'], $sourceStorageMember);
 
-        $mountResult = self::performStorageCommand(
-            'mount -t nfs ' . escapeshellarg($targetNfsServer . ':' . $targetNfsServerPath)
-            . ' ' . escapeshellarg($mountPoint),
-            $sourceStorageMember
-        );
+        $mountResult = self::performStorageCommand($commands[1]['command'], $sourceStorageMember);
 
         if (!empty($mountResult['error']) && !str_contains($mountResult['error'], 'already mounted')) {
             throw new \Exception('Failed to mount target NFS share: ' . $mountResult['error']);
@@ -630,11 +702,9 @@ class MigrationService implements MigrationInterface
 
         Log::info(__METHOD__ . ' | Mounted ' . $targetNfsServer . ':' . $targetNfsServerPath . ' at ' . $mountPoint);
 
-        // ── Copy each VHD ─────────────────────────────────────────────────────
         $copiedPaths    = [];
-        $vhdPaths       = $options['coalesced_vhd_paths'];
         $total          = count($vhdPaths);
-        $progressPerVhd = (int) floor(22 / max($total, 1)); // spread 46 → 68 across all VHDs
+        $progressPerVhd = (int) floor(22 / max($total, 1));
 
         try {
             foreach ($vhdPaths as $index => $vhdPath) {
@@ -649,9 +719,9 @@ class MigrationService implements MigrationInterface
                 Log::info(__METHOD__ . ' | Starting rsync: ' . $sourcePath . ' -> ' . $targetPath);
 
                 $rsyncResult = self::performStorageCommand(
-                    'rsync -avz --checksum --partial --progress '
-                    . escapeshellarg($sourcePath) . ' '
-                    . escapeshellarg($targetPath),
+                    self::sudo('rsync -avz --checksum --partial --progress '
+                        . escapeshellarg($sourcePath) . ' '
+                        . escapeshellarg($targetPath)),
                     $sourceStorageMember
                 );
 
@@ -661,7 +731,7 @@ class MigrationService implements MigrationInterface
 
                 Log::info(__METHOD__ . ' | rsync complete for: ' . $vdiUuid . '.vhd');
 
-                // ── Integrity check: compare file sizes ───────────────────────
+                // ── Integrity check ───────────────────────────────────────────
                 $sourceSizeResult = self::performStorageCommand(
                     'stat -c%s ' . escapeshellarg($sourcePath),
                     $sourceStorageMember
@@ -696,14 +766,12 @@ class MigrationService implements MigrationInterface
                 ];
             }
         } finally {
-            // ── Always unmount, even on failure ──────────────────────────────
-            self::performStorageCommand('umount ' . escapeshellarg($mountPoint), $sourceStorageMember);
-            self::performStorageCommand('rmdir ' . escapeshellarg($mountPoint), $sourceStorageMember);
+            self::performStorageCommand(self::sudo('umount ' . escapeshellarg($mountPoint)), $sourceStorageMember);
+            self::performStorageCommand(self::sudo('rmdir ' . escapeshellarg($mountPoint)), $sourceStorageMember);
 
             Log::info(__METHOD__ . ' | Unmounted and cleaned up: ' . $mountPoint);
         }
 
-        // ── Persist copied paths into migration options ───────────────────────
         $options['copied_vhd_paths'] = $copiedPaths;
 
         $migration->updateQuietly([
@@ -1421,6 +1489,24 @@ class MigrationService implements MigrationInterface
             . ($result['error'] ? ' | err: ' . trim($result['error']) : ''));
 
         return $result;
+    }
+
+    /**
+     * Wraps a command for execution as root on an Ubuntu storage member.
+     *
+     * Uses `sudo su -c "..."` rather than plain `sudo` so that mount and other
+     * privileged operations that require a full root environment work correctly.
+     *
+     * Single-quoted arguments produced by escapeshellarg() are safe inside the
+     * double-quoted -c string — bash treats single quotes literally there.
+     * UUIDs, NFS IPs, and Linux paths never contain double quotes or backslashes,
+     * so no additional escaping is required.
+     *
+     * Applied consistently so dry-run output matches what is actually executed.
+     */
+    private static function sudo(string $command): string
+    {
+        return 'sudo su -c "' . $command . '"';
     }
 
     /**

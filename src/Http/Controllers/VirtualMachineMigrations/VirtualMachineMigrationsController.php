@@ -303,14 +303,40 @@ class VirtualMachineMigrationsController extends AbstractController
      * POST /iaas/virtual-machine-migrations/{ref}/copy-vhd
      *
      * Step 5 — Copy VHD files from source to target storage via NFS mount + rsync.
+     *
+     * Body params (optional):
+     *   dry_run  bool  When true, resolves and returns all SSH commands without executing them.
+     *                  The command list is stored in migration.options.dry_run_commands.
+     *                  Remove dry_run from options and re-POST to execute for real.
      */
-    public function copyVhd($ref)
+    public function copyVhd($ref, Request $request)
     {
         $migration = $this->resolveMigration($ref);
-        $service   = new MigrationService();
+
+        if ($request->boolean('dry_run')) {
+            $options = is_array($migration->options)
+                ? $migration->options
+                : (json_decode($migration->options, true) ?? []);
+
+            $options['dry_run'] = true;
+            $migration->updateQuietly(['options' => json_encode($options)]);
+        }
+
+        $service = new MigrationService();
         $service->copyVhdFiles($migration);
 
-        return ResponsableFactory::makeResponse($this, $migration->fresh());
+        $fresh   = $migration->fresh();
+        $options = is_array($fresh->options) ? $fresh->options : (json_decode($fresh->options, true) ?? []);
+
+        if (!empty($options['dry_run_commands'])) {
+            return response()->json([
+                'dry_run'  => true,
+                'migration' => $fresh,
+                'commands' => $options['dry_run_commands'],
+            ]);
+        }
+
+        return ResponsableFactory::makeResponse($this, $fresh);
     }
 
     /**

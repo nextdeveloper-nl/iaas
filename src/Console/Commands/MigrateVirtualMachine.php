@@ -46,7 +46,8 @@ class MigrateVirtualMachine extends Command
         {--target-id= : UUID of the target ComputeMember (required for propose and approve)}
         {--migration-id= : UUID of an existing VirtualMachineMigrations record (required for steps 3-12)}
         {--storage-type= : Preferred storage type for propose step (e.g. ssd, nfs, lvm)}
-        {--force-delete-snapshots : Allow deletion of VM snapshots during coalesce-vhd step}';
+        {--force-delete-snapshots : Allow deletion of VM snapshots during coalesce-vhd step}
+        {--dry-run : For copy-vhd: resolve and print all SSH commands without executing them}';
 
     protected $description = 'Run VM migration steps one by one (XenServer 8.2 NFS-based migration)';
 
@@ -226,13 +227,46 @@ class MigrateVirtualMachine extends Command
     private function stepCopyVhd(): void
     {
         $migration = $this->resolveMigration();
-        $service   = new MigrationService();
 
-        $this->info('[Step 5] Copying VHD files from source to target storage...');
+        if ($this->option('dry-run')) {
+            $options = is_array($migration->options)
+                ? $migration->options
+                : (json_decode($migration->options, true) ?? []);
+
+            $options['dry_run'] = true;
+            $migration->updateQuietly(['options' => json_encode($options)]);
+            $this->line('  <fg=yellow>Dry-run mode enabled — no SSH commands will be executed.</>');
+        }
+
+        $service = new MigrationService();
+
+        $this->info('[Step 5] ' . ($this->option('dry-run') ? 'Resolving' : 'Copying') . ' VHD files...');
         $service->copyVhdFiles($migration);
 
+        $fresh   = $migration->fresh();
+        $options = is_array($fresh->options) ? $fresh->options : (json_decode($fresh->options, true) ?? []);
+
+        if (!empty($options['dry_run_commands'])) {
+            $this->newLine();
+            $this->line('Commands that <fg=yellow>would</> be executed on <fg=cyan>'
+                . $options['dry_run_commands'][0]['host'] . '</>:');
+            $this->newLine();
+
+            foreach ($options['dry_run_commands'] as $i => $cmd) {
+                $this->line(sprintf('<fg=gray>[%d]</> <fg=yellow>%s</>',
+                    $i + 1,
+                    $cmd['note']
+                ));
+                $this->line('    ' . $cmd['command']);
+                $this->newLine();
+            }
+
+            $this->line('To execute for real, remove <fg=yellow>dry_run</> from migration options and re-run this step.');
+            return;
+        }
+
         $this->info('VHD copy complete.');
-        $this->printMigrationSummary($migration->fresh());
+        $this->printMigrationSummary($fresh);
         $this->nextStepHint('rescan-sr', $migration->uuid);
     }
 

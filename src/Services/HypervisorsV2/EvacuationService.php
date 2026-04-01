@@ -130,16 +130,13 @@ class EvacuationService
                     && $v->free_hdd >= $diskSizeGb)
                 ->first();
 
-            // Fallback: any target volume with enough free space regardless of type
+            // Fallback: any target volume with enough free space regardless of type.
+            // No warning is issued here — match_confidence = 'compatible' in the mapping
+            // already communicates that the type preference was not exactly satisfied.
             if (!$matched) {
                 $matched = $targetVolumes
                     ->filter(fn($v) => $v->free_hdd >= $diskSizeGb)
                     ->first();
-
-                if ($matched && $effectiveType) {
-                    $warnings[] = 'Disk "' . $disk->name . '": preferred type "' . $effectiveType . '" not available '
-                        . 'on target — falling back to "' . $matched->disk_physical_type . '".';
-                }
             }
 
             if (!$matched) {
