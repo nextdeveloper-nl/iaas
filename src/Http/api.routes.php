@@ -20,6 +20,23 @@ Route::prefix('iaas')->group(
 
                 Route::patch('/{iaas_virtual_machine_migrations}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@update');
                 Route::delete('/{iaas_virtual_machine_migrations}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@destroy');
+
+                // ── Evacuation plan ───────────────────────────────────────────────
+                Route::post('/propose', 'VirtualMachineMigrations\VirtualMachineMigrationsController@propose');
+                Route::post('/approve', 'VirtualMachineMigrations\VirtualMachineMigrationsController@approve');
+
+                // ── Step-by-step migration execution ──────────────────────────────
+                Route::post('/{iaas_virtual_machine_migrations}/pre-flight',       'VirtualMachineMigrations\VirtualMachineMigrationsController@preFlightChecks');
+                Route::post('/{iaas_virtual_machine_migrations}/collect-metadata', 'VirtualMachineMigrations\VirtualMachineMigrationsController@collectMetadata');
+                Route::post('/{iaas_virtual_machine_migrations}/coalesce-vhd',     'VirtualMachineMigrations\VirtualMachineMigrationsController@coalesceVhd');
+                Route::post('/{iaas_virtual_machine_migrations}/shutdown',         'VirtualMachineMigrations\VirtualMachineMigrationsController@shutdown');
+                Route::post('/{iaas_virtual_machine_migrations}/copy-vhd',         'VirtualMachineMigrations\VirtualMachineMigrationsController@copyVhd');
+                Route::post('/{iaas_virtual_machine_migrations}/rescan-sr',        'VirtualMachineMigrations\VirtualMachineMigrationsController@rescanSr');
+                Route::post('/{iaas_virtual_machine_migrations}/recreate-vm',      'VirtualMachineMigrations\VirtualMachineMigrationsController@recreateVm');
+                Route::post('/{iaas_virtual_machine_migrations}/validate',         'VirtualMachineMigrations\VirtualMachineMigrationsController@validate');
+                Route::post('/{iaas_virtual_machine_migrations}/sync-db',          'VirtualMachineMigrations\VirtualMachineMigrationsController@syncDb');
+                Route::post('/{iaas_virtual_machine_migrations}/start-vm',         'VirtualMachineMigrations\VirtualMachineMigrationsController@startVm');
+                Route::post('/{iaas_virtual_machine_migrations}/run',              'VirtualMachineMigrations\VirtualMachineMigrationsController@run');
             }
         );
 
