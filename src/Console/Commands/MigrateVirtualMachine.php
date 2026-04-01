@@ -228,15 +228,18 @@ class MigrateVirtualMachine extends Command
     {
         $migration = $this->resolveMigration();
 
-        if ($this->option('dry-run')) {
-            $options = is_array($migration->options)
-                ? $migration->options
-                : (json_decode($migration->options, true) ?? []);
+        $options = is_array($migration->options)
+            ? $migration->options
+            : (json_decode($migration->options, true) ?? []);
 
+        if ($this->option('dry-run')) {
             $options['dry_run'] = true;
-            $migration->updateQuietly(['options' => json_encode($options)]);
             $this->line('  <fg=yellow>Dry-run mode enabled — no SSH commands will be executed.</>');
+        } else {
+            unset($options['dry_run'], $options['dry_run_commands']);
         }
+
+        $migration->updateQuietly(['options' => json_encode($options)]);
 
         $service = new MigrationService();
 
