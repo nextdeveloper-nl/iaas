@@ -47,7 +47,7 @@ class MigrateVirtualMachine extends Command
         {--migration-id= : UUID of an existing VirtualMachineMigrations record (required for steps 3-12)}
         {--storage-type= : Preferred storage type for propose step (e.g. ssd, nfs, lvm)}
         {--force-delete-snapshots : Allow deletion of VM snapshots during coalesce-vhd step}
-        {--dry-run : For copy-vhd: resolve and print all SSH commands without executing them}';
+        {--dry-run : For copy-vhd and recreate-vm: resolve and print all commands without executing them}';
 
     protected $description = 'Run VM migration steps one by one (XenServer 8.2 NFS-based migration)';
 
@@ -294,18 +294,45 @@ class MigrateVirtualMachine extends Command
     {
         $migration = $this->resolveMigration();
 
-        $options    = is_array($migration->options)
+        $options = is_array($migration->options)
             ? $migration->options
             : (json_decode($migration->options, true) ?? []);
+
+        if ($this->option('dry-run')) {
+            $options['dry_run_recreate'] = true;
+            $this->line('  <fg=yellow>Dry-run mode enabled — no XenServer commands will be executed.</>');
+        } else {
+            unset($options['dry_run_recreate'], $options['dry_run_commands_recreate']);
+        }
+
+        $migration->updateQuietly(['options' => json_encode($options)]);
+
         $vdiUuidMap = $options['vdi_uuid_map'] ?? [];
+        $service    = new MigrationService();
 
-        $service   = new MigrationService();
+        $this->info('[Step 7] ' . ($this->option('dry-run') ? 'Resolving' : 'Recreating') . ' VM record on target host...');
+        $service->recreateVmOnTarget($migration, $vdiUuidMap);
 
-        $this->info('[Step 7] Recreating VM record on target host...');
-        $newVmUuid = $service->recreateVmOnTarget($migration, $vdiUuidMap);
+        $fresh   = $migration->fresh();
+        $options = is_array($fresh->options) ? $fresh->options : (json_decode($fresh->options, true) ?? []);
 
-        $this->info('VM recreated on target: ' . $newVmUuid);
-        $this->printMigrationSummary($migration->fresh());
+        if (!empty($options['dry_run_recreate']) && !empty($options['dry_run_commands_recreate'])) {
+            $this->newLine();
+            $this->line('Commands that <fg=yellow>would</> be executed on target host:');
+            $this->newLine();
+
+            foreach ($options['dry_run_commands_recreate'] as $i => $entry) {
+                $this->line(sprintf('<fg=gray>[%d]</> <fg=yellow>%s</>', $i + 1, $entry['note']));
+                $this->line('    ' . $entry['cmd']);
+                $this->newLine();
+            }
+
+            $this->line('To execute for real, re-run without <fg=yellow>--dry-run</>.');
+            return;
+        }
+
+        $this->info('VM recreated on target: ' . ($options['target_vm_uuid'] ?? 'unknown'));
+        $this->printMigrationSummary($fresh);
         $this->nextStepHint('validate', $migration->uuid);
     }
 

@@ -322,6 +322,23 @@ class VirtualMachines extends Model
         return $this->fresh();
     }
 
+    /**
+     * The VM this instance was cloned or migrated from.
+     * Resolved via snapshot_of_virtual_machine (source VM UUID).
+     */
+    public function cloningSource(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(VirtualMachines::class, 'snapshot_of_virtual_machine', 'uuid');
+    }
+
+    /**
+     * All VMs that were cloned or migrated from this instance.
+     */
+    public function clones(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(VirtualMachines::class, 'snapshot_of_virtual_machine', 'uuid');
+    }
+
 
 
 

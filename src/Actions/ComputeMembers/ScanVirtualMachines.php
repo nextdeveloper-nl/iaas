@@ -89,6 +89,13 @@ class ScanVirtualMachines extends AbstractAction
 
             $vmInfo = ComputeMemberXenService::getVirtualMachineByUuid($this->model, $vm['uuid']);
 
+            /**
+             * We are skipping the scan of virtual machines which has "migrated_" in the name
+             * Because if we don't skip we will be having two servers
+             */
+            if(Str::startsWith($vmInfo['name-label'], 'exported_'))
+                continue;
+
             if(is_array($vmInfo) && array_key_exists('error', $vmInfo)) {
                 Log::error('[ScanVirtualMachines] Error while scanning virtual machine: ' . $vm['uuid']);
                 Log::error($vmInfo);

@@ -8,6 +8,7 @@ use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\StorageMembers;
+use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
@@ -17,6 +18,9 @@ use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAAS\Services\HypervisorsV2\MigrationInterface;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\AbstractXenService;
+use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
+use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 class MigrationService implements MigrationInterface
@@ -924,90 +928,89 @@ class MigrationService implements MigrationInterface
             throw new \Exception('No VDI UUID map found. Run rescanTargetSr before this step.');
         }
 
-        $target  = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+        $isDryRun = !empty($options['dry_run_recreate']);
+
+        $source = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $migration->source_iaas_compute_member_id)
+            ->firstOrFail();
+
+        $target = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $migration->target_iaas_compute_member_id)
             ->firstOrFail();
 
-        $vmMeta = $metadata['vm'];
+        $vmMeta   = $metadata['vm'];
+        $vmUuid   = '{NEW_VM_UUID}'; // placeholder; replaced with real UUID after live xe vm-create
+        $commands = [];
 
         // ── 1. Create VM skeleton ─────────────────────────────────────────────
-        $result = self::performCommand(
-            'xe vm-create name-label=' . escapeshellarg($vmMeta['name_label'])
-            . ' name-description=' . escapeshellarg($vmMeta['description']),
-            $target
-        );
-
-        $newVmUuid = trim($result['output']);
-
-        if (empty($newVmUuid)) {
-            throw new \Exception('Failed to create VM on target host. xe vm-create returned empty UUID.');
-        }
-
-        $this->updateStep($migration, 'recreating-vm', 82, 'Created VM skeleton: ' . $newVmUuid);
-        Log::info(__METHOD__ . ' | Created VM: ' . $newVmUuid);
+        $commands[] = [
+            'note' => 'Create VM skeleton',
+            'cmd'  => 'xe vm-create name-label=' . escapeshellarg($vmMeta['name_label'])
+                . ' name-description=' . escapeshellarg($vmMeta['description']),
+        ];
 
         // ── 2. Set vCPU params ────────────────────────────────────────────────
-        self::performCommand(
-            'xe vm-param-set uuid=' . $newVmUuid
-            . ' VCPUs-max=' . (int) $vmMeta['vcpus_max']
-            . ' VCPUs-at-startup=' . (int) $vmMeta['vcpus_at_startup'],
-            $target
-        );
+        $commands[] = [
+            'note' => 'Set vCPUs (max=' . (int) $vmMeta['vcpus_max'] . ', startup=' . (int) $vmMeta['vcpus_at_startup'] . ')',
+            'cmd'  => 'xe vm-param-set uuid=' . $vmUuid
+                . ' VCPUs-max=' . (int) $vmMeta['vcpus_max']
+                . ' VCPUs-at-startup=' . (int) $vmMeta['vcpus_at_startup'],
+        ];
 
         // ── 3. Set memory params ──────────────────────────────────────────────
-        self::performCommand(
-            'xe vm-param-set uuid=' . $newVmUuid
-            . ' memory-static-min=' . (int) $vmMeta['memory_static_min']
-            . ' memory-static-max=' . (int) $vmMeta['memory_static_max']
-            . ' memory-dynamic-min=' . (int) $vmMeta['memory_dynamic_min']
-            . ' memory-dynamic-max=' . (int) $vmMeta['memory_dynamic_max'],
-            $target
-        );
-
-        $this->updateStep($migration, 'recreating-vm', 84, 'Set CPU and memory parameters');
+        // Use xe vm-memory-limits-set which sets all four limits atomically,
+        // avoiding the ordering constraint of xe vm-param-set.
+        $commands[] = [
+            'note' => 'Set memory limits (static-min=' . (int) $vmMeta['memory_static_min']
+                . ' dynamic-min=' . (int) $vmMeta['memory_dynamic_min']
+                . ' dynamic-max=' . (int) $vmMeta['memory_dynamic_max']
+                . ' static-max=' . (int) $vmMeta['memory_static_max'] . ')',
+            'cmd'  => 'xe vm-memory-limits-set uuid=' . $vmUuid
+                . ' static-min=' . (int) $vmMeta['memory_static_min']
+                . ' dynamic-min=' . (int) $vmMeta['memory_dynamic_min']
+                . ' dynamic-max=' . (int) $vmMeta['memory_dynamic_max']
+                . ' static-max=' . (int) $vmMeta['memory_static_max'],
+        ];
 
         // ── 4. Set HVM boot policy and params ─────────────────────────────────
         if (!empty($vmMeta['hvm_boot_policy'])) {
-            self::performCommand(
-                'xe vm-param-set uuid=' . $newVmUuid
-                . ' HVM-boot-policy=' . escapeshellarg($vmMeta['hvm_boot_policy']),
-                $target
-            );
+            $commands[] = [
+                'note' => 'Set HVM boot policy',
+                'cmd'  => 'xe vm-param-set uuid=' . $vmUuid
+                    . ' HVM-boot-policy=' . escapeshellarg($vmMeta['hvm_boot_policy']),
+            ];
         }
 
-        // hvm_boot_params stored as "key: value; key: value" — parse and set each
         if (!empty($vmMeta['hvm_boot_params'])) {
             foreach (self::parseMapString($vmMeta['hvm_boot_params']) as $key => $value) {
-                self::performCommand(
-                    'xe vm-param-set uuid=' . $newVmUuid
-                    . ' HVM-boot-params:' . $key . '=' . escapeshellarg($value),
-                    $target
-                );
+                $commands[] = [
+                    'note' => 'Set HVM-boot-params:' . $key,
+                    'cmd'  => 'xe vm-param-set uuid=' . $vmUuid
+                        . ' HVM-boot-params:' . $key . '=' . escapeshellarg($value),
+                ];
             }
         }
 
         // ── 5. Set platform params ────────────────────────────────────────────
         if (!empty($vmMeta['platform'])) {
             foreach (self::parseMapString($vmMeta['platform']) as $key => $value) {
-                self::performCommand(
-                    'xe vm-param-set uuid=' . $newVmUuid
-                    . ' platform:' . $key . '=' . escapeshellarg($value),
-                    $target
-                );
+                $commands[] = [
+                    'note' => 'Set platform:' . $key,
+                    'cmd'  => 'xe vm-param-set uuid=' . $vmUuid
+                        . ' platform:' . $key . '=' . escapeshellarg($value),
+                ];
             }
         }
 
         // ── 6. Set PV args if present (PV-boot VMs) ───────────────────────────
         if (!empty($vmMeta['pv_args'])) {
-            self::performCommand(
-                'xe vm-param-set uuid=' . $newVmUuid . ' PV-args=' . escapeshellarg($vmMeta['pv_args']),
-                $target
-            );
+            $commands[] = [
+                'note' => 'Set PV-args',
+                'cmd'  => 'xe vm-param-set uuid=' . $vmUuid . ' PV-args=' . escapeshellarg($vmMeta['pv_args']),
+            ];
         }
 
-        $this->updateStep($migration, 'recreating-vm', 86, 'Set boot and platform parameters');
-
-        // ── 7. Create VBDs (attach disks) ─────────────────────────────────────
+        // ── 7. VBD commands ───────────────────────────────────────────────────
         foreach ($metadata['disks'] as $disk) {
             $sourceVdiUuid = $disk['vdi_uuid'];
             $targetVdiUuid = $vdiUuidMap[$sourceVdiUuid] ?? null;
@@ -1020,8 +1023,6 @@ class MigrationService implements MigrationInterface
 
             $bootable = (($disk['vbd_bootable'] ?? 'false') === 'true') ? 'true' : 'false';
 
-            // Derive userdevice from device name if not explicitly stored
-            // (xe vbd-list omits userdevice on some XenServer versions).
             $userDevice = $disk['vbd_userdevice'] ?? '';
             if ($userDevice === '') {
                 $deviceName = $disk['vbd_device'] ?? '';
@@ -1031,125 +1032,161 @@ class MigrationService implements MigrationInterface
                     : '0';
             }
 
-            $result = self::performCommand(
-                'xe vbd-create'
-                . ' vm-uuid=' . $newVmUuid
-                . ' vdi-uuid=' . $targetVdiUuid
-                . ' device=' . escapeshellarg($userDevice)
-                . ' bootable=' . $bootable
-                . ' mode=' . escapeshellarg(strtoupper($disk['vbd_mode'] ?? 'RW'))
-                . ' type=' . escapeshellarg($disk['vbd_type'] ?? 'Disk'),
-                $target
-            );
-
-            if (!empty($result['error'])) {
-                throw new \Exception(
-                    'Failed to create VBD for VDI ' . $targetVdiUuid . ': ' . $result['error']
-                );
-            }
-
-            Log::info(__METHOD__ . ' | Created VBD for VDI: ' . $targetVdiUuid
-                . ' (device=' . $userDevice . ', bootable=' . $bootable . ')');
+            $commands[] = [
+                'note' => 'Create VBD for VDI ' . $sourceVdiUuid . ' → ' . $targetVdiUuid
+                    . ' (device=' . $userDevice . ', bootable=' . $bootable . ')',
+                'cmd'  => 'xe vbd-create'
+                    . ' vm-uuid=' . $vmUuid
+                    . ' vdi-uuid=' . $targetVdiUuid
+                    . ' device=' . escapeshellarg($userDevice)
+                    . ' bootable=' . $bootable
+                    . ' mode=' . escapeshellarg(strtoupper($disk['vbd_mode'] ?? 'RW'))
+                    . ' type=' . escapeshellarg($disk['vbd_type'] ?? 'Disk'),
+            ];
         }
 
-        $this->updateStep($migration, 'recreating-vm', 90,
-            'Created ' . count($metadata['disks']) . ' VBD(s)');
+        // ── 8. Resolve network UUID mapping (DB lookups — no XenServer calls yet) ──
+        $targetNetworkUuidBySource = [];
 
-        // ── 8. Build source hypervisor network UUID → target XenServer network UUID map ──
-        //
-        // ComputeMemberNetworkInterfaces stores per-host network UUIDs (network_uuid).
-        // If the network does not yet exist on the target host, we create it automatically
-        // using ComputeMemberXenService::createNetwork(), which also handles xe network-create
-        // + xe vlan-create and syncs the result back into ComputeMemberNetworkInterfaces.
-        $networkMapping            = $options['network_mapping'] ?? [];
-        $targetNetworkUuidBySource = []; // source hypervisor_uuid (network) → target XenServer network_uuid
+        foreach ($metadata['nics'] as $nic) {
+            $sourceNetworkUuid = $nic['network_uuid'];
 
-        foreach ($networkMapping as $map) {
-            $sourceNetworkId = $map['source_network']['id'] ?? null;
-
-            if (!$sourceNetworkId) {
+            if (isset($targetNetworkUuidBySource[$sourceNetworkUuid])) {
                 continue;
             }
 
-            $sourceNetwork = Networks::withoutGlobalScope(AuthorizationScope::class)
-                ->where('id', $sourceNetworkId)
+            $sourceCmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_compute_member_id', $source->id)
+                ->where('network_uuid', $sourceNetworkUuid)
                 ->first();
 
-            if (!$sourceNetwork) {
-                continue;
+            $vlan = $sourceCmni?->vlan;
+
+            $targetCmni = null;
+
+            if ($vlan !== null) {
+                $targetCmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_compute_member_id', $target->id)
+                    ->where('vlan', $vlan)
+                    ->first();
             }
 
-            // Prefer the plan-mapped target network; fall back to source network (same VLAN/name)
-            $targetNetworkId = $map['target_network']['id'] ?? null;
-            $networkForCreate = $targetNetworkId
-                ? Networks::withoutGlobalScope(AuthorizationScope::class)->where('id', $targetNetworkId)->first()
-                : $sourceNetwork;
+            if (!$targetCmni && !$isDryRun) {
+                $networkForCreate = null;
 
-            if (!$networkForCreate) {
-                $networkForCreate = $sourceNetwork;
-            }
+                if ($vlan !== null) {
+                    $networkForCreate = Networks::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('vlan', $vlan)
+                        ->first();
+                }
 
-            // Check if the target host already has this VLAN in its ComputeMemberNetworkInterfaces
-            $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
-                ->where('iaas_compute_member_id', $target->id)
-                ->where('vlan', $networkForCreate->vlan)
-                ->first();
+                if (!$networkForCreate) {
+                    foreach ($options['network_mapping'] ?? [] as $map) {
+                        $sourceNetworkId = $map['source_network']['id'] ?? null;
+                        if ($sourceNetworkId) {
+                            $candidate = Networks::withoutGlobalScope(AuthorizationScope::class)
+                                ->where('id', $sourceNetworkId)
+                                ->first();
+                            if ($candidate && ($vlan === null || $candidate->vlan == $vlan)) {
+                                $networkForCreate = $candidate;
+                                break;
+                            }
+                        }
+                    }
+                }
 
-            if (!$cmni) {
-                // Network does not exist on the target host — create it now
+                if (!$networkForCreate) {
+                    throw new \Exception(
+                        'Cannot resolve a Networks record to create network for source UUID: '
+                        . $sourceNetworkUuid . ' (VLAN: ' . ($vlan ?? 'unknown') . ').'
+                    );
+                }
+
                 Log::info(__METHOD__ . ' | Network VLAN ' . $networkForCreate->vlan
                     . ' not found on target "' . $target->name . '" — creating it');
 
-                $cmni = ComputeMemberXenService::createNetwork($target, $networkForCreate);
+                $targetCmni = ComputeMemberXenService::createNetwork($target, $networkForCreate);
 
-                Log::info(__METHOD__ . ' | Network created on target: network_uuid=' . $cmni->network_uuid
-                    . ', vlan=' . $cmni->vlan);
+                Log::info(__METHOD__ . ' | Network created on target: network_uuid=' . $targetCmni->network_uuid
+                    . ', vlan=' . $targetCmni->vlan);
             }
 
-            $targetNetworkUuidBySource[$sourceNetwork->hypervisor_uuid] = $cmni->network_uuid;
+            $resolvedTargetUuid = $targetCmni ? $targetCmni->network_uuid
+                : '{NETWORK_UUID_VLAN_' . ($vlan ?? 'unknown') . '_WILL_BE_CREATED}';
+
+            $targetNetworkUuidBySource[$sourceNetworkUuid] = $resolvedTargetUuid;
         }
 
-        // ── 9. Create VIFs (attach NICs), preserving MAC addresses ───────────
+        // ── 9. VIF commands ───────────────────────────────────────────────────
+        // xe vif-create may auto-generate a MAC even when mac= is provided, so we
+        // always follow up with xe vif-param-set to explicitly set the correct MAC.
         foreach ($metadata['nics'] as $nic) {
             $sourceNetworkUuid = $nic['network_uuid'];
             $targetNetworkUuid = $targetNetworkUuidBySource[$sourceNetworkUuid] ?? null;
 
-            if (!$targetNetworkUuid) {
+            if (!$targetNetworkUuid && !$isDryRun) {
                 throw new \Exception(
                     'Could not resolve a target network UUID for source network UUID: ' . $sourceNetworkUuid
                     . '. Verify the evacuation plan has a network mapping for all NICs.'
                 );
             }
 
-            $result = self::performCommand(
-                'xe vif-create'
-                . ' vm-uuid=' . $newVmUuid
-                . ' network-uuid=' . $targetNetworkUuid
-                . ' device=' . escapeshellarg($nic['device'])
-                . ' mac=' . escapeshellarg($nic['mac'])
-                . ' mtu=' . (int) ($nic['mtu'] ?? 1500),
-                $target
-            );
+            $commands[] = [
+                'type' => 'vif-create',
+                'mac'  => $nic['mac'],
+                'note' => 'Create VIF device=' . $nic['device'] . ', mac=' . $nic['mac']
+                    . ', source-network=' . $sourceNetworkUuid,
+                'cmd'  => 'xe vif-create'
+                    . ' vm-uuid=' . $vmUuid
+                    . ' network-uuid=' . ($targetNetworkUuid ?? '{UNRESOLVED_NETWORK}')
+                    . ' device=' . escapeshellarg($nic['device'])
+                    . ' mac=' . escapeshellarg($nic['mac'])
+                    . ' mtu=' . (int) ($nic['mtu'] ?? 1500),
+            ];
+        }
 
-            if (!empty($result['error'])) {
-                throw new \Exception(
-                    'Failed to create VIF for device ' . $nic['device'] . ': ' . $result['error']
-                );
+        // ── Dry-run: persist commands and return without executing ────────────
+        if ($isDryRun) {
+            $options['dry_run_commands_recreate'] = $commands;
+            $migration->updateQuietly(['options' => json_encode($options)]);
+            return $vmUuid; // placeholder
+        }
+
+        // ── Live run: execute every command in order ──────────────────────────
+        // Step 1: create VM skeleton — captures real UUID
+        $result    = self::performCommand($commands[0]['cmd'], $target);
+        $newVmUuid = trim($result['output']);
+
+        if (empty($newVmUuid)) {
+            throw new \Exception('Failed to create VM on target host. xe vm-create returned empty UUID.');
+        }
+
+        $this->updateStep($migration, 'recreating-vm', 82, 'Created VM skeleton: ' . $newVmUuid);
+        Log::info(__METHOD__ . ' | Created VM: ' . $newVmUuid);
+
+        // Steps 2-N: replace placeholder UUID and execute
+        foreach (array_slice($commands, 1) as $entry) {
+            $cmd    = str_replace($vmUuid, $newVmUuid, $entry['cmd']);
+            $result = self::performCommand($cmd, $target);
+
+            if (!empty($result['error']) && str_starts_with(ltrim($cmd), 'xe vbd-create')) {
+                throw new \Exception('Failed to create VBD: ' . $result['error'] . ' | cmd: ' . $cmd);
             }
 
-            Log::info(__METHOD__ . ' | Created VIF: device=' . $nic['device'] . ', mac=' . $nic['mac']
-                . ', network_uuid=' . $targetNetworkUuid);
+            if (!empty($result['error']) && str_starts_with(ltrim($cmd), 'xe vif-create')) {
+                throw new \Exception('Failed to create VIF: ' . $result['error'] . ' | cmd: ' . $cmd);
+            }
+
+            Log::info(__METHOD__ . ' | ' . $entry['note']);
         }
 
         $this->updateStep($migration, 'recreating-vm', 92,
-            'Created ' . count($metadata['nics']) . ' VIF(s) — VM recreated on target (not started)');
+            'VM recreated on target with ' . count($metadata['disks']) . ' VBD(s) and '
+            . count($metadata['nics']) . ' VIF(s)');
 
         // ── Persist new VM UUID into options ──────────────────────────────────
         $options['target_vm_uuid'] = $newVmUuid;
-
-        $migration->updateQuietly([
-            'options' => json_encode($options),
-        ]);
+        $migration->updateQuietly(['options' => json_encode($options)]);
 
         Log::info(__METHOD__ . ' | VM recreated on target: ' . $newVmUuid);
 
@@ -1263,17 +1300,90 @@ class MigrationService implements MigrationInterface
             ->where('id', $migration->iaas_virtual_machine_id)
             ->firstOrFail();
 
-        // ── Update VirtualMachines record ─────────────────────────────────────
-        $vm->updateQuietly([
-            'hypervisor_uuid'        => $newVmUuid,
-            'iaas_compute_member_id' => $migration->target_iaas_compute_member_id,
-            'status'                 => 'halted',
+        // ── Snapshot current DB state for rollback ────────────────────────────
+        // Persist before making any changes so the original records can be
+        // restored if the migration needs to be rolled back.
+        if (empty($options['rollback_snapshot'])) {
+            $disksSnapshot = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $vm->id)
+                ->whereNull('deleted_at')
+                ->get()
+                ->map(fn($d) => $d->toArray())
+                ->toArray();
+
+            $nicsSnapshot = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $vm->id)
+                ->whereNull('deleted_at')
+                ->get()
+                ->map(fn($n) => $n->toArray())
+                ->toArray();
+
+            $options['rollback_snapshot'] = [
+                'snapshotted_at'   => now()->toIso8601String(),
+                'virtual_machine'  => $vm->toArray(),
+                'virtual_disks'    => $disksSnapshot,
+                'network_cards'    => $nicsSnapshot,
+            ];
+
+            $migration->updateQuietly(['options' => json_encode($options)]);
+
+            Log::info(__METHOD__ . ' | Rollback snapshot saved for migration: ' . $migration->uuid);
+        }
+
+        // ── Clone VirtualMachines record ──────────────────────────────────────
+        // We clone rather than update in-place so the original record is preserved
+        // for rollback and the user can see both the old (halted/renamed) and the
+        // new (target) VM simultaneously.
+        $sourceComputeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $migration->source_iaas_compute_member_id)
+            ->firstOrFail();
+
+        $targetComputeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $migration->target_iaas_compute_member_id)
+            ->firstOrFail();
+
+        $targetCloudNode = ComputeMembersService::getCloudNode($targetComputeMember);
+
+        $vmFields = $vm->only([
+            'name', 'username', 'password', 'hostname', 'description', 'os', 'distro',
+            'version', 'domain_type', 'cpu', 'ram', 'is_winrm_enabled', 'features',
+            'is_locked', 'is_draft', 'is_template', 'is_snapshot',
+            'console_data', 'hypervisor_data',
+            'iaas_compute_pool_id', 'iaas_repository_image_id',
+            'template_id', 'common_domain_id', 'auto_backup_interval', 'auto_backup_time',
+            'backup_repository_id', 'post_boot_script', 'tokens', 'tags',
+            'iam_account_id', 'iam_user_id',
         ]);
 
-        Log::info(__METHOD__ . ' | Updated VirtualMachine: uuid=' . $newVmUuid
-            . ', compute_member_id=' . $migration->target_iaas_compute_member_id);
+        $existingFeatures = is_array($vm->features)
+            ? $vm->features
+            : (json_decode($vm->features ?? '{}', true) ?? []);
 
-        // ── Update VirtualDiskImages: new VDI UUID + target storage volume ────
+        $newVm = VirtualMachinesService::create(array_merge($vmFields, [
+            'hypervisor_uuid'              => $newVmUuid,
+            'iaas_compute_member_id'       => $migration->target_iaas_compute_member_id,
+            'iaas_cloud_node_id'           => $targetCloudNode?->id,
+            'status'                       => 'halted',
+            'snapshot_of_virtual_machine'  => $vm->uuid,
+            'features'                     => array_merge($existingFeatures, [
+                'origin'                       => 'migration',
+                'migration_uuid'               => $migration->uuid,
+                'migrated_at'                  => now()->toIso8601String(),
+                'source_virtual_machine_uuid'  => $vm->uuid,
+                'source_compute_member_uuid'   => $sourceComputeMember->uuid,
+                'target_compute_member_uuid'   => $targetComputeMember->uuid,
+            ]),
+        ]));
+
+        Log::info(__METHOD__ . ' | Cloned VirtualMachine: new_id=' . $newVm->id
+            . ', hypervisor_uuid=' . $newVmUuid);
+
+        // ── Flag original VM as migrated ──────────────────────────────────────
+        // status = 'migrated' tells the background scanner (and operators) that
+        // this record has been superseded by the cloned VM on the target host.
+        $vm->updateQuietly(['status' => 'migrated']);
+
+        // ── Clone VirtualDiskImages ───────────────────────────────────────────
         $storageMapping = $options['storage_mapping'] ?? [];
         $vdiUuidMap     = $options['vdi_uuid_map'] ?? [];
 
@@ -1296,27 +1406,53 @@ class MigrationService implements MigrationInterface
 
             $newVdiUuid = $vdiUuidMap[$disk->hypervisor_uuid] ?? null;
 
-            $updates = ['iaas_storage_volume_id' => $targetStorageVolume['id']];
+            $diskFields = $disk->only([
+                'name', 'size', 'physical_utilisation', 'is_cdrom', 'is_draft',
+                'device_number', 'utilization',
+                'iaas_storage_pool_id', 'iaas_repository_image_id',
+                'iam_account_id', 'iam_user_id',
+            ]);
 
-            if ($newVdiUuid) {
-                $updates['hypervisor_uuid'] = $newVdiUuid;
-            }
+            VirtualDiskImagesService::create(array_merge($diskFields, [
+                'iaas_virtual_machine_id' => $newVm->id,
+                'iaas_storage_volume_id'  => $targetStorageVolume['id'],
+                'hypervisor_uuid'         => $newVdiUuid ?? $disk->hypervisor_uuid,
+            ]));
 
-            $disk->updateQuietly($updates);
-
-            Log::info(__METHOD__ . ' | Updated VirtualDiskImage id=' . $diskId
-                . ' → storage_volume_id=' . $targetStorageVolume['id']
-                . ($newVdiUuid ? ', hypervisor_uuid=' . $newVdiUuid : ''));
+            Log::info(__METHOD__ . ' | Cloned VirtualDiskImage id=' . $diskId
+                . ' → new vm_id=' . $newVm->id
+                . ', storage_volume_id=' . $targetStorageVolume['id']
+                . ', hypervisor_uuid=' . ($newVdiUuid ?? $disk->hypervisor_uuid));
         }
 
-        // ── Update VirtualNetworkCards: target network ID ─────────────────────
-        $networkMapping = $options['network_mapping'] ?? [];
+        // ── Fetch actual VIF params from target (MAC + hypervisor UUID) ──────
+        $result  = self::performCommand('xe vif-list vm-uuid=' . $newVmUuid, $targetComputeMember);
+        $vifList = array_filter(
+            AbstractXenService::parseListResult($result['output']),
+            fn($v) => !empty($v['uuid'])
+        );
+
+        $vifParamsByDevice = [];
+        foreach ($vifList as $vif) {
+            $vifUuid   = trim($vif['uuid']);
+            $vifResult = self::performCommand('xe vif-param-list uuid=' . $vifUuid, $targetComputeMember);
+            $params    = AbstractXenService::parseResult($vifResult['output']);
+            $device    = trim($params['device'] ?? $vif['device'] ?? '');
+            if ($device !== '') {
+                $vifParamsByDevice[$device] = $params;
+            }
+        }
+
+        // ── Clone VirtualNetworkCards ─────────────────────────────────────────
+        $networkMapping  = $options['network_mapping'] ?? [];
+        $dhcpServersSeen = [];
 
         foreach ($networkMapping as $map) {
-            $nicId         = $map['nic']['id'] ?? null;
-            $targetNetwork = $map['target_network'] ?? null;
+            $nicId        = $map['nic']['id'] ?? null;
+            $deviceNumber = (string) ($map['nic']['device_number'] ?? '');
+            $networkId    = $map['target_network']['id'] ?? ($map['source_network']['id'] ?? null);
 
-            if (!$nicId || !$targetNetwork) {
+            if (!$nicId) {
                 continue;
             }
 
@@ -1329,15 +1465,52 @@ class MigrationService implements MigrationInterface
                 continue;
             }
 
-            $nic->updateQuietly(['iaas_network_id' => $targetNetwork['id']]);
+            $vifParams = $vifParamsByDevice[$deviceNumber] ?? null;
 
-            Log::info(__METHOD__ . ' | Updated VirtualNetworkCard id=' . $nicId
-                . ' → network_id=' . $targetNetwork['id']);
+            $nicFields = $nic->only([
+                'name', 'bandwidth_limit', 'device_number', 'is_draft', 'status',
+                'iam_account_id', 'iam_user_id',
+            ]);
+
+            VirtualNetworkCardsService::create(array_merge($nicFields, [
+                'iaas_virtual_machine_id' => $newVm->id,
+                'iaas_network_id'         => $networkId,
+                'hypervisor_uuid'         => trim($vifParams['uuid'] ?? ''),
+                'mac_addr'                => trim($vifParams['MAC'] ?? $vifParams['mac'] ?? $nic->mac_addr),
+                'hypervisor_data'         => $vifParams ?? [],
+            ]));
+
+            Log::info(__METHOD__ . ' | Cloned VirtualNetworkCard id=' . $nicId
+                . ' → new vm_id=' . $newVm->id
+                . ', network_id=' . $networkId
+                . ', mac=' . trim($vifParams['MAC'] ?? $vifParams['mac'] ?? $nic->mac_addr));
+
+            // ── Trigger DHCP config update for this network ───────────────────
+            if ($networkId && !isset($dhcpServersSeen[$networkId])) {
+                $dhcpServersSeen[$networkId] = true;
+
+                $network    = Networks::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('id', $networkId)
+                    ->first();
+                $dhcpServer = $network?->dhcpServers;
+
+                if ($dhcpServer) {
+                    dispatch(new \NextDeveloper\IAAS\Actions\DhcpServers\UpdateConfiguration($dhcpServer));
+
+                    Log::info(__METHOD__ . ' | Dispatched DHCP UpdateConfiguration for network_id='
+                        . $networkId . ', dhcp_server_id=' . $dhcpServer->id);
+                }
+            }
         }
 
-        $this->updateStep($migration, 'syncing-database', 97, 'Database records synced to target');
+        // ── Persist new VM id so startVmOnTarget updates the right record ─────
+        $options['target_vm_id'] = $newVm->id;
+        $migration->updateQuietly(['options' => json_encode($options)]);
 
-        Log::info(__METHOD__ . ' | Database sync complete for migration: ' . $migration->uuid);
+        $this->updateStep($migration, 'syncing-database', 97, 'Cloned VM, disk, and NIC records to target');
+
+        Log::info(__METHOD__ . ' | Database sync complete — cloned VM id=' . $newVm->id
+            . ' for migration: ' . $migration->uuid);
     }
 
     /**
@@ -1364,9 +1537,11 @@ class MigrationService implements MigrationInterface
             ->where('id', $migration->target_iaas_compute_member_id)
             ->firstOrFail();
 
-        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', $migration->iaas_virtual_machine_id)
-            ->firstOrFail();
+        // Use the cloned VM record created by syncDatabaseRecords, not the original
+        $targetVmId = $options['target_vm_id'] ?? null;
+        $vm = $targetVmId
+            ? VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $targetVmId)->firstOrFail()
+            : VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $migration->iaas_virtual_machine_id)->firstOrFail();
 
         // ── Start the VM ──────────────────────────────────────────────────────
         $result = self::performCommand('xe vm-start uuid=' . $newVmUuid, $target);
