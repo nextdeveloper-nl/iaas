@@ -296,6 +296,21 @@ class VirtualMachinesXenService extends AbstractXenService
                 $dbVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
                     ->where('hypervisor_uuid', $diskParams['uuid'])
                     ->first();
+
+                // If the found VDI belongs to a different VM, check whether the current VM
+                // already owns a disk at the same device position (e.g. created by a migration
+                // clone). Use that own record to avoid a unique constraint violation on
+                // (iaas_virtual_machine_id, device_number).
+                if ($dbVdi && (int) $dbVdi->iaas_virtual_machine_id !== (int) $vm->id) {
+                    $ownRecord = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_virtual_machine_id', $vm->id)
+                        ->where('device_number', $vbdParams['userdevice'])
+                        ->first();
+
+                    if ($ownRecord) {
+                        $dbVdi = $ownRecord;
+                    }
+                }
             }
 
             //  We are taking the volume if the VDI is CDROM

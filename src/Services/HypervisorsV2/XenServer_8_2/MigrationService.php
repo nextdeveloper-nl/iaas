@@ -18,6 +18,9 @@ use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAAS\Services\HypervisorsV2\MigrationInterface;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\AbstractXenService;
+use NextDeveloper\IAAS\Database\Models\IpAddresses;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualNetworkCardsXenService;
+use NextDeveloper\IAAS\Services\IpAddressesService;
 use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
@@ -211,53 +214,83 @@ class MigrationService implements MigrationInterface
 
         $this->updateStep($migration, 'collecting-metadata', 12, 'Collected VM params');
 
-        // ── VBDs + VDIs ───────────────────────────────────────────────────────
-        $result  = self::performCommand('xe vbd-list vm-uuid=' . $vm->hypervisor_uuid, $source);
-        $vbdList = AbstractXenService::parseListResult($result['output']);
+        // ── VBDs + VDIs via xe vm-disk-list ──────────────────────────────────
+        // xe vm-disk-list only returns real data disks — CDROMs, tools ISOs,
+        // and empty optical drives are excluded automatically.
+        $result   = self::performCommand('xe vm-disk-list uuid=' . $vm->hypervisor_uuid, $source);
+        $vmDisks  = self::parseVmDiskList($result['output']);
 
         $disks = [];
 
-        foreach ($vbdList as $vbd) {
-            if (empty($vbd['uuid'])) {
+        foreach ($vmDisks as $vmDisk) {
+            $vbdSummary = $vmDisk['vbd'];
+            $vdiSummary = $vmDisk['vdi'];
+
+            $vbdUuid = trim($vbdSummary['uuid'] ?? '');
+            $vdiUuid = trim($vdiSummary['uuid'] ?? '');
+
+            if (empty($vbdUuid) || empty($vdiUuid)) {
                 continue;
             }
 
-            // Skip CDROMs — they don't need to be migrated
-            if (strtoupper(trim($vbd['type'] ?? '')) === 'CD') {
-                continue;
-            }
-
-            $vdiUuid = trim($vbd['vdi-uuid'] ?? '');
-
-            if (empty($vdiUuid) || $vdiUuid === '<not in database>') {
-                continue;
-            }
-
-            // Use xe vbd-param-list to get the full VBD record (xe vbd-list
-            // only outputs a subset of fields and may omit userdevice).
-            $vbdResult = self::performCommand('xe vbd-param-list uuid=' . trim($vbd['uuid']), $source);
+            // Fetch full params for fields not present in the summary output
+            $vbdResult = self::performCommand('xe vbd-param-list uuid=' . $vbdUuid, $source);
             $vbdParams = AbstractXenService::parseResult($vbdResult['output']);
 
-            $result    = self::performCommand('xe vdi-param-list uuid=' . $vdiUuid, $source);
-            $vdiParams = AbstractXenService::parseResult($result['output']);
+            $vdiResult = self::performCommand('xe vdi-param-list uuid=' . $vdiUuid, $source);
+            $vdiParams = AbstractXenService::parseResult($vdiResult['output']);
 
-            $srUuid  = trim($vdiParams['sr-uuid'] ?? '');
-            $vhdPath = '/var/run/sr-mount/' . $srUuid . '/' . $vdiUuid . '.vhd';
+            $srUuid = trim($vdiParams['sr-uuid'] ?? '');
+
+            // Resolve the actual VHD path by searching all mounted SRs.
+            $findResult = self::performCommand(
+                'find /var/run/sr-mount/ -name ' . escapeshellarg($vdiUuid . '.vhd') . ' -type f 2>/dev/null | head -1',
+                $source
+            );
+            $vhdPath = trim($findResult['output'] ?? '');
+
+            if ($vhdPath === '') {
+                $vhdPath = '/var/run/sr-mount/' . $srUuid . '/' . $vdiUuid . '.vhd';
+                Log::warning(__METHOD__ . ' | Could not locate VHD for VDI ' . $vdiUuid
+                    . ' via find — using constructed path: ' . $vhdPath);
+            } else {
+                Log::info(__METHOD__ . ' | Resolved VHD path: ' . $vhdPath);
+            }
 
             $disks[] = [
-                'vbd_uuid'       => trim($vbdParams['uuid'] ?? $vbd['uuid']),
-                'vbd_device'     => trim($vbdParams['device'] ?? $vbd['device'] ?? ''),
-                'vbd_userdevice' => trim($vbdParams['userdevice'] ?? $vbd['userdevice'] ?? ''),
-                'vbd_bootable'   => trim($vbdParams['bootable'] ?? $vbd['bootable'] ?? 'false'),
-                'vbd_mode'       => trim($vbdParams['mode'] ?? $vbd['mode'] ?? 'RW'),
-                'vbd_type'       => trim($vbdParams['type'] ?? $vbd['type'] ?? 'Disk'),
+                'vbd_uuid'       => $vbdUuid,
+                'vbd_device'     => trim($vbdParams['device'] ?? ''),
+                'vbd_userdevice' => trim($vbdParams['userdevice'] ?? $vbdSummary['userdevice'] ?? ''),
+                'vbd_bootable'   => trim($vbdParams['bootable'] ?? 'false'),
+                'vbd_mode'       => trim($vbdParams['mode'] ?? 'RW'),
+                'vbd_type'       => trim($vbdParams['type'] ?? 'Disk'),
                 'vdi_uuid'       => $vdiUuid,
-                'vdi_name'       => trim($vdiParams['name-label'] ?? ''),
-                'vdi_size_bytes' => (int) trim($vdiParams['virtual-size'] ?? '0'),
+                'vdi_name'       => trim($vdiParams['name-label'] ?? $vdiSummary['name-label'] ?? ''),
+                'vdi_size_bytes' => (int) trim($vdiParams['virtual-size'] ?? $vdiSummary['virtual-size'] ?? '0'),
                 'sr_uuid'        => $srUuid,
+                'sr_name_label'  => trim($vdiParams['sr-name-label'] ?? ''),
                 'vhd_path'       => $vhdPath,
             ];
         }
+
+        // ── Remove CDROMs and ISO disks ───────────────────────────────────────
+        // xe vm-disk-list should exclude CDROMs, but filter defensively in case
+        // the VBD type is CD, the VDI name ends in .iso, or the SR is an ISO library.
+        $disks = array_values(array_filter($disks, function ($disk) {
+            if (strtolower($disk['vbd_type']) === 'cd') {
+                Log::info(__METHOD__ . ' | Skipping CDROM (vbd_type=CD): ' . $disk['vdi_uuid']);
+                return false;
+            }
+            if (str_ends_with(strtolower($disk['vdi_name']), '.iso')) {
+                Log::info(__METHOD__ . ' | Skipping ISO VDI (name ends in .iso): ' . $disk['vdi_uuid']);
+                return false;
+            }
+            if (stripos($disk['sr_name_label'], 'ISO') !== false) {
+                Log::info(__METHOD__ . ' | Skipping ISO SR VDI (sr-name-label contains ISO): ' . $disk['vdi_uuid']);
+                return false;
+            }
+            return true;
+        }));
 
         $this->updateStep($migration, 'collecting-metadata', 15,
             'Collected VBD/VDI metadata for ' . count($disks) . ' disk(s)');
@@ -413,12 +446,36 @@ class MigrationService implements MigrationInterface
             throw new \Exception('No disk metadata found. Run collectSourceMetadata before this step.');
         }
 
-        $maxAttempts   = 24; // 24 × 10s = 4 minutes
+        $maxAttempts    = 24; // 24 × 10s = 4 minutes
         $coalescedDisks = [];
 
         foreach ($metadata['disks'] as $disk) {
-            $vhdPath  = $disk['vhd_path'];
+            $vhdPath   = $disk['vhd_path'];
+            $vdiUuid   = $disk['vdi_uuid'];
+            $srUuid    = $disk['sr_uuid'];
             $coalesced = false;
+
+            // ── Resolve actual VHD path by searching all mounted SRs ─────────
+            // The DB SR UUID may be stale or the VDI may be on a different SR.
+            // Always resolve via find across the entire /var/run/sr-mount tree.
+            $findResult = self::performCommand(
+                'find /var/run/sr-mount/ -name ' . escapeshellarg($vdiUuid . '.vhd') . ' -type f 2>/dev/null | head -1',
+                $source
+            );
+            $foundPath = trim($findResult['output'] ?? '');
+
+            if ($foundPath !== '') {
+                if ($foundPath !== $vhdPath) {
+                    Log::info(__METHOD__ . ' | Resolved actual VHD path: ' . $foundPath
+                        . ' (DB path was: ' . $vhdPath . ')');
+                }
+                $vhdPath = $foundPath;
+            } else {
+                throw new \Exception(
+                    'VHD file not found for VDI ' . $vdiUuid
+                    . ' under /var/run/sr-mount/. DB expected: ' . $vhdPath
+                );
+            }
 
             for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
                 $result = self::performCommand(
@@ -427,6 +484,15 @@ class MigrationService implements MigrationInterface
                 );
 
                 $output = trim($result['output'] ?? '');
+
+                // ENOENT (-2): file disappeared mid-loop (e.g. coalesce renamed it).
+                // Treat as an error rather than silently looping.
+                if (str_contains($output, 'error opening') && str_contains($output, '-2')) {
+                    throw new \Exception(
+                        'VHD file disappeared during coalesce check: ' . $vhdPath
+                        . '. It may have been renamed by the coalesce daemon. Re-run collect-metadata to refresh paths.'
+                    );
+                }
 
                 // vhd-util returns "has no parent" (exit non-zero) when the VHD is flat
                 $isFlat = empty($output)
@@ -443,7 +509,7 @@ class MigrationService implements MigrationInterface
                 sleep(10);
 
                 // Re-trigger SR scan each iteration to nudge coalesce daemon
-                self::performCommand('xe sr-scan uuid=' . $sourceStorageVolume->hypervisor_uuid, $source);
+                self::performCommand('xe sr-scan uuid=' . $srUuid, $source);
             }
 
             if (!$coalesced) {
@@ -451,16 +517,6 @@ class MigrationService implements MigrationInterface
                     'VHD "' . $vhdPath . '" still has a parent chain after ' . ($maxAttempts * 10) . ' seconds. '
                     . 'Coalesce did not complete in time.'
                 );
-            }
-
-            // Verify the VHD file actually exists at the expected path
-            $result = self::performCommand(
-                'test -f ' . escapeshellarg($vhdPath) . ' && echo ok || echo missing',
-                $source
-            );
-
-            if (trim($result['output']) !== 'ok') {
-                throw new \Exception('VHD file not found at expected path: ' . $vhdPath);
             }
 
             $coalescedDisks[] = $vhdPath;
@@ -510,7 +566,7 @@ class MigrationService implements MigrationInterface
         // ── Attempt graceful shutdown (timeout: 2 minutes) ───────────────────
         $this->updateStep($migration, 'shutting-down', 37, 'Sending clean shutdown signal to VM: ' . $vm->name);
 
-        self::performCommand('xe vm-shutdown uuid=' . $vm->hypervisor_uuid . ' force=false', $source);
+        self::performCommand('nohup xe vm-shutdown uuid=' . $vm->hypervisor_uuid . ' force=false > /dev/null 2>&1 &', $source);
 
         $halted      = false;
         $maxAttempts = 12; // 12 × 10s = 2 minutes
@@ -949,12 +1005,42 @@ class MigrationService implements MigrationInterface
                 . ' name-description=' . escapeshellarg($vmMeta['description']),
         ];
 
-        // ── 2. Set vCPU params ────────────────────────────────────────────────
+        // ── 2. Set all vm-param-set values in one SSH round-trip ─────────────
+        // xe vm-param-set accepts multiple key=value pairs in a single call.
+        $paramSetParts = [];
+        $paramSetNotes = [];
+
+        $paramSetParts[] = 'VCPUs-max=' . (int) $vmMeta['vcpus_max'];
+        $paramSetParts[] = 'VCPUs-at-startup=' . (int) $vmMeta['vcpus_at_startup'];
+        $paramSetNotes[] = 'VCPUs (max=' . (int) $vmMeta['vcpus_max'] . ', startup=' . (int) $vmMeta['vcpus_at_startup'] . ')';
+
+        if (!empty($vmMeta['hvm_boot_policy'])) {
+            $paramSetParts[] = 'HVM-boot-policy=' . escapeshellarg($vmMeta['hvm_boot_policy']);
+            $paramSetNotes[] = 'HVM-boot-policy=' . $vmMeta['hvm_boot_policy'];
+        }
+
+        if (!empty($vmMeta['hvm_boot_params'])) {
+            foreach (self::parseMapString($vmMeta['hvm_boot_params']) as $key => $value) {
+                $paramSetParts[] = 'HVM-boot-params:' . $key . '=' . escapeshellarg($value);
+            }
+            $paramSetNotes[] = 'HVM-boot-params';
+        }
+
+        if (!empty($vmMeta['platform'])) {
+            foreach (self::parseMapString($vmMeta['platform']) as $key => $value) {
+                $paramSetParts[] = 'platform:' . $key . '=' . escapeshellarg($value);
+            }
+            $paramSetNotes[] = 'platform';
+        }
+
+        if (!empty($vmMeta['pv_args'])) {
+            $paramSetParts[] = 'PV-args=' . escapeshellarg($vmMeta['pv_args']);
+            $paramSetNotes[] = 'PV-args';
+        }
+
         $commands[] = [
-            'note' => 'Set vCPUs (max=' . (int) $vmMeta['vcpus_max'] . ', startup=' . (int) $vmMeta['vcpus_at_startup'] . ')',
-            'cmd'  => 'xe vm-param-set uuid=' . $vmUuid
-                . ' VCPUs-max=' . (int) $vmMeta['vcpus_max']
-                . ' VCPUs-at-startup=' . (int) $vmMeta['vcpus_at_startup'],
+            'note' => 'Set VM params: ' . implode(', ', $paramSetNotes),
+            'cmd'  => 'xe vm-param-set uuid=' . $vmUuid . ' ' . implode(' ', $paramSetParts),
         ];
 
         // ── 3. Set memory params ──────────────────────────────────────────────
@@ -971,44 +1057,6 @@ class MigrationService implements MigrationInterface
                 . ' dynamic-max=' . (int) $vmMeta['memory_dynamic_max']
                 . ' static-max=' . (int) $vmMeta['memory_static_max'],
         ];
-
-        // ── 4. Set HVM boot policy and params ─────────────────────────────────
-        if (!empty($vmMeta['hvm_boot_policy'])) {
-            $commands[] = [
-                'note' => 'Set HVM boot policy',
-                'cmd'  => 'xe vm-param-set uuid=' . $vmUuid
-                    . ' HVM-boot-policy=' . escapeshellarg($vmMeta['hvm_boot_policy']),
-            ];
-        }
-
-        if (!empty($vmMeta['hvm_boot_params'])) {
-            foreach (self::parseMapString($vmMeta['hvm_boot_params']) as $key => $value) {
-                $commands[] = [
-                    'note' => 'Set HVM-boot-params:' . $key,
-                    'cmd'  => 'xe vm-param-set uuid=' . $vmUuid
-                        . ' HVM-boot-params:' . $key . '=' . escapeshellarg($value),
-                ];
-            }
-        }
-
-        // ── 5. Set platform params ────────────────────────────────────────────
-        if (!empty($vmMeta['platform'])) {
-            foreach (self::parseMapString($vmMeta['platform']) as $key => $value) {
-                $commands[] = [
-                    'note' => 'Set platform:' . $key,
-                    'cmd'  => 'xe vm-param-set uuid=' . $vmUuid
-                        . ' platform:' . $key . '=' . escapeshellarg($value),
-                ];
-            }
-        }
-
-        // ── 6. Set PV args if present (PV-boot VMs) ───────────────────────────
-        if (!empty($vmMeta['pv_args'])) {
-            $commands[] = [
-                'note' => 'Set PV-args',
-                'cmd'  => 'xe vm-param-set uuid=' . $vmUuid . ' PV-args=' . escapeshellarg($vmMeta['pv_args']),
-            ];
-        }
 
         // ── 7. VBD commands ───────────────────────────────────────────────────
         foreach ($metadata['disks'] as $disk) {
@@ -1472,7 +1520,7 @@ class MigrationService implements MigrationInterface
                 'iam_account_id', 'iam_user_id',
             ]);
 
-            VirtualNetworkCardsService::create(array_merge($nicFields, [
+            $newNic = VirtualNetworkCardsService::create(array_merge($nicFields, [
                 'iaas_virtual_machine_id' => $newVm->id,
                 'iaas_network_id'         => $networkId,
                 'hypervisor_uuid'         => trim($vifParams['uuid'] ?? ''),
@@ -1484,6 +1532,35 @@ class MigrationService implements MigrationInterface
                 . ' → new vm_id=' . $newVm->id
                 . ', network_id=' . $networkId
                 . ', mac=' . trim($vifParams['MAC'] ?? $vifParams['mac'] ?? $nic->mac_addr));
+
+            // ── Reassign IpAddresses from old NIC to new NIC ──────────────────
+            // IpAddresses are owned by the VirtualNetworkCard, not the VM.
+            // After cloning the NIC we must transfer ownership so the DHCP
+            // configuration and address allocations follow the new record.
+            $ipAddresses = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_network_card_id', $nic->id)
+                ->whereNull('deleted_at')
+                ->get();
+
+            foreach ($ipAddresses as $ipAddress) {
+                IpAddressesService::update($ipAddress->uuid, [
+                    'iaas_virtual_network_card_id' => $newNic->id,
+                ]);
+
+                Log::info(__METHOD__ . ' | Reassigned IpAddress id=' . $ipAddress->id
+                    . ' (' . $ipAddress->ip_addr . ')'
+                    . ' from old NIC id=' . $nic->id . ' to new NIC id=' . $newNic->id);
+            }
+
+            // ── Apply IP locking on the new VIF ──────────────────────────────
+            // Reload so hypervisor_data is properly cast before passing to XenService.
+            if ($ipAddresses->isNotEmpty() && !empty($vifParams['uuid'])) {
+                $freshNic = $newNic->fresh();
+                VirtualNetworkCardsXenService::setIpv4Allowed($freshNic);
+                VirtualNetworkCardsXenService::setLockingState($freshNic, VirtualNetworkCardsXenService::LOCKED);
+
+                Log::info(__METHOD__ . ' | Applied ipv4-allowed + locking-mode=locked on new NIC id=' . $newNic->id);
+            }
 
             // ── Trigger DHCP config update for this network ───────────────────
             if ($networkId && !isset($dhcpServersSeen[$networkId])) {
@@ -1559,9 +1636,31 @@ class MigrationService implements MigrationInterface
      */
     public function run(VirtualMachineMigrations $migration): void
     {
+        // ── Reset all cached step outputs so every run starts clean ──────────
+        // Stale metadata from a previous (possibly failed) run would cause
+        // coalesce-vhd to use wrong VHD paths, and sync-db to skip re-cloning.
+        $options = is_array($migration->options)
+            ? $migration->options
+            : (json_decode($migration->options, true) ?? []);
+
+        foreach ([
+            'source_metadata',
+            'coalesced_vhd_paths',
+            'copied_vhd_paths',
+            'vdi_uuid_map',
+            'target_vm_uuid',
+            'target_vm_id',
+            'rollback_snapshot',
+            'dry_run_commands',
+            'dry_run_commands_recreate',
+        ] as $key) {
+            unset($options[$key]);
+        }
+
         $migration->updateQuietly([
             'status'     => 'in-progress',
             'started_at' => now(),
+            'options'    => json_encode($options),
         ]);
 
         Log::info('[MigrationService] Starting migration: ' . $migration->uuid);
@@ -1655,6 +1754,62 @@ class MigrationService implements MigrationInterface
      * non-interactively over stdin (no TTY required).
      * The password is read from StorageMembers.ssh_password at call time.
      */
+    /**
+     * Parses the output of `xe vm-disk-list` into an array of disks,
+     * each with 'vbd' and 'vdi' sub-arrays of key=>value pairs.
+     *
+     * Example output block:
+     *   Disk 0 VBD:
+     *   uuid ( RO): 616ba652-...
+     *      userdevice ( RW): 0
+     *   Disk 0 VDI:
+     *   uuid ( RO): efd99ca0-...
+     *      virtual-size ( RO): 536870912000
+     */
+    private static function parseVmDiskList(string $output): array
+    {
+        $disks   = [];
+        $current = null;
+        $section = null;
+
+        foreach (explode("\n", $output) as $line) {
+            if (preg_match('/^Disk\s+\d+\s+VBD:/i', trim($line))) {
+                preg_match('/\d+/', trim($line), $m);
+                $idx = (int) $m[0];
+                if (!isset($disks[$idx])) {
+                    $disks[$idx] = ['vbd' => [], 'vdi' => []];
+                }
+                $current = $idx;
+                $section = 'vbd';
+                continue;
+            }
+
+            if (preg_match('/^Disk\s+\d+\s+VDI:/i', trim($line))) {
+                preg_match('/\d+/', trim($line), $m);
+                $idx = (int) $m[0];
+                if (!isset($disks[$idx])) {
+                    $disks[$idx] = ['vbd' => [], 'vdi' => []];
+                }
+                $current = $idx;
+                $section = 'vdi';
+                continue;
+            }
+
+            if ($current === null || $section === null) {
+                continue;
+            }
+
+            // key ( RO|RW): value
+            if (preg_match('/^\s*([^(]+?)\s*\(\s*R[OW]\s*\)\s*:\s*(.*)$/', $line, $m)) {
+                $key   = trim($m[1]);
+                $value = trim($m[2]);
+                $disks[$current][$section][$key] = $value;
+            }
+        }
+
+        return array_values($disks);
+    }
+
     private static function sudo(string $command, StorageMembers $storageMember): string
     {
         $password = decrypt($storageMember->ssh_password);
