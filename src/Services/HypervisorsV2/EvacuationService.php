@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Services\HypervisorsV2;
 
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
@@ -174,6 +175,17 @@ class EvacuationService
             ];
         }
 
+        // ── Pre-load source and target CMNIs for VLAN-based network matching ─────
+        $sourceCmnis = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_compute_member_id', $source->id)
+            ->whereNull('deleted_at')
+            ->get();
+
+        $targetCmnis = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_compute_member_id', $target->id)
+            ->whereNull('deleted_at')
+            ->get();
+
         // ── Build network mapping ─────────────────────────────────────────────
         $networkMapping = [];
 
@@ -182,19 +194,46 @@ class EvacuationService
                 ->where('id', $nic->iaas_network_id)
                 ->first();
 
-            // Match by VLAN first (most reliable), then fall back to name
+            // Resolve the effective VLAN for this NIC:
+            //   1. Use Networks.vlan if it is set and non-zero.
+            //   2. Otherwise look it up from the source host's CMNI by network name.
+            $effectiveVlan = ($sourceNetwork?->vlan) ?: null;
+
+            if (!$effectiveVlan && $sourceNetwork?->name) {
+                $sourceCmni   = $sourceCmnis->first(fn($c) => $c->network_name === $sourceNetwork->name);
+                $effectiveVlan = $sourceCmni?->vlan ?: null;
+            }
+
+            // Match target Networks:
+            //   1. Networks.vlan match within the target cloud node.
+            //   2. Networks.name match within the target cloud node.
+            //   3. Target CMNI vlan match → resolve Network by CMNI network_name.
             $matchedNetwork = null;
 
-            if ($sourceNetwork?->vlan) {
-                $matchedNetwork = $targetNetworks
-                    ->where('vlan', $sourceNetwork->vlan)
-                    ->first();
+            if ($effectiveVlan) {
+                $matchedNetwork = $targetNetworks->first(fn($n) => (int) $n->vlan === (int) $effectiveVlan);
             }
 
             if (!$matchedNetwork && $sourceNetwork?->name) {
-                $matchedNetwork = $targetNetworks
-                    ->where('name', $sourceNetwork->name)
-                    ->first();
+                $matchedNetwork = $targetNetworks->first(fn($n) => $n->name === $sourceNetwork->name);
+            }
+
+            if (!$matchedNetwork && $effectiveVlan) {
+                // Try resolving through the target host's CMNI records.
+                $targetCmni = $targetCmnis->first(fn($c) => (int) $c->vlan === (int) $effectiveVlan);
+
+                if ($targetCmni?->network_name) {
+                    $matchedNetwork = $targetNetworks->first(fn($n) => $n->name === $targetCmni->network_name);
+
+                    if (!$matchedNetwork) {
+                        // Network exists on the target host (CMNI) but may not be in the DB yet —
+                        // look it up globally in case it belongs to a different cloud node record.
+                        $matchedNetwork = Networks::withoutGlobalScope(AuthorizationScope::class)
+                            ->where('name', $targetCmni->network_name)
+                            ->whereNull('deleted_at')
+                            ->first();
+                    }
+                }
             }
 
             if (!$matchedNetwork) {
@@ -203,7 +242,7 @@ class EvacuationService
                 // This is reflected as match_confidence = 'will_create' in the mapping below.
                 $warnings[] = 'No existing network found on target for NIC "' . $nic->name . '"'
                     . ' (source: "' . ($sourceNetwork?->name ?? 'unknown') . '"'
-                    . ', VLAN: ' . ($sourceNetwork?->vlan ?? 'none') . ')'
+                    . ', VLAN: ' . ($effectiveVlan ?? 'none') . ')'
                     . ' — it will be created automatically on the target host during migration.';
             }
 

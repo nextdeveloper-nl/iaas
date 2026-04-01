@@ -328,7 +328,7 @@ class VirtualMachines extends Model
      */
     public function cloningSource(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(VirtualMachines::class, 'snapshot_of_virtual_machine', 'uuid');
+        return $this->belongsTo(VirtualMachines::class, 'snapshot_of_virtual_machine', 'id');
     }
 
     /**
@@ -336,7 +336,7 @@ class VirtualMachines extends Model
      */
     public function clones(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(VirtualMachines::class, 'snapshot_of_virtual_machine', 'uuid');
+        return $this->hasMany(VirtualMachines::class, 'snapshot_of_virtual_machine', 'id');
     }
 
 

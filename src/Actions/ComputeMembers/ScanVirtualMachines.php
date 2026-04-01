@@ -93,7 +93,7 @@ class ScanVirtualMachines extends AbstractAction
              * We are skipping the scan of virtual machines which has "migrated_" in the name
              * Because if we don't skip we will be having two servers
              */
-            if(Str::startsWith($vmInfo['name-label'], 'exported_'))
+            if(Str::startsWith($vmInfo[0]['name-label'], 'exported_'))
                 continue;
 
             if(is_array($vmInfo) && array_key_exists('error', $vmInfo)) {
@@ -210,6 +210,30 @@ class ScanVirtualMachines extends AbstractAction
                     $dbVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
                         ->where('hypervisor_uuid', $diskParams['uuid'])
                         ->first();
+
+                    // If we found a VDI by hypervisor_uuid but it belongs to a different VM,
+                    // check whether the current VM already has its own record for this disk
+                    // (e.g. created by a migration clone). If so, use that record instead to
+                    // avoid a unique constraint violation on (iaas_virtual_machine_id, device_number).
+                    if ($dbVdi && (int) $dbVdi->iaas_virtual_machine_id !== (int) $dbVm->id) {
+                        $ownRecord = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                            ->where('iaas_virtual_machine_id', $dbVm->id)
+                            ->where('device_number', $vbdParams['userdevice'])
+                            ->first();
+
+                        if ($ownRecord) {
+                            // The current VM already owns a disk at this device position — use it.
+                            $dbVdi = $ownRecord;
+                        }
+                        // else: no own record yet, fall through and let the update reassign the
+                        // existing record to this VM (original VM no longer owns it on XenServer).
+
+                        if($dbVdi) {
+                            logger()->warning('[ScanVirtualMachines] There is a disk in the same ' .
+                                'device_number in this virtual machine: ' . $dbVm->uuid . ', but their ' .
+                                'hypervisor_uuid does not match. So it mush be updated or changed manually.');
+                        }
+                    }
                 }
 
                 //  We are taking the volume if the VDI is CDROM

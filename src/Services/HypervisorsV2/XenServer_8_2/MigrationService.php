@@ -507,13 +507,13 @@ class MigrationService implements MigrationInterface
             return;
         }
 
-        // ── Attempt graceful shutdown (timeout: 5 minutes) ───────────────────
+        // ── Attempt graceful shutdown (timeout: 2 minutes) ───────────────────
         $this->updateStep($migration, 'shutting-down', 37, 'Sending clean shutdown signal to VM: ' . $vm->name);
 
         self::performCommand('xe vm-shutdown uuid=' . $vm->hypervisor_uuid . ' force=false', $source);
 
         $halted      = false;
-        $maxAttempts = 30; // 30 × 10s = 5 minutes
+        $maxAttempts = 12; // 12 × 10s = 2 minutes
 
         for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
             sleep(10);
@@ -536,7 +536,7 @@ class MigrationService implements MigrationInterface
         // ── Graceful shutdown timed out — attempt forced shutdown ─────────────
         if (!$halted) {
             $this->updateStep($migration, 'shutting-down', 43,
-                'Graceful shutdown timed out after 5 minutes — attempting forced shutdown');
+                'Graceful shutdown timed out after 2 minutes — attempting forced shutdown');
 
             Log::warning(__METHOD__ . ' | Graceful shutdown timed out for VM "' . $vm->name . '". Forcing shutdown.');
 
@@ -1364,7 +1364,7 @@ class MigrationService implements MigrationInterface
             'iaas_compute_member_id'       => $migration->target_iaas_compute_member_id,
             'iaas_cloud_node_id'           => $targetCloudNode?->id,
             'status'                       => 'halted',
-            'snapshot_of_virtual_machine'  => $vm->uuid,
+            'snapshot_of_virtual_machine'  => $vm->id,
             'features'                     => array_merge($existingFeatures, [
                 'origin'                       => 'migration',
                 'migration_uuid'               => $migration->uuid,
@@ -1408,7 +1408,7 @@ class MigrationService implements MigrationInterface
 
             $diskFields = $disk->only([
                 'name', 'size', 'physical_utilisation', 'is_cdrom', 'is_draft',
-                'device_number', 'utilization',
+                'device_number',
                 'iaas_storage_pool_id', 'iaas_repository_image_id',
                 'iam_account_id', 'iam_user_id',
             ]);
@@ -1527,72 +1527,30 @@ class MigrationService implements MigrationInterface
             ? $migration->options
             : (json_decode($migration->options, true) ?? []);
 
-        $newVmUuid = $options['target_vm_uuid'] ?? null;
+        // Use the cloned VM record created by syncDatabaseRecords
+        $targetVmId = $options['target_vm_id'] ?? null;
 
-        if (empty($newVmUuid)) {
-            throw new \Exception('No target VM UUID found. Run recreateVmOnTarget before this step.');
+        if (empty($targetVmId)) {
+            throw new \Exception('No target VM record found in migration options. Run syncDatabaseRecords before this step.');
         }
 
-        $target = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', $migration->target_iaas_compute_member_id)
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $targetVmId)
             ->firstOrFail();
 
-        // Use the cloned VM record created by syncDatabaseRecords, not the original
-        $targetVmId = $options['target_vm_id'] ?? null;
-        $vm = $targetVmId
-            ? VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $targetVmId)->firstOrFail()
-            : VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $migration->iaas_virtual_machine_id)->firstOrFail();
-
-        // ── Start the VM ──────────────────────────────────────────────────────
-        $result = self::performCommand('xe vm-start uuid=' . $newVmUuid, $target);
-
-        if (!empty($result['error'])) {
-            throw new \Exception('xe vm-start failed: ' . $result['error']);
-        }
-
-        // ── Poll until running (timeout: 3 minutes = 18 × 10s) ───────────────
-        $running     = false;
-        $powerState  = 'unknown';
-        $maxAttempts = 18;
-
-        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
-            sleep(10);
-
-            $result     = self::performCommand('xe vm-param-get uuid=' . $newVmUuid . ' param-name=power-state', $target);
-            $powerState = trim($result['output'] ?? '');
-
-            Log::info(__METHOD__ . ' | Poll ' . ($attempt + 1) . '/' . $maxAttempts . ' — power-state: ' . $powerState);
-
-            if ($powerState === 'running') {
-                $running = true;
-                break;
-            }
-
-            $progress = 95 + (int) (($attempt / $maxAttempts) * 4); // 95 → 99
-            $this->updateStep($migration, 'starting-vm', $progress,
-                'Waiting for VM to reach running state... (' . (($attempt + 1) * 10) . 's elapsed)');
-        }
-
-        if (!$running) {
-            throw new \Exception(
-                'VM did not reach running state within 3 minutes. '
-                . 'Last power-state: "' . $powerState . '".'
-            );
-        }
-
-        // ── Update VM status to running (syncDatabaseRecords already set uuid and compute member) ──
-        $vm->updateQuietly(['status' => 'running']);
+        // ── Dispatch the Start action (handles cloud-init ISO + xe vm-start) ──
+        dispatch(new \NextDeveloper\IAAS\Actions\VirtualMachines\Start($vm));
 
         // ── Mark migration as completed ───────────────────────────────────────
         $migration->updateQuietly([
             'status'       => 'completed',
             'progress'     => 100,
             'current_step' => 'completed',
-            'step_message' => 'Migration completed successfully',
+            'step_message' => 'Migration completed successfully — VM start dispatched',
             'completed_at' => now(),
         ]);
 
-        Log::info(__METHOD__ . ' | VM started and running on target: ' . $newVmUuid);
+        Log::info(__METHOD__ . ' | Start action dispatched for cloned VM id=' . $vm->id . ' uuid=' . $vm->uuid);
     }
 
     /**
