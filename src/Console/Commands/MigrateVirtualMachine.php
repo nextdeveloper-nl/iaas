@@ -246,7 +246,7 @@ class MigrateVirtualMachine extends Command
         $fresh   = $migration->fresh();
         $options = is_array($fresh->options) ? $fresh->options : (json_decode($fresh->options, true) ?? []);
 
-        if (!empty($options['dry_run_commands'])) {
+        if (!empty($options['dry_run']) && !empty($options['dry_run_commands'])) {
             $this->newLine();
             $this->line('Commands that <fg=yellow>would</> be executed on <fg=cyan>'
                 . $options['dry_run_commands'][0]['host'] . '</>:');

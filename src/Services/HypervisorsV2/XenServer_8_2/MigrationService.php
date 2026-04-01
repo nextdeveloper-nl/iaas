@@ -694,7 +694,10 @@ class MigrationService implements MigrationInterface
             return;
         }
 
-        // ── Live run: execute commands ────────────────────────────────────────
+        // ── Live run: clear any stale dry-run artefacts and execute ──────────
+        unset($options['dry_run'], $options['dry_run_commands']);
+        $migration->updateQuietly(['options' => json_encode($options)]);
+
         $this->updateStep($migration, 'copying-vhd', 46, 'Mounting target NFS share on source storage');
 
         self::performStorageCommand($commands[0]['command'], $sourceStorageMember);
