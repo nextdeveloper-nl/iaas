@@ -129,6 +129,11 @@ class IaasSuccessManager extends AbstractRole implements IAuthorizationRole
             'iaas_backup_jobs:create',
             'iaas_backup_jobs:update',
             'iaas_backup_jobs:delete',
+
+            'iaas_backup_job_replications:read',
+            'iaas_backup_job_replications:create',
+            'iaas_backup_job_replications:update',
+            'iaas_backup_job_replications:delete',
         ];
     }
 

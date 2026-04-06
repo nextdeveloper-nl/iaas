@@ -181,7 +181,12 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             'iaas_ssh_public_key_virtual_machines:read',
             'iaas_ssh_public_key_virtual_machines:create',
             'iaas_ssh_public_key_virtual_machines:update',
-            'iaas_ssh_public_key_virtual_machines:delete'
+            'iaas_ssh_public_key_virtual_machines:delete',
+
+            'iaas_backup_job_replications:read',
+            'iaas_backup_job_replications:create',
+            'iaas_backup_job_replications:update',
+            'iaas_backup_job_replications:delete',
         ];
     }
 
