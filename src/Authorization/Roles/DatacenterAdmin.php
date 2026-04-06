@@ -262,6 +262,12 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_compute_member_storage_volumes:create',
             'iaas_compute_member_storage_volumes:update',
             'iaas_compute_member_storage_volumes:delete',
+
+            'iaas_backup_job_replications:read',
+            'iaas_backup_job_replications:create',
+            'iaas_backup_job_replications:update',
+            'iaas_backup_job_replications:delete',
+
         ]);
     }
 
