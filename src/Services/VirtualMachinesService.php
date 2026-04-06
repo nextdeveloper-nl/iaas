@@ -239,12 +239,20 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         //  Getting the actual amount of ram
         $data['ram']    =   ResourceCalculationHelper::getActualRam($data['ram']);
 
-        //  Asking the appropriate number of CPU per ram.
-        $data['cpu']    =   ResourceCalculationHelper::getCpuPerRam(
-            ram: $data['ram'],
-            //  We will be adding this parameter later to get the actual CPU size for compute pool
-            cp: null
-        );
+        if(
+            (UserHelper::hasRole('cloud-node-admin') || UserHelper::hasRole('datacenter-admin')) ||
+            array_key_exists('cpu', $data)
+        ) {
+            //  We are doing nothing here because we assume that the cloud node admin or datacenter admin knows
+            //  what they are doing.
+        } else {
+            //  Asking the appropriate number of CPU per ram.
+            $data['cpu']    =   ResourceCalculationHelper::getCpuPerRam(
+                ram: $data['ram'],
+                //  We will be adding this parameter later to get the actual CPU size for compute pool
+                cp: null
+            );
+        }
 
         //  Finding and attaching cloud node id
         if(array_key_exists('iaas_compute_pool_id', $data)) {
