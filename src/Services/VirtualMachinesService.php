@@ -59,17 +59,17 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         return parent::get($filter, $params);
     }
 
-    public static function getOwnerAccount(VirtualMachines $vm) : ?Accounts
+    public static function getOwnerAccount(VirtualMachines $vm): ?Accounts
     {
         return UserHelper::getAccountById($vm->iam_account_id);
     }
 
-    public static function getOwner(VirtualMachines $vm) : ?Users
+    public static function getOwner(VirtualMachines $vm): ?Users
     {
         return UserHelper::getUserWithId($vm->iam_user_id);
     }
 
-    public static function getCdrom(VirtualMachines $vm) : ?VirtualDiskImages
+    public static function getCdrom(VirtualMachines $vm): ?VirtualDiskImages
     {
         return VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_virtual_machine_id', $vm->id)
@@ -90,10 +90,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function getMetrics(VirtualMachines $vm, $metric)
     {
-        if($metric == 'cpu')
+        if ($metric == 'cpu')
             return self::getCpuMetrics($vm);
 
-        if($metric == 'ram')
+        if ($metric == 'ram')
             return self::getRamMetrics($vm);
 
         $values = VirtualMachineMetrics::withoutGlobalScopes()
@@ -104,7 +104,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->take(30)
             ->get();
 
-        if(Str::contains($metric, 'cpu')) {
+        if (Str::contains($metric, 'cpu')) {
             $values = $values->map(function ($item) {
                 //  We are converting the CPU percentage to a number between 0 and 1
                 $item->value = $item->value * 100;
@@ -112,7 +112,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             });
         }
 
-        if($metric == 'memory_target' || $metric == 'memory') {
+        if ($metric == 'memory_target' || $metric == 'memory') {
             $values = $values->map(function ($item) {
                 //  We are converting the memory target to MB
                 $item->value = $item->value / 1024 / 1024;
@@ -120,7 +120,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             });
         }
 
-        if(Str::startsWith($metric, 'vif')) {
+        if (Str::startsWith($metric, 'vif')) {
             $values = $values->map(function ($item) {
                 //  We are converting the network traffic to kBits
                 $item->value = $item->value / 1024;
@@ -146,7 +146,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         foreach ($values as $value) {
             $ramSeries[$value->parameter][] = [
                 'timestamp' => $value->timestamp->timestamp,
-                'value'     => $value->value * 100 //  We are converting the CPU percentage to a number between 0 and 1
+                'value' => $value->value * 100 //  We are converting the CPU percentage to a number between 0 and 1
             ];
         }
 
@@ -167,7 +167,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->where('iaas_virtual_machine_id', $vm->id)
             ->whereIn('parameter', $availableCpus)
             ->orderBy('created_at', 'desc')
-            ->take($cpuCount*30) //  We are taking 30 values for each CPU
+            ->take($cpuCount * 30) //  We are taking 30 values for each CPU
             ->get();
 
         $cpuSeries = [];
@@ -175,7 +175,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         foreach ($values as $value) {
             $cpuSeries[$value->parameter][] = [
                 'timestamp' => $value->timestamp->timestamp,
-                'value'     => $value->value * 100 //  We are converting the CPU percentage to a number between 0 and 1
+                'value' => $value->value * 100 //  We are converting the CPU percentage to a number between 0 and 1
             ];
         }
 
@@ -188,12 +188,13 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
      * @param VirtualMachines $vm
      * @return RepositoryImages|null
      */
-    public static function getRepositoryImage(VirtualMachines $vm) : ?RepositoryImages
+    public static function getRepositoryImage(VirtualMachines $vm): ?RepositoryImages
     {
         return RepositoryImages::withoutGlobalScopes()->where('id', $vm->iaas_repository_image_id)->first();
     }
 
-    public static function convertToApexChartData($rawData) {
+    public static function convertToApexChartData($rawData)
+    {
         $result = [];
         $timezone = new DateTimeZone('Europe/Istanbul');
 
@@ -218,7 +219,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     }
 
 
-    public static function getVirtualMachineByHypervisorUuid($uuid) : ?VirtualMachines
+    public static function getVirtualMachineByHypervisorUuid($uuid): ?VirtualMachines
     {
         $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
             ->where('hypervisor_uuid', $uuid)
@@ -232,14 +233,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         //  Here we check if we are hitting the limits
         $hasLimits = (new SimpleLimiter(IaasHelper::currentAccount()))->hasLimitForRam($data['ram']);
 
-        if(!$hasLimits) {
+        if (!$hasLimits) {
             throw new CannotCreateVirtualMachine('You reached to limits of your account. You cannot have more ram in your account. Please consult to sales teams.');
         }
 
         //  Getting the actual amount of ram
-        $data['ram']    =   ResourceCalculationHelper::getActualRam($data['ram']);
+        $data['ram'] = ResourceCalculationHelper::getActualRam($data['ram']);
 
-        if(
+        if (
             (UserHelper::hasRole('cloud-node-admin') || UserHelper::hasRole('datacenter-admin')) ||
             array_key_exists('cpu', $data)
         ) {
@@ -247,7 +248,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             //  what they are doing.
         } else {
             //  Asking the appropriate number of CPU per ram.
-            $data['cpu']    =   ResourceCalculationHelper::getCpuPerRam(
+            $data['cpu'] = ResourceCalculationHelper::getCpuPerRam(
                 ram: $data['ram'],
                 //  We will be adding this parameter later to get the actual CPU size for compute pool
                 cp: null
@@ -255,10 +256,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         //  Finding and attaching cloud node id
-        if(array_key_exists('iaas_compute_pool_id', $data)) {
+        if (array_key_exists('iaas_compute_pool_id', $data)) {
             $computePool = null;
 
-            if(Str::isUuid($data['iaas_compute_pool_id'])) {
+            if (Str::isUuid($data['iaas_compute_pool_id'])) {
                 $computePool = ComputePools::where('uuid', $data['iaas_compute_pool_id'])->first();
             } else {
                 $computePool = ComputePools::where('id', $data['iaas_compute_pool_id'])->first();
@@ -281,7 +282,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
      * @param \NextDeveloper\IAM\Database\Models\Accounts $account
      * @return Collection
      */
-    public static function getVirtualMachines(Accounts $account) : Collection
+    public static function getVirtualMachines(Accounts $account): Collection
     {
         return VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
@@ -289,7 +290,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->get();
     }
 
-    public static function getVirtualDiskImages(VirtualMachines $vm) : Collection
+    public static function getVirtualDiskImages(VirtualMachines $vm): Collection
     {
         return VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
@@ -297,7 +298,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->get();
     }
 
-    public static function getVirtualNetworkCards(VirtualMachines $vm) : Collection
+    public static function getVirtualNetworkCards(VirtualMachines $vm): Collection
     {
         return VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
@@ -305,21 +306,22 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ->get();
     }
 
-    public static function getComputeMember(VirtualMachines $vm) : ?ComputeMembers
+    public static function getComputeMember(VirtualMachines $vm): ?ComputeMembers
     {
         return ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_member_id)
             ->first();
     }
 
-    public static function getComputePool(VirtualMachines $vm) : ?ComputePools
+    public static function getComputePool(VirtualMachines $vm): ?ComputePools
     {
         return ComputePools::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $vm->iaas_compute_pool_id)
             ->first();
     }
 
-    public static function getCloudPool($vm) {
+    public static function getCloudPool($vm)
+    {
         $computePool = self::getComputePool($vm);
 
         return CloudNodes::withoutGlobalScope(AuthorizationScope::class)
@@ -331,7 +333,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     {
         $vm = null;
 
-        if(Str::isUuid($id))
+        if (Str::isUuid($id))
             $vm = VirtualMachines::where('uuid', $id)->first();
         else
             $vm = VirtualMachines::where('id', $id)->first();
@@ -339,12 +341,12 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         try {
             $password = decrypt($vm->password);
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            if($e->getMessage() == 'The payload is invalid.') {
+            if ($e->getMessage() == 'The payload is invalid.') {
                 Log::error(__METHOD__ . ' | We got the payload is invalid error. Maybe the password is not ' .
                     'encrpyted for the customer. That is why I am returning the raw password');
 
                 $vm->update([
-                    'password'  =>  $vm->password
+                    'password' => $vm->password
                 ]);
 
                 return $vm->password;
@@ -367,7 +369,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $triggerVdiUpdate = false;
         $triggerRamUpdate = false;
 
-        if(!$vm) {
+        if (!$vm) {
             throw new NotFoundException('Cannot find the virtual machine you are trying to update. This ' .
                 'can be because of multiple reasons but most probably vm is not there. Therefore it can be a wise ' .
                 'decision to run a manual health check for this VM.');
@@ -375,87 +377,91 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
         //  Sometimes ram can be null and we want to change something else with the virtual machinne
         //  like backup routine
-        if(array_key_exists('ram', $data)) {
-            if($vm->ram != $data['ram']) {
-                if($vm->hypervisor_uuid) {
-                    if($vm->status != 'halted')
+        if (array_key_exists('ram', $data)) {
+            if ($vm->ram != $data['ram']) {
+                if ($vm->hypervisor_uuid) {
+                    if ($vm->status != 'halted')
                         throw new CannotUpdateResourcesException('Unfortunately we cannot update the resources ' .
                             'of your virtual machine because your virtual machine is still running. Please shutdown your ' .
                             'server and try updating the resources again.');
                 }
 
-                $canUpdateRam = self::canUpdateRam($vm, $data['ram']);
+                if (
+                    !(UserHelper::hasRole('cloud-node-admin') || UserHelper::hasRole('datacenter-admin'))
+                ) {
+                    $canUpdateRam = self::canUpdateRam($vm, $data['ram']);
 
-                if(!$canUpdateRam) {
-                    $availableRamSizes = ResourceCalculationHelper::getAvailableRamSizes($cp);
+                    if (!$canUpdateRam) {
+                        $availableRamSizes = ResourceCalculationHelper::getAvailableRamSizes($cp);
 
-                    throw new CannotUpdateResourcesException('We cannot update the ram and cpu because the ram ' .
-                        'that you are asking to increase is either beyond our available ram or the amount of ram is not ' .
-                        'in the list of available ram amounts. To fix this problem please check if the ram size is ' .
-                        'within this list: ' . implode(' GB, ', $availableRamSizes) . ' GB');
-                }
-
-                /*  If we can update the ram, we should also take a look at the disk. Because if the server is in STAR
-                *   design we can update but if we are in ONE design we should check if we can update the disk also
-                */
-                $shouldUpdateDisk = self::shouldUpdateDiskWithRam($vm);
-
-                //  If we should update then I am updating the disk
-                //  Also if we should update the disk this means that the pool is ONE
-                if($shouldUpdateDisk) {
-                    //  Since this is Leo One type or pool, we cannot allow to reduce resources.
-                    if(ResourceCalculationHelper::getRamInMb($data['ram']) < $vm->ram) {
-                        throw new CannotUpdateResourcesException('We cannot update resources of this server,' .
-                            ' because the server is in Leo ONE pool where cpu, ram and disk resources are aligned with a ' .
-                            'certain ratio. The problem here is that we cannot reduce the size of the disk, therefore ' .
-                            'we cannot reduce the size of CPU and RAM. We are very sorry about this issue.');
+                        throw new CannotUpdateResourcesException('We cannot update the ram and cpu because the ram ' .
+                            'that you are asking to increase is either beyond our available ram or the amount of ram is not ' .
+                            'in the list of available ram amounts. To fix this problem please check if the ram size is ' .
+                            'within this list: ' . implode(' GB, ', $availableRamSizes) . ' GB');
                     }
 
-                    //  @leo-pool ONE
-                    //  If we came to this point this means that we have enough resources in the resource pool.
-                    $cm = self::getComputeMember($vm);
+                    /*  If we can update the ram, we should also take a look at the disk. Because if the server is in STAR
+                    *   design we can update but if we are in ONE design we should check if we can update the disk also
+                    */
+                    $shouldUpdateDisk = self::shouldUpdateDiskWithRam($vm);
 
-                    //  If we have a compute member, this means that we should be taking a look at the CM resources.
-                    //  If CM also has resource then everything is fine, we can move on.
-                    if($cm) {
-                        //  Since the ram and disk are correlated in this design, we don't need to check for disk again.
-                        if(!ComputeMembersService::hasRamResource($cm, $data['ram'])) {
-                            throw new CannotUpdateResourcesException('We cannot update your virtual machines ' .
-                                'resources because on the host that you are using there is not enough resource. You ' .
-                                'should create a new server or you should enable migrate server option while asking for ' .
-                                'resize. But you should be aware that when you are migrating your server, you will have ' .
-                                'some downtime. Also you may not have the same hardware and your bios may change.');
+                    //  If we should update then I am updating the disk
+                    //  Also if we should update the disk this means that the pool is ONE
+                    if ($shouldUpdateDisk) {
+                        //  Since this is Leo One type or pool, we cannot allow to reduce resources.
+                        if (ResourceCalculationHelper::getRamInMb($data['ram']) < $vm->ram) {
+                            throw new CannotUpdateResourcesException('We cannot update resources of this server,' .
+                                ' because the server is in Leo ONE pool where cpu, ram and disk resources are aligned with a ' .
+                                'certain ratio. The problem here is that we cannot reduce the size of the disk, therefore ' .
+                                'we cannot reduce the size of CPU and RAM. We are very sorry about this issue.');
                         }
+
+                        //  @leo-pool ONE
+                        //  If we came to this point this means that we have enough resources in the resource pool.
+                        $cm = self::getComputeMember($vm);
+
+                        //  If we have a compute member, this means that we should be taking a look at the CM resources.
+                        //  If CM also has resource then everything is fine, we can move on.
+                        if ($cm) {
+                            //  Since the ram and disk are correlated in this design, we don't need to check for disk again.
+                            if (!ComputeMembersService::hasRamResource($cm, $data['ram'])) {
+                                throw new CannotUpdateResourcesException('We cannot update your virtual machines ' .
+                                    'resources because on the host that you are using there is not enough resource. You ' .
+                                    'should create a new server or you should enable migrate server option while asking for ' .
+                                    'resize. But you should be aware that when you are migrating your server, you will have ' .
+                                    'some downtime. Also you may not have the same hardware and your bios may change.');
+                            }
+                        }
+
+                        //  This means that we have done all the checks and we are good to go for VDI update
+                        $triggerVdiUpdate = true;
                     }
 
-                    //  This means that we have done all the checks and we are good to go for VDI update
-                    $triggerVdiUpdate = true;
-                }
+                    if (!$shouldUpdateDisk) {
+                        //  @leo-pool STAR
+                        $canUpdateDisk = self::canUpdateDisk(
+                            vm: $vm,
+                            toDisk: ResourceCalculationHelper::getDiskSizeAgainstRam(
+                                cp: self::getComputePool($vm),
+                                ram: $data['ram']
+                            )
+                        );
 
-                if(!$shouldUpdateDisk) {
-                    //  @leo-pool STAR
-                    $canUpdateDisk = self::canUpdateDisk(
-                        vm: $vm,
-                        toDisk: ResourceCalculationHelper::getDiskSizeAgainstRam(
+                        $availableDiskSizes = ResourceCalculationHelper::getAvailableDiskSizes(
                             cp: self::getComputePool($vm),
-                            ram: $data['ram']
-                        )
-                    );
+                            minSize: ResourceCalculationHelper::getDiskSizeAgainstRam(
+                                cp: self::getComputePool($vm),
+                                ram: $data['ram']
+                            )
+                        );
 
-                    $availableDiskSizes = ResourceCalculationHelper::getAvailableDiskSizes(
-                        cp: self::getComputePool($vm),
-                        minSize: ResourceCalculationHelper::getDiskSizeAgainstRam(
-                            cp: self::getComputePool($vm),
-                            ram: $data['ram']
-                        )
-                    );
-
-                    if(!$canUpdateDisk) {
-                        throw new CannotUpdateResourcesException('We cannot update the disk. The disk you are ' .
-                            'requesting either is not available or you cannot take that much. Try to ask for these ' .
-                            'amounts; ' . implode(' GB, ', $availableDiskSizes) . ' GB. Or you may have requested ' .
-                            'either ram to change or disk to change. If the compute pool is in one mode and you asked for ' .
-                            'ram to change, then we should also change the disk.');
+                        if (!$canUpdateDisk) {
+                            throw new CannotUpdateResourcesException('We cannot update the disk. The disk you are ' .
+                                'requesting either is not available or you cannot take that much. Try to ask for these ' .
+                                'amounts; ' . implode(' GB, ', $availableDiskSizes) . ' GB. Or you may have requested ' .
+                                'either ram to change or disk to change. If the compute pool is in one mode and you asked for ' .
+                                'ram to change, then we should also change the disk.');
+                        }
                     }
                 }
 
@@ -463,41 +469,41 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             }
         }
 
-        if($triggerVdiUpdate) {
+        if ($triggerVdiUpdate) {
             $vdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
                 ->where('iaas_virtual_machine_id', $vm->id)
                 ->where('device_number', 0)
                 ->first();
 
             VirtualDiskImagesService::update($vdi->id, [
-                'size'  =>  ResourceCalculationHelper::getDiskSizeAgainstRam($cp, $data['ram'])
+                'size' => ResourceCalculationHelper::getDiskSizeAgainstRam($cp, $data['ram'])
             ]);
         } else {
             $data['status'] = 'pending-update';
         }
 
-        if(!$triggerRamUpdate) {
+        if (!$triggerRamUpdate) {
             unset($data['cpu']);
             unset($data['ram']);
         } else {
-            $data['cpu']    = ResourceCalculationHelper::getCpuPerRam($data['ram'], $cp);
-            $data['ram']    = ResourceCalculationHelper::getRamInMb($data['ram']);
+            $data['cpu'] = ResourceCalculationHelper::getCpuPerRam($data['ram'], $cp);
+            $data['ram'] = ResourceCalculationHelper::getRamInMb($data['ram']);
             $data['status'] = 'pending-update';
         }
 
-        if(array_key_exists('backup_repository_id', $data)) {
+        if (array_key_exists('backup_repository_id', $data)) {
             $repository = Repositories::withoutGlobalScope(AuthorizationScope::class)
                 ->where('uuid', $data['backup_repository_id'])
                 ->first();
 
-            if($repository) {
+            if ($repository) {
                 $data['backup_repository_id'] = $repository->id;
             }
         }
 
         $updatedVm = parent::update($id, $data);
 
-        if(
+        if (
             ($vm->post_boot_script != $updatedVm->post_boot_script) ||
             ($vm->password != $updatedVm->password) ||
             ($vm->hostname != $updatedVm->hostname)
@@ -505,7 +511,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             dispatch(new GenerateCloudInitImage($vm));
         }
 
-        if($vm->hypervisor_uuid) {
+        if ($vm->hypervisor_uuid) {
             dispatch(new Commit($vm));
         }
 
@@ -533,13 +539,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         return $cp->pool_type;
     }
 
-    public static function canUpdateDisk(VirtualMachines $vm, $toDisk) {
+    public static function canUpdateDisk(VirtualMachines $vm, $toDisk)
+    {
         //  At the moment we are not letting the customer make live resource update. That is why we are checking if
         //  the VM is shutdown or not.
-        if(!($vm->status == 'draft' || $vm->status == 'halted'))
+        if (!($vm->status == 'draft' || $vm->status == 'halted'))
             return false;
 
-        if($vm->iaas_compute_member_id) {
+        if ($vm->iaas_compute_member_id) {
             $availableDiskSizes = ResourceCalculationHelper::getAvailableDiskSizesForComputeMember(
                 cm: self::getComputeMember($vm)
             );
@@ -560,10 +567,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
      * @param $toRam
      * @return void
      */
-    public static function canUpdateRam(VirtualMachines $vm, $toRam) {
+    public static function canUpdateRam(VirtualMachines $vm, $toRam)
+    {
         //  At the moment we are not letting the customer make live resource update. That is why we are checking if
         //  the VM is shutdown or not.
-        if(!($vm->status == 'draft' || $vm->status == 'halted'))
+        if (!($vm->status == 'draft' || $vm->status == 'halted'))
             return false;
 
         //  This means that we need to check the ram because the user requested another ram
@@ -571,16 +579,16 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             cp: self::getComputePool($vm)
         );
 
-        if(!in_array($toRam, $availableRamSizes)) {
+        if (!in_array($toRam, $availableRamSizes)) {
             return false;
         }
 
         return true;
     }
 
-    public static function isRunning(VirtualMachines $vm, $force = false) : bool
+    public static function isRunning(VirtualMachines $vm, $force = false): bool
     {
-        if($force) {
+        if ($force) {
             (new HealthCheck($vm))->handle();
         }
 
@@ -596,18 +604,18 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         );
     }
 
-    public static function getConsoleDataFromVmId($id) : array
+    public static function getConsoleDataFromVmId($id): array
     {
         $vm = VirtualMachines::where('uuid', $id)->first();
 
         return self::getConsoleData($vm);
     }
 
-    public static function getConsoleData(VirtualMachines $vm) : array
+    public static function getConsoleData(VirtualMachines $vm): array
     {
-        if($vm->status == 'halted' || $vm->status == 'draft') {
+        if ($vm->status == 'halted' || $vm->status == 'draft') {
             return [
-                'console'   =>  'Not available while the server is shutdown.'
+                'console' => 'Not available while the server is shutdown.'
             ];
         }
 
@@ -621,7 +629,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             return base64_encode($output);
         };
 
-        if($vm->console_data == null) {
+        if ($vm->console_data == null) {
             //  If we dont have the console data we are updating the VM
             (new HealthCheck($vm))->handle();
         }
@@ -629,20 +637,20 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $vm = $vm->fresh();
         $computeMember = self::getComputeMember($vm);
 
-        if(!$vm)
+        if (!$vm)
             return [];
 
-        if(!$vm->console_data) {
+        if (!$vm->console_data) {
             $consoleParams = VirtualMachinesXenService::getConsoleParameters($vm);
             $vm->update([
-                'console_data' =>   $consoleParams[0]
+                'console_data' => $consoleParams[0]
             ]);
         }
 
-        if($vm->status == 'draft' || $vm->status == 'halted')
+        if ($vm->status == 'draft' || $vm->status == 'halted')
             return [];
 
-        if(!array_key_exists('uuid', $vm->console_data)) {
+        if (!array_key_exists('uuid', $vm->console_data)) {
             dispatch(new HealthCheck($vm));
             return [];
         }
@@ -650,10 +658,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $uuid = $vm->console_data['uuid'];
         $ipAddr = $computeMember->ip_addr;
 
-        if($computeMember->is_behind_firewall)
+        if ($computeMember->is_behind_firewall)
             $ipAddr = $computeMember->local_ip_addr;
 
-        if(Str::contains($ipAddr, '/'))
+        if (Str::contains($ipAddr, '/'))
             $ipAddr = explode('/', $ipAddr)[0];
 
         $password = $computeMember->ssh_username . ':' . decrypt($computeMember->ssh_password);
@@ -673,8 +681,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
         $redis = new \Predis\Client([
             'scheme' => 'tcp',
-            'host'   => config('database.redis.default.host'),
-            'port'   => config('database.redis.default.port'),
+            'host' => config('database.redis.default.host'),
+            'port' => config('database.redis.default.port'),
             'password' => config('database.redis.default.password'),
             'database' => 2,
         ]);
@@ -685,9 +693,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
         return [
             'data' => $encrypt(implode('|', $data)),
-            't'    => $t,
-            'sign'  =>  md5($key.$t.$endpoint.$key),
-            'service'   => $consoleRedisSession,
+            't' => $t,
+            'sign' => md5($key . $t . $endpoint . $key),
+            'service' => $consoleRedisSession,
         ];
     }
 
@@ -763,9 +771,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $consoleRedisSession = Str::random(32);
 
         $redis = new \Predis\Client([
-            'scheme'   => 'tcp',
-            'host'     => config('database.redis.default.host'),
-            'port'     => config('database.redis.default.port'),
+            'scheme' => 'tcp',
+            'host' => config('database.redis.default.host'),
+            'port' => config('database.redis.default.port'),
             'password' => config('database.redis.default.password'),
             'database' => 2,
         ]);
@@ -780,7 +788,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     /**
      * Authenticates against the XenServer XMLRPC API and returns a session reference.
      *
-     * @param string $ipAddr   Compute member IP (no scheme, no port).
+     * @param string $ipAddr Compute member IP (no scheme, no port).
      * @param string $username XenServer root username.
      * @param string $password XenServer root password.
      * @return string|null     The OpaqueRef session token, or null on failure.
@@ -790,29 +798,29 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         // Build the XMLRPC payload manually — ext-xmlrpc is not available in PHP 8+
         $xmlPayload = '<?xml version="1.0"?>' .
             '<methodCall>' .
-                '<methodName>session.login_with_password</methodName>' .
-                '<params>' .
-                    '<param><value><string>' . htmlspecialchars($username, ENT_XML1) . '</string></value></param>' .
-                    '<param><value><string>' . htmlspecialchars($password, ENT_XML1) . '</string></value></param>' .
-                    '<param><value><string>1.0</string></value></param>' .
-                    '<param><value><string>plusclouds-iaas</string></value></param>' .
-                '</params>' .
+            '<methodName>session.login_with_password</methodName>' .
+            '<params>' .
+            '<param><value><string>' . htmlspecialchars($username, ENT_XML1) . '</string></value></param>' .
+            '<param><value><string>' . htmlspecialchars($password, ENT_XML1) . '</string></value></param>' .
+            '<param><value><string>1.0</string></value></param>' .
+            '<param><value><string>plusclouds-iaas</string></value></param>' .
+            '</params>' .
             '</methodCall>';
 
         try {
             $client = new Client([
-                'base_uri'        => 'https://' . $ipAddr,
-                'timeout'         => 10,
+                'base_uri' => 'https://' . $ipAddr,
+                'timeout' => 10,
                 'connect_timeout' => 5,
-                'verify'          => false, // XenServer uses self-signed certificates
+                'verify' => false, // XenServer uses self-signed certificates
             ]);
 
             $response = $client->post('/RPC2', [
-                'body'    => $xmlPayload,
+                'body' => $xmlPayload,
                 'headers' => ['Content-Type' => 'text/xml'],
             ]);
 
-            $xml = simplexml_load_string((string) $response->getBody());
+            $xml = simplexml_load_string((string)$response->getBody());
 
             if (!$xml) {
                 Log::error(__METHOD__ . ' | Could not parse XenAPI XMLRPC response.');
@@ -821,10 +829,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
             // XenAPI wraps the result in a struct with Status and Value members
             $members = $xml->xpath('//struct/member');
-            $result  = [];
+            $result = [];
 
             foreach ($members as $member) {
-                $result[(string) $member->name] = (string) $member->value->string;
+                $result[(string)$member->name] = (string)$member->value->string;
             }
 
             if (isset($result['Status'], $result['Value']) && $result['Status'] === 'Success') {
@@ -875,7 +883,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function fixHostname(VirtualMachines $vm)
     {
-        if(!$vm->hostname) {
+        if (!$vm->hostname) {
             $vm->update([
                 'hostname' => Str::kebab($vm->name)
             ]);
@@ -911,7 +919,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $averageCpu = 0;
         $averageRam = 0;
 
-        if(count($cpuLoad)) {
+        if (count($cpuLoad)) {
             $averageCpu = array_sum(array_column($cpuLoad, 'value')) / count($cpuLoad) * 100; //  Convert to percentage
 
             $ramLoad = VirtualMachineMetrics::withoutGlobalScopes()
@@ -938,11 +946,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         ];
     }
 
-    public static function getMetadata(VirtualMachines $vm = null) : array
+    public static function getMetadata(VirtualMachines $vm = null): array
     {
-        if(!$vm) {
+        if (!$vm) {
             return [
-                'error' =>  'Virtual machine not found. Please provide a valid virtual machine instance.'
+                'error' => 'Virtual machine not found. Please provide a valid virtual machine instance.'
             ];
         }
 
@@ -970,7 +978,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         return $vm;
     }
 
-    public static function fixHypervisorUuid(VirtualMachines $vm) : VirtualMachines
+    public static function fixHypervisorUuid(VirtualMachines $vm): VirtualMachines
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
 
@@ -989,9 +997,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
      * Generate a secure token for the given service and store it in the VM's tokens map.
      * If a token already exists for that service it will be rotated.
      *
-     * @param  VirtualMachines  $vm
-     * @param  string           $service  e.g. 'vnc', 'rdp', 'custom_service'
-     * @param  int              $length   Token length in bytes (default 32)
+     * @param VirtualMachines $vm
+     * @param string $service e.g. 'vnc', 'rdp', 'custom_service'
+     * @param int $length Token length in bytes (default 32)
      * @return string           The generated token
      */
     public static function generateToken(VirtualMachines $vm, string $service, int $length = 32): string
@@ -1011,8 +1019,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     /**
      * Retrieve the token for the given service, or null if it does not exist.
      *
-     * @param  VirtualMachines  $vm
-     * @param  string           $service
+     * @param VirtualMachines $vm
+     * @param string $service
      * @return string|null
      */
     public static function getToken(VirtualMachines $vm, string $service): ?string
@@ -1023,8 +1031,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     /**
      * Revoke (remove) the token for the given service.
      *
-     * @param  VirtualMachines  $vm
-     * @param  string           $service
+     * @param VirtualMachines $vm
+     * @param string $service
      * @return void
      */
     public static function revokeToken(VirtualMachines $vm, string $service): void
