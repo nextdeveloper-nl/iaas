@@ -2,44 +2,6 @@
 
 Route::prefix('iaas')->group(
     function () {
-        Route::prefix('virtual-machine-migrations')->group(
-            function () {
-                Route::get('/', 'VirtualMachineMigrations\VirtualMachineMigrationsController@index');
-                Route::get('/actions', 'VirtualMachineMigrations\VirtualMachineMigrationsController@getActions');
-
-                Route::get('{iaas_virtual_machine_migrations}/tags ', 'VirtualMachineMigrations\VirtualMachineMigrationsController@tags');
-                Route::post('{iaas_virtual_machine_migrations}/tags ', 'VirtualMachineMigrations\VirtualMachineMigrationsController@saveTags');
-                Route::get('{iaas_virtual_machine_migrations}/addresses ', 'VirtualMachineMigrations\VirtualMachineMigrationsController@addresses');
-                Route::post('{iaas_virtual_machine_migrations}/addresses ', 'VirtualMachineMigrations\VirtualMachineMigrationsController@saveAddresses');
-
-                Route::get('/{iaas_virtual_machine_migrations}/{subObjects}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@relatedObjects');
-                Route::get('/{iaas_virtual_machine_migrations}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@show');
-
-                Route::post('/', 'VirtualMachineMigrations\VirtualMachineMigrationsController@store');
-                Route::post('/{iaas_virtual_machine_migrations}/do/{action}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@doAction');
-
-                Route::patch('/{iaas_virtual_machine_migrations}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@update');
-                Route::delete('/{iaas_virtual_machine_migrations}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@destroy');
-
-                // ── Evacuation plan ───────────────────────────────────────────────
-                Route::post('/propose', 'VirtualMachineMigrations\VirtualMachineMigrationsController@propose');
-                Route::post('/approve', 'VirtualMachineMigrations\VirtualMachineMigrationsController@approve');
-
-                // ── Step-by-step migration execution ──────────────────────────────
-                Route::post('/{iaas_virtual_machine_migrations}/pre-flight',       'VirtualMachineMigrations\VirtualMachineMigrationsController@preFlightChecks');
-                Route::post('/{iaas_virtual_machine_migrations}/collect-metadata', 'VirtualMachineMigrations\VirtualMachineMigrationsController@collectMetadata');
-                Route::post('/{iaas_virtual_machine_migrations}/coalesce-vhd',     'VirtualMachineMigrations\VirtualMachineMigrationsController@coalesceVhd');
-                Route::post('/{iaas_virtual_machine_migrations}/shutdown',         'VirtualMachineMigrations\VirtualMachineMigrationsController@shutdown');
-                Route::post('/{iaas_virtual_machine_migrations}/copy-vhd',         'VirtualMachineMigrations\VirtualMachineMigrationsController@copyVhd');
-                Route::post('/{iaas_virtual_machine_migrations}/rescan-sr',        'VirtualMachineMigrations\VirtualMachineMigrationsController@rescanSr');
-                Route::post('/{iaas_virtual_machine_migrations}/recreate-vm',      'VirtualMachineMigrations\VirtualMachineMigrationsController@recreateVm');
-                Route::post('/{iaas_virtual_machine_migrations}/validate',         'VirtualMachineMigrations\VirtualMachineMigrationsController@validate');
-                Route::post('/{iaas_virtual_machine_migrations}/sync-db',          'VirtualMachineMigrations\VirtualMachineMigrationsController@syncDb');
-                Route::post('/{iaas_virtual_machine_migrations}/start-vm',         'VirtualMachineMigrations\VirtualMachineMigrationsController@startVm');
-                Route::post('/{iaas_virtual_machine_migrations}/run',              'VirtualMachineMigrations\VirtualMachineMigrationsController@run');
-            }
-        );
-
         Route::prefix('account-stats')->group(
             function () {
                 Route::get('/', 'AccountStats\AccountStatsController@index');
@@ -2079,103 +2041,43 @@ Route::prefix('iaas')->group(
 
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        Route::prefix('virtual-machine-migrations')->group(
+            function () {
+                Route::get('/', 'VirtualMachineMigrations\VirtualMachineMigrationsController@index');
+                Route::get('/actions', 'VirtualMachineMigrations\VirtualMachineMigrationsController@getActions');
+
+                Route::get('{iaas_virtual_machine_migrations}/tags ', 'VirtualMachineMigrations\VirtualMachineMigrationsController@tags');
+                Route::post('{iaas_virtual_machine_migrations}/tags ', 'VirtualMachineMigrations\VirtualMachineMigrationsController@saveTags');
+                Route::get('{iaas_virtual_machine_migrations}/addresses ', 'VirtualMachineMigrations\VirtualMachineMigrationsController@addresses');
+                Route::post('{iaas_virtual_machine_migrations}/addresses ', 'VirtualMachineMigrations\VirtualMachineMigrationsController@saveAddresses');
+
+                Route::get('/{iaas_virtual_machine_migrations}/{subObjects}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@relatedObjects');
+                Route::get('/{iaas_virtual_machine_migrations}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@show');
+
+                Route::post('/', 'VirtualMachineMigrations\VirtualMachineMigrationsController@store');
+                Route::post('/{iaas_virtual_machine_migrations}/do/{action}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@doAction');
+
+                Route::patch('/{iaas_virtual_machine_migrations}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@update');
+                Route::delete('/{iaas_virtual_machine_migrations}', 'VirtualMachineMigrations\VirtualMachineMigrationsController@destroy');
+
+                // ── Evacuation plan ───────────────────────────────────────────────
+                Route::post('/propose', 'VirtualMachineMigrations\VirtualMachineMigrationsController@propose');
+                Route::post('/approve', 'VirtualMachineMigrations\VirtualMachineMigrationsController@approve');
+
+                // ── Step-by-step migration execution ──────────────────────────────
+                Route::post('/{iaas_virtual_machine_migrations}/pre-flight',       'VirtualMachineMigrations\VirtualMachineMigrationsController@preFlightChecks');
+                Route::post('/{iaas_virtual_machine_migrations}/collect-metadata', 'VirtualMachineMigrations\VirtualMachineMigrationsController@collectMetadata');
+                Route::post('/{iaas_virtual_machine_migrations}/coalesce-vhd',     'VirtualMachineMigrations\VirtualMachineMigrationsController@coalesceVhd');
+                Route::post('/{iaas_virtual_machine_migrations}/shutdown',         'VirtualMachineMigrations\VirtualMachineMigrationsController@shutdown');
+                Route::post('/{iaas_virtual_machine_migrations}/copy-vhd',         'VirtualMachineMigrations\VirtualMachineMigrationsController@copyVhd');
+                Route::post('/{iaas_virtual_machine_migrations}/rescan-sr',        'VirtualMachineMigrations\VirtualMachineMigrationsController@rescanSr');
+                Route::post('/{iaas_virtual_machine_migrations}/recreate-vm',      'VirtualMachineMigrations\VirtualMachineMigrationsController@recreateVm');
+                Route::post('/{iaas_virtual_machine_migrations}/validate',         'VirtualMachineMigrations\VirtualMachineMigrationsController@validate');
+                Route::post('/{iaas_virtual_machine_migrations}/sync-db',          'VirtualMachineMigrations\VirtualMachineMigrationsController@syncDb');
+                Route::post('/{iaas_virtual_machine_migrations}/start-vm',         'VirtualMachineMigrations\VirtualMachineMigrationsController@startVm');
+                Route::post('/{iaas_virtual_machine_migrations}/run',              'VirtualMachineMigrations\VirtualMachineMigrationsController@run');
+            }
+        );
 
         Route::prefix('registries')->group(
             function () {

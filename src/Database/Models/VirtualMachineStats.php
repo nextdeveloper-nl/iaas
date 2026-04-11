@@ -48,6 +48,11 @@ class VirtualMachineStats extends Model
             'cpu',
             'ram',
             'status',
+            'uptime_seconds',
+            'cpu_percent',
+            'memory_percent',
+            'agent_version',
+            'source',
     ];
 
     /**
@@ -70,14 +75,19 @@ class VirtualMachineStats extends Model
      @var array
      */
     protected $casts = [
-    'id' => 'integer',
-    'iaas_virtual_machine_id' => 'integer',
-    'cpu' => 'integer',
-    'ram' => 'integer',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
-    'status' => 'string',
+        'id'                     => 'integer',
+        'iaas_virtual_machine_id' => 'integer',
+        'cpu'                    => 'integer',
+        'ram'                    => 'integer',
+        'uptime_seconds'         => 'integer',
+        'cpu_percent'            => 'float',
+        'memory_percent'         => 'float',
+        'agent_version'          => 'string',
+        'source'                 => 'string',
+        'created_at'             => 'datetime',
+        'updated_at'             => 'datetime',
+        'deleted_at'             => 'datetime',
+        'status'                 => 'string',
     ];
 
     /**
