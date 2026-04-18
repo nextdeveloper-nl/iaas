@@ -94,6 +94,11 @@ class CloudSpectator extends AbstractRole implements IAuthorizationRole
             'iaas_backup_retention_policies:read',
             'iaas_backup_schedules:read',
             'iaas_backup_jobs:read',
+
+            'iaas_backup_job_replications:read',
+            'iaas_backup_job_replications:create',
+            'iaas_backup_job_replications:update',
+            'iaas_backup_job_replications:delete',
         ];
     }
 

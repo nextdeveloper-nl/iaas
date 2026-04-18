@@ -64,6 +64,8 @@ class Attach extends AbstractAction
 
         if($vm->hypervisor_data == null) {
             Log::info('[VirtualNetworkCards@Attach] Seems like VM is still in draft state, this means we dont have vm present.');
+            $this->setFinished('Network card is in draft state.
+            ');
             return;
         }
 
