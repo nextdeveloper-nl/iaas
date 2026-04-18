@@ -644,7 +644,7 @@ class Commit extends AbstractAction
             'name' => $vbdParams['type'] !== 'CD' ? $config->name : 'CDROM',
             'size' => $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
             'physical_utilisation' => $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
-            'iaas_storage_volume_id' => $vbdParams['type'] !== 'CD' ?? $diskVolume->iaas_storage_volume_id,
+            'iaas_storage_volume_id' => $vbdParams['type'] === 'CD' ? null :  $diskVolume->iaas_storage_volume_id,
             'iaas_virtual_machine_id' => $vm->id,
             'device_number' => $vbdParams['userdevice'],
             'is_cdrom' => $vbdParams['type'] === 'CD',
