@@ -131,16 +131,19 @@ class EvacuationService
             // VirtualDiskImages->size is in bytes; StorageVolumes->free_hdd is in GB.
             $diskSizeGb = ceil($disk->size / 1000 / 1000 / 1000);
 
+            // Whether the type was explicitly forced (per-disk or global option).
+            // When forced we must NOT fall back to a different SR type — the operator
+            // specifically asked for local-to-local (or nfs-to-nfs) mapping.
+            $typeForced = isset($perDiskStorageTypes[$disk->uuid]) || $preferredStorageType !== null;
+
             // Match by effective type + enough free space
             $matched = $targetVolumes
                 ->filter(fn($v) => $v->disk_physical_type === $effectiveType
                     && $v->free_hdd >= $diskSizeGb)
                 ->first();
 
-            // Fallback: any target volume with enough free space regardless of type.
-            // No warning is issued here — match_confidence = 'compatible' in the mapping
-            // already communicates that the type preference was not exactly satisfied.
-            if (!$matched) {
+            // Fallback to any volume with enough space only when no explicit type was requested.
+            if (!$matched && !$typeForced) {
                 $matched = $targetVolumes
                     ->filter(fn($v) => $v->free_hdd >= $diskSizeGb)
                     ->first();
@@ -150,7 +153,8 @@ class EvacuationService
                 $isFeasible = false;
                 $warnings[] = 'No suitable storage volume on target for disk "' . $disk->name . '"'
                     . ' (size: ' . $diskSizeGb . ' GB'
-                    . ', type: ' . ($effectiveType ?? 'unknown') . ').';
+                    . ', type: ' . ($effectiveType ?? 'unknown') . ').'
+                    . ($typeForced ? ' Target host may have no "' . $effectiveType . '" SR with enough free space.' : '');
             }
 
             $storageMapping[] = [

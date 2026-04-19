@@ -714,15 +714,35 @@ physical interfaces and vlans of compute member');
             ->where('id', $storageMember->iaas_storage_pool_id)
             ->first();
 
+        // Fetch full SR params to get physical-size and physical-utilisation.
+        // These drive total_hdd/used_hdd, which in turn compute the free_hdd generated column.
+        $srParamResult = self::performCommand('xe sr-param-list uuid=' . $volume['uuid'], $computeMember);
+        $srParams      = self::parseResult($srParamResult['output']);
+
+        $totalHdd = !empty($srParams['physical-size'])
+            ? (int) ceil((int) $srParams['physical-size'] / 1000 / 1000 / 1000)
+            : 0;
+        $usedHdd  = !empty($srParams['physical-utilisation'])
+            ? (int) ceil((int) $srParams['physical-utilisation'] / 1000 / 1000 / 1000)
+            : 0;
+
+        $volumeData = [
+            'hypervisor_uuid'        => $volume['uuid'],
+            'name'                   => $volume['name-label'],
+            'description'            => $volume['name-description'],
+            'hypervisor_data'        => $srParams ?: $volume,
+            'disk_physical_type'     => 'local',
+            'is_storage'             => true,
+            'total_hdd'              => $totalHdd,
+            'used_hdd'               => $usedHdd,
+            'iaas_storage_member_id' => $storageMember->id,
+            'iaas_storage_pool_id'   => $storageMemberPool->id,
+        ];
+
         if(!$storageMemberVolume) {
-            $storageMemberVolume = StorageVolumesService::create([
-                'hypervisor_uuid'   =>  $volume['uuid'],
-                'name'   =>  $volume['name-label'],
-                'description'   =>  $volume['name-description'],
-                'hypervisor_data'   =>  $volume,
-                'iaas_storage_member_id'    =>  $storageMember->id,
-                'iaas_storage_pool_id'      =>  $storageMemberPool->id
-            ]);
+            $storageMemberVolume = StorageVolumesService::create($volumeData);
+        } else {
+            $storageMemberVolume->update($volumeData);
         }
 
         $storageVolume->update([
