@@ -158,47 +158,46 @@ class LocalDiskMigrationService implements MigrationInterface
         Log::info(__METHOD__ . ' | Target SR free: ' . $this->formatBytes($srFreeBytes)
             . ', required: ' . $this->formatBytes($totalDiskSize));
 
-        // ── CHECK 5: Source local SR mount path is accessible ─────────────────
+        // ── CHECK 5: Source local SR is attached and mount path is accessible ───
         $this->updateStep($migration, 'pre-flight-checks', 9, 'Verifying source local SR mount path');
 
         $sourceStorageVolume = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $migration->source_iaas_storage_volume_id)
             ->firstOrFail();
 
-        $sourceSrPath = '/var/run/sr-mount/' . $sourceStorageVolume->hypervisor_uuid;
+        $sourceSrPath = $this->resolveLocalSrMountPath($sourceStorageVolume->hypervisor_uuid, $source);
 
-        $result = self::performCommand(
-            'ls ' . escapeshellarg($sourceSrPath) . ' > /dev/null 2>&1 && echo ok || echo fail',
-            $source
-        );
-
-        if (trim($result['output']) !== 'ok') {
+        if (!$sourceSrPath) {
             throw new \Exception(
-                'Source local SR not mounted at "' . $sourceSrPath . '" on host "' . $source->name . '". '
-                . 'Verify the SR is of type EXT and is attached to the host.'
+                'Source local SR "' . $sourceStorageVolume->hypervisor_uuid . '" is not attached or its mount '
+                . 'directory could not be found under /var/run/sr-mount on host "' . $source->name . '". '
+                . 'Verify the SR is of type EXT, is attached to the host, and the PBD is plugged.'
             );
         }
 
         Log::info(__METHOD__ . ' | Source SR path OK: ' . $sourceSrPath);
 
-        // ── CHECK 6: Target local SR mount path is accessible ─────────────────
+        // ── CHECK 6: Target local SR is attached and mount path is accessible ───
         $this->updateStep($migration, 'pre-flight-checks', 10, 'Verifying target local SR mount path');
 
-        $targetSrPath = '/var/run/sr-mount/' . $targetStorageVolume->hypervisor_uuid;
+        $targetSrPath = $this->resolveLocalSrMountPath($targetStorageVolume->hypervisor_uuid, $target);
 
-        $result = self::performCommand(
-            'ls ' . escapeshellarg($targetSrPath) . ' > /dev/null 2>&1 && echo ok || echo fail',
-            $target
-        );
-
-        if (trim($result['output']) !== 'ok') {
+        if (!$targetSrPath) {
             throw new \Exception(
-                'Target local SR not mounted at "' . $targetSrPath . '" on host "' . $target->name . '". '
-                . 'Verify the SR is of type EXT and is attached to the host.'
+                'Target local SR "' . $targetStorageVolume->hypervisor_uuid . '" is not attached or its mount '
+                . 'directory could not be found under /var/run/sr-mount on host "' . $target->name . '". '
+                . 'Verify the SR is of type EXT, is attached to the host, and the PBD is plugged.'
             );
         }
 
         Log::info(__METHOD__ . ' | Target SR path OK: ' . $targetSrPath);
+
+        // Persist the resolved target SR mount path so copyVhdFiles doesn't have to re-derive it.
+        $options                      = is_array($migration->options)
+            ? $migration->options
+            : (json_decode($migration->options, true) ?? []);
+        $options['target_sr_mount_path'] = $targetSrPath;
+        $migration->updateQuietly(['options' => json_encode($options)]);
 
         // ── CHECK 7: Source hypervisor can reach target hypervisor via SSH ─────
         // Required for the direct rsync-over-SSH in copyVhdFiles.
@@ -271,18 +270,32 @@ class LocalDiskMigrationService implements MigrationInterface
 
             $srUuid = trim($vdiParams['sr-uuid'] ?? '');
 
-            $findResult = self::performCommand(
-                'find /var/run/sr-mount/ -name ' . escapeshellarg($vdiUuid . '.vhd') . ' -type f 2>/dev/null | head -1',
+            // Determine SR type to resolve the correct VHD path.
+            // EXT SRs: VHD is a file under /var/run/sr-mount/<sr-uuid>/<vdi-uuid>.vhd
+            // LVM SRs: VHD is an LV at /dev/VG_XenStorage-<sr-uuid>/VHD-<vdi-uuid>
+            $srTypeResult = self::performCommand(
+                'xe sr-param-get uuid=' . $srUuid . ' param-name=type 2>/dev/null',
                 $source
             );
-            $vhdPath = trim($findResult['output'] ?? '');
+            $srType = trim($srTypeResult['output'] ?? '');
 
-            if ($vhdPath === '') {
-                $vhdPath = '/var/run/sr-mount/' . $srUuid . '/' . $vdiUuid . '.vhd';
-                Log::warning(__METHOD__ . ' | Could not locate VHD for VDI ' . $vdiUuid
-                    . ' via find — using constructed path: ' . $vhdPath);
+            if ($srType === 'lvm') {
+                $vhdPath = '/dev/VG_XenStorage-' . $srUuid . '/VHD-' . $vdiUuid;
+                Log::info(__METHOD__ . ' | LVM VHD path: ' . $vhdPath);
             } else {
-                Log::info(__METHOD__ . ' | Resolved VHD path: ' . $vhdPath);
+                $findResult = self::performCommand(
+                    'find /var/run/sr-mount/ -name ' . escapeshellarg($vdiUuid . '.vhd') . ' -type f 2>/dev/null | head -1',
+                    $source
+                );
+                $vhdPath = trim($findResult['output'] ?? '');
+
+                if ($vhdPath === '') {
+                    $vhdPath = '/var/run/sr-mount/' . $srUuid . '/' . $vdiUuid . '.vhd';
+                    Log::warning(__METHOD__ . ' | Could not locate VHD for VDI ' . $vdiUuid
+                        . ' via find — using constructed path: ' . $vhdPath);
+                } else {
+                    Log::info(__METHOD__ . ' | EXT VHD path: ' . $vhdPath);
+                }
             }
 
             $disks[] = [
@@ -465,6 +478,43 @@ class LocalDiskMigrationService implements MigrationInterface
             $srUuid    = $disk['sr_uuid'];
             $coalesced = false;
 
+            // LVM SRs expose VHDs as block devices — the path from collectSourceMetadata
+            // already points to /dev/VG_XenStorage-<sr>/VHD-<vdi>. Verify it exists.
+            $isLvm = str_starts_with($vhdPath, '/dev/VG_XenStorage-');
+
+            if ($isLvm) {
+                $exists = trim(self::performCommand(
+                    'test -b ' . escapeshellarg($vhdPath) . ' && echo ok || echo fail',
+                    $source
+                )['output'] ?? '');
+
+                if ($exists !== 'ok') {
+                    // Try activating the VG first.
+                    self::performCommand(
+                        'vgchange -ay ' . escapeshellarg('VG_XenStorage-' . $srUuid) . ' 2>/dev/null',
+                        $source
+                    );
+
+                    $exists = trim(self::performCommand(
+                        'test -b ' . escapeshellarg($vhdPath) . ' && echo ok || echo fail',
+                        $source
+                    )['output'] ?? '');
+                }
+
+                if ($exists !== 'ok') {
+                    throw new \Exception(
+                        'LVM LV not found for VDI ' . $vdiUuid . ': ' . $vhdPath
+                        . '. Ensure the VG VG_XenStorage-' . $srUuid . ' is active.'
+                    );
+                }
+
+                // LVM LVs always represent a flat VHD — no parent chain to coalesce.
+                Log::info(__METHOD__ . ' | LVM VHD confirmed (no coalesce needed): ' . $vhdPath);
+                $coalescedDisks[] = $vhdPath;
+                continue;
+            }
+
+            // EXT SR — find the file and wait for coalesce as before.
             $findResult = self::performCommand(
                 'find /var/run/sr-mount/ -name ' . escapeshellarg($vdiUuid . '.vhd') . ' -type f 2>/dev/null | head -1',
                 $source
@@ -660,7 +710,9 @@ class LocalDiskMigrationService implements MigrationInterface
             ->firstOrFail();
 
         $targetIp       = $target->ip_addr;
-        $targetLocalDir = '/var/run/sr-mount/' . $targetStorageVolume->hypervisor_uuid;
+        $targetLocalDir = $options['target_sr_mount_path']
+            ?? $this->resolveLocalSrMountPath($targetStorageVolume->hypervisor_uuid, $target)
+            ?? ('/var/run/sr-mount/' . $targetStorageVolume->hypervisor_uuid);
         $storageMapping = $options['storage_mapping'] ?? [];
         $vhdPaths       = $options['coalesced_vhd_paths'];
 
@@ -670,7 +722,12 @@ class LocalDiskMigrationService implements MigrationInterface
         $progressPerVhd = (int) floor(22 / max($total, 1));
 
         foreach ($vhdPaths as $index => $vhdPath) {
-            $vdiUuid = basename($vhdPath, '.vhd');
+            // LVM paths look like /dev/VG_XenStorage-<sr-uuid>/VHD-<vdi-uuid>.
+            // EXT paths look like /var/run/sr-mount/<sr-uuid>/<vdi-uuid>.vhd.
+            $isLvmSource = str_starts_with($vhdPath, '/dev/VG_XenStorage-');
+            $vdiUuid     = $isLvmSource
+                ? substr(basename($vhdPath), 4)        // strip leading 'VHD-'
+                : basename($vhdPath, '.vhd');
 
             // ── Determine SR type from the evacuation plan's storage_mapping ──
             // The VHD filename is the hypervisor UUID; storage_mapping keys by DB id,
@@ -693,8 +750,131 @@ class LocalDiskMigrationService implements MigrationInterface
             $sourceStorageType = $diskMapping['source_storage_volume']['disk_physical_type'] ?? 'local';
             $isNfs             = $sourceStorageType === 'nfs';
 
-            if (!$isNfs) {
-                // ── Strategy A: local SR → direct rsync between hypervisors ──
+            if (!$isNfs && $isLvmSource) {
+                // ── Strategy A2: LVM SR → lvcreate on target + dd over SSH ────
+                // LVM LVs are raw block devices; dd is more reliable than rsync --inplace
+                // across hosts. We must create the target LV first.
+                $lvName     = 'VHD-' . $vdiUuid;
+                $tmpLvName  = 'TMP-' . $vdiUuid;   // hidden from SMAPI until copy is complete
+                $vgName     = basename($targetLocalDir);
+                $tmpLvPath  = $targetLocalDir . '/' . $tmpLvName;
+                $targetLvPath = $targetLocalDir . '/' . $lvName;
+
+                $sizeCmd     = 'blockdev --getsize64 ' . escapeshellarg($vhdPath);
+                $ssh         = 'ssh -o StrictHostKeyChecking=no -o BatchMode=yes ' . escapeshellarg('root@' . $targetIp);
+                $createLvCmd = $ssh . ' lvcreate -L $(blockdev --getsize64 ' . escapeshellarg($vhdPath) . ')B'
+                    . ' -n ' . escapeshellarg($tmpLvName)
+                    . ' ' . escapeshellarg($vgName)
+                    . ' 2>/dev/null || true';
+                // rsync --inplace is resumable: a reconnect re-runs the same command
+                // and only retransfers blocks that differ, rather than starting from byte 0.
+                // Writing to TMP-<uuid> keeps SMAPI from seeing a partial VHD mid-copy.
+                $rsyncLvCmd  = 'rsync -v --inplace --progress -e '
+                    . escapeshellarg('ssh -o StrictHostKeyChecking=no -o BatchMode=yes')
+                    . ' ' . escapeshellarg($vhdPath)
+                    . ' ' . escapeshellarg('root@' . $targetIp . ':' . $tmpLvPath);
+                $renameCmd   = $ssh . ' lvrename '
+                    . escapeshellarg($vgName . '/' . $tmpLvName) . ' '
+                    . escapeshellarg($lvName);
+
+                $allCommands[] = [
+                    'host'    => $source->name,
+                    'command' => $sizeCmd,
+                    'note'    => '[LVM SR] Get source LV size: ' . $lvName,
+                ];
+                $allCommands[] = [
+                    'host'    => $source->name,
+                    'command' => $createLvCmd,
+                    'note'    => '[LVM SR] Create temp LV ' . $tmpLvName . ' on target (hidden from SMAPI)',
+                ];
+                $allCommands[] = [
+                    'host'    => $source->name,
+                    'command' => $rsyncLvCmd,
+                    'note'    => '[LVM SR] rsync --inplace ' . $vhdPath . ' → ' . $targetIp . ':' . $tmpLvPath,
+                ];
+                $allCommands[] = [
+                    'host'    => $source->name,
+                    'command' => $renameCmd,
+                    'note'    => '[LVM SR] Rename ' . $tmpLvName . ' → ' . $lvName . ' (make visible to SMAPI)',
+                ];
+                $allCommands[] = [
+                    'host'    => $source->name,
+                    'command' => 'blockdev --getsize64 ' . escapeshellarg($vhdPath),
+                    'note'    => '[LVM SR] Integrity check — source size',
+                ];
+                $allCommands[] = [
+                    'host'    => $target->name,
+                    'command' => 'blockdev --getsize64 ' . escapeshellarg($targetLvPath),
+                    'note'    => '[LVM SR] Integrity check — target size',
+                ];
+
+                if (!$isDryRun) {
+                    $progress = 46 + ($index * $progressPerVhd);
+                    $this->updateStep($migration, 'copying-vhd', $progress,
+                        'Copying LVM VHD ' . ($index + 1) . '/' . $total . ': ' . $lvName);
+
+                    $sourceSize = (int) trim(self::performCommand($sizeCmd, $source)['output']);
+
+                    if ($sourceSize === 0) {
+                        throw new \Exception('[LVM SR] Source LV size is 0 for ' . $lvName . ' — LV may be missing or inactive.');
+                    }
+
+                    // If VHD-<uuid> already exists (previous run completed the rename),
+                    // skip straight to integrity check — the copy is already done.
+                    $vhdExists = trim(self::performCommand(
+                        $ssh . ' test -b ' . escapeshellarg($targetLvPath) . ' && echo yes || echo no',
+                        $source
+                    )['output'] ?? '');
+
+                    if ($vhdExists === 'yes') {
+                        Log::info(__METHOD__ . ' | [LVM SR] ' . $lvName . ' already exists on target — skipping copy.');
+                        $targetSize = (int) trim(self::performCommand(
+                            'blockdev --getsize64 ' . escapeshellarg($targetLvPath), $target
+                        )['output']);
+                        $copiedPaths[] = [
+                            'vdi_uuid'    => $vdiUuid,
+                            'source_path' => $vhdPath,
+                            'target_path' => $targetLvPath,
+                            'size_bytes'  => $sourceSize,
+                            'copy_type'   => 'lvm',
+                        ];
+                        continue;
+                    }
+
+                    Log::info(__METHOD__ . ' | [LVM SR] Creating temp LV ' . $tmpLvName . ' (' . $this->formatBytes($sourceSize) . ')');
+                    self::performCommand($createLvCmd, $source);
+
+                    Log::info(__METHOD__ . ' | [LVM SR] rsync --inplace: ' . $vhdPath . ' → ' . $targetIp . ':' . $tmpLvPath);
+                    $rsyncLvResult = self::performCommand($rsyncLvCmd, $source);
+
+                    if (!empty($rsyncLvResult['error']) && !str_contains($rsyncLvResult['output'], 'sent')) {
+                        throw new \Exception('[LVM SR] rsync failed for ' . $lvName . ': ' . $rsyncLvResult['error']);
+                    }
+
+                    $targetSize = (int) trim(self::performCommand(
+                        'blockdev --getsize64 ' . escapeshellarg($tmpLvPath), $target
+                    )['output']);
+
+                    if ($sourceSize !== $targetSize) {
+                        throw new \Exception('[LVM SR] Integrity check failed for ' . $lvName . ': '
+                            . 'source=' . $this->formatBytes($sourceSize) . ', target=' . $this->formatBytes($targetSize));
+                    }
+
+                    Log::info(__METHOD__ . ' | [LVM SR] Integrity OK — renaming ' . $tmpLvName . ' → ' . $lvName);
+                    self::performCommand($renameCmd, $source);
+
+                    Log::info(__METHOD__ . ' | [LVM SR] Copy complete: ' . $lvName . ' (' . $this->formatBytes($sourceSize) . ')');
+
+                    $copiedPaths[] = [
+                        'vdi_uuid'    => $vdiUuid,
+                        'source_path' => $vhdPath,
+                        'target_path' => $targetLvPath,
+                        'size_bytes'  => $sourceSize,
+                        'copy_type'   => 'lvm',
+                    ];
+                }
+            } elseif (!$isNfs) {
+                // ── Strategy A1: EXT SR → direct rsync between hypervisors ────
                 $targetPath = $targetLocalDir . '/' . $vdiUuid . '.vhd';
 
                 $rsyncCmd = 'rsync -av --partial -e '
@@ -705,44 +885,44 @@ class LocalDiskMigrationService implements MigrationInterface
                 $allCommands[] = [
                     'host'    => $source->name,
                     'command' => $rsyncCmd,
-                    'note'    => '[local SR] Copy VHD: ' . $vdiUuid . '.vhd → ' . $targetIp . ':' . $targetPath,
+                    'note'    => '[EXT SR] Copy VHD: ' . $vdiUuid . '.vhd → ' . $targetIp . ':' . $targetPath,
                 ];
                 $allCommands[] = [
                     'host'    => $source->name,
                     'command' => 'stat -c%s ' . escapeshellarg($vhdPath),
-                    'note'    => '[local SR] Integrity check — source size of ' . $vdiUuid . '.vhd',
+                    'note'    => '[EXT SR] Integrity check — source size of ' . $vdiUuid . '.vhd',
                 ];
                 $allCommands[] = [
                     'host'    => $target->name,
                     'command' => 'stat -c%s ' . escapeshellarg($targetPath),
-                    'note'    => '[local SR] Integrity check — target size of ' . $vdiUuid . '.vhd',
+                    'note'    => '[EXT SR] Integrity check — target size of ' . $vdiUuid . '.vhd',
                 ];
 
                 if (!$isDryRun) {
                     $progress = 46 + ($index * $progressPerVhd);
                     $this->updateStep($migration, 'copying-vhd', $progress,
-                        'Copying local VHD ' . ($index + 1) . '/' . $total . ': ' . $vdiUuid . '.vhd');
+                        'Copying EXT VHD ' . ($index + 1) . '/' . $total . ': ' . $vdiUuid . '.vhd');
 
-                    Log::info(__METHOD__ . ' | [local SR] rsync: ' . $vhdPath . ' → ' . $targetIp . ':' . $targetPath);
+                    Log::info(__METHOD__ . ' | [EXT SR] rsync: ' . $vhdPath . ' → ' . $targetIp . ':' . $targetPath);
 
                     $rsyncResult = self::performCommand($rsyncCmd, $source);
 
                     if (!empty($rsyncResult['error']) && !str_contains($rsyncResult['output'], 'sent')) {
-                        throw new \Exception('[local SR] rsync failed for ' . $vdiUuid . '.vhd: ' . $rsyncResult['error']);
+                        throw new \Exception('[EXT SR] rsync failed for ' . $vdiUuid . '.vhd: ' . $rsyncResult['error']);
                     }
 
                     $sourceSize = (int) trim(self::performCommand('stat -c%s ' . escapeshellarg($vhdPath), $source)['output']);
                     $targetSize = (int) trim(self::performCommand('stat -c%s ' . escapeshellarg($targetPath), $target)['output']);
 
                     if ($sourceSize === 0) {
-                        throw new \Exception('[local SR] Source VHD size is 0 for ' . $vdiUuid . '.vhd — file may be missing.');
+                        throw new \Exception('[EXT SR] Source VHD size is 0 for ' . $vdiUuid . '.vhd — file may be missing.');
                     }
                     if ($sourceSize !== $targetSize) {
-                        throw new \Exception('[local SR] Integrity check failed for ' . $vdiUuid . '.vhd: '
+                        throw new \Exception('[EXT SR] Integrity check failed for ' . $vdiUuid . '.vhd: '
                             . 'source=' . $this->formatBytes($sourceSize) . ', target=' . $this->formatBytes($targetSize));
                     }
 
-                    Log::info(__METHOD__ . ' | [local SR] Integrity OK: ' . $vdiUuid . '.vhd (' . $this->formatBytes($sourceSize) . ')');
+                    Log::info(__METHOD__ . ' | [EXT SR] Integrity OK: ' . $vdiUuid . '.vhd (' . $this->formatBytes($sourceSize) . ')');
 
                     $copiedPaths[] = [
                         'vdi_uuid'    => $vdiUuid,
@@ -1709,6 +1889,75 @@ class LocalDiskMigrationService implements MigrationInterface
     // ─────────────────────────────────────────────────────────────────────────
     // HELPERS
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Resolves the base storage path for a local SR on a compute member.
+     *
+     * EXT SR  → /var/run/sr-mount/<sr-uuid>   (directory, VHD files inside)
+     * LVM SR  → /dev/VG_XenStorage-<sr-uuid>  (LVM VG, VHDs are LVs named VHD-<vdi-uuid>)
+     *
+     * Returns null if the SR is not currently attached or the path cannot be confirmed.
+     */
+    private function resolveLocalSrMountPath(string $srUuid, ComputeMembers $host): ?string
+    {
+        $attached = trim(self::performCommand(
+            'xe sr-param-get uuid=' . $srUuid . ' param-name=currently-attached 2>/dev/null',
+            $host
+        )['output'] ?? '');
+
+        if ($attached !== 'true') {
+            Log::warning(__METHOD__ . ' | SR ' . $srUuid . ' is not currently attached on ' . $host->name);
+            return null;
+        }
+
+        $srType = trim(self::performCommand(
+            'xe sr-param-get uuid=' . $srUuid . ' param-name=type 2>/dev/null',
+            $host
+        )['output'] ?? '');
+
+        if ($srType === 'lvm') {
+            $vgPath = '/dev/VG_XenStorage-' . $srUuid;
+            $result = trim(self::performCommand(
+                'test -d ' . escapeshellarg($vgPath) . ' && echo ok || echo fail',
+                $host
+            )['output'] ?? '');
+
+            if ($result === 'ok') {
+                Log::info(__METHOD__ . ' | LVM SR resolved: ' . $vgPath . ' on ' . $host->name);
+                return $vgPath;
+            }
+
+            // VG directory may not exist until activated — activate and retry.
+            self::performCommand('vgchange -ay ' . escapeshellarg('VG_XenStorage-' . $srUuid) . ' 2>/dev/null', $host);
+
+            $result = trim(self::performCommand(
+                'test -d ' . escapeshellarg($vgPath) . ' && echo ok || echo fail',
+                $host
+            )['output'] ?? '');
+
+            if ($result === 'ok') {
+                Log::info(__METHOD__ . ' | LVM SR resolved after vgchange: ' . $vgPath . ' on ' . $host->name);
+                return $vgPath;
+            }
+
+            Log::warning(__METHOD__ . ' | LVM SR VG not found at ' . $vgPath . ' on ' . $host->name);
+            return null;
+        }
+
+        // EXT (or ext3/ext4) — find under /var/run/sr-mount.
+        $found = trim(self::performCommand(
+            'find /var/run/sr-mount -maxdepth 1 -type d -name ' . escapeshellarg($srUuid) . ' 2>/dev/null | head -1',
+            $host
+        )['output'] ?? '');
+
+        if ($found !== '') {
+            Log::info(__METHOD__ . ' | EXT SR resolved: ' . $found . ' on ' . $host->name);
+            return $found;
+        }
+
+        Log::warning(__METHOD__ . ' | SR ' . $srUuid . ' (type=' . $srType . ') mount dir not found on ' . $host->name);
+        return null;
+    }
 
     private function updateStep(
         VirtualMachineMigrations $migration,
