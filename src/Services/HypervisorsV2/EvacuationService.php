@@ -160,6 +160,7 @@ class EvacuationService
                 'source_storage_volume' => $sourceVolume ? [
                     'id'                 => $sourceVolume->id,
                     'uuid'               => $sourceVolume->uuid,
+                    'hypervisor_uuid'    => $sourceVolume->hypervisor_uuid,
                     'name'               => $sourceVolume->name,
                     'disk_physical_type' => $sourceVolume->disk_physical_type,
                     'free_hdd'           => $sourceVolume->free_hdd,
@@ -167,6 +168,7 @@ class EvacuationService
                 'target_storage_volume' => $matched ? [
                     'id'                 => $matched->id,
                     'uuid'               => $matched->uuid,
+                    'hypervisor_uuid'    => $matched->hypervisor_uuid,
                     'name'               => $matched->name,
                     'disk_physical_type' => $matched->disk_physical_type,
                     'free_hdd'           => $matched->free_hdd,

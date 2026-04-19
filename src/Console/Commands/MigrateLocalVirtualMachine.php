@@ -4,6 +4,8 @@ namespace NextDeveloper\IAAS\Console\Commands;
 
 use Illuminate\Console\Command;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\StorageVolumes;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMigrations;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\HypervisorsV2\EvacuationService;
@@ -100,7 +102,7 @@ class MigrateLocalVirtualMachine extends Command
     {
         [$vm, $target] = $this->resolveVmAndTarget();
 
-        $options = [];
+        $options = $this->buildStorageOptions($vm);
         if ($type = $this->option('storage-type')) {
             $options['preferred_storage_type'] = $type;
         }
@@ -117,7 +119,7 @@ class MigrateLocalVirtualMachine extends Command
     {
         [$vm, $target] = $this->resolveVmAndTarget();
 
-        $options = [];
+        $options = $this->buildStorageOptions($vm);
         if ($type = $this->option('storage-type')) {
             $options['preferred_storage_type'] = $type;
         }
@@ -416,6 +418,40 @@ class MigrateLocalVirtualMachine extends Command
     // ─────────────────────────────────────────────────────────────────────────
     // RESOLVERS
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Builds disk_storage_type options so EvacuationService maps each local disk
+     * to a matching local SR on the target instead of falling back to NFS.
+     * NFS extra disks are left unforced so the plan's default matching applies.
+     */
+    private function buildStorageOptions(VirtualMachines $vm): array
+    {
+        $disks = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->where('is_cdrom', false)
+            ->whereNull('deleted_at')
+            ->get();
+
+        $perDiskTypes = [];
+
+        foreach ($disks as $disk) {
+            if (!$disk->iaas_storage_volume_id) {
+                continue;
+            }
+
+            $sv = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $disk->iaas_storage_volume_id)
+                ->first();
+
+            if ($sv && $sv->disk_physical_type !== 'nfs') {
+                // Force this local disk to map to a matching local SR on the target.
+                $perDiskTypes[$disk->uuid] = $sv->disk_physical_type;
+            }
+            // NFS extra disks: omit — plan's default type-matching handles them.
+        }
+
+        return empty($perDiskTypes) ? [] : ['disk_storage_type' => $perDiskTypes];
+    }
 
     private function resolveVmAndTarget(): array
     {

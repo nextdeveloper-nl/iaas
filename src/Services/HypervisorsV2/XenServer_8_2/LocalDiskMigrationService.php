@@ -673,15 +673,24 @@ class LocalDiskMigrationService implements MigrationInterface
             $vdiUuid = basename($vhdPath, '.vhd');
 
             // ── Determine SR type from the evacuation plan's storage_mapping ──
+            // The VHD filename is the hypervisor UUID; storage_mapping keys by DB id,
+            // so look up the VirtualDiskImage record first and match by id.
+            $dbDisk = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                ->where('hypervisor_uuid', $vdiUuid)
+                ->where('iaas_virtual_machine_id', $migration->iaas_virtual_machine_id)
+                ->first();
+
             $diskMapping = null;
-            foreach ($storageMapping as $mapping) {
-                if (($mapping['disk']['hypervisor_uuid'] ?? null) === $vdiUuid) {
-                    $diskMapping = $mapping;
-                    break;
+            if ($dbDisk) {
+                foreach ($storageMapping as $mapping) {
+                    if (($mapping['disk']['id'] ?? null) == $dbDisk->id) {
+                        $diskMapping = $mapping;
+                        break;
+                    }
                 }
             }
 
-            $sourceStorageType = $diskMapping['source_storage_volume']['disk_physical_type'] ?? 'ext';
+            $sourceStorageType = $diskMapping['source_storage_volume']['disk_physical_type'] ?? 'local';
             $isNfs             = $sourceStorageType === 'nfs';
 
             if (!$isNfs) {
