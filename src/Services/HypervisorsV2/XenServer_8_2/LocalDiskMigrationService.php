@@ -1326,7 +1326,7 @@ class LocalDiskMigrationService implements MigrationInterface
             }
 
             if (!$targetNetworkUuid) {
-                // Last resort: ask the target host directly by bridge name
+                // Ask the target host directly by bridge name
                 $result = self::performCommand(
                     'xe network-list bridge=' . escapeshellarg('xenbr' . ($nic['device'] ?? '0')) . ' --minimal',
                     $target
@@ -1335,11 +1335,23 @@ class LocalDiskMigrationService implements MigrationInterface
             }
 
             if (!$targetNetworkUuid) {
-                throw new \Exception(
-                    'Cannot resolve target network for NIC device=' . $nic['device']
-                    . ' (source network-uuid: ' . $nic['network_uuid'] . '). '
-                    . 'Ensure network mapping is correct in the migration plan.'
-                );
+                // Network does not exist on target — create it using the source network definition
+                $sourceNetworkId = $mapping['source_network']['id'] ?? null;
+                $sourceNetworkModel = $sourceNetworkId
+                    ? Networks::withoutGlobalScope(AuthorizationScope::class)->find($sourceNetworkId)
+                    : null;
+
+                if (!$sourceNetworkModel) {
+                    throw new \Exception(
+                        'Cannot resolve target network for NIC device=' . $nic['device']
+                        . ' (source network-uuid: ' . $nic['network_uuid'] . '). '
+                        . 'Ensure network mapping is correct in the migration plan.'
+                    );
+                }
+
+                Log::info(__METHOD__ . ' | Network not found on target — creating: ' . $sourceNetworkModel->name);
+                $newCmni = ComputeMemberXenService::createNetwork($target, $sourceNetworkModel);
+                $targetNetworkUuid = $newCmni->network_uuid;
             }
 
             $commands[] = [
@@ -1449,28 +1461,57 @@ class LocalDiskMigrationService implements MigrationInterface
         // Create VIFs
         foreach ($metadata['nics'] as $nic) {
             $targetNetworkUuid = null;
+            $nicMapping = null;
 
             foreach ($networkMapping as $mapping) {
                 if (($mapping['nic']['vif_uuid'] ?? null) === $nic['vif_uuid']) {
                     $targetNetworkUuid = $mapping['target_network']['hypervisor_uuid'] ?? null;
+                    $nicMapping = $mapping;
                     break;
                 }
             }
 
             if (!$targetNetworkUuid) {
+                // Try ComputeMemberNetworkInterfaces on target by stored network name
+                $targetNetworkName = $nicMapping['target_network']['name'] ?? null;
+                if ($targetNetworkName) {
+                    $targetCmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_compute_member_id', $target->id)
+                        ->where('network_name', $targetNetworkName)
+                        ->first();
+                    $targetNetworkUuid = $targetCmni?->network_uuid ?: null;
+                }
+            }
+
+            if (!$targetNetworkUuid) {
+                // Ask target host by bridge name — --minimal returns just the UUID
                 $result = self::performCommand(
-                    'xe network-list bridge=' . escapeshellarg('xenbr' . ($nic['device'] ?? '0')) . ' params=uuid',
+                    'xe network-list bridge=' . escapeshellarg('xenbr' . ($nic['device'] ?? '0')) . ' --minimal',
                     $target
                 );
                 $targetNetworkUuid = trim($result['output'] ?? '');
             }
 
             if (!$targetNetworkUuid) {
-                throw new \Exception(
-                    'Cannot resolve target network for NIC device=' . $nic['device']
-                    . ' (source network-uuid: ' . $nic['network_uuid'] . ').'
-                );
+                // Network does not exist on target — create it using the source network definition
+                $sourceNetworkId = $nicMapping['source_network']['id'] ?? null;
+                $sourceNetworkModel = $sourceNetworkId
+                    ? Networks::withoutGlobalScope(AuthorizationScope::class)->find($sourceNetworkId)
+                    : null;
+
+                if (!$sourceNetworkModel) {
+                    throw new \Exception(
+                        'Cannot resolve target network for NIC device=' . $nic['device']
+                        . ' (source network-uuid: ' . $nic['network_uuid'] . ').'
+                    );
+                }
+
+                Log::info(__METHOD__ . ' | Network not found on target — creating: ' . $sourceNetworkModel->name);
+                $newCmni = ComputeMemberXenService::createNetwork($target, $sourceNetworkModel);
+                $targetNetworkUuid = $newCmni->network_uuid;
             }
+
+            Log::info(__METHOD__ . ' | Creating VIF device=' . $nic['device'] . ' with network-uuid=' . $targetNetworkUuid);
 
             $result = self::performCommand(
                 'xe vif-create vm-uuid=' . $vmUuid
