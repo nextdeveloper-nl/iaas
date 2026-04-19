@@ -118,9 +118,15 @@ class EvacuationService
             //   1. per-disk override takes highest priority
             //   2. global preferred_storage_type option
             //   3. fall back to matching the source volume type
+            // XenServer EXT SRs are stored as disk_physical_type='local' in the DB,
+            // so normalise the incoming 'ext' alias to 'local'.
             $effectiveType = $perDiskStorageTypes[$disk->uuid]
                 ?? $preferredStorageType
                 ?? $sourceVolume?->disk_physical_type;
+
+            if ($effectiveType === 'ext') {
+                $effectiveType = 'local';
+            }
 
             // VirtualDiskImages->size is in bytes; StorageVolumes->free_hdd is in GB.
             $diskSizeGb = ceil($disk->size / 1000 / 1000 / 1000);

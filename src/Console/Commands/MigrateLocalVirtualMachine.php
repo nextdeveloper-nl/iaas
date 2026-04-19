@@ -49,7 +49,7 @@ class MigrateLocalVirtualMachine extends Command
         {--vm-id= : UUID of the VirtualMachine (required for propose and approve)}
         {--target-id= : UUID of the target ComputeMember (required for propose and approve)}
         {--migration-id= : UUID of an existing VirtualMachineMigrations record (required for steps 3-12)}
-        {--storage-type= : Preferred storage type for propose step (e.g. lvm, ext)}
+        {--storage-type= : Preferred storage type for propose step (e.g. local, lvm, nfs)}
         {--force-delete-snapshots : Allow deletion of VM snapshots during coalesce-vhd step}
         {--dry-run : For copy-vhd and recreate-vm: resolve and print all commands without executing them}';
 
