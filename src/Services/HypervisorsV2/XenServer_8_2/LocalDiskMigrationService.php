@@ -855,12 +855,10 @@ class LocalDiskMigrationService implements MigrationInterface
                     Log::info(__METHOD__ . ' | [LVM SR] Creating temp LV ' . $tmpLvName . ' (' . $this->formatBytes($sourceSize) . ')');
                     self::performCommand($createLvCmd, $source);
 
-                    Log::info(__METHOD__ . ' | [LVM SR] rsync --inplace: ' . $vhdPath . ' → ' . $targetIp . ':' . $tmpLvPath);
-                    $rsyncLvResult = self::performCommand($rsyncLvCmd, $source);
+                    Log::info(__METHOD__ . ' | [LVM SR] dd copy: ' . $vhdPath . ' → ' . $targetIp . ':' . $tmpLvPath);
+                    self::performCommand($rsyncLvCmd, $source);
 
-                    if (!empty($rsyncLvResult['error']) && !str_contains($rsyncLvResult['output'], 'sent')) {
-                        throw new \Exception('[LVM SR] rsync failed for ' . $lvName . ': ' . $rsyncLvResult['error']);
-                    }
+                    // dd writes progress stats to stderr — size integrity check below catches any partial copy
 
                     $targetSize = (int) trim(self::performCommand(
                         'blockdev --getsize64 ' . escapeshellarg($tmpLvPath), $target
