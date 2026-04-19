@@ -1313,9 +1313,22 @@ class LocalDiskMigrationService implements MigrationInterface
             }
 
             if (!$targetNetworkUuid) {
-                // Resolve by matching source network UUID directly on target
+                // Try to resolve via ComputeMemberNetworkInterfaces on the target host,
+                // matching by the target network name stored in the migration plan.
+                $targetNetworkName = $mapping['target_network']['name'] ?? null;
+                if ($targetNetworkName) {
+                    $targetCmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_compute_member_id', $target->id)
+                        ->where('network_name', $targetNetworkName)
+                        ->first();
+                    $targetNetworkUuid = $targetCmni?->network_uuid ?: null;
+                }
+            }
+
+            if (!$targetNetworkUuid) {
+                // Last resort: ask the target host directly by bridge name
                 $result = self::performCommand(
-                    'xe network-list bridge=' . escapeshellarg('xenbr' . ($nic['device'] ?? '0')) . ' params=uuid',
+                    'xe network-list bridge=' . escapeshellarg('xenbr' . ($nic['device'] ?? '0')) . ' --minimal',
                     $target
                 );
                 $targetNetworkUuid = trim($result['output'] ?? '');
