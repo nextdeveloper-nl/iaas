@@ -630,7 +630,7 @@ class Commit extends AbstractAction
         $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);
 
         $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-            ->where('hypervisor_uuid', $disk['uuid'])
+            ->where('hypervisor_uuid', $diskParams['sr-uuid'])
             ->first();
 
         if($vbdParams['type'] != 'CD') {
