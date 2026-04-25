@@ -675,16 +675,13 @@ class MigrationService implements MigrationInterface
             ->where('iaas_storage_volume_id', $migration->target_iaas_storage_volume_id)
             ->firstOrFail();
 
-        $targetNfsServer     = trim($targetCmVolume->block_device_data['device-config']['server'] ?? '');
-        $targetNfsServerPath = rtrim(trim($targetCmVolume->block_device_data['device-config']['serverpath'] ?? ''), '/');
+        $targetNfsServerPath = rtrim(trim($targetCmVolume->block_device_data['device-config']['serverpath'] ?? ''), '/')
+            . '/' . $targetCmVolume->hypervisor_uuid;
 
-        if (!$targetNfsServer || !$targetNfsServerPath) {
-            throw new \Exception('Target NFS coordinates missing from block_device_data. Cannot proceed with copy.');
-        }
-
-        // XenServer creates a subdirectory named after the SR's hypervisor_uuid inside the NFS export.
-        // VHD files live at <serverpath>/<sr-hypervisor-uuid>/<vdi-uuid>.vhd
-        $targetNfsServerPath = $targetNfsServerPath . '/' . $targetCmVolume->hypervisor_uuid;
+        // ── Detect local vs. cross-storage copy ──────────────────────────────
+        // When source and target share the same storage member the VHD paths are
+        // both local on that host, so we can rsync directly without an NFS mount.
+        $isLocalCopy = $migration->source_iaas_storage_member_id === $migration->target_iaas_storage_member_id;
 
         $mountPoint = '/tmp/migration-' . $migration->uuid;
 
@@ -693,31 +690,46 @@ class MigrationService implements MigrationInterface
 
         $commands = [];
 
-        $commands[] = [
-            'host'    => $sourceStorageMember->name,
-            'command' => self::sudo('mkdir -p ' . escapeshellarg($mountPoint), $sourceStorageMember),
-            'note'    => 'Create temporary NFS mount point',
-        ];
+        if ($isLocalCopy) {
+            // Target path is already local on the same storage member — no NFS mount needed.
+            $commands[] = [
+                'host'    => $sourceStorageMember->name,
+                'command' => self::sudo('mkdir -p ' . escapeshellarg($targetNfsServerPath), $sourceStorageMember),
+                'note'    => 'Ensure target SR directory exists (local copy)',
+            ];
+        } else {
+            $targetNfsServer = trim($targetCmVolume->block_device_data['device-config']['server'] ?? '');
 
-        $commands[] = [
-            'host'    => $sourceStorageMember->name,
-            'command' => self::sudo('mount -t nfs '
-                . escapeshellarg($targetNfsServer . ':' . $targetNfsServerPath)
-                . ' ' . escapeshellarg($mountPoint), $sourceStorageMember),
-            'note'    => 'Mount target NFS share at ' . $targetNfsServer . ':' . $targetNfsServerPath,
-        ];
+            if (!$targetNfsServer || !$targetNfsServerPath) {
+                throw new \Exception('Target NFS coordinates missing from block_device_data. Cannot proceed with copy.');
+            }
+
+            $commands[] = [
+                'host'    => $sourceStorageMember->name,
+                'command' => self::sudo('mkdir -p ' . escapeshellarg($mountPoint), $sourceStorageMember),
+                'note'    => 'Create temporary NFS mount point',
+            ];
+
+            $commands[] = [
+                'host'    => $sourceStorageMember->name,
+                'command' => self::sudo('mount -t nfs '
+                    . escapeshellarg($targetNfsServer . ':' . $targetNfsServerPath)
+                    . ' ' . escapeshellarg($mountPoint), $sourceStorageMember),
+                'note'    => 'Mount target NFS share at ' . $targetNfsServer . ':' . $targetNfsServerPath,
+            ];
+        }
 
         foreach ($vhdPaths as $vhdPath) {
             $vdiUuid    = basename($vhdPath, '.vhd');
             $sourcePath = $sourceServerPath . '/' . $vdiUuid . '.vhd';
-            $targetPath = $mountPoint . '/' . $vdiUuid . '.vhd';
+            $targetPath = ($isLocalCopy ? $targetNfsServerPath : $mountPoint) . '/' . $vdiUuid . '.vhd';
 
             $commands[] = [
                 'host'    => $sourceStorageMember->name,
                 'command' => self::sudo('rsync -av --partial --progress '
                     . escapeshellarg($sourcePath) . ' '
                     . escapeshellarg($targetPath), $sourceStorageMember),
-                'note'    => 'Copy VHD: ' . $vdiUuid . '.vhd',
+                'note'    => ($isLocalCopy ? '[local] ' : '[nfs] ') . 'Copy VHD: ' . $vdiUuid . '.vhd',
             ];
 
             $commands[] = [
@@ -733,17 +745,19 @@ class MigrationService implements MigrationInterface
             ];
         }
 
-        $commands[] = [
-            'host'    => $sourceStorageMember->name,
-            'command' => self::sudo('umount ' . escapeshellarg($mountPoint), $sourceStorageMember),
-            'note'    => 'Unmount temporary NFS mount point (always runs)',
-        ];
+        if (!$isLocalCopy) {
+            $commands[] = [
+                'host'    => $sourceStorageMember->name,
+                'command' => self::sudo('umount ' . escapeshellarg($mountPoint), $sourceStorageMember),
+                'note'    => 'Unmount temporary NFS mount point (always runs)',
+            ];
 
-        $commands[] = [
-            'host'    => $sourceStorageMember->name,
-            'command' => self::sudo('rmdir ' . escapeshellarg($mountPoint), $sourceStorageMember),
-            'note'    => 'Remove temporary mount point directory (always runs)',
-        ];
+            $commands[] = [
+                'host'    => $sourceStorageMember->name,
+                'command' => self::sudo('rmdir ' . escapeshellarg($mountPoint), $sourceStorageMember),
+                'note'    => 'Remove temporary mount point directory (always runs)',
+            ];
+        }
 
         // ── Dry-run: persist the command list and return without executing ─────
         if ($isDryRun) {
@@ -763,17 +777,22 @@ class MigrationService implements MigrationInterface
         unset($options['dry_run'], $options['dry_run_commands']);
         $migration->updateQuietly(['options' => json_encode($options)]);
 
-        $this->updateStep($migration, 'copying-vhd', 46, 'Mounting target NFS share on source storage');
+        if ($isLocalCopy) {
+            $this->updateStep($migration, 'copying-vhd', 46, 'Local copy — source and target on same storage member, skipping NFS mount');
+            Log::info(__METHOD__ . ' | Local copy mode: ' . $sourceStorageMember->name);
+            self::performStorageCommand($commands[0]['command'], $sourceStorageMember); // mkdir target dir
+        } else {
+            $this->updateStep($migration, 'copying-vhd', 46, 'Mounting target NFS share on source storage');
+            self::performStorageCommand($commands[0]['command'], $sourceStorageMember); // mkdir mountpoint
 
-        self::performStorageCommand($commands[0]['command'], $sourceStorageMember);
+            $mountResult = self::performStorageCommand($commands[1]['command'], $sourceStorageMember);
 
-        $mountResult = self::performStorageCommand($commands[1]['command'], $sourceStorageMember);
+            if (!empty($mountResult['error']) && !str_contains($mountResult['error'], 'already mounted')) {
+                throw new \Exception('Failed to mount target NFS share: ' . $mountResult['error']);
+            }
 
-        if (!empty($mountResult['error']) && !str_contains($mountResult['error'], 'already mounted')) {
-            throw new \Exception('Failed to mount target NFS share: ' . $mountResult['error']);
+            Log::info(__METHOD__ . ' | Mounted target NFS share at ' . $mountPoint);
         }
-
-        Log::info(__METHOD__ . ' | Mounted ' . $targetNfsServer . ':' . $targetNfsServerPath . ' at ' . $mountPoint);
 
         $copiedPaths    = [];
         $total          = count($vhdPaths);
@@ -783,7 +802,7 @@ class MigrationService implements MigrationInterface
             foreach ($vhdPaths as $index => $vhdPath) {
                 $vdiUuid    = basename($vhdPath, '.vhd');
                 $sourcePath = $sourceServerPath . '/' . $vdiUuid . '.vhd';
-                $targetPath = $mountPoint . '/' . $vdiUuid . '.vhd';
+                $targetPath = ($isLocalCopy ? $targetNfsServerPath : $mountPoint) . '/' . $vdiUuid . '.vhd';
 
                 $progress = 46 + ($index * $progressPerVhd);
                 $this->updateStep($migration, 'copying-vhd', $progress,
@@ -839,10 +858,11 @@ class MigrationService implements MigrationInterface
                 ];
             }
         } finally {
-            self::performStorageCommand(self::sudo('umount ' . escapeshellarg($mountPoint), $sourceStorageMember), $sourceStorageMember);
-            self::performStorageCommand(self::sudo('rmdir ' . escapeshellarg($mountPoint), $sourceStorageMember), $sourceStorageMember);
-
-            Log::info(__METHOD__ . ' | Unmounted and cleaned up: ' . $mountPoint);
+            if (!$isLocalCopy) {
+                self::performStorageCommand(self::sudo('umount ' . escapeshellarg($mountPoint), $sourceStorageMember), $sourceStorageMember);
+                self::performStorageCommand(self::sudo('rmdir ' . escapeshellarg($mountPoint), $sourceStorageMember), $sourceStorageMember);
+                Log::info(__METHOD__ . ' | Unmounted and cleaned up: ' . $mountPoint);
+            }
         }
 
         $options['copied_vhd_paths'] = $copiedPaths;
