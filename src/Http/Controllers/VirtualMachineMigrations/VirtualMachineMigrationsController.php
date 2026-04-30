@@ -383,7 +383,7 @@ class VirtualMachineMigrationsController extends AbstractController
      *
      * Step 8 — Verify the recreated VM has correct vCPUs, memory, disk count, and NIC count.
      */
-    public function validate($ref)
+    public function validateMigration($ref)
     {
         $migration = $this->resolveMigration($ref);
         $service   = new MigrationService();

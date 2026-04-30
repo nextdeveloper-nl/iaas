@@ -2072,7 +2072,7 @@ Route::prefix('iaas')->group(
                 Route::post('/{iaas_virtual_machine_migrations}/copy-vhd',         'VirtualMachineMigrations\VirtualMachineMigrationsController@copyVhd');
                 Route::post('/{iaas_virtual_machine_migrations}/rescan-sr',        'VirtualMachineMigrations\VirtualMachineMigrationsController@rescanSr');
                 Route::post('/{iaas_virtual_machine_migrations}/recreate-vm',      'VirtualMachineMigrations\VirtualMachineMigrationsController@recreateVm');
-                Route::post('/{iaas_virtual_machine_migrations}/validate',         'VirtualMachineMigrations\VirtualMachineMigrationsController@validate');
+                Route::post('/{iaas_virtual_machine_migrations}/validate',         'VirtualMachineMigrations\VirtualMachineMigrationsController@validateMigration');
                 Route::post('/{iaas_virtual_machine_migrations}/sync-db',          'VirtualMachineMigrations\VirtualMachineMigrationsController@syncDb');
                 Route::post('/{iaas_virtual_machine_migrations}/start-vm',         'VirtualMachineMigrations\VirtualMachineMigrationsController@startVm');
                 Route::post('/{iaas_virtual_machine_migrations}/run',              'VirtualMachineMigrations\VirtualMachineMigrationsController@run');
