@@ -116,7 +116,10 @@ class DockerRegistryService
             CURLOPT_NOBODY => true, // HEAD request
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
-                'Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json'
+                'Accept: application/vnd.docker.distribution.manifest.v2+json',
+                'Accept: application/vnd.docker.distribution.manifest.list.v2+json',
+                'Accept: application/vnd.oci.image.manifest.v1+json',
+                'Accept: application/vnd.oci.image.index.v1+json',
             ],
             CURLOPT_HEADERFUNCTION => function ($curl, $header) use (&$headers) {
                 $len = strlen($header);
@@ -139,8 +142,6 @@ class DockerRegistryService
                 break;
             }
         }
-
-        curl_close($ch);
 
         if (!$digest) {
             throw new Exception('Digest not found');

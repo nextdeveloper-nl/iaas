@@ -6,6 +6,7 @@ use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * This action initiates compute members by creating the necessary resources such as Compute, Storage, and Network.
@@ -34,7 +35,11 @@ class UpdateStorageVolumes extends AbstractAction
 
         Events::fire('updating:NextDeveloper\IAAS\ComputeMembers', $this->model);
 
-        ComputeMemberXenService::updateStorageVolumes($this->model);
+        $cm = $this->model;
+
+        UserHelper::runAsAdmin(function () use ($cm) {
+            ComputeMemberXenService::updateStorageVolumes($cm);
+        });
 
         Events::fire('updated:NextDeveloper\IAAS\ComputeMembers', $this->model);
 
