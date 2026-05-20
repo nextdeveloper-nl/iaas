@@ -9,13 +9,13 @@ use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
 use NextDeveloper\IAM\Database\Models\Users;
 
-class CloudSalesAdmin extends AbstractRole implements IAuthorizationRole
+class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
 {
-    public const NAME = 'cloud-sales-admin';
+    public const NAME = 'cloud-sales-person';
 
     public const LEVEL = 150;
 
-    public const DESCRIPTION = 'Cloud sales admin can read all IaaS records across tenants and update IaaS account settings to support customers.';
+    public const DESCRIPTION = 'Cloud sales person can read all IaaS records across tenants and update IaaS account settings to support customers.';
 
     public const DB_PREFIX = 'iaas';
 
