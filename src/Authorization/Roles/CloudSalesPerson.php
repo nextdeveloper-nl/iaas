@@ -16,7 +16,7 @@ class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
 {
     public const NAME = 'cloud-sales-person';
 
-    public const LEVEL = 150;
+    public const LEVEL = 140;
 
     public const DESCRIPTION = 'Cloud sales person can read all IaaS records across tenants and update IaaS account settings to support customers.';
 
@@ -24,6 +24,12 @@ class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
 
     public function apply(Builder $builder, Model $model)
     {
+        // Mirror visibility of /crm/accounts-perspective: sales-admin / sales-manager-admin
+        // can see everything, so cloud-sales-person on the same user gets the same reach.
+        if (UserHelper::hasRole('sales-admin') || UserHelper::hasRole('sales-manager-admin')) {
+            return;
+        }
+
         $accountId = UserHelper::currentAccount()->id;
 
         $managedIamAccountsSql = '(
@@ -77,6 +83,7 @@ class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
     {
         return [
             'iaas_accounts:read',
+            'iaas_accounts:create',
             'iaas_accounts:update',
 
             'iaas_storage_pools:read',
