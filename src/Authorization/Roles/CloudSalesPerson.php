@@ -5,9 +5,12 @@ namespace NextDeveloper\IAAS\Authorization\Roles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use NextDeveloper\Commons\Helpers\DatabaseHelper;
+use NextDeveloper\CRM\Database\Models\AccountManagers;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
 use NextDeveloper\IAM\Database\Models\Users;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
 {
@@ -21,12 +24,43 @@ class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
 
     public function apply(Builder $builder, Model $model)
     {
-        // Cross-tenant: no scope filter applied.
+        $accountId = UserHelper::currentAccount()->id;
+
+        $managedIamAccountsSql = '(
+            select ca.iam_account_id from crm_accounts ca
+            join crm_account_managers cam on cam.crm_account_id = ca.id
+            where cam.iam_account_id = ' . $accountId . '
+        )';
+
+        if ($model->getTable() === 'iaas_accounts') {
+            $builder->whereRaw('iam_account_id IN ' . $managedIamAccountsSql);
+
+            return;
+        }
+
+        if (DatabaseHelper::isColumnExists($model->getTable(), 'iam_account_id')) {
+            $builder->whereRaw('iam_account_id IN ' . $managedIamAccountsSql);
+        }
     }
 
     public function checkUpdatePolicy(Model $model, Users $user): bool
     {
-        return in_array($model->getTable() . ':update', $this->allowedOperations(), true);
+        if (!in_array($model->getTable() . ':update', $this->allowedOperations(), true)) {
+            return false;
+        }
+
+        if (!isset($model->iam_account_id)) {
+            return false;
+        }
+
+        return AccountManagers::withoutGlobalScopes()
+            ->where('iam_account_id', UserHelper::currentAccount()->id)
+            ->whereIn('crm_account_id', function ($q) use ($model) {
+                $q->select('id')
+                    ->from('crm_accounts')
+                    ->where('iam_account_id', $model->iam_account_id);
+            })
+            ->exists();
     }
 
     public function checkDeletePolicy(Model $model, Users $user): bool
