@@ -13,7 +13,7 @@ use NextDeveloper\IAM\Database\Models\Accounts as IamAccounts;
  * The DB trigger creates child rows inactive; this action is used to manually
  * create a child row for historical IAM accounts and flags it active.
  */
-class CreateAccount extends AbstractAction
+class BackfillIaasAccount extends AbstractAction
 {
     public const EVENTS = [
         'created:NextDeveloper\IAAS\Accounts',
