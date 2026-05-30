@@ -30,9 +30,10 @@ class ListenVmAgentEvents extends Command
     private bool $shouldQuit = false;
 
     // Thresholds — percentages above which a warning is raised
-    private const THRESHOLD_CPU_PCT    = 90.0;
-    private const THRESHOLD_MEMORY_PCT = 90.0;
-    private const THRESHOLD_DISK_PCT   = 85.0;
+    private const THRESHOLD_CPU_PCT     = 90.0;
+    private const THRESHOLD_MEMORY_PCT  = 90.0;
+    private const THRESHOLD_DISK_PCT    = 85.0;
+    private const THRESHOLD_DISK_IO_PCT = 90.0;
 
     public function handle(NatsService $nats): int
     {
@@ -80,18 +81,27 @@ class ListenVmAgentEvents extends Command
             $problems[] = sprintf('High CPU: %.1f%%', $cpu['usage_pct']);
         }
 
+        foreach ($cpu['cores'] ?? [] as $core) {
+            if (isset($core['usage_pct']) && $core['usage_pct'] >= self::THRESHOLD_CPU_PCT) {
+                $problems[] = sprintf('High CPU on core %d: %.1f%%', $core['id'], $core['usage_pct']);
+            }
+        }
+
         $memory = $data['memory'] ?? [];
         if (isset($memory['usage_pct']) && $memory['usage_pct'] >= self::THRESHOLD_MEMORY_PCT) {
             $problems[] = sprintf('High memory: %.1f%%', $memory['usage_pct']);
         }
 
         foreach ($data['disks'] ?? [] as $disk) {
+            $label = $disk['mountpoint'] ?? $disk['device'] ?? '?';
+
             if (isset($disk['usage_pct']) && $disk['usage_pct'] >= self::THRESHOLD_DISK_PCT) {
-                $problems[] = sprintf(
-                    'High disk on %s: %.1f%%',
-                    $disk['mountpoint'] ?? $disk['device'] ?? '?',
-                    $disk['usage_pct']
-                );
+                $problems[] = sprintf('High disk usage on %s: %.1f%%', $label, $disk['usage_pct']);
+            }
+
+            $ioUtil = $disk['io']['util_pct'] ?? null;
+            if ($ioUtil !== null && $ioUtil >= self::THRESHOLD_DISK_IO_PCT) {
+                $problems[] = sprintf('High disk I/O on %s: %.1f%% utilisation', $label, $ioUtil);
             }
         }
 
