@@ -659,7 +659,8 @@ class VirtualMachinesXenService extends AbstractXenService
                 'apply-env-vars.yml',
                 'apply-ssh-keys.yml',
                 'run-post-boot-script.yml',
-                'run-startup-script.yml'
+                'run-startup-script.yml',
+                'plusclouds-agent.service'
             ];
 
             foreach ($configurationPack as $pack) {
@@ -672,13 +673,13 @@ class VirtualMachinesXenService extends AbstractXenService
             }
 
             //  Copying the plusclouds agent to the config-iso folder
-            $command .= 'cp /home/plusclouds/plusclouds.linux config-iso/' . $vm->uuid . '/plusclouds.service ';
+            $command .= 'cp /home/plusclouds/plusclouds.linux config-iso/' . $vm->uuid . '/plusclouds.service' . PHP_EOL;
             $agentConfiguration = file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/agent.yaml'));
 
             $agentConfiguration = str_replace('{agent_uuid}', $vm->uuid, $agentConfiguration);
-            $agentConfiguration = str_replace('{api_key}', $vm->api_key, $agentConfiguration);
+            $agentConfiguration = str_replace('{api_key}', $vm->agent_api_key, $agentConfiguration);
 
-            $uploadConfig(
+            $command .= $uploadConfig(
                 filename: 'agent.yaml',
                 content: base64_encode($agentConfiguration),
                 vm: $vm,
@@ -710,11 +711,10 @@ class VirtualMachinesXenService extends AbstractXenService
                 'config-iso/' . $vm->uuid . '/user-data ' .
                 'config-iso/' . $vm->uuid . '/meta-data ' .
                 'config-iso/' . $vm->uuid . '/pc-meta-data.json ' .
-                'config-iso/' . $vm->uuid . '/agent.yaml ' .
-                'config-iso/' . $vm->uuid . '/plusclouds-agent.service.yml ';
+                'config-iso/' . $vm->uuid . '/agent.yaml ';
 
             if($vm->post_boot_script) {
-                $command .= 'config-iso/' . $vm->uuid . '/post-boot-script.sh';
+                $command .= 'config-iso/' . $vm->uuid . '/post-boot-script.sh ';
             }
 
             foreach ($configurationPack as $pack) {
@@ -725,17 +725,17 @@ class VirtualMachinesXenService extends AbstractXenService
 
             //  removing .base64 files
             $command .= PHP_EOL;
-            $command .= 'rm -f config-iso/' . $vm->uuid . '/*.base64';
+            $command .= 'rm -f config-iso/' . $vm->uuid . '/*.base64 ';
             //$result = self::performCommand($command, $centralRepo);
 
             //  Moving the iso to the central repository
             $command .= PHP_EOL;
-            $command .= 'mv config-iso/' . $vm->uuid . '/config.iso ' . $centralRepo->iso_path . '/config-' . $vm->uuid . '.iso';
+            $command .= 'mv config-iso/' . $vm->uuid . '/config.iso ' . $centralRepo->iso_path . '/config-' . $vm->uuid . '.iso ';
             //$result = self::performCommand($command, $centralRepo);
 
             //  Removing the config-iso folder
             $command .= PHP_EOL;
-            $command .= 'rm -f config-iso/' . $vm->uuid . '/config.iso';
+            $command .= 'rm -f config-iso/' . $vm->uuid . '/config.iso ';
 
             $result = self::performCommand($command, $centralRepo);
 
