@@ -117,6 +117,7 @@ class IAASServiceProvider extends AbstractServiceProvider {
                 \NextDeveloper\IAAS\Console\Commands\SyncStorageVolume::class,
                 \NextDeveloper\IAAS\Console\Commands\MigrateVirtualMachine::class,
                 \NextDeveloper\IAAS\Console\Commands\MigrateLocalVirtualMachine::class,
+                \NextDeveloper\IAAS\Console\Commands\ListenVmAgentEvents::class,
             ]);
         }
     }
