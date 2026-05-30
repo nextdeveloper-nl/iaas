@@ -275,6 +275,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         //  So with this setup, we set our maximum available ram to 2048 GB
         $data['ram'] = ResourceCalculationHelper::getRamInMb($data['ram']);
 
+        //  Generate a unique API key for the VM agent on every new VM creation
+        $data['agent_api_key'] = Str::random(64);
+
         return parent::create($data);
     }
 

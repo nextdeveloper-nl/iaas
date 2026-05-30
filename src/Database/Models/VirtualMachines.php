@@ -65,6 +65,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $backup_repository_id
  * @property string $post_boot_script
  * @property $tokens
+ * @property string $agent_api_key
  */
 class VirtualMachines extends Model
 {
@@ -124,6 +125,7 @@ class VirtualMachines extends Model
             'backup_repository_id',
             'post_boot_script',
             'tokens',
+            'agent_api_key',
     ];
 
     /**
@@ -189,6 +191,7 @@ class VirtualMachines extends Model
     'backup_repository_id' => 'integer',
     'post_boot_script' => 'string',
     'tokens' => 'array',
+    'agent_api_key' => 'string',
     ];
 
     /**
