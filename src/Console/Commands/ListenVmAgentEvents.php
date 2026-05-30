@@ -6,8 +6,10 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Services\CommentsService;
+use NextDeveloper\Events\Services\AgentCommandsService;
 use NextDeveloper\Events\Services\NatsService;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -45,11 +47,25 @@ class ListenVmAgentEvents extends Command
         $this->registerSignalHandlers();
 
         $nats->subscribe('agent.vm.>', function (array|string $payload, string $subject) {
-            if (!is_array($payload) || ($payload['type'] ?? '') !== 'telemetry') {
+            Log::debug('[ListenVmAgentEvents] Message received', [
+                'subject' => $subject,
+                'type'    => is_array($payload) ? ($payload['type'] ?? 'unknown') : 'non-json',
+                'payload' => $payload,
+            ]);
+
+            if (!is_array($payload)) {
                 return;
             }
 
-            $this->evaluateHealth($payload);
+            match ($payload['type'] ?? '') {
+                'telemetry'    => $this->evaluateHealth($payload),
+                'result'       => $this->handleResult($payload),
+                'capabilities' => $this->handleCapabilities($payload),
+                default        => Log::debug('[ListenVmAgentEvents] Unhandled message type', [
+                    'type'    => $payload['type'] ?? 'unknown',
+                    'subject' => $subject,
+                ]),
+            };
         });
 
         $this->info('Subscribed to agent.vm.> — evaluating telemetry for health problems. Press Ctrl+C to stop.');
@@ -68,6 +84,69 @@ class ListenVmAgentEvents extends Command
 
         $this->info('Listener stopped.');
         return 0;
+    }
+
+    private function handleCapabilities(array $payload): void
+    {
+        $agentUuid  = $payload['agent_uuid']         ?? null;
+        $operations = $payload['payload']['operations'] ?? [];
+
+        if (!$agentUuid) {
+            Log::warning('[ListenVmAgentEvents] capabilities message missing agent_uuid');
+            return;
+        }
+
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
+            ->where('uuid', $agentUuid)
+            ->first();
+
+        if (!$vm) {
+            Log::warning('[ListenVmAgentEvents] VM not found for capabilities update', ['agent_uuid' => $agentUuid]);
+            return;
+        }
+
+        // Merge into the existing map — only overwrite the 'agent' key so that
+        // other sources (e.g. 'hypervisor') are not affected.
+        $existing           = $vm->available_operations ?? [];
+        $existing['agent']  = $operations;
+
+        VirtualMachinesService::update($vm->uuid, ['available_operations' => $existing]);
+
+        Log::info('[ListenVmAgentEvents] VM capabilities updated', [
+            'agent_uuid' => $agentUuid,
+            'operations' => $operations,
+        ]);
+    }
+
+    private function handleResult(array $payload): void
+    {
+        $result      = $payload['payload'] ?? [];
+        $commandUuid = $result['command_id'] ?? null;
+
+        if (!$commandUuid) {
+            Log::warning('[ListenVmAgentEvents] Result message missing command_id', ['payload' => $payload]);
+            return;
+        }
+
+        $command = AgentCommandsService::getByRef($commandUuid);
+
+        if (!$command) {
+            Log::warning('[ListenVmAgentEvents] Unknown command_id in result', ['command_id' => $commandUuid]);
+            return;
+        }
+
+        AgentCommandsService::update($command->id, [
+            'status'       => $result['status']     ?? 'completed',
+            'result'       => $result['output']      ?? [],
+            'error'        => $result['message']     ?? null,
+            'completed_at' => now(),
+        ]);
+
+        Log::info('[ListenVmAgentEvents] Command result received', [
+            'command_id' => $commandUuid,
+            'status'     => $result['status'] ?? 'completed',
+        ]);
     }
 
     private function evaluateHealth(array $payload): void

@@ -23,7 +23,6 @@ use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use PHP_CodeSniffer\Tokenizers\PHP;
 
 class VirtualMachinesXenService extends AbstractXenService
 {
@@ -672,6 +671,20 @@ class VirtualMachinesXenService extends AbstractXenService
                 );
             }
 
+            //  Copying the plusclouds agent to the config-iso folder
+            $command .= 'cp /home/plusclouds/plusclouds.linux config-iso/' . $vm->uuid . '/plusclouds.service';
+            $agentConfiguration = file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/agent.yaml'));
+
+            $agentConfiguration = str_replace('{agent_uuid}', $vm->uuid, $agentConfiguration);
+            $agentConfiguration = str_replace('{api_key}', $vm->api_key, $agentConfiguration);
+
+            $uploadConfig(
+                filename: 'agent.yaml',
+                content: base64_encode($agentConfiguration),
+                vm: $vm,
+                centralRepo: $centralRepo
+            );
+
             logger()->info('[VirtualMachineXenService@updateConfigurationIso] Is updating the post_book_script?]');
 
             logger()->info('[VirtualMachineXenService@updateConfigurationIso] Post boot script is: ' . $vm->post_boot_script);
@@ -696,7 +709,9 @@ class VirtualMachinesXenService extends AbstractXenService
                 '-volid cidata -joliet -rock ' .
                 'config-iso/' . $vm->uuid . '/user-data ' .
                 'config-iso/' . $vm->uuid . '/meta-data ' .
-                'config-iso/' . $vm->uuid . '/pc-meta-data.json ';
+                'config-iso/' . $vm->uuid . '/pc-meta-data.json ' .
+                'config-iso/' . $vm->uuid . '/agent.yaml' .
+                'config-iso/' . $vm->uuid . '/plusclouds-agent.service.yml';
 
             if($vm->post_boot_script) {
                 $command .= 'config-iso/' . $vm->uuid . '/post-boot-script.sh';

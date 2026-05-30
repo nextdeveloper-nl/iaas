@@ -60,6 +60,9 @@ Route::prefix('iaas')->group(
                 Route::post('/', 'VirtualMachines\VirtualMachinesController@store');
                 Route::post('/{iaas_virtual_machines}/do/{action}', 'VirtualMachines\VirtualMachinesController@doAction');
 
+                Route::get('/{iaas_virtual_machines}/agent/operations', 'VirtualMachines\VirtualMachineAgentCommandsController@index');
+                Route::post('/{iaas_virtual_machines}/agent/{operation}', 'VirtualMachines\VirtualMachineAgentCommandsController@dispatch');
+
                 Route::patch('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@update');
                 Route::delete('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@destroy');
             }
