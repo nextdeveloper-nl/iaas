@@ -109,6 +109,8 @@ class StateChangeNotification extends AbstractAction
     public function handle(): void
     {
         $this->setProgress(0, 'Preparing VM status change notification.');
+        $this->setFinished('No event specified for notification.'); // Default finished state if no event is provided
+        return;
 
         // Get user
         $this->setProgress(10, 'Fetching target user for notification.');
