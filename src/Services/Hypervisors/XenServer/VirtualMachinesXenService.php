@@ -673,7 +673,7 @@ class VirtualMachinesXenService extends AbstractXenService
             }
 
             //  Copying the plusclouds agent to the config-iso folder
-            $command .= 'cp /home/plusclouds/plusclouds.linux config-iso/' . $vm->uuid . '/plusclouds.service' . PHP_EOL;
+            $command .= 'cp /home/plusclouds/plusclouds.linux config-iso/' . $vm->uuid . '/plusclouds.service ' . PHP_EOL;
             $agentConfiguration = file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/agent.yaml'));
 
             $agentConfiguration = str_replace('{agent_uuid}', $vm->uuid, $agentConfiguration);

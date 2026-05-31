@@ -1,0 +1,31 @@
+---
+- name: Ensure /etc/plusclouds directory exists
+  file:
+    path: /etc/plusclouds
+    state: directory
+    mode: '0755'
+
+- name: Move agent.yaml to /etc/plusclouds/agent.yaml
+  command: mv agent.yaml /etc/plusclouds/agent.yaml
+  args:
+    chdir: "{{ package_dir | default(playbook_dir) }}"
+
+- name: Move plusclouds binary to /usr/local/bin/plusclouds
+  command: mv plusclouds /usr/local/bin/plusclouds
+  args:
+    chdir: "{{ package_dir | default(playbook_dir) }}"
+
+- name: Move plusclouds-agent.service to /etc/systemd/system
+  command: mv plusclouds-agent.service /etc/systemd/system/plusclouds-agent.service
+  args:
+    chdir: "{{ package_dir | default(playbook_dir) }}"
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start plusclouds-agent service
+  systemd:
+    name: plusclouds-agent
+    enabled: yes
+    state: started

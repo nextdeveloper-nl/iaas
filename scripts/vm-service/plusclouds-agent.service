@@ -12,14 +12,14 @@ Group=root
 ExecStartPre=/bin/mkdir -p /var/log/plusclouds
 ExecStartPre=/bin/chmod 0750 /var/log/plusclouds
 
-ExecStart=/usr/local/bin/plusclouds-agent --config /etc/plusclouds/agent.yaml
+ExecStart=/usr/local/bin/plusclouds --config /etc/plusclouds/agent.yaml
 
 Restart=always
 RestartSec=5
 
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=plusclouds-agent
+SyslogIdentifier=plusclouds
 
 # Load optional environment overrides (agent UUID, API key, log path, etc.)
 EnvironmentFile=-/etc/plusclouds/environment

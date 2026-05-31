@@ -61,6 +61,9 @@
       include_tasks: apply-ssh-keys.yml
       when: metadata.ssh_keys is defined and metadata.ssh_keys | length > 0
 
+    - name: Deploy service configuration
+      include_tasks: deploy-service.yml
+
     - name: Run post boot script
       include_tasks: run-post-boot-script.yml
 
