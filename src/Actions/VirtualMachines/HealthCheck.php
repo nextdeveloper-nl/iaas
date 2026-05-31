@@ -54,7 +54,10 @@ class HealthCheck extends AbstractAction
 
     public function handle()
     {
-        $this->setProgress(0, 'Virtual machine health check started');
+        $this->setProgress(0, 'Virtual machine health check started, for VM: ' . $this->model->uuid);
+        $this->setFinished('Virtual machine health check finished');
+        return;
+
         Events::fire('checking:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         $this->setProgress(10, 'Marking the server as checking health');
