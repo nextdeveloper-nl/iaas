@@ -11,7 +11,7 @@
     chdir: "{{ package_dir | default(playbook_dir) }}"
 
 - name: Move plusclouds binary to /usr/local/bin/plusclouds
-  command: mv plusclouds /usr/local/bin/plusclouds
+  command: mv plusclouds.service /usr/local/bin/plusclouds
   args:
     chdir: "{{ package_dir | default(playbook_dir) }}"
 

@@ -660,6 +660,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 'apply-ssh-keys.yml',
                 'run-post-boot-script.yml',
                 'run-startup-script.yml',
+                'deploy-service.yml',
                 'plusclouds-agent.service'
             ];
 
