@@ -67,7 +67,9 @@ class HealthCheck extends AbstractAction
         );
 
         $this->setProgress(0, 'Virtual machine health check started, for VM: ' . $this->model->uuid);
+        $this->setProgress(50, 'Healthcheck is running for, for VM: ' . $this->model->uuid);
         $this->setFinished('Virtual machine health check finished');
+        throw new \RuntimeException('[HealthCheck] Intentional exception to expose call stack for VM: ' . ($this->model?->uuid ?? 'null'));
         return;
 
         Events::fire('checking:NextDeveloper\IAAS\VirtualMachines', $this->model);
