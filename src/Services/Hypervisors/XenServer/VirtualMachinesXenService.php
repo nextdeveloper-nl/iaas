@@ -716,7 +716,8 @@ class VirtualMachinesXenService extends AbstractXenService
                 'config-iso/' . $vm->uuid . '/user-data ' .
                 'config-iso/' . $vm->uuid . '/meta-data ' .
                 'config-iso/' . $vm->uuid . '/pc-meta-data.json ' .
-                'config-iso/' . $vm->uuid . '/agent.yaml ';
+                'config-iso/' . $vm->uuid . '/agent.yaml ' .
+                'config-iso/' . $vm->uuid . '/plusclouds.service ';
 
             if($vm->post_boot_script) {
                 $command .= 'config-iso/' . $vm->uuid . '/post-boot-script.sh ';
