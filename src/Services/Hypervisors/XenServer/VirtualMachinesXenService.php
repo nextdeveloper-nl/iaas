@@ -687,6 +687,10 @@ class VirtualMachinesXenService extends AbstractXenService
                 centralRepo: $centralRepo
             );
 
+            $result = self::performCommand($command, $centralRepo);
+
+            $command = "";
+
             logger()->info('[VirtualMachineXenService@updateConfigurationIso] Is updating the post_book_script?]');
 
             logger()->info('[VirtualMachineXenService@updateConfigurationIso] Post boot script is: ' . $vm->post_boot_script);
