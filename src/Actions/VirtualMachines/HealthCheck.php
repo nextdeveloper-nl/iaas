@@ -49,6 +49,12 @@ class HealthCheck extends AbstractAction
 
         $this->model = $vm;
 
+        // Intentional trace dump to find what is triggering HealthCheck at high frequency
+        \Illuminate\Support\Facades\Log::error(
+            '[HealthCheck] Constructor called for VM: ' . ($vm?->uuid ?? 'null') . "\n" .
+            (new \Exception())->getTraceAsString()
+        );
+
         parent::__construct($params, $previous);
     }
 
