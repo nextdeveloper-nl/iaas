@@ -60,6 +60,12 @@ class HealthCheck extends AbstractAction
 
     public function handle()
     {
+        // Trace in handle() to capture the call stack regardless of process
+        \Illuminate\Support\Facades\Log::error(
+            '[HealthCheck][handle] Called for VM: ' . ($this->model?->uuid ?? 'null') . "\n" .
+            (new \Exception())->getTraceAsString()
+        );
+
         $this->setProgress(0, 'Virtual machine health check started, for VM: ' . $this->model->uuid);
         $this->setFinished('Virtual machine health check finished');
         return;
