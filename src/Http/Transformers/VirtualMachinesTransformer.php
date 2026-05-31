@@ -47,7 +47,12 @@ class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
         unset($transformed['hypervisor_data']);
         unset($transformed['console_data']);
 
-        $transformed['console_data'] = VirtualMachinesService::getConsoleData($model);
+        // Do not call getConsoleData() for draft VMs — it triggers HealthCheck when console_data is null
+        if ($model->is_draft) {
+            $transformed['console_data'] = null;
+        } else {
+            $transformed['console_data'] = VirtualMachinesService::getConsoleData($model);
+        }
 
         Cache::set(
             CacheHelper::getKey('VirtualMachines', $model->uuid, 'Transformed'),
