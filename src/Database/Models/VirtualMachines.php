@@ -66,6 +66,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property string $post_boot_script
  * @property $tokens
  * @property string $agent_api_key
+ * @property \Carbon\Carbon $agent_latest_ping
  */
 class VirtualMachines extends Model
 {
@@ -126,6 +127,7 @@ class VirtualMachines extends Model
             'post_boot_script',
             'tokens',
             'agent_api_key',
+            'agent_latest_ping',
     ];
 
     /**
@@ -192,6 +194,7 @@ class VirtualMachines extends Model
     'post_boot_script' => 'string',
     'tokens' => 'array',
     'agent_api_key' => 'string',
+    'agent_latest_ping' => 'datetime',
     ];
 
     /**
@@ -201,6 +204,7 @@ class VirtualMachines extends Model
      */
     protected $dates = [
     'last_metadata_request',
+    'agent_latest_ping',
     'created_at',
     'updated_at',
     'deleted_at',

@@ -58,6 +58,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property string $auto_backup_interval
  * @property string $auto_backup_time
  * @property string $post_boot_script
+ * @property \Carbon\Carbon $agent_latest_ping
  * @property string $maintainer
  * @property string $responsible
  * @property integer $iaas_compute_pool_id
@@ -122,6 +123,7 @@ class VirtualMachinesPerspective extends Model
             'auto_backup_interval',
             'auto_backup_time',
             'post_boot_script',
+            'agent_latest_ping',
             'maintainer',
             'responsible',
             'iaas_compute_pool_id',
@@ -188,6 +190,7 @@ class VirtualMachinesPerspective extends Model
     'auto_backup_interval' => 'string',
     'auto_backup_time' => 'string',
     'post_boot_script' => 'string',
+    'agent_latest_ping' => 'datetime',
     'maintainer' => 'string',
     'responsible' => 'string',
     'iaas_compute_pool_id' => 'integer',

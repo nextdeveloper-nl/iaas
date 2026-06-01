@@ -102,6 +102,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'auto_backup_interval'  =>  $model->auto_backup_interval,
             'auto_backup_time'  =>  $model->auto_backup_time,
             'post_boot_script'  =>  $model->post_boot_script,
+            'agent_latest_ping'  =>  $model->agent_latest_ping,
             'maintainer'  =>  $model->maintainer,
             'responsible'  =>  $model->responsible,
             'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
