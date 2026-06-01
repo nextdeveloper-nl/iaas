@@ -514,8 +514,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             dispatch(new GenerateCloudInitImage($vm));
         }
 
-        if ($vm->hypervisor_uuid) {
-            dispatch(new Commit($vm));
+        // Only commit when the VM actually needs re-provisioning — mirrors the guard
+        // inside Commit::handle() so we never queue a job that would immediately return.
+        if ($vm->hypervisor_uuid && ($updatedVm->is_draft || $updatedVm->status === 'pending-update')) {
+            dispatch(new Commit($updatedVm));
         }
 
         return $updatedVm;
