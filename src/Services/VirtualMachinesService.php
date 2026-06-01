@@ -626,6 +626,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $iv = config('iaas.console.iv');
         $t = time();
 
+        // Return early if console encryption is not configured
+        if (empty($key) || empty($iv)) {
+            return ['console' => 'Console encryption not configured (IAAS_CONSOLE_KEY / IAAS_CONSOLE_IV missing).'];
+        }
+
         $encrypt = function ($string) use ($key, $iv) {
             $method = 'AES-256-CBC';
             $output = openssl_encrypt($string, $method, $key, true, $iv);
