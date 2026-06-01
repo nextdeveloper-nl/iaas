@@ -514,12 +514,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             dispatch(new GenerateCloudInitImage($vm));
         }
 
-        // Only commit when this update explicitly set status to pending-update (CPU/RAM resize).
-        // All other updates (agent pings, capabilities, tags, etc.) must NOT trigger a commit.
-        if ($updatedVm->status === 'pending-update') {
-            dispatch(new Commit($updatedVm));
-        }
-
         return $updatedVm;
     }
 
