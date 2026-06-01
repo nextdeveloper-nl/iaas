@@ -51,13 +51,17 @@ class ListenVmAgentEvents extends Command
         $this->registerSignalHandlers();
 
         $nats->subscribe('agent.vm.>', function (array|string $payload, string $subject) {
-            Log::debug('[ListenVmAgentEvents] Message received', [
-                'subject' => $subject,
-                'type'    => is_array($payload) ? ($payload['type'] ?? 'unknown') : 'non-json',
-                'payload' => $payload,
+            Log::info('[ListenVmAgentEvents] Message received', [
+                'subject'    => $subject,
+                'type'       => is_array($payload) ? ($payload['type'] ?? 'unknown') : 'non-json',
+                'agent_uuid' => is_array($payload) ? ($payload['agent_uuid'] ?? null) : null,
             ]);
 
             if (!is_array($payload)) {
+                Log::warning('[ListenVmAgentEvents] Non-JSON payload received, skipping', [
+                    'subject' => $subject,
+                    'raw'     => is_string($payload) ? substr($payload, 0, 200) : gettype($payload),
+                ]);
                 return;
             }
 
@@ -66,9 +70,10 @@ class ListenVmAgentEvents extends Command
                 'heartbeat'    => $this->handleHeartbeat($payload),
                 'result'       => $this->handleResult($payload),
                 'capabilities' => $this->handleCapabilities($payload),
-                default        => Log::debug('[ListenVmAgentEvents] Unhandled message type', [
-                    'type'    => $payload['type'] ?? 'unknown',
-                    'subject' => $subject,
+                default        => Log::warning('[ListenVmAgentEvents] Unhandled message type', [
+                    'type'       => $payload['type'] ?? '(missing)',
+                    'agent_uuid' => $payload['agent_uuid'] ?? null,
+                    'subject'    => $subject,
                 ]),
             };
         });
@@ -96,8 +101,15 @@ class ListenVmAgentEvents extends Command
         $agentUuid = $payload['agent_uuid'] ?? null;
         $timestamp = $payload['timestamp']  ?? null;
 
+        Log::info('[ListenVmAgentEvents] Processing heartbeat', [
+            'agent_uuid' => $agentUuid,
+            'timestamp'  => $timestamp,
+        ]);
+
         if (!$agentUuid) {
-            Log::warning('[ListenVmAgentEvents] heartbeat missing agent_uuid');
+            Log::warning('[ListenVmAgentEvents] Heartbeat missing agent_uuid — full payload follows', [
+                'payload' => $payload,
+            ]);
             return;
         }
 
@@ -107,7 +119,9 @@ class ListenVmAgentEvents extends Command
             ->first();
 
         if (!$vm) {
-            Log::warning('[ListenVmAgentEvents] VM not found for heartbeat', ['agent_uuid' => $agentUuid]);
+            Log::warning('[ListenVmAgentEvents] VM not found for heartbeat', [
+                'agent_uuid' => $agentUuid,
+            ]);
             return;
         }
 
@@ -115,13 +129,20 @@ class ListenVmAgentEvents extends Command
 
         VirtualMachinesService::update($vm->uuid, ['agent_latest_ping' => $pingTime]);
 
-        Log::debug('[ListenVmAgentEvents] VM heartbeat recorded', [
+        Log::info('[ListenVmAgentEvents] VM heartbeat recorded', [
             'agent_uuid'        => $agentUuid,
+            'vm_id'             => $vm->id,
             'agent_latest_ping' => $pingTime->toIso8601String(),
         ]);
 
         // If the agent capabilities are not yet known, request them
         $agentOps = ($vm->available_operations ?? [])['agent'] ?? [];
+
+        Log::info('[ListenVmAgentEvents] Checking agent capabilities', [
+            'agent_uuid'   => $agentUuid,
+            'has_agent_ops' => !empty($agentOps),
+            'agent_ops'    => $agentOps,
+        ]);
 
         if (empty($agentOps)) {
             $this->nats->publish("agent.vm.{$agentUuid}.cmd", [
@@ -138,8 +159,9 @@ class ListenVmAgentEvents extends Command
                 ],
             ]);
 
-            Log::debug('[ListenVmAgentEvents] Requested capabilities from agent', [
+            Log::info('[ListenVmAgentEvents] Requested capabilities from agent', [
                 'agent_uuid' => $agentUuid,
+                'subject'    => "agent.vm.{$agentUuid}.cmd",
             ]);
         }
     }
