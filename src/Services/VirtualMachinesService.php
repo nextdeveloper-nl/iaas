@@ -514,9 +514,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             dispatch(new GenerateCloudInitImage($vm));
         }
 
-        // Only commit when the VM actually needs re-provisioning — mirrors the guard
-        // inside Commit::handle() so we never queue a job that would immediately return.
-        if ($vm->hypervisor_uuid && ($updatedVm->is_draft || $updatedVm->status === 'pending-update')) {
+        // Only commit when this update explicitly set status to pending-update (CPU/RAM resize).
+        // All other updates (agent pings, capabilities, tags, etc.) must NOT trigger a commit.
+        if ($updatedVm->status === 'pending-update') {
             dispatch(new Commit($updatedVm));
         }
 
