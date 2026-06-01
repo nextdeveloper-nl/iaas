@@ -127,7 +127,7 @@ class ListenVmAgentEvents extends Command
 
         $pingTime = $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp) : now();
 
-        VirtualMachinesService::update($vm->uuid, ['agent_latest_ping' => $pingTime]);
+        UserHelper::runAsAdmin(fn () => VirtualMachinesService::update($vm->uuid, ['agent_latest_ping' => $pingTime]));
 
         Log::info('[ListenVmAgentEvents] VM heartbeat recorded', [
             'agent_uuid'        => $agentUuid,
@@ -191,8 +191,7 @@ class ListenVmAgentEvents extends Command
         $existing           = $vm->available_operations ?? [];
         $existing['agent']  = $operations;
 
-        UserHelper::setAdminAsCurrentUser();
-        VirtualMachinesService::update($vm->uuid, ['available_operations' => $existing]);
+        UserHelper::runAsAdmin(fn () => VirtualMachinesService::update($vm->uuid, ['available_operations' => $existing]));
 
         Log::info('[ListenVmAgentEvents] VM capabilities updated', [
             'agent_uuid' => $agentUuid,
