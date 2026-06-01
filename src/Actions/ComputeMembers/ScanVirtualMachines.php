@@ -125,7 +125,11 @@ class ScanVirtualMachines extends AbstractAction
                     'cpu'           =>  $vmInfo['VCPUs-max'],
                     'ram'           =>  $vmInfo['memory-static-max'] / 1024 / 1024, //  this comes in bytes, conterting to MB,
                     'status'        =>  $vmInfo['power-state'],
-                    'available_operations'  =>  $vmInfo['allowed-operations'],
+                    // Merge so that other keys (e.g. 'agent') set by other sources are not overwritten
+                    'available_operations'  =>  array_merge(
+                        $dbVm->available_operations ?? [],
+                        ['hypervisor' => $vmInfo['allowed-operations']]
+                    ),
                     'current_operations'    =>  $vmInfo['current-operations'],
                     'blocked_operations'    =>  $vmInfo['blocked-operations'],
                     'hypervisor_uuid'       =>  $vm['uuid'],
@@ -157,7 +161,7 @@ class ScanVirtualMachines extends AbstractAction
                     'cpu'           =>  $vmInfo['VCPUs-max'],
                     'ram'           =>  $vmInfo['memory-static-max'] / 1024 / 1024, //  this comes in bytes, conterting to MB,
                     'status'        =>  $vmInfo['power-state'],
-                    'available_operations'  =>  $vmInfo['allowed-operations'],
+                    'available_operations'  =>  ['hypervisor' => $vmInfo['allowed-operations']],
                     'current_operations'    =>  $vmInfo['current-operations'],
                     'blocked_operations'    =>  $vmInfo['blocked-operations'],
                     'hypervisor_uuid'       =>  $vm['uuid'],
