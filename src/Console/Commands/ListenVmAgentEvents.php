@@ -31,6 +31,8 @@ class ListenVmAgentEvents extends Command
 
     private bool $shouldQuit = false;
 
+    private NatsService $nats;
+
     // Thresholds — percentages above which a warning is raised
     private const THRESHOLD_CPU_PCT     = 90.0;
     private const THRESHOLD_MEMORY_PCT  = 90.0;
@@ -43,6 +45,8 @@ class ListenVmAgentEvents extends Command
             $this->error('NATS is not enabled. Set NATS_ENABLED=true in your .env file.');
             return 1;
         }
+
+        $this->nats = $nats;
 
         $this->registerSignalHandlers();
 
@@ -115,6 +119,29 @@ class ListenVmAgentEvents extends Command
             'agent_uuid'        => $agentUuid,
             'agent_latest_ping' => $pingTime->toIso8601String(),
         ]);
+
+        // If the agent capabilities are not yet known, request them
+        $agentOps = ($vm->available_operations ?? [])['agent'] ?? [];
+
+        if (empty($agentOps)) {
+            $this->nats->publish("agent.vm.{$agentUuid}.cmd", [
+                'v'          => 1,
+                'id'         => (string) \Illuminate\Support\Str::uuid(),
+                'type'       => 'command',
+                'agent_type' => 'vm',
+                'agent_uuid' => $agentUuid,
+                'timestamp'  => time(),
+                'payload'    => [
+                    'operation' => 'agent.allowed_operations',
+                    'params'    => (object) [],
+                    'timeout_s' => 10,
+                ],
+            ]);
+
+            Log::debug('[ListenVmAgentEvents] Requested capabilities from agent', [
+                'agent_uuid' => $agentUuid,
+            ]);
+        }
     }
 
     private function handleCapabilities(array $payload): void
@@ -142,6 +169,7 @@ class ListenVmAgentEvents extends Command
         $existing           = $vm->available_operations ?? [];
         $existing['agent']  = $operations;
 
+        UserHelper::setAdminAsCurrentUser();
         VirtualMachinesService::update($vm->uuid, ['available_operations' => $existing]);
 
         Log::info('[ListenVmAgentEvents] VM capabilities updated', [
