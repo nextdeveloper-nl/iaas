@@ -60,9 +60,6 @@ Route::prefix('iaas')->group(
                 Route::post('/', 'VirtualMachines\VirtualMachinesController@store');
                 Route::post('/{iaas_virtual_machines}/do/{action}', 'VirtualMachines\VirtualMachinesController@doAction');
 
-                Route::get('/{iaas_virtual_machines}/agent/operations', 'VirtualMachines\VirtualMachineAgentCommandsController@index');
-                Route::post('/{iaas_virtual_machines}/agent/{operation}', 'VirtualMachines\VirtualMachineAgentCommandsController@dispatch');
-
                 Route::patch('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@update');
                 Route::delete('/{iaas_virtual_machines}', 'VirtualMachines\VirtualMachinesController@destroy');
             }
@@ -2043,6 +2040,13 @@ Route::prefix('iaas')->group(
         );
 
         // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+        Route::prefix('virtual-machines')->group(
+            function () {
+                Route::get('/{iaas_virtual_machines}/agent/operations', 'VirtualMachines\VirtualMachineAgentCommandsController@index');
+                Route::post('/{iaas_virtual_machines}/agent/{operation}', 'VirtualMachines\VirtualMachineAgentCommandsController@dispatch');
+            }
+        );
 
         Route::prefix('virtual-machine-migrations')->group(
             function () {

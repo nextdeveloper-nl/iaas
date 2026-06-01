@@ -59,6 +59,7 @@ class ListenVmAgentEvents extends Command
 
             match ($payload['type'] ?? '') {
                 'telemetry'    => $this->evaluateHealth($payload),
+                'heartbeat'    => $this->handleHeartbeat($payload),
                 'result'       => $this->handleResult($payload),
                 'capabilities' => $this->handleCapabilities($payload),
                 default        => Log::debug('[ListenVmAgentEvents] Unhandled message type', [
@@ -84,6 +85,36 @@ class ListenVmAgentEvents extends Command
 
         $this->info('Listener stopped.');
         return 0;
+    }
+
+    private function handleHeartbeat(array $payload): void
+    {
+        $agentUuid = $payload['agent_uuid'] ?? null;
+        $timestamp = $payload['timestamp']  ?? null;
+
+        if (!$agentUuid) {
+            Log::warning('[ListenVmAgentEvents] heartbeat missing agent_uuid');
+            return;
+        }
+
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
+            ->where('uuid', $agentUuid)
+            ->first();
+
+        if (!$vm) {
+            Log::warning('[ListenVmAgentEvents] VM not found for heartbeat', ['agent_uuid' => $agentUuid]);
+            return;
+        }
+
+        $pingTime = $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp) : now();
+
+        VirtualMachinesService::update($vm->uuid, ['agent_latest_ping' => $pingTime]);
+
+        Log::debug('[ListenVmAgentEvents] VM heartbeat recorded', [
+            'agent_uuid'        => $agentUuid,
+            'agent_latest_ping' => $pingTime->toIso8601String(),
+        ]);
     }
 
     private function handleCapabilities(array $payload): void

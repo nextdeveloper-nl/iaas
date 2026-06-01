@@ -112,6 +112,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'backup_repository_id'  =>  $backupRepositoryId ? $backupRepositoryId->uuid : null,
             'post_boot_script'  =>  $model->post_boot_script,
             'tokens'  =>  $model->tokens,
+            'agent_latest_ping'  =>  $model->agent_latest_ping,
             ]
         );
     }
