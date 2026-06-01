@@ -9,7 +9,8 @@
         "php": ">=8.2.0",
         "league/fractal": "*",
         "monolog/monolog": "*",
-        "markrogoyski/ipv4-subnet-calculator": "4.*"
+        "markrogoyski/ipv4-subnet-calculator": "4.*",
+        "nextdeveloper/events": ">=1.2.0"
     },
     "require-dev": {
         "illuminate/support": ">=8.0",
