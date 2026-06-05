@@ -16,6 +16,7 @@ use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Delete;
 use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
+use NextDeveloper\IAAS\Database\Models\Accounts as IaasAccounts;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
@@ -56,6 +57,22 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
     public static function get(VirtualMachinesQueryFilter $filter = null, array $params = []): Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
+        // If filtering by a specific IAM account, verify that account has an iaas_accounts
+        // record. Without one the account is not provisioned for IAAS and should see no VMs.
+        $iamAccountIdParam = request()->get('iamAccountId');
+
+        if ($iamAccountIdParam) {
+            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $iamAccountIdParam)->first();
+
+            $hasIaasAccount = $iamAccount && IaasAccounts::withoutGlobalScopes()
+                ->where('iam_account_id', $iamAccount->id)
+                ->exists();
+
+            if (!$hasIaasAccount) {
+                return new Collection();
+            }
+        }
+
         return parent::get($filter, $params);
     }
 

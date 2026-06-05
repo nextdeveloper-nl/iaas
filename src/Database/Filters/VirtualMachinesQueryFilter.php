@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-use NextDeveloper\IAAS\Database\Models\Accounts as IaasAccounts;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
                                     
 
@@ -382,22 +381,11 @@ class VirtualMachinesQueryFilter extends AbstractQueryFilter
     
     public function iamAccountId($value)
     {
-        $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
+            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
 
-        if (!$iamAccount) {
-            return $this->builder->whereRaw('1 = 0');
+        if($iamAccount) {
+            return $this->builder->where('iam_account_id', '=', $iamAccount->id);
         }
-
-        // Only return VMs if the account has an iaas_accounts record
-        $iaasAccount = IaasAccounts::withoutGlobalScopes()
-            ->where('iam_account_id', $iamAccount->id)
-            ->first();
-
-        if (!$iaasAccount) {
-            return $this->builder->whereRaw('1 = 0');
-        }
-
-        return $this->builder->where('iam_account_id', '=', $iamAccount->id);
     }
 
     
