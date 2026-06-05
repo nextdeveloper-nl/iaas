@@ -26,7 +26,17 @@ class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
     {
         // Mirror visibility of /crm/accounts-perspective: sales-admin / sales-manager-admin
         // can see everything, so cloud-sales-person on the same user gets the same reach.
-        if (UserHelper::hasRole('sales-admin') || UserHelper::hasRole('sales-manager-admin')) {
+        if (
+            (
+                UserHelper::hasRole('sales-admin') ||
+                UserHelper::hasRole('sales-manager-admin')
+            )
+            &&
+            (
+                $model->getTable() === 'iaas_accounts' ||
+                $model->getTable() === 'iaas_accounts_perspective'
+            )
+        ) {
             return;
         }
 
