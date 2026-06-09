@@ -363,13 +363,19 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
             if ($e->getMessage() == 'The payload is invalid.') {
                 Log::error(__METHOD__ . ' | We got the payload is invalid error. Maybe the password is not ' .
-                    'encrpyted for the customer. That is why I am returning the raw password');
+                    'encrypted for the customer. That is why I am returning the raw password');
 
-                $vm->update([
-                    'password' => $vm->password
-                ]);
+                // Encrypt the plain-text password and save it as admin to bypass the
+                // observer's permission check (the caller only has read access here).
+                $rawPassword = $vm->password;
 
-                return $vm->password;
+                UserHelper::runAsAdmin(function () use ($vm, $rawPassword) {
+                    $vm->update([
+                        'password' => encrypt($rawPassword)
+                    ]);
+                });
+
+                return $rawPassword;
             }
         }
 
