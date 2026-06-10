@@ -504,8 +504,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             VirtualDiskImagesService::update($vdi->id, [
                 'size' => ResourceCalculationHelper::getDiskSizeAgainstRam($cp, $data['ram'])
             ]);
-        } else {
-            $data['status'] = 'pending-update';
         }
 
         if (!$triggerRamUpdate) {
