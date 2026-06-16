@@ -66,6 +66,7 @@ class AbstractAccountsTransformer extends AbstractTransformer
             'deleted_at'  =>  $model->deleted_at,
             'is_service_enabled'  =>  $model->is_service_enabled,
             'is_suspended'  =>  $model->is_suspended,
+            'is_prepaid'  =>  $model->is_prepaid,
             ]
         );
     }
