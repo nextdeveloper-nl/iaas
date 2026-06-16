@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
 use NextDeveloper\IAM\Database\Abstract\AuthorizationModel;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-    
+
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -30,7 +30,7 @@ class AccountsQueryFilter extends AbstractQueryFilter
     {
         return $this->isServiceEnabled($value);
     }
-     
+
     public function isSuspended($value)
     {
         return $this->builder->where('is_suspended', $value);
@@ -41,7 +41,18 @@ class AccountsQueryFilter extends AbstractQueryFilter
     {
         return $this->isSuspended($value);
     }
-     
+
+    public function isPrepaid($value)
+    {
+        return $this->builder->where('is_prepaid', $value);
+    }
+
+        //  This is an alias function of isPrepaid
+    public function is_prepaid($value)
+    {
+        return $this->isPrepaid($value);
+    }
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -117,7 +128,7 @@ class AccountsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

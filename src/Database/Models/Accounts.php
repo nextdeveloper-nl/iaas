@@ -27,6 +27,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property \Carbon\Carbon $deleted_at
  * @property boolean $is_service_enabled
  * @property boolean $is_suspended
+ * @property boolean $is_prepaid
  */
 class Accounts extends Model
 {
@@ -48,6 +49,7 @@ class Accounts extends Model
             'iam_account_id',
             'is_service_enabled',
             'is_suspended',
+            'is_prepaid',
     ];
 
     /**
@@ -77,6 +79,7 @@ class Accounts extends Model
     'deleted_at' => 'datetime',
     'is_service_enabled' => 'boolean',
     'is_suspended' => 'boolean',
+    'is_prepaid' => 'boolean',
     ];
 
     /**
@@ -141,7 +144,7 @@ class Accounts extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

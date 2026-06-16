@@ -15,6 +15,7 @@ class AccountsCreateRequest extends AbstractFormRequest
         return [
             'is_service_enabled' => 'boolean',
         'is_suspended' => 'boolean',
+        'is_prepaid' => 'boolean',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
