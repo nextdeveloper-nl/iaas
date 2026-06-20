@@ -70,7 +70,7 @@ class Detach extends AbstractAction
 
         $this->setProgress(50, 'Detaching the network card from the hypervisor.');
 
-        VirtualMachinesXenService::destroyVif($vm, $vif->hypervisor_uuid);
+        VirtualMachinesXenService::destroyVif($vm, $vif->hypervisor_data['uuid']);
 
         $vif->updateQuietly([
             'hypervisor_uuid'   => null,
