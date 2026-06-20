@@ -33,7 +33,11 @@ class VirtualMachinesPerspectiveService extends AbstractVirtualMachinesPerspecti
             $filter->updateValue('snapshot_of_virtual_machine', $vm->id);
         }
 
-        if(UserHelper::hasRole('datacenter-admin') || UserHelper::hasRole('cloud-node-admin')) {
+        if(
+            UserHelper::hasRole('datacenter-admin') ||
+            UserHelper::hasRole('cloud-node-admin') ||
+            UserHelper::hasRole('cloud-sales-admin')
+        ) {
             $model = VirtualMachinesPerspective::filter($filter);
 
             if(array_key_exists('iamAccountId', $filter->filters())) {

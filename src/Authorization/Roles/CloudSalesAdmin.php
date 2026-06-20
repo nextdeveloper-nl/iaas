@@ -113,7 +113,7 @@ class CloudSalesAdmin extends AbstractRole implements IAuthorizationRole
             'iaas_customer_resources_perspective:read',
         ];
 
-        return array_merge($operations, (new CloudReourceOwner())->allowedOperations());
+        return array_merge($operations, (new CloudResourceOwner())->allowedOperations());
     }
 
     public function getLevel(): int
