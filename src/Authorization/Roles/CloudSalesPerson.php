@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
-use NextDeveloper\CRM\Database\Models\AccountManagers;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
 use NextDeveloper\IAM\Database\Models\Users;
@@ -61,27 +60,12 @@ class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
 
     public function checkUpdatePolicy(Model $model, Users $user): bool
     {
-        if (!in_array($model->getTable() . ':update', $this->allowedOperations(), true)) {
-            return false;
-        }
-
-        if (!isset($model->iam_account_id)) {
-            return false;
-        }
-
-        return AccountManagers::withoutGlobalScopes()
-            ->where('iam_account_id', UserHelper::currentAccount()->id)
-            ->whereIn('crm_account_id', function ($q) use ($model) {
-                $q->select('id')
-                    ->from('crm_accounts')
-                    ->where('iam_account_id', $model->iam_account_id);
-            })
-            ->exists();
+        return (new CloudResourceOwner())->checkUpdatePolicy($model, $user);
     }
 
     public function checkDeletePolicy(Model $model, Users $user): bool
     {
-        return false;
+        return (new CloudResourceOwner())->checkDeletePolicy($model, $user);
     }
 
     public function getModule()

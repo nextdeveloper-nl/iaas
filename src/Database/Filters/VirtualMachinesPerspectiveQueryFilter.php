@@ -571,7 +571,6 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
             return $this->builder->where('iam_account_id', '=', $iamAccount->id);
         }
     }
-
     
     public function iamUserId($value)
     {
