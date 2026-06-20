@@ -404,7 +404,11 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         //  Sometimes ram can be null and we want to change something else with the virtual machinne
         //  like backup routine
         if (array_key_exists('ram', $data)) {
-            if ($vm->ram != $data['ram']) {
+            //  $vm->ram is stored in MB, but $data['ram'] arrives in GB - compare like units or this
+            //  always looks like a change and re-runs the resize checks on every PATCH that includes ram.
+            $requestedRamMb = ResourceCalculationHelper::getRamInMb($data['ram']);
+
+            if ($vm->ram != $requestedRamMb) {
                 if ($vm->hypervisor_uuid) {
                     if ($vm->status != 'halted')
                         throw new CannotUpdateResourcesException('Unfortunately we cannot update the resources ' .
@@ -435,7 +439,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                     //  Also if we should update the disk this means that the pool is ONE
                     if ($shouldUpdateDisk) {
                         //  Since this is Leo One type or pool, we cannot allow to reduce resources.
-                        if (ResourceCalculationHelper::getRamInMb($data['ram']) < $vm->ram) {
+                        if ($requestedRamMb < $vm->ram) {
                             throw new CannotUpdateResourcesException('We cannot update resources of this server,' .
                                 ' because the server is in Leo ONE pool where cpu, ram and disk resources are aligned with a ' .
                                 'certain ratio. The problem here is that we cannot reduce the size of the disk, therefore ' .
@@ -511,7 +515,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             unset($data['ram']);
         } else {
             $data['cpu'] = ResourceCalculationHelper::getCpuPerRam($data['ram'], $cp);
-            $data['ram'] = ResourceCalculationHelper::getRamInMb($data['ram']);
+            $data['ram'] = $requestedRamMb;
             $data['status'] = 'pending-update';
         }
 
@@ -533,6 +537,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             ($vm->hostname != $updatedVm->hostname)
         ) {
             dispatch(new GenerateCloudInitImage($vm));
+        }
+
+        //  Gate on the local flag set earlier in THIS call, not on the persisted status column.
+        //  Status stays 'pending-update'/'updating' across unrelated writes (pings, capabilities, etc.)
+        //  made while Commit is still queued/running, so checking status here would re-dispatch
+        //  Commit on every one of those writes and recreate the queue flood we fixed in v1.11.69.
+        if ($triggerRamUpdate) {
+            dispatch(new Commit($updatedVm));
         }
 
         return $updatedVm;
