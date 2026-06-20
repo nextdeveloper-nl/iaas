@@ -25,22 +25,6 @@ class VirtualMachinesPerspectiveService extends AbstractVirtualMachinesPerspecti
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
     public static function get(VirtualMachinesPerspectiveQueryFilter $filter = null, array $params = []): \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        // If filtering by a specific IAM account, verify that account has an iaas_accounts
-        // record. Without one the account is not provisioned for IAAS and should see no VMs.
-        $iamAccountIdParam = request()->get('iamAccountId');
-
-        if ($iamAccountIdParam) {
-            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $iamAccountIdParam)->first();
-
-            $hasIaasAccount = $iamAccount && IaasAccounts::withoutGlobalScopes()
-                ->where('iam_account_id', $iamAccount->id)
-                ->exists();
-
-            if (!$hasIaasAccount) {
-                return new Collection();
-            }
-        }
-
         if(array_key_exists('snapshot_of_virtual_machine', $filter->filters())) {
             $vm = VirtualMachinesPerspective::withoutGlobalScopes()
                 ->where('uuid', $filter->filters()['snapshot_of_virtual_machine'])
