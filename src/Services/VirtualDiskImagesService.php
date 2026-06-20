@@ -122,8 +122,15 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
         $shouldResizeDisk = false;
 
         if($vdi->size != $requestedDiskSize) {
+            $computePool = self::getComputePool($vdi);
+
+            if($computePool->pool_type == 'one') {
+                throw new CannotUpdateResourcesException('We cannot update the disk size for this server, ' .
+                    'because its compute pool does not support disk resizing.');
+            }
+
             $availableDiskSizes = ResourceCalculationHelper::getAvailableDiskSizes(
-                self::getComputePool($vdi)
+                $computePool
             );
 
             if(!in_array($requestedDiskSize, $availableDiskSizes)) {
