@@ -112,6 +112,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
+            'is_pending_update'  =>  $model->is_pending_update,
             ]
         );
     }

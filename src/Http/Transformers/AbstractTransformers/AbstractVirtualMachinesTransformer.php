@@ -113,6 +113,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'post_boot_script'  =>  $model->post_boot_script,
             'tokens'  =>  $model->tokens,
             'agent_latest_ping'  =>  $model->agent_latest_ping,
+            'is_pending_update'  =>  $model->is_pending_update,
             ]
         );
     }

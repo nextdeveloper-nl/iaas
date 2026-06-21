@@ -109,12 +109,12 @@ class Commit extends AbstractAction
 
         (new GenerateCloudInitImage($vm))->handle();
 
-        if (!$vm->is_draft && $vm->status != 'pending-update') {
+        if (!$vm->is_draft && !$vm->is_pending_update) {
             $this->setProgress(100, 'Virtual machine is not in draft or pending update state');
             return;
         }
 
-        if($vm->status == 'pending-update') {
+        if($vm->is_pending_update) {
             $vm->updateQuietly([
                 'status'    =>  'updating'
             ]);
@@ -191,6 +191,7 @@ class Commit extends AbstractAction
 
         $vm->update([
             'status' => 'halted',
+            'is_pending_update' => false,
         ]);
 
         //  Buranın değişmesi lazım, zira bunun boot_after_commit olması lazım.

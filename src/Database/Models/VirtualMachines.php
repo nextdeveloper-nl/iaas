@@ -67,6 +67,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property $tokens
  * @property string $agent_api_key
  * @property \Carbon\Carbon $agent_latest_ping
+ * @property boolean $is_pending_update
  */
 class VirtualMachines extends Model
 {
@@ -128,6 +129,7 @@ class VirtualMachines extends Model
             'tokens',
             'agent_api_key',
             'agent_latest_ping',
+            'is_pending_update',
     ];
 
     /**
@@ -195,6 +197,7 @@ class VirtualMachines extends Model
     'tokens' => 'array',
     'agent_api_key' => 'string',
     'agent_latest_ping' => 'datetime',
+    'is_pending_update' => 'boolean',
     ];
 
     /**

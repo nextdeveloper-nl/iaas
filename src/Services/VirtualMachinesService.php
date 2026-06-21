@@ -401,6 +401,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 'decision to run a manual health check for this VM.');
         }
 
+        //  A heartbeat from the agent living inside the VM is direct proof the OS is up and networked,
+        //  which can only happen once the VM is actually running - draft/deploying have no agent yet,
+        //  and updating happens while halted - so this also resolves stale 'checking-health' or 'lost'
+        //  states without needing to special-case any other status value.
+        if (array_key_exists('agent_latest_ping', $data)) {
+            $data['status'] = 'running';
+        }
+
         //  Sometimes ram can be null and we want to change something else with the virtual machinne
         //  like backup routine
         if (array_key_exists('ram', $data)) {
@@ -516,7 +524,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         } else {
             $data['cpu'] = ResourceCalculationHelper::getCpuPerRam($data['ram'], $cp);
             $data['ram'] = $requestedRamMb;
-            $data['status'] = 'pending-update';
+            //  Leave status alone so it keeps reflecting the VM's actual power state (halted/running)
+            //  while the resize is queued. is_pending_update is the dedicated "needs a commit" signal.
+            $data['is_pending_update'] = true;
         }
 
         if (array_key_exists('backup_repository_id', $data)) {

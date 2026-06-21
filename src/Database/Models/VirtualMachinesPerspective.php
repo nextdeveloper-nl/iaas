@@ -68,6 +68,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property boolean $is_pending_update
  */
 class VirtualMachinesPerspective extends Model
 {
@@ -130,6 +131,7 @@ class VirtualMachinesPerspective extends Model
             'snapshot_of_virtual_machine',
             'iam_account_id',
             'iam_user_id',
+            'is_pending_update',
     ];
 
     /**
@@ -198,6 +200,7 @@ class VirtualMachinesPerspective extends Model
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'is_pending_update' => 'boolean',
     ];
 
     /**
