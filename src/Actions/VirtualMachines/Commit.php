@@ -600,9 +600,14 @@ class Commit extends AbstractAction
                 $disk = VirtualDiskImageXenService::create($disk);
                 $disk = VirtualDiskImageXenService::attach($disk);
 
-                $disk->updateQuietly([
-                    'is_draft'  =>  false
-                ]);
+                //  Normal update (not quiet) so observers/events fire as usual; runAsAdmin because this
+                //  runs in a queued action with no authenticated user, and the observer's updating()
+                //  hook requires UserHelper::can('update', ...) to pass.
+                UserHelper::runAsAdmin(function () use ($disk) {
+                    $disk->update([
+                        'is_draft'  =>  false
+                    ]);
+                });
             }
         }
 
