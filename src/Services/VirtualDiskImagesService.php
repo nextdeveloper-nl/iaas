@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Services;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Actions\VirtualDiskImages\Resize;
+use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\StorageMembers;
@@ -106,7 +107,20 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
             $data['device_number'] = $vdis->count();
         }
 
-        return parent::create($data);
+        $vdi = parent::create($data);
+
+        //  If the VM already went live (not draft anymore), a new disk needs an explicit commit to get
+        //  created/attached on the hypervisor - Commit::setupXenDisks() is what actually does that, and it
+        //  only runs for VMs that are draft or pending update.
+        if (!$vm->is_draft) {
+            $vm = VirtualMachinesService::update($vm->uuid, [
+                'is_pending_update' => true,
+            ]);
+
+            dispatch(new Commit($vm));
+        }
+
+        return $vdi;
     }
 
     public static function update($id, array $data)
