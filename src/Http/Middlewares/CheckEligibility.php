@@ -21,12 +21,12 @@ class CheckEligibility
         $iamUser = UserHelper::getAccountOwner($iamAccount);
 
         if($request->getMethod() != 'GET'){
-            if(!$iamAccount->common_country_id || !$iamUser->is_profile_verified) {
+            if(!$iamUser->is_profile_verified) {
                 return response()->json([
                     'errors' => [
                         'status'    => 403,
-                        'message'   => 'Cannot use infrastructure without country or validated profile.',
-                        'details'   => 'Due to laws and regulations, to use infrastructure services you should have a validated account with a validated user.'
+                        'message'   => 'Cannot use infrastructure without a validated profile.',
+                        'details'   => 'Due to laws and regulations, to use infrastructure services you should have a validated user.'
                     ],
                 ], 403);
             }
