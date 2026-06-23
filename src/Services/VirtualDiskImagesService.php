@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Services;
 
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\IAAS\Actions\VirtualDiskImages\Destroy;
 use NextDeveloper\IAAS\Actions\VirtualDiskImages\Resize;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -167,6 +168,26 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
             dispatch(new Resize($vdi));
 
         return $vdi;
+    }
+
+    public static function delete($id)
+    {
+        $vdi = null;
+
+        if(Str::isUuid($id))
+            $vdi = VirtualDiskImages::where('uuid', $id)->first();
+        else
+            $vdi = VirtualDiskImages::where('id', $id)->first();
+
+        $model = parent::delete($id);
+
+        //  The DB row is gone now, but the disk may still exist on the hypervisor. Destroy::handle()
+        //  takes care of detaching (if needed) and destroying the VDI on the hypervisor side.
+        if($vdi) {
+            dispatch(new Destroy($vdi));
+        }
+
+        return $model;
     }
 
     public static function getStorageVolume(VirtualDiskImages $vdi): ?StorageVolumes
