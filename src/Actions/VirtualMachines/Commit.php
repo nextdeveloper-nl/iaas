@@ -189,8 +189,12 @@ class Commit extends AbstractAction
 
         (new GenerateCloudInitImage($this->model))->handle();
 
+        //  We ask the hypervisor for the real power state instead of assuming 'halted', because committing a
+        //  pending update (e.g. adding a disk) can happen while the VM is still running.
+        $vmParams = VirtualMachinesXenService::getVmParameters($vm);
+
         $vm->update([
-            'status' => 'halted',
+            'status' => $vmParams['power-state'] ?? 'halted',
             'is_pending_update' => false,
         ]);
 
