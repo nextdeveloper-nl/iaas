@@ -151,14 +151,17 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
                 $computePool
             );
 
-            if(!in_array($requestedDiskSize, $availableDiskSizes)) {
-                if(VirtualMachinesService::isRunning(
-                    self::getVirtualMachine($vdi)
-                )) {
-                    throw new CannotUpdateResourcesException('We cannot update the disk size, because the ' .
-                        'server is running at the moment. Please shutdown your server and try again.');
-                }
-            }
+            //  Some hypervisors let disk to be resized while the VM is running, but some do not.
+            //  So we will let the user do the resize, but if the hypervisor does not support it,
+            //  we will throw an exception and ask the user to shutdown the server first.
+            // if(!in_array($requestedDiskSize, $availableDiskSizes)) {
+            //     if(VirtualMachinesService::isRunning(
+            //         self::getVirtualMachine($vdi)
+            //     )) {
+            //         throw new CannotUpdateResourcesException('We cannot update the disk size, because the ' .
+            //             'server is running at the moment. Please shutdown your server and try again.');
+            //     }
+            // }
 
             $shouldResizeDisk = true;
         }
