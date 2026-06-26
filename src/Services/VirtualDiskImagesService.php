@@ -139,7 +139,10 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
         if($vdi->size != $requestedDiskSize) {
             $computePool = self::getComputePool($vdi);
 
-            if($computePool->pool_type == 'one') {
+            //  Resize is only blocked for "one" type pools when the disk itself lives on local storage.
+            //  If the disk is on a non-local storage pool (eg. SSD/SAS/NVMe storage pools), resizing is allowed
+            //  regardless of the compute pool type.
+            if($computePool->pool_type == 'one' && self::isOnLocalStorage($vdi)) {
                 throw new CannotUpdateResourcesException('We cannot update the disk size for this server, ' .
                     'because its compute pool does not support disk resizing.');
             }
