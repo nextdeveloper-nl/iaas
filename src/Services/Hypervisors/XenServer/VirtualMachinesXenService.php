@@ -660,7 +660,24 @@ class VirtualMachinesXenService extends AbstractXenService
                 'change-password.yml',
                 'disk-resize-debian12.yml',
                 'disk-resize-ubuntu22.yml',
-                'disk-resize-ubuntu24.yml',
+                'disk-resize-ubuntu24.yml'
+            ];
+
+            foreach ($configurationPack as $pack) {
+                $command .= $uploadConfig(
+                    filename: $pack,
+                    content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/' . $pack))),
+                    vm: $vm,
+                    centralRepo: $centralRepo
+                );
+            }
+
+            //  Here we need to push the configs because the SSH cannot execute the commands if we push all the files at once. So we will push the files one by one and then we will create the iso file
+            $result = self::performCommand($command, $centralRepo);
+
+            $command = "";
+
+            $configurationPackTwo = [
                 'disk-resize-alma.yml',
                 'apply-env-vars.yml',
                 'apply-ssh-keys.yml',
@@ -670,7 +687,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 'plusclouds-agent.service'
             ];
 
-            foreach ($configurationPack as $pack) {
+            foreach ($configurationPackTwo as $pack) {
                 $command .= $uploadConfig(
                     filename: $pack,
                     content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/' . $pack))),
@@ -730,7 +747,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 $command .= 'config-iso/' . $vm->uuid . '/post-boot-script.sh ';
             }
 
-            foreach ($configurationPack as $pack) {
+            foreach ([...$configurationPack, ...$configurationPackTwo] as $pack) {
                 $command .= ' config-iso/' . $vm->uuid . '/' . $pack;
             }
 
