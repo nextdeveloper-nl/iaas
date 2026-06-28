@@ -26,6 +26,17 @@
   args:
     chdir: "{{ package_dir | default(playbook_dir) }}"
 
+# `mv` preserves the source SELinux context (e.g. tmp_t from /tmp/pc-config)
+# instead of relabeling to systemd_unit_file_t/bin_t. Under enforcing SELinux
+# (default on RHEL-family, unlike Ubuntu/Debian) systemd then can't see the
+# unit at all, and the agent binary can fail to exec.
+- name: Restore SELinux context for plusclouds files (RedHat family)
+  command: "restorecon -v {{ item }}"
+  loop:
+    - /etc/systemd/system/plusclouds-agent.service
+    - /usr/local/bin/plusclouds
+  when: ansible_facts.os_family == "RedHat"
+
 - name: Reload systemd daemon
   systemd:
     daemon_reload: yes

@@ -19,6 +19,26 @@ sudo systemctl start plusclouds.service
 
 echo "[INFO] plusclouds.service installed and started"
 
+# --- Default admin user --------------------------------------------------
+# Only created if it doesn't already exist - never touches an existing
+# almalinux user's password or group membership.
+if ! id -u almalinux &>/dev/null; then
+    echo "[INFO] Creating default almalinux user"
+    sudo useradd -m -c "Default Admin User" almalinux
+
+    # Random one-time password (this script is public - never hardcode a
+    # default password here). Forces a change on first login.
+    TEMP_PASSWORD=$(openssl rand -base64 12)
+    echo "almalinux:$TEMP_PASSWORD" | sudo chpasswd
+    sudo chage -d 0 almalinux
+
+    sudo usermod -aG wheel almalinux
+
+    echo "[INFO] Created almalinux user with temporary password: $TEMP_PASSWORD (must be changed on first login)"
+else
+    echo "[INFO] almalinux user already exists, skipping user creation"
+fi
+
 # --- Template sysprep ---------------------------------------------------
 # Strips per-instance identity so a clone of this VM doesn't inherit it.
 # Destructive and irreversible: only run this on a VM you are about to
