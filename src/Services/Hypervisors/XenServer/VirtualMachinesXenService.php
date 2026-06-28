@@ -648,6 +648,11 @@ class VirtualMachinesXenService extends AbstractXenService
                 centralRepo: $centralRepo
             );
 
+            //  Here we need to push the configs because the SSH cannot execute the commands if we push all the files at once. So we will push the files one by one and then we will create the iso file
+            $result = self::performCommand($command, $centralRepo);
+
+            $command = "";
+
             $configurationPack = [
                 'apply-configuration.yml',
                 'apply-locale.yml',
@@ -688,6 +693,7 @@ class VirtualMachinesXenService extends AbstractXenService
                 centralRepo: $centralRepo
             );
 
+            //  Here we need to push the configs because the SSH cannot execute the commands if we push all the files at once. So we will push the files one by one and then we will create the iso file
             $result = self::performCommand($command, $centralRepo);
 
             $command = "";
