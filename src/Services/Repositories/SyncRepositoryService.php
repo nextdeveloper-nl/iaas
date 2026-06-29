@@ -73,11 +73,11 @@ class SyncRepositoryService
                 ' repository: ' . $repo->name);
 
         //  vm_path also holds backup archives (see RunBackupJob / InitiateMultilevelBackupJob),
-        //  which can vastly outnumber actual machine images. addOrUpdate() only ever processes
-        //  files matching "exp-*" or containing "pvm" - everything else is listed and then
-        //  immediately discarded. Filtering server-side keeps the find output (and the single
-        //  string/array we load it into) from ballooning to the point of exhausting memory.
-        $command = 'find ' . $repo->vm_path . ' -maxdepth 1 -type f \( -name "exp-*" -o -name "*pvm*" \)';
+        //  which can vastly outnumber actual machine images. "exp-" prefixed exports are
+        //  outdated and no longer synced here; only current ".pvm" images matter. Filtering
+        //  server-side keeps the find output (and the single string/array we load it into)
+        //  from ballooning to the point of exhausting memory.
+        $command = 'find ' . $repo->vm_path . ' -maxdepth 1 -type f -name "*.pvm"';
         $images = self::performCommand($command, $repo);
         $images = $images['output'];
 
