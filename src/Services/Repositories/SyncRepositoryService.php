@@ -20,7 +20,9 @@ class SyncRepositoryService
      */
     public static function getIsoImages(Repositories $repo) : array
     {
-        $command = 'find ' . $repo->iso_path;
+        //  Filter server-side so we never load a directory listing that's larger than the
+        //  ".iso" files we actually keep below (see syncRepoImages() for the same reasoning).
+        $command = 'find ' . $repo->iso_path . ' -maxdepth 1 -type f -name "*.iso"';
         $images = self::performCommand($command, $repo);
         $images = $images['output'];
 
@@ -70,11 +72,18 @@ class SyncRepositoryService
             Log::info('[SyncService@syncRepoImages] Starting to sync the images for the' .
                 ' repository: ' . $repo->name);
 
-        $command = 'find ' . $repo->vm_path;
+        //  vm_path also holds backup archives (see RunBackupJob / InitiateMultilevelBackupJob),
+        //  which can vastly outnumber actual machine images. addOrUpdate() only ever processes
+        //  files matching "exp-*" or containing "pvm" - everything else is listed and then
+        //  immediately discarded. Filtering server-side keeps the find output (and the single
+        //  string/array we load it into) from ballooning to the point of exhausting memory.
+        $command = 'find ' . $repo->vm_path . ' -maxdepth 1 -type f \( -name "exp-*" -o -name "*pvm*" \)';
         $images = self::performCommand($command, $repo);
         $images = $images['output'];
 
         $imageFiles = array_filter(explode("\n", trim($images)));
+
+        unset($images);
 
         $processed = 0;
 
