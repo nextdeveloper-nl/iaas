@@ -20,6 +20,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAAS\Services\RepositoriesService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
+use NextDeveloper\IAAS\Services\ToolkitService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -514,8 +515,9 @@ class VirtualMachinesXenService extends AbstractXenService
         $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
 
         if ($centralRepo) {
-            $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
-            $command .= PHP_EOL;
+            $metadata = VirtualMachinesService::getMetadata($vm);
+            $includeEnvVars = !empty($metadata['env_vars']);
+            $includeSshKeys = !empty($metadata['ssh_keys']);
 
             $uploadConfig = function($filename, $content, $vm, $centralRepo) {
                 $command = 'echo "' . $content . '" > config-iso/' . $vm->uuid . '/' . $filename . '.base64';
@@ -526,46 +528,59 @@ class VirtualMachinesXenService extends AbstractXenService
                 return $command;
             };
 
-            //  Upload pc-meta-data.json
+            //  Make sure this repo host has a local, checksum-verified copy of the
+            //  pinned toolkit release before staging anything from it (idempotent -
+            //  only downloads on the first VM built against a new version).
+            $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
+            $command .= PHP_EOL;
+            $command .= ToolkitService::ensureRemoteCacheCommand();
+            $command .= PHP_EOL;
+
+            //  Stage this VM's selected PowerShell capabilities straight from the
+            //  repo host's own toolkit cache - no bytes flow through the app server.
+            $command .= ToolkitService::copyCommand(
+                ToolkitService::windowsCapabilityPaths($includeEnvVars, $includeSshKeys),
+                $vm->uuid
+            );
+            $command .= PHP_EOL;
+
+            $result = self::performCommand($command, $centralRepo);
+
+            $command = '';
+
+            //  pc-meta-data.json and apply-configuration.ps1 are inherently per-VM
+            //  dynamic content, so they still flow through the app server, same as
+            //  user-data/meta-data do on the Linux side.
             $command .= $uploadConfig(
                 filename: 'pc-meta-data.json',
-                content: base64_encode(json_encode(VirtualMachinesService::getMetadata($vm))),
+                content: base64_encode(json_encode($metadata)),
                 vm: $vm,
                 centralRepo: $centralRepo
             );
 
-            //  Upload Windows PowerShell configuration scripts
-            $configurationPack = [
-                'apply-configuration.ps1',
-                'change-hostname.ps1',
-                'change-password.ps1',
-                'apply-env-vars.ps1',
-                'apply-ssh-keys.ps1',
-                'register-startup-task.ps1',
-            ];
+            $command .= $uploadConfig(
+                filename: 'apply-configuration.ps1',
+                content: base64_encode(ToolkitService::renderWindowsPlaybook($includeEnvVars, $includeSshKeys)),
+                vm: $vm,
+                centralRepo: $centralRepo
+            );
 
-            foreach ($configurationPack as $pack) {
-                $command .= $uploadConfig(
-                    filename: $pack,
-                    content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/windows-vm-service/' . $pack))),
-                    vm: $vm,
-                    centralRepo: $centralRepo
-                );
-            }
+            $result = self::performCommand($command, $centralRepo);
 
-            //  Creating the iso file
+            $command = '';
+
+            //  Remove the .base64 staging files before building the ISO - everything
+            //  else remaining under config-iso/{uuid}/ is meant to be on it.
+            $command .= 'rm -f config-iso/' . $vm->uuid . '/*.base64';
+            $command .= PHP_EOL;
+
+            //  Creating the iso file - passing the whole staging directory as the
+            //  single source preserves the nested capabilities/agents structure that
+            //  apply-configuration.ps1's sibling script calls rely on.
             $command .= 'genisoimage -output ' .
                 'config-iso/' . $vm->uuid . '/config.iso ' .
                 '-volid cidata -joliet -rock ' .
-                'config-iso/' . $vm->uuid . '/pc-meta-data.json';
-
-            foreach ($configurationPack as $pack) {
-                $command .= ' config-iso/' . $vm->uuid . '/' . $pack;
-            }
-
-            //  Removing .base64 files
-            $command .= PHP_EOL;
-            $command .= 'rm -f config-iso/' . $vm->uuid . '/*.base64';
+                'config-iso/' . $vm->uuid;
 
             //  Moving the iso to the central repository
             $command .= PHP_EOL;
@@ -573,7 +588,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
             //  Removing the config-iso folder
             $command .= PHP_EOL;
-            $command .= 'rm -f config-iso/' . $vm->uuid . '/config.iso';
+            $command .= 'rm -rf config-iso/' . $vm->uuid;
 
             $result = self::performCommand($command, $centralRepo);
 
@@ -608,28 +623,47 @@ class VirtualMachinesXenService extends AbstractXenService
         $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
 
         if ($centralRepo) {
-            //  Creating the configuration folder
-            $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
-            $command .= PHP_EOL;
-            //$result = self::performCommand($command, $centralRepo);
+            $metadata = VirtualMachinesService::getMetadata($vm);
+            $includeEnvVars = !empty($metadata['env_vars']);
+            $includeSshKeys = !empty($metadata['ssh_keys']);
 
             $uploadConfig = function($filename, $content, $vm, $centralRepo) {
                 //  Pushing the user-data file
                 $command = 'echo "' . $content . '" > config-iso/' . $vm->uuid . '/' . $filename . '.base64';
                 $command .= PHP_EOL;
-                // $result = self::performCommand($command, $centralRepo);
 
                 //  Decoding the user-data file
                 $command .= 'base64 -d config-iso/' . $vm->uuid . '/' . $filename . '.base64 > config-iso/' . $vm->uuid . '/' . $filename . '';
                 $command .= PHP_EOL;
 
                 return $command;
-                //$result = self::performCommand($command, $centralRepo);
             };
+
+            //  Make sure this repo host has a local, checksum-verified copy of the
+            //  pinned toolkit release before staging anything from it (idempotent -
+            //  only downloads on the first VM built against a new version).
+            $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
+            $command .= PHP_EOL;
+            $command .= ToolkitService::ensureRemoteCacheCommand();
+            $command .= PHP_EOL;
+
+            //  Stage this VM's selected capabilities straight from the repo host's
+            //  own toolkit cache, preserving nested paths - no bytes flow through the
+            //  app server, and disk-resize dispatch stays ansible-runtime-driven since
+            //  the guest's own OS facts are more reliable than $vm->distro.
+            $command .= ToolkitService::copyCommand(
+                ToolkitService::linuxCapabilityPaths($includeEnvVars, $includeSshKeys),
+                $vm->uuid
+            );
+            $command .= PHP_EOL;
+
+            $result = self::performCommand($command, $centralRepo);
+
+            $command = "";
 
             $command .= $uploadConfig(
                 filename: 'pc-meta-data.json',
-                content: base64_encode(json_encode(VirtualMachinesService::getMetadata($vm))),
+                content: base64_encode(json_encode($metadata)),
                 vm: $vm,
                 centralRepo: $centralRepo
             );
@@ -653,52 +687,19 @@ class VirtualMachinesXenService extends AbstractXenService
 
             $command = "";
 
-            $configurationPack = [
-                'apply-configuration.yml',
-                'apply-locale.yml',
-                'change-hostname.yml',
-                'change-password.yml',
-                'disk-resize-debian12.yml',
-                'disk-resize-ubuntu22.yml',
-                'disk-resize-ubuntu24.yml'
-            ];
-
-            foreach ($configurationPack as $pack) {
-                $command .= $uploadConfig(
-                    filename: $pack,
-                    content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/' . $pack))),
-                    vm: $vm,
-                    centralRepo: $centralRepo
-                );
-            }
-
-            //  Here we need to push the configs because the SSH cannot execute the commands if we push all the files at once. So we will push the files one by one and then we will create the iso file
-            $result = self::performCommand($command, $centralRepo);
-
-            $command = "";
-
-            $configurationPackTwo = [
-                'disk-resize-alma.yml',
-                'apply-env-vars.yml',
-                'apply-ssh-keys.yml',
-                'run-post-boot-script.yml',
-                'run-startup-script.yml',
-                'deploy-service.yml',
-                'plusclouds-agent.service'
-            ];
-
-            foreach ($configurationPackTwo as $pack) {
-                $command .= $uploadConfig(
-                    filename: $pack,
-                    content: base64_encode(file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/' . $pack))),
-                    vm: $vm,
-                    centralRepo: $centralRepo
-                );
-            }
+            //  apply-configuration.yml is now generated per-VM from exactly the
+            //  capabilities selected above - same filename plusclouds.sh already
+            //  hardcodes on every existing VM, only its content is dynamic now.
+            $command .= $uploadConfig(
+                filename: 'apply-configuration.yml',
+                content: base64_encode(ToolkitService::renderLinuxPlaybook($includeEnvVars, $includeSshKeys)),
+                vm: $vm,
+                centralRepo: $centralRepo
+            );
 
             //  Copying the plusclouds agent to the config-iso folder
             $command .= 'cp /home/plusclouds/plusclouds.linux config-iso/' . $vm->uuid . '/plusclouds.service ' . PHP_EOL;
-            $agentConfiguration = file_get_contents(base_path('vendor/nextdeveloper/iaas/scripts/vm-service/agent.yaml'));
+            $agentConfiguration = ToolkitService::read('agents/vm-service/agent.yaml');
 
             $agentConfiguration = str_replace('{agent_uuid}', $vm->uuid, $agentConfiguration);
             $agentConfiguration = str_replace('{api_key}', $vm->agent_api_key, $agentConfiguration);
@@ -729,43 +730,34 @@ class VirtualMachinesXenService extends AbstractXenService
                     vm: $vm,
                     centralRepo: $centralRepo
                 );
+
+                $result = self::performCommand($command, $centralRepo);
+
+                $command = "";
             } else {
                 logger()->info('[VirtualMachineXenService@updateConfigurationIso] We are not updating the post_book_script.]');
             }
 
-            //  Creating the iso file
+            //  Removing .base64 files before building the ISO - everything else
+            //  remaining under config-iso/{uuid}/ is meant to be on it.
+            $command .= 'rm -f config-iso/' . $vm->uuid . '/*.base64 ';
+            $command .= PHP_EOL;
+
+            //  Creating the iso file - passing the whole staging directory as the
+            //  single source preserves the nested capabilities/agents structure that
+            //  apply-configuration.yml's include_tasks rely on.
             $command .= 'genisoimage -output ' .
                 'config-iso/' . $vm->uuid . '/config.iso ' .
                 '-volid cidata -joliet -rock ' .
-                'config-iso/' . $vm->uuid . '/user-data ' .
-                'config-iso/' . $vm->uuid . '/meta-data ' .
-                'config-iso/' . $vm->uuid . '/pc-meta-data.json ' .
-                'config-iso/' . $vm->uuid . '/agent.yaml ' .
-                'config-iso/' . $vm->uuid . '/plusclouds.service ';
-
-            if($vm->post_boot_script) {
-                $command .= 'config-iso/' . $vm->uuid . '/post-boot-script.sh ';
-            }
-
-            foreach ([...$configurationPack, ...$configurationPackTwo] as $pack) {
-                $command .= ' config-iso/' . $vm->uuid . '/' . $pack;
-            }
-
-            //$result = self::performCommand($command, $centralRepo);
-
-            //  removing .base64 files
-            $command .= PHP_EOL;
-            $command .= 'rm -f config-iso/' . $vm->uuid . '/*.base64 ';
-            //$result = self::performCommand($command, $centralRepo);
+                'config-iso/' . $vm->uuid;
 
             //  Moving the iso to the central repository
             $command .= PHP_EOL;
             $command .= 'mv config-iso/' . $vm->uuid . '/config.iso ' . $centralRepo->iso_path . '/config-' . $vm->uuid . '.iso ';
-            //$result = self::performCommand($command, $centralRepo);
 
             //  Removing the config-iso folder
             $command .= PHP_EOL;
-            $command .= 'rm -f config-iso/' . $vm->uuid . '/config.iso ';
+            $command .= 'rm -rf config-iso/' . $vm->uuid . ' ';
 
             $result = self::performCommand($command, $centralRepo);
 
