@@ -532,13 +532,13 @@ class VirtualMachinesXenService extends AbstractXenService
             //  pinned toolkit release before staging anything from it (idempotent -
             //  only downloads on the first VM built against a new version).
             $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
-            $command .= PHP_EOL;
-            $command .= ToolkitService::ensureRemoteCacheCommand();
-            $command .= PHP_EOL;
+            $result = self::performCommand($command, $centralRepo);
+
+            self::ensureRemoteToolkitCache($centralRepo, $vm);
 
             //  Stage this VM's selected PowerShell capabilities straight from the
             //  repo host's own toolkit cache - no bytes flow through the app server.
-            $command .= ToolkitService::copyCommand(
+            $command = ToolkitService::copyCommand(
                 ToolkitService::windowsCapabilityPaths($includeEnvVars, $includeSshKeys),
                 $vm->uuid
             );
@@ -643,15 +643,15 @@ class VirtualMachinesXenService extends AbstractXenService
             //  pinned toolkit release before staging anything from it (idempotent -
             //  only downloads on the first VM built against a new version).
             $command = 'mkdir config-iso/' . $vm->uuid . ' -p';
-            $command .= PHP_EOL;
-            $command .= ToolkitService::ensureRemoteCacheCommand();
-            $command .= PHP_EOL;
+            $result = self::performCommand($command, $centralRepo);
+
+            self::ensureRemoteToolkitCache($centralRepo, $vm);
 
             //  Stage this VM's selected capabilities straight from the repo host's
             //  own toolkit cache, preserving nested paths - no bytes flow through the
             //  app server, and disk-resize dispatch stays ansible-runtime-driven since
             //  the guest's own OS facts are more reliable than $vm->distro.
-            $command .= ToolkitService::copyCommand(
+            $command = ToolkitService::copyCommand(
                 ToolkitService::linuxCapabilityPaths($includeEnvVars, $includeSshKeys),
                 $vm->uuid
             );
@@ -1220,6 +1220,30 @@ class VirtualMachinesXenService extends AbstractXenService
         }
 
         return true;
+    }
+
+    /**
+     * Runs ToolkitService::ensureRemoteCacheCommand() on the given central ISO
+     * repository and raises loudly if it did not report success - previously
+     * this command's failures (unreachable GitHub, bad checksum, ...) were
+     * only visible at Log::debug and never checked by the caller, so a repo
+     * host that couldn't populate its toolkit cache would silently end up
+     * with an ISO missing its ansible capability files instead of a clear error.
+     *
+     * @throws \RuntimeException if the repo host could not prepare its local toolkit cache
+     */
+    private static function ensureRemoteToolkitCache(Repositories $centralRepo, VirtualMachines $vm): void
+    {
+        $result = self::performCommand(ToolkitService::ensureRemoteCacheCommand(), $centralRepo);
+
+        if (!str_contains($result['output'] ?? '', 'TOOLKIT_CACHE_OK')) {
+            Log::error('[VirtualMachinesXenService@ensureRemoteToolkitCache] Failed to prepare the toolkit ' .
+                'cache on repo ' . $centralRepo->name . '/' . $centralRepo->uuid . ' for VM ' . $vm->uuid .
+                '. Output: ' . ($result['output'] ?? '') . ' Error: ' . ($result['error'] ?? ''));
+
+            throw new \RuntimeException('Failed to prepare the toolkit cache on the central ISO repository (' .
+                $centralRepo->name . '): ' . ($result['error'] ?: ($result['output'] ?? 'no output')));
+        }
     }
 
     public static function performCommand($command, Repositories|ComputeMembers $computeMember): ?array

@@ -256,31 +256,98 @@ class ToolkitService
     /**
      * Idempotent: only downloads/extracts/verifies if this version isn't
      * already cached on the repo host. Safe to run before every VM build.
+     *
+     * Always exits 0 and reports its outcome via a TOOLKIT_CACHE_OK/
+     * TOOLKIT_CACHE_ERROR marker on stdout/stderr instead of relying on the
+     * shell exit code - performSSHCommand()/performAgentCommand() don't
+     * surface remote exit codes back to PHP, so a bare `set -e` here used to
+     * mean curl/tar/checksum failures were silently swallowed (only ever
+     * reaching a Log::debug call that's off in production) while the caller
+     * carried on copying capability files from a cache dir that was never
+     * actually populated. The caller must check the returned output for the
+     * marker - see VirtualMachinesXenService::ensureRemoteToolkitCache().
      */
     public static function ensureRemoteCacheCommand(): string
     {
         $version = self::pinnedVersion();
-        $repo = self::REPO;
         $cacheDir = self::REMOTE_CACHE_ROOT . '/' . $version;
+        $checksumsUrl = self::releaseAssetUrl($version, 'checksums.sha256');
+        $tarballUrl = self::releaseAssetUrl($version, "toolkit-{$version}.tar.gz");
 
         $lines = [
-            'if [ ! -d ' . escapeshellarg($cacheDir) . ' ]; then',
-            '  set -e',
+            'if [ -d ' . escapeshellarg($cacheDir) . ' ]; then',
+            '  echo TOOLKIT_CACHE_OK',
+            'else',
             '  tmp_dir=$(mktemp -d)',
-            '  curl -fsSL ' . escapeshellarg("https://github.com/{$repo}/releases/download/{$version}/checksums.sha256") . ' -o "$tmp_dir/checksums.sha256"',
-            '  curl -fsSL ' . escapeshellarg("https://github.com/{$repo}/releases/download/{$version}/toolkit-{$version}.tar.gz") . ' -o "$tmp_dir/toolkit.tar.gz"',
+            '  fail() { echo "TOOLKIT_CACHE_ERROR: $1" >&2; rm -rf "$tmp_dir"; exit 1; }',
+            '  curl -fsSL ' . escapeshellarg($checksumsUrl) . ' -o "$tmp_dir/checksums.sha256" || fail "failed to download checksums.sha256 for ' . $version . '"',
+            '  curl -fsSL ' . escapeshellarg($tarballUrl) . ' -o "$tmp_dir/toolkit.tar.gz" || fail "failed to download toolkit-' . $version . '.tar.gz"',
             '  mkdir -p "$tmp_dir/extracted"',
-            '  tar -xzf "$tmp_dir/toolkit.tar.gz" -C "$tmp_dir/extracted"',
+            '  tar -xzf "$tmp_dir/toolkit.tar.gz" -C "$tmp_dir/extracted" || fail "failed to extract toolkit tarball"',
             '  cp "$tmp_dir/checksums.sha256" "$tmp_dir/extracted/checksums.sha256"',
-            '  (cd "$tmp_dir/extracted" && sha256sum -c checksums.sha256 --quiet)',
+            '  (cd "$tmp_dir/extracted" && sha256sum -c checksums.sha256 --quiet) || fail "checksum verification failed"',
             '  rm -f "$tmp_dir/extracted/checksums.sha256"',
             '  mkdir -p ' . escapeshellarg(dirname($cacheDir)),
-            '  mv "$tmp_dir/extracted" ' . escapeshellarg($cacheDir),
+            '  mv "$tmp_dir/extracted" ' . escapeshellarg($cacheDir) . ' || fail "failed to move extracted release into cache dir"',
             '  rm -rf "$tmp_dir"',
+            '  echo TOOLKIT_CACHE_OK',
             'fi',
         ];
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * Resolves where a pinned release's checksums.sha256/tarball are downloaded
+     * from. Defaults to the public plusclouds/toolkit GitHub releases, which
+     * only works if the central ISO-repo host has internet access. When
+     * TOOLKIT_SOURCE_URL is configured, files are fetched from that base URL
+     * instead - typically the API server's own address, serving the copy
+     * staged into its Docker image at build time (see stageForDocker() /
+     * production-build.yml) - for repo hosts that have no internet access but
+     * can reach the API over the internal network.
+     */
+    private static function releaseAssetUrl(string $version, string $filename): string
+    {
+        $sourceUrl = config('iaas.toolkit.source_url');
+
+        if ($sourceUrl) {
+            return rtrim($sourceUrl, '/') . "/{$version}/{$filename}";
+        }
+
+        return 'https://github.com/' . self::REPO . "/releases/download/{$version}/{$filename}";
+    }
+
+    /**
+     * Downloads the pinned release's checksums.sha256 + tarball into
+     * public/toolkit/{version}/ so this app server's own Docker image can
+     * serve them to central ISO-repo hosts that have no internet access
+     * (paired with TOOLKIT_SOURCE_URL pointing repo hosts back at this app
+     * server - see releaseAssetUrl()). Meant to be run once at image build
+     * time, not per-request - see the iaas:stage-toolkit-for-docker command.
+     */
+    public static function stageForDocker(): string
+    {
+        $version = self::pinnedVersion();
+        $destDir = public_path('toolkit/' . $version);
+
+        if (!is_dir($destDir)) {
+            mkdir($destDir, 0755, true);
+        }
+
+        foreach (['checksums.sha256', "toolkit-{$version}.tar.gz"] as $filename) {
+            $url = 'https://github.com/' . self::REPO . "/releases/download/{$version}/{$filename}";
+
+            $response = Http::get($url);
+
+            if (!$response->successful()) {
+                throw new RuntimeException("ToolkitService: failed to download [{$filename}] for [{$version}] while staging for docker (HTTP {$response->status()})");
+            }
+
+            file_put_contents($destDir . '/' . $filename, $response->body());
+        }
+
+        return $destDir;
     }
 
     /**
