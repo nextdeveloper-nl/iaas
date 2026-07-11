@@ -97,10 +97,17 @@ class ToolkitService
             'capabilities/disk-resize/debian12.yml',
             'capabilities/disk-resize/alma.yml',
             'agents/vm-service/deploy-service.yml',
-            'agents/vm-service/plusclouds-agent.service',
             'capabilities/run-post-boot-script/linux.yml',
             'capabilities/run-startup-script/linux.yml',
         ];
+
+        //  agents/vm-service/plusclouds-agent.service is deliberately NOT in
+        //  this list: deploy-service.yml `mv`s it (and agent.yaml/plusclouds.service)
+        //  with `chdir: playbook_dir`, i.e. it must sit flat at the ISO root next
+        //  to apply-configuration.yml - copyCommand() preserves each path's
+        //  nested source directory, which would bury it under agents/vm-service/
+        //  instead. It's copied separately via copyToIsoRootCommand() - see
+        //  VirtualMachinesXenService::updateConfigurationIso().
 
         if ($includeEnvVars) {
             $paths[] = 'capabilities/apply-env-vars/linux.yml';
@@ -367,6 +374,21 @@ class ToolkitService
         }
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * Copies a single toolkit-relative file from the repo host's local cache
+     * straight to config-iso/{uuid}/{destFilename}, discarding its nested
+     * source directory - for the handful of files deploy-service.yml expects
+     * as flat siblings of apply-configuration.yml (chdir: playbook_dir),
+     * unlike capabilities included via their nested include_tasks path.
+     */
+    public static function copyToIsoRootCommand(string $relativePath, string $destFilename, string $vmUuid): string
+    {
+        $cacheDir = self::REMOTE_CACHE_ROOT . '/' . self::pinnedVersion();
+        $destPath = 'config-iso/' . $vmUuid . '/' . $destFilename;
+
+        return 'cp "' . $cacheDir . '/' . $relativePath . '" ' . escapeshellarg($destPath);
     }
 
     /* =======================================================================

@@ -657,6 +657,16 @@ class VirtualMachinesXenService extends AbstractXenService
             );
             $command .= PHP_EOL;
 
+            //  deploy-service.yml `mv`s this straight out of playbook_dir (the ISO
+            //  root), not out of agents/vm-service/ - copyCommand() above would have
+            //  buried it under its source directory instead.
+            $command .= ToolkitService::copyToIsoRootCommand(
+                'agents/vm-service/plusclouds-agent.service',
+                'plusclouds-agent.service',
+                $vm->uuid
+            );
+            $command .= PHP_EOL;
+
             $result = self::performCommand($command, $centralRepo);
 
             $command = "";
