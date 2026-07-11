@@ -37,8 +37,12 @@ class ToolkitService
 {
     private const REPO = 'plusclouds/toolkit';
 
-    //  Where the central ISO-repo host caches extracted toolkit releases.
-    private const REMOTE_CACHE_ROOT = '/opt/toolkit-cache';
+    //  Where the central ISO-repo host caches extracted toolkit releases -
+    //  under the SSH user's own home directory, since these hosts are reached
+    //  over SSH as a non-root user with no write access to /opt. This is a
+    //  shell-side path (kept unescaped/double-quoted, never passed through
+    //  escapeshellarg()) so $HOME expands in whichever user's session runs it.
+    private const REMOTE_CACHE_ROOT = '$HOME/toolkit-cache';
 
     //  Disk-resize variant selection stays driven by the guest's own Ansible
     //  facts (ansible_facts.distribution/distribution_version), gathered at
@@ -275,7 +279,7 @@ class ToolkitService
         $tarballUrl = self::releaseAssetUrl($version, "toolkit-{$version}.tar.gz");
 
         $lines = [
-            'if [ -d ' . escapeshellarg($cacheDir) . ' ]; then',
+            'if [ -d "' . $cacheDir . '" ]; then',
             '  echo TOOLKIT_CACHE_OK',
             'else',
             '  tmp_dir=$(mktemp -d)',
@@ -287,8 +291,8 @@ class ToolkitService
             '  cp "$tmp_dir/checksums.sha256" "$tmp_dir/extracted/checksums.sha256"',
             '  (cd "$tmp_dir/extracted" && sha256sum -c checksums.sha256 --quiet) || fail "checksum verification failed"',
             '  rm -f "$tmp_dir/extracted/checksums.sha256"',
-            '  mkdir -p ' . escapeshellarg(dirname($cacheDir)),
-            '  mv "$tmp_dir/extracted" ' . escapeshellarg($cacheDir) . ' || fail "failed to move extracted release into cache dir"',
+            '  mkdir -p "' . self::REMOTE_CACHE_ROOT . '"',
+            '  mv "$tmp_dir/extracted" "' . $cacheDir . '" || fail "failed to move extracted release into cache dir"',
             '  rm -rf "$tmp_dir"',
             '  echo TOOLKIT_CACHE_OK',
             'fi',
@@ -359,7 +363,7 @@ class ToolkitService
         foreach ($relativePaths as $relativePath) {
             $destPath = $destRoot . '/' . $relativePath;
             $lines[] = 'mkdir -p ' . escapeshellarg(dirname($destPath));
-            $lines[] = 'cp ' . escapeshellarg($cacheDir . '/' . $relativePath) . ' ' . escapeshellarg($destPath);
+            $lines[] = 'cp "' . $cacheDir . '/' . $relativePath . '" ' . escapeshellarg($destPath);
         }
 
         return implode("\n", $lines);
