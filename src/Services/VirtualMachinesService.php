@@ -358,8 +358,20 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         else
             $vm = VirtualMachines::where('id', $id)->first();
 
+        return self::getRawPassword($vm);
+    }
+
+    /**
+     * $vm->password is stored encrypted (see the observer that encrypts it on
+     * save) - this decrypts it for anything that needs the actual plaintext
+     * (cloud-init user-data, pc-meta-data.json, ...). Falls back to the raw
+     * stored value (and encrypts it in place) for VMs whose password predates
+     * encryption being introduced.
+     */
+    public static function getRawPassword(VirtualMachines $vm): string
+    {
         try {
-            $password = decrypt($vm->password);
+            return decrypt($vm->password);
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
             if ($e->getMessage() == 'The payload is invalid.') {
                 Log::error(__METHOD__ . ' | We got the payload is invalid error. Maybe the password is not ' .
@@ -377,9 +389,9 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
                 return $rawPassword;
             }
-        }
 
-        return $password;
+            throw $e;
+        }
     }
 
     public static function getPasswordById($id)

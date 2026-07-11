@@ -126,7 +126,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         return [
             'hostname' => $vm->hostname,
             'username' => $vm->username,
-            'password' => $vm->password,
+            'password' => VirtualMachinesService::getRawPassword($vm),
             'virtual_machine_id' => $vm->id_ref,
             'virtual_disks' => $diskConfiguration,
             'virtual_network_cards' => $vifConfiguration,
@@ -241,7 +241,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
     {
         //  For encryption of the password
         $salt = substr(str_replace('+', '.', base64_encode(random_bytes(16))), 0, 16);
-        $hash = crypt($vm->password, '$6$' . $salt . '$');
+        $hash = crypt(VirtualMachinesService::getRawPassword($vm), '$6$' . $salt . '$');
 
         $user = [
             'name'        => $vm->username,
