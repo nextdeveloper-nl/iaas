@@ -1,6 +1,6 @@
 # Service Roles
 
-Service roles let a virtual machine come pre-configured with common software already installed — Docker, PostgreSQL, monitoring agents, and more — instead of logging in after boot to install it yourself. Pick the roles you want when you create a VM (or add them later), and the platform installs and configures them automatically the next time the VM boots.
+Service roles let a virtual machine come pre-configured with common software already installed — MySQL, PostgreSQL, Tailscale, and more — instead of logging in after boot to install it yourself. Pick the roles you want when you create a VM (or add them later), and the platform installs and configures them automatically the next time the VM boots.
 
 ## Key Capabilities
 
@@ -18,17 +18,17 @@ Because this runs at boot time, enabling a new service role on an already-runnin
 
 ## Choosing Roles
 
-Available roles are looked up from a shared catalog, so the exact list can change over time as new roles are added. Typical examples include:
+Available roles are looked up from a shared catalog, so the exact list can change over time as new roles are added. Currently available roles include:
 
-- **docker** — installs and enables Docker so the VM is ready to run containers
-- **postgresql** — installs and configures a PostgreSQL server
-- **zabbix_server** — installs the Zabbix monitoring client and points it at your monitoring server
+- **mysql** — installs and enables a MySQL server, optionally setting the root password
+- **postgresql** — installs and configures a PostgreSQL server, optionally setting the superuser password
+- **tailscale** — installs and enables Tailscale, optionally joining your tailnet automatically if an auth key is provided
 
-Each role can be given its own configuration when you enable it (for example, choosing a PostgreSQL version). Anything you don't specify falls back to the role's default configuration.
+Each role can be given its own configuration when you enable it (for example, a password or auth key). Anything you don't specify falls back to the role's default configuration.
 
 ## Per-VM Configuration
 
-Service roles are configured per VM — enabling `docker` on one server has no effect on any other server. If a role is later retired from the catalog, it's automatically dropped from that VM's configuration rather than causing errors.
+Service roles are configured per VM — enabling `mysql` on one server has no effect on any other server. If a role is later retired from the catalog, it's automatically dropped from that VM's configuration rather than causing errors.
 
 ## API Examples
 
@@ -44,7 +44,7 @@ POST /iaas/virtual-machines
   "iaas_compute_pool_id": "5f0c2b3a-...-uuid",
   "iaas_repository_image_id": "9a31d4e0-...-uuid",
   "service_roles": {
-    "docker": {},
+    "mysql": {},
     "postgresql": {
       "config": {
         "version": "16"
@@ -62,7 +62,7 @@ PATCH /iaas/virtual-machines/{id}
 ```json
 {
   "service_roles": {
-    "docker": {}
+    "mysql": {}
   }
 }
 ```
@@ -77,7 +77,7 @@ GET /iaas/virtual-machines/{id}
   "id": "8d2e0a1b-...-uuid",
   "name": "app-server-01",
   "service_roles": {
-    "docker": {
+    "mysql": {
       "enabled": true,
       "config": {}
     },

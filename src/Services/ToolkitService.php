@@ -84,6 +84,43 @@ class ToolkitService
     }
 
     /**
+     * The service role names actually available in the pinned toolkit release, mapped to the
+     * sha256 of that role's linux.yml (iaas_ansible_roles.hash - lets the catalog detect when a
+     * role's capability content changed between toolkit versions). Each name is a directory
+     * under capabilities/service-roles/ that ships a linux.yml. This is the source of truth
+     * AnsibleRolesService::syncFromToolkit() reconciles the iaas_ansible_roles catalog against,
+     * so the catalog never drifts ahead of what a config ISO can actually apply.
+     *
+     * @return array<string, string> role name => sha256 hash
+     */
+    public static function discoverServiceRoleNames(): array
+    {
+        $serviceRolesDir = self::ensureLocalRelease(self::pinnedVersion()) . '/capabilities/service-roles';
+
+        if (!is_dir($serviceRolesDir)) {
+            return [];
+        }
+
+        $roles = [];
+
+        foreach (scandir($serviceRolesDir) as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+
+            $capabilityFile = $serviceRolesDir . '/' . $entry . '/linux.yml';
+
+            if (is_file($capabilityFile)) {
+                $roles[$entry] = hash_file('sha256', $capabilityFile);
+            }
+        }
+
+        ksort($roles);
+
+        return $roles;
+    }
+
+    /**
      * The list of toolkit-relative capability paths this VM's Linux config
      * needs, given which optional metadata it has. Mirrors what
      * renderLinuxPlaybook() references - keep both in sync.

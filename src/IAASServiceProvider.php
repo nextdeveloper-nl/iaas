@@ -120,6 +120,7 @@ class IAASServiceProvider extends AbstractServiceProvider {
                 \NextDeveloper\IAAS\Console\Commands\ListenVmAgentEvents::class,
                 \NextDeveloper\IAAS\Console\Commands\UpdateConfigurationIso::class,
                 \NextDeveloper\IAAS\Console\Commands\StageToolkitForDocker::class,
+                \NextDeveloper\IAAS\Console\Commands\SyncServiceRolesCatalog::class,
             ]);
         }
     }
