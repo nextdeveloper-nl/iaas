@@ -626,6 +626,10 @@ class VirtualMachinesXenService extends AbstractXenService
             $metadata = VirtualMachinesService::getMetadata($vm);
             $includeEnvVars = !empty($metadata['env_vars']);
             $includeSshKeys = !empty($metadata['ssh_keys']);
+            $serviceRoleNames = array_keys(array_filter(
+                $metadata['service_roles'] ?? [],
+                fn($role) => !empty($role['enabled'])
+            ));
 
             $uploadConfig = function($filename, $content, $vm, $centralRepo) {
                 //  Pushing the user-data file
@@ -652,7 +656,7 @@ class VirtualMachinesXenService extends AbstractXenService
             //  app server, and disk-resize dispatch stays ansible-runtime-driven since
             //  the guest's own OS facts are more reliable than $vm->distro.
             $command = ToolkitService::copyCommand(
-                ToolkitService::linuxCapabilityPaths($includeEnvVars, $includeSshKeys),
+                ToolkitService::linuxCapabilityPaths($includeEnvVars, $includeSshKeys, $serviceRoleNames),
                 $vm->uuid
             );
             $command .= PHP_EOL;
@@ -702,7 +706,7 @@ class VirtualMachinesXenService extends AbstractXenService
             //  hardcodes on every existing VM, only its content is dynamic now.
             $command .= $uploadConfig(
                 filename: 'apply-configuration.yml',
-                content: base64_encode(ToolkitService::renderLinuxPlaybook($includeEnvVars, $includeSshKeys)),
+                content: base64_encode(ToolkitService::renderLinuxPlaybook($includeEnvVars, $includeSshKeys, $serviceRoleNames)),
                 vm: $vm,
                 centralRepo: $centralRepo
             );

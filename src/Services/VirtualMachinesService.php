@@ -295,6 +295,16 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         //  Generate a unique API key for the VM agent on every new VM creation
         $data['agent_api_key'] = Str::random(64);
 
+        if (array_key_exists('service_roles', $data)) {
+            $existingFeatures = is_array($data['features'] ?? null) ? $data['features'] : [];
+
+            $data['features'] = array_merge($existingFeatures, [
+                'service_roles' => AnsibleRolesService::resolveForVirtualMachine($data['service_roles']),
+            ]);
+
+            unset($data['service_roles']);
+        }
+
         return parent::create($data);
     }
 
@@ -551,12 +561,23 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             }
         }
 
+        if (array_key_exists('service_roles', $data)) {
+            $existingFeatures = is_array($vm->features) ? $vm->features : [];
+
+            $data['features'] = array_merge($existingFeatures, [
+                'service_roles' => AnsibleRolesService::resolveForVirtualMachine($data['service_roles']),
+            ]);
+
+            unset($data['service_roles']);
+        }
+
         $updatedVm = parent::update($id, $data);
 
         if (
             ($vm->post_boot_script != $updatedVm->post_boot_script) ||
             ($vm->password != $updatedVm->password) ||
-            ($vm->hostname != $updatedVm->hostname)
+            ($vm->hostname != $updatedVm->hostname) ||
+            (($vm->features['service_roles'] ?? null) != ($updatedVm->features['service_roles'] ?? null))
         ) {
             dispatch(new GenerateCloudInitImage($vm));
         }

@@ -28,6 +28,8 @@ class VirtualMachinesUpdateRequest extends AbstractFormRequest
             'post_boot_script' => 'nullable|string',
             'tokens' => '',
             'hostname' => 'nullable|string',
+            'service_roles' => 'nullable|array',
+            'service_roles.*.config' => 'nullable|array',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

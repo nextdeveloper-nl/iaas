@@ -43,6 +43,10 @@ class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
 
         if($vm) $transformed['snapshot_of_virtual_machine'] = $vm->uuid;
 
+        //  Surface the VM's selected service roles as their own key instead of making
+        //  API consumers dig through the generic features blob (see features.service_roles).
+        $transformed['service_roles'] = $model->features['service_roles'] ?? [];
+
         unset($transformed['hypervisor_uuid']);
         unset($transformed['hypervisor_data']);
         unset($transformed['console_data']);

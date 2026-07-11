@@ -13,6 +13,7 @@ All API paths are relative to the platform's API base URL and prefixed with `/ia
 | [Storage](storage.md) | Storage pools/volumes and virtual disk attach, resize, and clone |
 | [Image Library](image-library.md) | OS images, ISOs, and Docker images that VMs are created from |
 | [Automation](automation.md) | Ansible playbooks, environment variable groups, and SSH key management |
+| [Service Roles](service-roles.md) | Pre-installing services like Docker or PostgreSQL on a VM at boot |
 | [Monitoring & Alerts](monitoring-and-alerts.md) | Health checks, CPU/network/storage metrics, and active alarms |
 | [Backup & Disaster Recovery](backup-and-disaster-recovery.md) | Scheduled backups, retention policies, recovery targets, and restore |
 | [Datacenters & Infrastructure](datacenters-and-infrastructure.md) | Datacenters, cloud nodes, compute pools, and compute hosts |

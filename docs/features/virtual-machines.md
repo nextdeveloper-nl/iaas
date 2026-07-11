@@ -79,6 +79,7 @@ GET /iaas/virtual-machines
 ## Related Features
 
 - [Image Library](image-library.md) — choose the operating system image or template a VM is created from
+- [Service Roles](service-roles.md) — pre-install services like Docker or PostgreSQL on a VM at boot
 - [Networking](networking.md) — attach network cards and IP addresses to a VM
 - [Storage](storage.md) — attach, resize, or expand disks on a VM
 - [Backup & Disaster Recovery](backup-and-disaster-recovery.md) — scheduled backups and restore for VMs

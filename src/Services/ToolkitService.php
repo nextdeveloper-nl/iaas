@@ -29,6 +29,12 @@ use RuntimeException;
  * config('iaas.toolkit.version'), so upgrading the toolkit is a deliberate
  * version bump rather than something that changes silently underneath us.
  *
+ * Service roles (docker, postgresql, ...) follow the same capability
+ * convention: each active iaas_ansible_roles catalog entry's `name` must
+ * match a toolkit folder at capabilities/service-roles/{name}/linux.yml.
+ * Which roles a VM gets is driven entirely by metadata.service_roles (see
+ * VirtualMachinesMetadataService::collectServiceRoles()), never hardcoded here.
+ *
  * Class ToolkitService.
  *
  * @package NextDeveloper\IAAS\Services
@@ -81,8 +87,13 @@ class ToolkitService
      * The list of toolkit-relative capability paths this VM's Linux config
      * needs, given which optional metadata it has. Mirrors what
      * renderLinuxPlaybook() references - keep both in sync.
+     *
+     * $serviceRoleNames are the VM's enabled entries from metadata.service_roles
+     * (see VirtualMachinesMetadataService::collectServiceRoles()) - each name must
+     * match an active iaas_ansible_roles catalog entry 1:1 with a toolkit capability
+     * folder at capabilities/service-roles/{name}/linux.yml.
      */
-    public static function linuxCapabilityPaths(bool $includeEnvVars, bool $includeSshKeys): array
+    public static function linuxCapabilityPaths(bool $includeEnvVars, bool $includeSshKeys, array $serviceRoleNames = []): array
     {
         $paths = [
             //  Uploaded but not referenced by any include_tasks in renderLinuxPlaybook()
@@ -117,6 +128,10 @@ class ToolkitService
             $paths[] = 'capabilities/apply-ssh-keys/linux.yml';
         }
 
+        foreach ($serviceRoleNames as $roleName) {
+            $paths[] = "capabilities/service-roles/{$roleName}/linux.yml";
+        }
+
         return $paths;
     }
 
@@ -125,7 +140,7 @@ class ToolkitService
      * plusclouds.sh already hardcodes on every existing VM, so nothing on
      * the guest side needs to change, only what's inside it.
      */
-    public static function renderLinuxPlaybook(bool $includeEnvVars, bool $includeSshKeys): string
+    public static function renderLinuxPlaybook(bool $includeEnvVars, bool $includeSshKeys, array $serviceRoleNames = []): string
     {
         $lines = [
             '---',
@@ -184,6 +199,22 @@ class ToolkitService
             $lines[] = '    - name: Apply SSH keys';
             $lines[] = '      include_tasks: capabilities/apply-ssh-keys/linux.yml';
             $lines[] = '';
+        }
+
+        if (!empty($serviceRoleNames)) {
+            $lines[] = '    - name: Extract service roles';
+            $lines[] = '      set_fact:';
+            $lines[] = '        service_roles: "{{ metadata.service_roles | default({}) }}"';
+            $lines[] = '';
+
+            foreach ($serviceRoleNames as $roleName) {
+                //  The task name is a plain (unquoted) YAML scalar - it must not contain
+                //  its own ": ", which YAML would parse as a nested mapping key and break.
+                $lines[] = "    - name: Apply service role - {$roleName}";
+                $lines[] = "      include_tasks: capabilities/service-roles/{$roleName}/linux.yml";
+                $lines[] = '      when: service_roles[' . "'{$roleName}'" . '][' . "'enabled'" . '] | default(false)';
+                $lines[] = '';
+            }
         }
 
         $lines[] = '    - name: Deploy service configuration';

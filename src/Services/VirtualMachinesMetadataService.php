@@ -10,6 +10,7 @@ use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
+use NextDeveloper\IAAS\Database\Models\AnsibleRoles;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
@@ -130,13 +131,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'virtual_machine_id' => $vm->id_ref,
             'virtual_disks' => $diskConfiguration,
             'virtual_network_cards' => $vifConfiguration,
-            'service_roles' => [
-                //  Here will be roles of the server
-                'zabbix_server' => [
-                    'is_zabbix_enabled' => true,
-                    'zabbix_server_ip'  => '185.255.172.221'
-                ],
-            ],
+            'service_roles' => self::collectServiceRoles($vm),
             'compute_pool' => $computePoolArray,
             'cloud_node' => $cloudPoolArray,
             'ssh_keys' => self::collectSshKeys($vm),
@@ -366,5 +361,40 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         }
 
         return $envVars;
+    }
+
+    /**
+     * Reads the VM's selected service roles from features.service_roles and re-validates each one
+     * against the iaas_ansible_roles catalog, dropping any role that has since been deactivated
+     * (rather than failing metadata generation, since this runs on every config ISO rebuild).
+     */
+    private static function collectServiceRoles(VirtualMachines $vm): array
+    {
+        $serviceRoles = $vm->features['service_roles'] ?? [];
+
+        if (!is_array($serviceRoles) || empty($serviceRoles)) {
+            return [];
+        }
+
+        $roleNames = array_keys($serviceRoles);
+
+        $activeRoleNames = AnsibleRoles::withoutGlobalScope(AuthorizationScope::class)
+            ->whereIn('name', $roleNames)
+            ->where('is_active', true)
+            ->pluck('name')
+            ->all();
+
+        $collected = [];
+
+        foreach ($serviceRoles as $name => $role) {
+            if (!in_array($name, $activeRoleNames, true)) {
+                Log::warning("[VirtualMachinesMetadataService@collectServiceRoles] Dropping service role [{$name}] for VM [{$vm->uuid}] - no longer an active iaas_ansible_roles entry.");
+                continue;
+            }
+
+            $collected[$name] = $role;
+        }
+
+        return $collected;
     }
 }

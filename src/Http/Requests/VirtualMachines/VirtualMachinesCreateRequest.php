@@ -27,6 +27,8 @@ class VirtualMachinesCreateRequest extends AbstractFormRequest
         'backup_repository_id' => 'nullable|exists:iaas_repositories,uuid|uuid',
         'post_boot_script' => 'nullable|string',
         'tokens' => '',
+        'service_roles' => 'nullable|array',
+        'service_roles.*.config' => 'nullable|array',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
