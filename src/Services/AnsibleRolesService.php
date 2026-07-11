@@ -75,9 +75,12 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
     /**
      * Reconciles the iaas_ansible_roles catalog against the service-role capabilities that
      * actually exist in the pinned toolkit release: creates a catalog entry for any capability
-     * folder that doesn't have one yet, reactivates one that was previously deactivated, and
-     * deactivates (never deletes - VMs may still reference it in features.service_roles) any
-     * catalog entry whose capability folder no longer exists in the pinned release.
+     * folder that doesn't have one yet (seeded with its scanned config schema - see
+     * ToolkitService::discoverServiceRoleNames()), reactivates one that was previously
+     * deactivated, adds any newly-discovered config key to an existing entry without touching
+     * keys already there, and deactivates (never deletes - VMs may still reference it in
+     * features.service_roles) any catalog entry whose capability folder no longer exists in the
+     * pinned release.
      *
      * Meant to be run after every toolkit version bump - see the iaas:sync-service-roles command.
      *
@@ -115,7 +118,7 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
             if (!$role) {
                 self::create([
                     'name' => $name,
-                    'config' => [],
+                    'config' => $meta['config'],
                     'hash' => $meta['hash'],
                     'description' => $meta['description'],
                     'is_active' => true,
@@ -140,6 +143,17 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
 
             if ($role->description !== $meta['description']) {
                 $updates['description'] = $meta['description'];
+            }
+
+            //  Add any newly-discovered config key (e.g. the toolkit added a new
+            //  capability variable), but never touch a key that's already present -
+            //  it may be a customization made through the AnsibleRoles API since the
+            //  last sync, and existing keys always win over the freshly-scanned default.
+            $existingConfig = is_array($role->config) ? $role->config : [];
+            $mergedConfig = array_merge($meta['config'], $existingConfig);
+
+            if ($mergedConfig != $existingConfig) {
+                $updates['config'] = $mergedConfig;
             }
 
             if (!empty($updates)) {

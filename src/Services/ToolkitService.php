@@ -87,8 +87,12 @@ class ToolkitService
      * The service roles actually available in the pinned toolkit release: each name is a
      * directory under capabilities/service-roles/ that ships a linux.yml, mapped to that role's
      * content hash (iaas_ansible_roles.hash - lets the catalog detect when a role's capability
-     * content changed between toolkit versions) and its meta.yml description
-     * (iaas_ansible_roles.description). meta.yml is required - a service role without one is
+     * content changed between toolkit versions), its meta.yml description
+     * (iaas_ansible_roles.description), and its defaults.yml config schema
+     * (iaas_ansible_roles.config) - hand-authored alongside the capability itself so a customer
+     * looking at GET /iaas/ansible-roles can see exactly which config keys a role accepts and
+     * what they default to, without reading the toolkit source. defaults.yml is optional (a role
+     * that takes no config simply has none); meta.yml is required - a service role without one is
      * skipped rather than synced with a blank description, since the sync job would otherwise
      * silently overwrite a previously-set description with nothing.
      *
@@ -96,7 +100,7 @@ class ToolkitService
      * iaas_ansible_roles catalog against, so the catalog never drifts ahead of what a config ISO
      * can actually apply.
      *
-     * @return array<string, array{hash: string, description: string}>
+     * @return array<string, array{hash: string, description: string, config: array<string, mixed>}>
      */
     public static function discoverServiceRoleNames(): array
     {
@@ -115,6 +119,7 @@ class ToolkitService
 
             $capabilityFile = $serviceRolesDir . '/' . $entry . '/linux.yml';
             $metaFile = $serviceRolesDir . '/' . $entry . '/meta.yml';
+            $defaultsFile = $serviceRolesDir . '/' . $entry . '/defaults.yml';
 
             if (!is_file($capabilityFile) || !is_file($metaFile)) {
                 continue;
@@ -129,6 +134,7 @@ class ToolkitService
             $roles[$entry] = [
                 'hash' => hash_file('sha256', $capabilityFile),
                 'description' => $meta['description'],
+                'config' => is_file($defaultsFile) ? (yaml_parse_file($defaultsFile) ?: []) : [],
             ];
         }
 

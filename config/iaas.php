@@ -33,7 +33,7 @@ return [
     //  reads capability scripts / agent installers from when building config ISOs.
     //  Bump deliberately after validating a new release against a staging VM matrix.
     'toolkit'   =>  [
-        'version'   =>  env('TOOLKIT_VERSION', 'v1.2.0'),
+        'version'   =>  env('TOOLKIT_VERSION', 'v1.3.0'),
     ],
 
     'console'   =>  [
