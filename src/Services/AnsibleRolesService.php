@@ -109,14 +109,15 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
             ->get()
             ->keyBy('name');
 
-        foreach ($discovered as $name => $hash) {
+        foreach ($discovered as $name => $meta) {
             $role = $existingRoles->get($name);
 
             if (!$role) {
                 self::create([
                     'name' => $name,
                     'config' => [],
-                    'hash' => $hash,
+                    'hash' => $meta['hash'],
+                    'description' => $meta['description'],
                     'is_active' => true,
                     'iaas_ansible_server_id' => self::resolveLocalExecutionServerId(),
                 ]);
@@ -133,8 +134,12 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
                 $reactivated[] = $name;
             }
 
-            if ($role->hash !== $hash) {
-                $updates['hash'] = $hash;
+            if ($role->hash !== $meta['hash']) {
+                $updates['hash'] = $meta['hash'];
+            }
+
+            if ($role->description !== $meta['description']) {
+                $updates['description'] = $meta['description'];
             }
 
             if (!empty($updates)) {

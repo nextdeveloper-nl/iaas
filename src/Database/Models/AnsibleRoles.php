@@ -21,6 +21,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $id
  * @property string $uuid
  * @property string $name
+ * @property string $description
  * @property integer $version
  * @property integer $release_number
  * @property $config
@@ -53,6 +54,7 @@ class AnsibleRoles extends Model
 
     protected $fillable = [
             'name',
+            'description',
             'version',
             'release_number',
             'config',
@@ -88,6 +90,7 @@ class AnsibleRoles extends Model
     protected $casts = [
     'id' => 'integer',
     'name' => 'string',
+    'description' => 'string',
     'version' => 'integer',
     'release_number' => 'integer',
     'config' => 'array',

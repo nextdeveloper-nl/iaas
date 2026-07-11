@@ -84,14 +84,19 @@ class ToolkitService
     }
 
     /**
-     * The service role names actually available in the pinned toolkit release, mapped to the
-     * sha256 of that role's linux.yml (iaas_ansible_roles.hash - lets the catalog detect when a
-     * role's capability content changed between toolkit versions). Each name is a directory
-     * under capabilities/service-roles/ that ships a linux.yml. This is the source of truth
-     * AnsibleRolesService::syncFromToolkit() reconciles the iaas_ansible_roles catalog against,
-     * so the catalog never drifts ahead of what a config ISO can actually apply.
+     * The service roles actually available in the pinned toolkit release: each name is a
+     * directory under capabilities/service-roles/ that ships a linux.yml, mapped to that role's
+     * content hash (iaas_ansible_roles.hash - lets the catalog detect when a role's capability
+     * content changed between toolkit versions) and its meta.yml description
+     * (iaas_ansible_roles.description). meta.yml is required - a service role without one is
+     * skipped rather than synced with a blank description, since the sync job would otherwise
+     * silently overwrite a previously-set description with nothing.
      *
-     * @return array<string, string> role name => sha256 hash
+     * This is the source of truth AnsibleRolesService::syncFromToolkit() reconciles the
+     * iaas_ansible_roles catalog against, so the catalog never drifts ahead of what a config ISO
+     * can actually apply.
+     *
+     * @return array<string, array{hash: string, description: string}>
      */
     public static function discoverServiceRoleNames(): array
     {
@@ -109,10 +114,22 @@ class ToolkitService
             }
 
             $capabilityFile = $serviceRolesDir . '/' . $entry . '/linux.yml';
+            $metaFile = $serviceRolesDir . '/' . $entry . '/meta.yml';
 
-            if (is_file($capabilityFile)) {
-                $roles[$entry] = hash_file('sha256', $capabilityFile);
+            if (!is_file($capabilityFile) || !is_file($metaFile)) {
+                continue;
             }
+
+            $meta = yaml_parse_file($metaFile);
+
+            if (empty($meta['description'])) {
+                continue;
+            }
+
+            $roles[$entry] = [
+                'hash' => hash_file('sha256', $capabilityFile),
+                'description' => $meta['description'],
+            ];
         }
 
         ksort($roles);

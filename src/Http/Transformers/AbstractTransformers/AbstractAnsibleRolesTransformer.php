@@ -62,6 +62,7 @@ class AbstractAnsibleRolesTransformer extends AbstractTransformer
             [
             'id'  =>  $model->uuid,
             'name'  =>  $model->name,
+            'description'  =>  $model->description,
             'version'  =>  $model->version,
             'release_number'  =>  $model->release_number,
             'config'  =>  $model->config,
