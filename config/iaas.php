@@ -34,14 +34,6 @@ return [
     //  Bump deliberately after validating a new release against a staging VM matrix.
     'toolkit'   =>  [
         'version'   =>  env('TOOLKIT_VERSION', 'v1.0.0'),
-
-        //  When set, central ISO-repo hosts download the pinned toolkit release
-        //  from this base URL (typically this app server's own internal address,
-        //  serving the copy staged into its Docker image - see
-        //  ToolkitService::stageForDocker()) instead of GitHub directly. Needed
-        //  for repo hosts with no internet access but reachable over the
-        //  internal network.
-        'source_url'    =>  env('TOOLKIT_SOURCE_URL'),
     ],
 
     'console'   =>  [

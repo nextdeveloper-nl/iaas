@@ -298,33 +298,26 @@ class ToolkitService
     }
 
     /**
-     * Resolves where a pinned release's checksums.sha256/tarball are downloaded
-     * from. Defaults to the public plusclouds/toolkit GitHub releases, which
-     * only works if the central ISO-repo host has internet access. When
-     * TOOLKIT_SOURCE_URL is configured, files are fetched from that base URL
-     * instead - typically the API server's own address, serving the copy
-     * staged into its Docker image at build time (see stageForDocker() /
-     * production-build.yml) - for repo hosts that have no internet access but
-     * can reach the API over the internal network.
+     * Central ISO-repo hosts have no internet access, so they can't reach
+     * GitHub directly - they fetch the pinned release from this app server's
+     * own address instead, same as every other repo/compute-member callback
+     * in this codebase (finalize-backup, finalize-commit, /public/iaas/metrics,
+     * /public/iaas/ipmi - see ComputeMemberXenService/Commit.php), all built
+     * off config('leo.internal_endpoint') with no GitHub-reachability
+     * fallback. Requires stageForDocker() to have staged the files at build
+     * time (see production-build.yml).
      */
     private static function releaseAssetUrl(string $version, string $filename): string
     {
-        $sourceUrl = config('iaas.toolkit.source_url');
-
-        if ($sourceUrl) {
-            return rtrim($sourceUrl, '/') . "/{$version}/{$filename}";
-        }
-
-        return 'https://github.com/' . self::REPO . "/releases/download/{$version}/{$filename}";
+        return rtrim(config('leo.internal_endpoint'), '/') . "/toolkit/{$version}/{$filename}";
     }
 
     /**
      * Downloads the pinned release's checksums.sha256 + tarball into
      * public/toolkit/{version}/ so this app server's own Docker image can
-     * serve them to central ISO-repo hosts that have no internet access
-     * (paired with TOOLKIT_SOURCE_URL pointing repo hosts back at this app
-     * server - see releaseAssetUrl()). Meant to be run once at image build
-     * time, not per-request - see the iaas:stage-toolkit-for-docker command.
+     * serve them to central ISO-repo hosts that have no internet access (see
+     * releaseAssetUrl()). Meant to be run once at image build time, not
+     * per-request - see the iaas:stage-toolkit-for-docker command.
      */
     public static function stageForDocker(): string
     {
