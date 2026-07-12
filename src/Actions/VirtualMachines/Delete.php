@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Actions\VirtualDiskImages\Destroy as DestroyVirtualDiskImage;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -74,9 +75,16 @@ class Delete extends AbstractAction
 
             $vdis = VirtualDiskImages::withoutGlobalScope(\NextDeveloper\IAM\Database\Scopes\AuthorizationScope::class)
                 ->where('iaas_virtual_machine_id', $this->model->id)
-                ->delete();
+                ->get();
 
-            //  We also need to delete all the disks that are attached to this VM physically. This will be implemented in the future.
+            foreach ($vdis as $vdi) {
+                //  Best-effort: destroy the disk on the hypervisor first (handles detach-if-attached
+                //  and draft/undeployed disks internally), then remove the DB record either way so a
+                //  hypervisor failure doesn't block the rest of the VM delete.
+                (new DestroyVirtualDiskImage($vdi))->handle();
+
+                $vdi->delete();
+            }
 
             $vifs = \NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::withoutGlobalScope(\NextDeveloper\IAM\Database\Scopes\AuthorizationScope::class)
                 ->where('iaas_virtual_machine_id', $this->model->id)
