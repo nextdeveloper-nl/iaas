@@ -84,8 +84,17 @@ class Delete extends AbstractAction
 
             //VirtualMachinesService::delete($this->model->uuid);
 
+            //  Only disks currently attached to this VM should go with it. A customer can Detach a real
+            //  disk and keep it (Detach only clears vbd_hypervisor_uuid, not iaas_virtual_machine_id, so
+            //  it would otherwise still show up here). is_draft disks were never synced to a hypervisor
+            //  (Sync sets is_draft=false once real) so they only exist as this VM's own intended disk and
+            //  should still be cleaned up with it.
             $vdis = VirtualDiskImages::withoutGlobalScope(\NextDeveloper\IAM\Database\Scopes\AuthorizationScope::class)
                 ->where('iaas_virtual_machine_id', $this->model->id)
+                ->where(function ($query) {
+                    $query->whereNotNull('vbd_hypervisor_uuid')
+                        ->orWhere('is_draft', true);
+                })
                 ->get();
 
             foreach ($vdis as $vdi) {
