@@ -60,8 +60,15 @@ class Delete extends AbstractAction
         Events::fire('deleting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         try {
-            VirtualMachinesXenService::forceShutdown($this->model);
-            VirtualMachinesXenService::destroyVm($this->model);
+            //  A VM that was never deployed (draft, no compute member/hypervisor_uuid) has nothing
+            //  to shut down or destroy on a hypervisor - attempting it throws (null compute member)
+            //  and aborts the whole delete before we ever reach $this->model->delete() below.
+            $isDeployed = $this->model->iaas_compute_member_id && $this->model->hypervisor_uuid;
+
+            if ($isDeployed) {
+                VirtualMachinesXenService::forceShutdown($this->model);
+                VirtualMachinesXenService::destroyVm($this->model);
+            }
 
             //VirtualMachinesService::delete($this->model->uuid);
 
