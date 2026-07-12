@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
@@ -35,6 +36,16 @@ class Delete extends AbstractAction
 
     public function handle()
     {
+        //  $this->model->id feeds every where('iaas_virtual_machine_id', ...) query below (VDIs, VIFs,
+        //  IP addresses). Laravel's query builder silently rewrites where($col, null) into whereNull($col),
+        //  so a null id here would match and destroy every orphaned/unattached record of that type across
+        //  the whole database instead of matching nothing. Refuse to proceed rather than risk that.
+        if (empty($this->model->id)) {
+            Log::error(__METHOD__ . ' | Refusing to delete: virtual machine model has no id.');
+            Events::fire('delete-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
+            return;
+        }
+
         $this->setProgress(0, 'Delete virtual machine started');
         Events::fire('deleting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
