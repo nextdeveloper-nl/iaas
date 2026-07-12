@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
+use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\Events\Services\Events;
@@ -975,6 +976,22 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     public static function delete($id)
     {
         $vm = VirtualMachines::findByUuid($id);
+
+        if (!$vm) {
+            throw new NotAllowedException(
+                'We cannot find the virtual machine you are trying to delete. Maybe you dont ' .
+                'have the permission to delete this object?'
+            );
+        }
+
+        //  Deleting a VM is a destructive, irreversible action - explicitly check ownership here
+        //  instead of relying solely on AuthorizationScope filtering the lookup above.
+        if ($vm->iam_account_id != UserHelper::currentAccount()->id) {
+            throw new NotAllowedException(
+                'You dont have the permission to delete this virtual machine.'
+            );
+        }
+
         dispatch(new Delete($vm));
     }
 
