@@ -73,7 +73,9 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'domain_type'  =>  $model->domain_type,
             'status'  =>  $model->status,
             'cpu'  =>  $model->cpu,
-            'ram'  =>  $model->ram,
+            // ram is stored in MB but create/update accept GB (see VirtualMachinesService::create/update) -
+            // convert back to GB here so reads match writes (issue #994)
+            'ram'  =>  $model->ram / 1024,
             'last_metadata_request'  =>  $model->last_metadata_request,
             'iaas_cloud_node_id'  =>  $model->cloud_node_uuid,
             'cloud_node'  =>  $model->cloud_node,
