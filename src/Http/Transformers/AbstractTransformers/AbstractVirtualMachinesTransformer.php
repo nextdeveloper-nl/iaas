@@ -69,7 +69,8 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'id'  =>  $model->uuid,
             'name'  =>  $model->name,
             'username'  =>  $model->username,
-            'password'  =>  $model->password,
+            // password intentionally omitted - it's stored encrypted and the raw ciphertext
+            // was leaking through this endpoint (issue #995); use GET /leo/iaas/virtual-machines/decrypt-password/{id}
             'hostname'  =>  $model->hostname,
             'description'  =>  $model->description,
             'os'  =>  $model->os,
