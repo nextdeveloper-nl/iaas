@@ -54,13 +54,12 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
      */
     public function transform(VirtualMachinesPerspective $model)
     {
-                                                $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
-                                                            $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
-                                                            $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
-                                                            $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
-                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                        
+        //  iaas_virtual_machines_perspective is a VIEW that already LEFT JOINs cloud_nodes/
+        //  domains/compute_members/compute_pools/accounts/users to build cloud_node/domain/
+        //  compute_member_name/pool_type/maintainer/responsible - it now also projects each of
+        //  their uuid columns directly (cloud_node_uuid, domain_uuid, etc.), so reading them off
+        //  the model is free. This used to run 6 extra `where('id', ...)->first()` queries per
+        //  row here - on a page of ~60 VMs that was 360 extra round trips for one response.
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -76,9 +75,9 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'cpu'  =>  $model->cpu,
             'ram'  =>  $model->ram,
             'last_metadata_request'  =>  $model->last_metadata_request,
-            'iaas_cloud_node_id'  =>  $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
+            'iaas_cloud_node_id'  =>  $model->cloud_node_uuid,
             'cloud_node'  =>  $model->cloud_node,
-            'common_domain_id'  =>  $commonDomainId ? $commonDomainId->uuid : null,
+            'common_domain_id'  =>  $model->domain_uuid,
             'domain'  =>  $model->domain,
             'disk_count'  =>  $model->disk_count,
             'network_card_count'  =>  $model->network_card_count,
@@ -91,7 +90,7 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'states'  =>  $model->states,
             'pool_type'  =>  $model->pool_type,
             'is_snapshot_available'  =>  $model->is_snapshot_available,
-            'iaas_compute_member_id'  =>  $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
+            'iaas_compute_member_id'  =>  $model->compute_member_uuid,
             'compute_member_name'  =>  $model->compute_member_name,
             'tags'  =>  $model->tags,
             'is_template'  =>  $model->is_template,
@@ -105,10 +104,10 @@ class AbstractVirtualMachinesPerspectiveTransformer extends AbstractTransformer
             'agent_latest_ping'  =>  $model->agent_latest_ping,
             'maintainer'  =>  $model->maintainer,
             'responsible'  =>  $model->responsible,
-            'iaas_compute_pool_id'  =>  $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
+            'iaas_compute_pool_id'  =>  $model->compute_pool_uuid,
             'snapshot_of_virtual_machine'  =>  $model->snapshot_of_virtual_machine,
-            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
-            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
+            'iam_account_id'  =>  $model->account_uuid,
+            'iam_user_id'  =>  $model->user_uuid,
             'created_at'  =>  $model->created_at,
             'updated_at'  =>  $model->updated_at,
             'deleted_at'  =>  $model->deleted_at,
