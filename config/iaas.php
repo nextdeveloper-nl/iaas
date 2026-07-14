@@ -5,6 +5,12 @@ return [
         'global' => [
             '\NextDeveloper\IAM\Database\Scopes\AuthorizationScope',
             '\NextDeveloper\Commons\Database\GlobalScopes\LimitScope',
+        ],
+        'iaas_repository_images' => [
+            '\NextDeveloper\IAAS\Database\Scopes\HideCloudInitImagesScope',
+        ],
+        'iaas_repository_images_perspective' => [
+            '\NextDeveloper\IAAS\Database\Scopes\HideCloudInitImagesScope',
         ]
     ],
     'regulations'   =>  [

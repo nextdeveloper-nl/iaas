@@ -8,6 +8,7 @@ use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
+use NextDeveloper\IAAS\Database\Scopes\HideCloudInitImagesScope;
 use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -92,6 +93,7 @@ class SynchronizeIsos extends AbstractAction
     private function syncFile($file)
     {
         $dbImage = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(HideCloudInitImagesScope::class)
             ->where('iaas_repository_id', $this->model->id)
             ->where('is_iso', true)
             ->where('filename', $file)
