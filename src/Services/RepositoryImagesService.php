@@ -7,6 +7,7 @@ use NextDeveloper\IAAS\Database\Filters\RepositoryImagesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Database\Scopes\HideCloudInitImagesScope;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractRepositoryImagesService;
 use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -46,6 +47,7 @@ class RepositoryImagesService extends AbstractRepositoryImagesService
         $repository = RepositoriesService::getDefaultRepositoryOfVirtualMachine($vm);
 
         return RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(HideCloudInitImagesScope::class)
             ->where('iaas_repository_id', $repository->id)
             ->where('filename', 'config-' . $vm->uuid . '.iso')
             ->where('is_cloudinit_image', true)
@@ -60,6 +62,7 @@ class RepositoryImagesService extends AbstractRepositoryImagesService
         ]));
 
         return RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(HideCloudInitImagesScope::class)
             ->where('iaas_repository_id', $repo->id)
             ->where('filename', $filename)
             ->where('is_cloudinit_image', true)
