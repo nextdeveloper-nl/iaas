@@ -10,12 +10,19 @@ use NextDeveloper\IAAS\Contracts\EventTranslatorCapableInterface;
 use NextDeveloper\IAAS\Contracts\ExportCapableInterface;
 use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Contracts\NetworkCapableInterface;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
 use NextDeveloper\IAAS\Contracts\SnapshotCapableInterface;
 use NextDeveloper\IAAS\Contracts\VirtualMachineAdapterInterface;
+use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
+use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
+use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
@@ -25,6 +32,7 @@ use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\ValueObjects\ConsoleSession;
 use NextDeveloper\IAAS\ValueObjects\NormalizedHypervisorEvent;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * Wraps the existing Hypervisors/XenServer/*Service classes (SSH + `xe` CLI, unchanged)
@@ -49,7 +57,8 @@ class XenServer82SshDriver implements
     ConsoleCapableInterface,
     EventTranslatorCapableInterface,
     ExportCapableInterface,
-    ConfigurationIsoCapableInterface
+    ConfigurationIsoCapableInterface,
+    ProvisioningCapableInterface
 {
     public function __construct(private readonly array $config = [])
     {
@@ -453,5 +462,244 @@ class XenServer82SshDriver implements
     public function regenerateConfigurationIso(VirtualMachines $vm): bool
     {
         return VirtualMachinesXenService::updateConfigurationIso($vm);
+    }
+
+    // -- ProvisioningCapableInterface ---------------------------------------------------
+
+    public function mountRepository(ComputeMembers $computeMember, Repositories $repository): bool
+    {
+        return ComputeMemberXenService::mountVmRepository($computeMember, $repository);
+    }
+
+    public function unmountRepository(ComputeMembers $computeMember, Repositories $repository): bool
+    {
+        return ComputeMemberXenService::unmountVmRepository($computeMember, $repository);
+    }
+
+    public function importFromImage(
+        VirtualMachines $vm,
+        ComputeMembers $computeMember,
+        Repositories $repository,
+        StorageVolumes $volume,
+        RepositoryImages $image,
+        bool $isLazyDeploy
+    ): string {
+        $this->mountRepository($computeMember, $repository);
+
+        if ($isLazyDeploy) {
+            return ComputeMemberXenService::importVirtualMachine(
+                computeMember: $computeMember,
+                volume: $volume,
+                image: $image,
+                vm: $vm,
+                isLazyDeploy: $isLazyDeploy,
+                vmUuid: $vm->uuid
+            );
+        }
+
+        return ComputeMemberXenService::importVirtualMachine(
+            computeMember: $computeMember,
+            volume: $volume,
+            image: $image,
+            vm: $vm,
+        );
+    }
+
+    public function getVmParametersByRef(ComputeMembers $computeMember, string $ref): array
+    {
+        return VirtualMachinesXenService::getVmParametersByUuid($computeMember, $ref);
+    }
+
+    public function renameVirtualMachine(VirtualMachines $vm): bool
+    {
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        return ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
+    }
+
+    public function injectGuestMetadata(VirtualMachines $vm, string $key, string $value): bool
+    {
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        return ComputeMemberXenService::setVmXenstoreData($key, $value, $vm, $computeMember);
+    }
+
+    public function reconcileDiskConfiguration(VirtualMachines $vm): void
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
+
+        $diskConfig = VirtualDiskImages::where('iaas_virtual_machine_id', $vm->id)->orderBy('id', 'asc')->get();
+
+        //  Check if imported VM has a disk already
+        $disks = VirtualMachinesXenService::getVmDisks($vm);
+
+        $syncedDisks = [];
+
+        foreach ($disks as $disk) {
+            $connectionParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
+
+            foreach ($diskConfig as $config) {
+                //  If the userdevice and device_number are equal, we will sync this disk.
+                if ($connectionParams['userdevice'] == $config['device_number']) {
+                    $this->syncDiskConfig($vm, $config, $disk);
+                    $syncedDisks[] = $disk['uuid'];
+                }
+            }
+        }
+
+        $unsyncedDisks = [];
+
+        foreach ($disks as $disk) {
+            if (!in_array($disk['uuid'], $syncedDisks)) {
+                $unsyncedDisks[] = $disk;
+            }
+        }
+
+        foreach ($unsyncedDisks as $disk) {
+            if ($disk['vdi-uuid'] === '<not in database>') {
+                VirtualDiskImageXenService::destroyCdrom($vm->uuid, $computeMember);
+            } else {
+                VirtualDiskImageXenService::destroyDisk($disk['vdi-uuid'], $computeMember);
+            }
+        }
+
+        //  After we finish syncing the disks, we will check if we have any disk configuration that is not synced.
+        $diskConfig = VirtualDiskImages::where('iaas_virtual_machine_id', $vm->id)->orderBy('id', 'asc')->get();
+
+        //  Now we need to create the disks that are in draft state
+        foreach ($diskConfig as $disk) {
+            //  If we have a draft disk this means that we have a disk that we need to create
+            if ($disk->is_draft) {
+                $disk = VirtualDiskImageXenService::create($disk);
+                $disk = VirtualDiskImageXenService::attach($disk);
+
+                //  Normal update (not quiet) so observers/events fire as usual; runAsAdmin because this
+                //  runs in a queued action with no authenticated user, and the observer's updating()
+                //  hook requires UserHelper::can('update', ...) to pass.
+                UserHelper::runAsAdmin(function () use ($disk) {
+                    $disk->update([
+                        'is_draft'  =>  false
+                    ]);
+                });
+            }
+        }
+    }
+
+    private function syncDiskConfig(VirtualMachines $vm, $config, $disk): void
+    {
+        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vm->iaas_compute_member_id)
+            ->first();
+
+        //  We are making the resize first because we need to get the disk parameters after the resize.
+        //  And from there we will understand if the disk is resized or not.
+        $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
+
+        //  If this is not a CDROM
+        if ($vbdParams['type'] != 'CD') {
+            VirtualDiskImageXenService::resize($disk['vdi-uuid'], $computeMember, $config->size);
+            $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
+        }
+
+        $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);
+
+        $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+            ->where('hypervisor_uuid', $diskParams['sr-uuid'])
+            ->first();
+
+        if ($vbdParams['type'] != 'CD') {
+            //  This means that this is not a CDROM. If this is a cdrom we don't need to check the size.
+            if ($config->size != $diskParams['virtual-size']) {
+                StateHelper::setState($config, 'disk_cannot_resized', 'Disk cannot resized. Current size is: ' . $diskParams['virtual-size'], 'warn');
+            }
+        }
+
+        $data = [
+            'name' => $vbdParams['type'] !== 'CD' ? $config->name : 'CDROM',
+            'size' => $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
+            'physical_utilisation' => $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
+            'iaas_storage_volume_id' => $vbdParams['type'] === 'CD' ? null : $diskVolume->iaas_storage_volume_id,
+            'iaas_virtual_machine_id' => $vm->id,
+            'device_number' => $vbdParams['userdevice'],
+            'is_cdrom' => $vbdParams['type'] === 'CD',
+            'hypervisor_uuid' => $vbdParams['vdi-uuid'],
+            'hypervisor_data' => $disk,
+            'iam_account_id' => $vm->iam_account_id,
+            'iam_user_id' => $vm->iam_user_id,
+            'is_draft' => false,
+        ];
+
+        $config->update($data);
+    }
+
+    public function reconcileNetworkConfiguration(VirtualMachines $vm): void
+    {
+        $netConfig = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
+
+        //  Checking if the virtual machine actually has a VIF. If has we are syncing those vifs.
+        $vifs = VirtualMachinesXenService::getVifs($vm);
+
+        $syncedVifs = [];
+
+        foreach ($vifs as $vif) {
+            if (!count($vif)) {
+                continue;
+            }
+
+            foreach ($netConfig as $config) {
+                if ($config->device_number == $vif['device']) {
+                    $this->syncVifConfig($vm, $vif, $config);
+
+                    $syncedVifs[] = $vif['uuid'];
+                }
+            }
+        }
+
+        foreach ($vifs as $vif) {
+            if (!count($vif)) {
+                continue;
+            }
+
+            if (!in_array($vif['uuid'], $syncedVifs)) {
+                VirtualMachinesXenService::destroyVif($vm, $vif['uuid']);
+            }
+        }
+
+        $netConfig = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
+
+        foreach ($netConfig as $config) {
+            //  Here we check if the VIF not exists. If not exists hypervisor_uuid is null
+            if ($config->hypervisor_uuid == null) {
+                (new Attach($config))->handle();
+            }
+        }
+    }
+
+    private function syncVifConfig(VirtualMachines $vm, $vif, $config): void
+    {
+        $params = VirtualMachinesXenService::getVifParams($vm, $vif['uuid']);
+
+        $vif = $params[0];
+
+        $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('network_uuid', $vif['network-uuid'])
+            ->first();
+
+        $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->where('vlan', $cmni->vlan)
+            ->first();
+
+        $config->update([
+            'hypervisor_uuid'   => $vif['uuid'],
+            'hypervisor_data'   => $vif,
+            'mac_addr'          => $vif['MAC'],
+            'iaas_network_id'   =>  $network ? $network->id : null,
+            'bandwitdh_limit'   =>  -1,
+            'is_draft'          =>  false
+        ]);
     }
 }

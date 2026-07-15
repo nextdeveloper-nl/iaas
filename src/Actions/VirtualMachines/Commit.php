@@ -23,6 +23,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Contracts\HostSyncInterface;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers\UtilizeComputeMembers;
@@ -159,10 +160,18 @@ class Commit extends AbstractAction
 
         $this->setProgress(19, 'Unmounting repository from compute member');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][19] | Unmounting repository from compute member');
-        $result = ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
 
-        ComputeMemberXenService::setVmXenstoreData('api', config('app.url'), $vm, $computeMember);
-        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
+        $provisioningDriver = app(VirtualMachineManager::class)->getAdapter($vm);
+
+        if ($provisioningDriver instanceof ProvisioningCapableInterface) {
+            $provisioningDriver->unmountRepository($computeMember, $repo);
+            $provisioningDriver->injectGuestMetadata($vm, 'api', config('app.url'));
+            $provisioningDriver->renameVirtualMachine($vm);
+        } else {
+            ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
+            ComputeMemberXenService::setVmXenstoreData('api', config('app.url'), $vm, $computeMember);
+            ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
+        }
 
         /**
          * ############### SECOND PART OF IMPORT STARTS
@@ -200,7 +209,11 @@ class Commit extends AbstractAction
 
         //  We ask the hypervisor for the real power state instead of assuming 'halted', because committing a
         //  pending update (e.g. adding a disk) can happen while the VM is still running.
-        $vmParams = VirtualMachinesXenService::getVmParameters($vm);
+        $hypervisorDriver = app(VirtualMachineManager::class)->getAdapter($vm);
+
+        $vmParams = $hypervisorDriver
+            ? $hypervisorDriver->getHypervisorData($vm)
+            : VirtualMachinesXenService::getVmParameters($vm);
 
         $vm->update([
             'status' => $vmParams['power-state'] ?? 'halted',
@@ -279,17 +292,16 @@ class Commit extends AbstractAction
         }
     }
 
-    /**
-     * Not routed through VirtualMachineManager: this syncs/destroys/creates VIFs by
-     * diffing the hypervisor's live VIF list against our DB config, including VIFs that
-     * exist on the hypervisor with no corresponding VirtualNetworkCards row yet -
-     * NetworkCapableInterface::destroyNetworkCard() requires that DB row to resolve the
-     * owning VM, so it doesn't fit this exact shape. See
-     * docs/hypervisor-driver-architecture.md - this is flagged there as remaining work,
-     * deliberately not rushed given how central VM provisioning is.
-     */
     private function setupNetworking($step)
     {
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+        if ($driver instanceof ProvisioningCapableInterface) {
+            $driver->reconcileNetworkConfiguration($this->model);
+
+            return;
+        }
+
         switch ($this->computePool->virtualization) {
             case 'xenserver-8.2':
                 $this->setupXenNetworking($step);
@@ -369,15 +381,16 @@ class Commit extends AbstractAction
         ]);
     }
 
-    /**
-     * Not routed through VirtualMachineManager: this diffs the hypervisor's live disk
-     * list against our DB disk config (create/attach/resize/destroy, CD-vs-VDI handling),
-     * an order-dependent sequence DiskCapableInterface's per-operation methods don't
-     * capture as a single unit. See docs/hypervisor-driver-architecture.md - flagged as
-     * remaining work, deliberately not rushed given how central VM provisioning is.
-     */
     private function setupDisks($step)
     {
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+        if ($driver instanceof ProvisioningCapableInterface) {
+            $driver->reconcileDiskConfiguration($this->model);
+
+            return;
+        }
+
         $computePool = ComputePools::where('id', $this->model->iaas_compute_pool_id)->first();
 
         switch ($computePool->virtualization) {
@@ -388,13 +401,10 @@ class Commit extends AbstractAction
     }
 
     /**
-     * Not routed through VirtualMachineManager: importing a VM from a repository image
-     * has no capability interface yet - the plain-VDI/host-selection logic here (finding
-     * a compute member, resolving a storage volume, mounting the repo) is DB/algorithm
-     * work rather than hypervisor calls, but importXenServer() below it is a genuinely
-     * new operation with no existing interface coverage. See
-     * docs/hypervisor-driver-architecture.md - flagged as remaining work, deliberately
-     * not rushed given how central VM provisioning is.
+     * The compute-member/storage-volume selection logic here is DB/algorithm work, not a
+     * hypervisor call, so it stays here unconditionally. The actual import is routed
+     * through ProvisioningCapableInterface::importFromImage() below, with
+     * importXenServer() kept as the fallback body for a driver that doesn't implement it.
      */
     private function importVirtualMachine($step)
     {
@@ -501,10 +511,19 @@ class Commit extends AbstractAction
             'iaas_repository_image_id' => $machineImage->id
         ]);
 
-        switch ($computePool->virtualization) {
-            case 'xenserver-8.2':
-                $uuid = $this->importXenServer($vm, $computeMember, $repositoryServer, $storageVolume, $machineImage, $step);
-                break;
+        $provisioningDriver = app(VirtualMachineManager::class)->getAdapter($vm);
+
+        if ($provisioningDriver instanceof ProvisioningCapableInterface) {
+            $uuid = $provisioningDriver->importFromImage(
+                $vm,
+                $computeMember,
+                $repositoryServer,
+                $storageVolume,
+                $machineImage,
+                $this->params['is_lazy_deploy']
+            );
+        } else {
+            $uuid = $this->importXenServer($vm, $computeMember, $repositoryServer, $storageVolume, $machineImage, $step);
         }
 
         $this->setProgress($step + 9, 'Virtual machine imported');
@@ -563,7 +582,12 @@ class Commit extends AbstractAction
 
         $this->setProgress($step + 6, 'Updating virtual machine parameters');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 6 . '] | Updating virtual machine parameters');
-        $vmParams = VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
+
+        $provisioningDriver = app(VirtualMachineManager::class)->getAdapter($vm);
+
+        $vmParams = $provisioningDriver instanceof ProvisioningCapableInterface
+            ? $provisioningDriver->getVmParametersByRef($computeMember, $uuid)
+            : VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
 
         $vm->update([
             'hypervisor_uuid' => $vmParams['uuid'],
