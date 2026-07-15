@@ -43,7 +43,12 @@ class VirtualMachineManager
             throw new AdapterNotFoundException("No driver registered for platform: {$virtualization}");
         }
 
-        $config = config("virtualization.platforms.{$virtualization}");
+        //  Plain array lookup, not config("virtualization.platforms.{$virtualization}") -
+        //  virtualization values contain literal dots ("xenserver-8.2"), which Laravel's
+        //  dot-notation config() helper would otherwise misparse as nested segments
+        //  ("xenserver-8" -> "2") instead of a single flat key. Caught by booting this
+        //  through the real container - see "How to Validate" in the architecture doc.
+        $config = config('virtualization.platforms', [])[$virtualization] ?? null;
 
         if (!$config) {
             throw new AdapterNotFoundException("No configuration found for platform: {$virtualization}");
@@ -55,36 +60,68 @@ class VirtualMachineManager
     }
 
     /**
-     * Resolves the driver for a VM via its compute pool's virtualization string.
+     * Resolves the driver for a VM via its compute pool's virtualization string. Returns
+     * null (rather than throwing) when the VM has no compute pool, no virtualization
+     * value, or no driver is registered for it - callers `instanceof`-check the result,
+     * same as any optional capability interface check, and fall back accordingly. Use
+     * requireAdapter() instead when a missing driver should be a hard failure.
      */
-    public function getAdapter(VirtualMachines $vm): VirtualMachineAdapterInterface
+    public function getAdapter(VirtualMachines $vm): ?VirtualMachineAdapterInterface
     {
         $computePool = VirtualMachinesService::getComputePool($vm);
 
-        return $this->resolveDriver($computePool->virtualization);
+        return $computePool ? $this->getAdapterForComputePool($computePool) : null;
     }
 
     /**
      * Resolves the driver for a compute member (host-level operations - see
-     * HostSyncInterface) via its compute pool's virtualization string.
+     * HostSyncInterface) via its compute pool's virtualization string. Same null-on-miss
+     * contract as getAdapter().
      */
-    public function getAdapterForComputeMember(ComputeMembers $computeMember): VirtualMachineAdapterInterface
+    public function getAdapterForComputeMember(ComputeMembers $computeMember): ?VirtualMachineAdapterInterface
     {
-        return $this->resolveDriver($computeMember->computePools->virtualization);
+        $computePool = $computeMember->computePools;
+
+        return $computePool ? $this->getAdapterForComputePool($computePool) : null;
     }
 
     /**
      * Resolves the driver directly from a compute pool - used wherever the caller
-     * already has the pool and doesn't need to look it up via a VM/compute member.
+     * already has the pool and doesn't need to look it up via a VM/compute member. Same
+     * null-on-miss contract as getAdapter().
      */
-    public function getAdapterForComputePool(ComputePools $computePool): VirtualMachineAdapterInterface
+    public function getAdapterForComputePool(ComputePools $computePool): ?VirtualMachineAdapterInterface
     {
-        return $this->resolveDriver($computePool->virtualization);
+        if (!$computePool->virtualization) {
+            return null;
+        }
+
+        try {
+            return $this->resolveDriver($computePool->virtualization);
+        } catch (AdapterNotFoundException) {
+            return null;
+        }
+    }
+
+    /**
+     * Same as getAdapter(), but throws instead of returning null - for callers (like this
+     * class's own start()/stop()/etc convenience methods below) that have no legacy
+     * fallback path and need a driver to proceed at all.
+     */
+    public function requireAdapter(VirtualMachines $vm): VirtualMachineAdapterInterface
+    {
+        $driver = $this->getAdapter($vm);
+
+        if (!$driver) {
+            throw new AdapterNotFoundException("No driver could be resolved for VM {$vm->uuid} - check it has a compute pool with a registered virtualization value.");
+        }
+
+        return $driver;
     }
 
     public function sync(VirtualMachines $vm) : VirtualMachines
     {
-        $hypervisor = $this->getAdapter($vm);
+        $hypervisor = $this->requireAdapter($vm);
 
         return $hypervisor->sync($vm);
     }
@@ -94,7 +131,7 @@ class VirtualMachineManager
         $vm->updateState('starting');
 
         try {
-            $hypervisor = $this->getAdapter($vm);
+            $hypervisor = $this->requireAdapter($vm);
 
             return $hypervisor->start($vm);
         } catch (\Exception $e) {
@@ -108,7 +145,7 @@ class VirtualMachineManager
         $vm->updateState('halting');
 
         try {
-            $hypervisor = $this->getAdapter($vm);
+            $hypervisor = $this->requireAdapter($vm);
 
             return $hypervisor->stop($vm, $force);
         } catch (\Exception $e) {
@@ -122,7 +159,7 @@ class VirtualMachineManager
         $vm->updateState('restarting');
 
         try {
-            $hypervisor = $this->getAdapter($vm);
+            $hypervisor = $this->requireAdapter($vm);
 
             return $hypervisor->restart($vm, $force);
         } catch (\Exception $e) {
@@ -136,7 +173,7 @@ class VirtualMachineManager
         $vm->updateState('pausing');
 
         try {
-            $hypervisor = $this->getAdapter($vm);
+            $hypervisor = $this->requireAdapter($vm);
 
             return $hypervisor->pause($vm);
         } catch (\Exception $e) {
@@ -150,7 +187,7 @@ class VirtualMachineManager
         $vm->updateState('resuming');
 
         try {
-            $hypervisor = $this->getAdapter($vm);
+            $hypervisor = $this->requireAdapter($vm);
 
             return $hypervisor->resume($vm);
         } catch (\Exception $e) {
@@ -224,7 +261,7 @@ class VirtualMachineManager
     public function delete(VirtualMachines $vm): bool
     {
         try {
-            $hypervisor = $this->getAdapter($vm);
+            $hypervisor = $this->requireAdapter($vm);
             $result = $hypervisor->delete($vm);
 
             if ($result) {
@@ -240,7 +277,7 @@ class VirtualMachineManager
 
     public function getHypervisorData(VirtualMachines $vm) : array
     {
-        return $this->getAdapter($vm)->getHypervisorData($vm);
+        return $this->requireAdapter($vm)->getHypervisorData($vm);
     }
 
     private function platformOf(VirtualMachines $vm) : string
