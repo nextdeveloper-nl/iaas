@@ -11,6 +11,8 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Backup;
+use NextDeveloper\IAAS\Contracts\BackupCapableInterface;
+use NextDeveloper\IAAS\Contracts\SnapshotCapableInterface;
 use NextDeveloper\IAAS\Database\Models\Accounts;
 use NextDeveloper\IAAS\Database\Models\BackupJobs;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -22,6 +24,7 @@ use NextDeveloper\IAAS\Services\Backups\BackupService;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\Repositories\SyncRepositoryService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
@@ -144,11 +147,17 @@ class RunBackupJob extends AbstractAction
         if(is_array($computeMember)) $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)->where('uuid', $computeMember['uuid'])->first();
 
         if($this->shouldRunCheckpoint(10)) {
-            $snapshot = VirtualMachinesXenService::takeSnapshot($vm);
+            $driver = app(VirtualMachineManager::class)->getAdapter($vm);
+
+            $snapshot = $driver instanceof BackupCapableInterface
+                ? $driver->takeSnapshotRaw($vm)
+                : VirtualMachinesXenService::takeSnapshot($vm);
 
             if($snapshot['error']) {
-                //  There is an error
-                dd($snapshot);
+                //  There is an error - was dd($snapshot), which would have killed the whole
+                //  job on any snapshot failure. Throwing instead lets the job's own error
+                //  handling take over.
+                throw new \RuntimeException('Failed to take snapshot for backup: ' . $snapshot['error']);
             }
 
             $uuid = $snapshot['output'];
@@ -185,23 +194,42 @@ class RunBackupJob extends AbstractAction
         }
 
         if($this->shouldRunCheckpoint(30)) {
-            VirtualMachinesXenService::fixName($snapshot);
+            $driver = app(VirtualMachineManager::class)->getAdapter($snapshot);
+
+            $driver instanceof BackupCapableInterface
+                ? $driver->fixVmName($snapshot)
+                : VirtualMachinesXenService::fixName($snapshot);
 
             $this->setProgress(30, 'Fixed the name of the snapshot.');
         }
 
         if($this->shouldRunCheckpoint(40)) {
             //  Converting snapshot to VM does not require an update in VM details.
-            $convertResult = VirtualMachinesXenService::convertSnapshotToVm($snapshot);
+            $driver = app(VirtualMachineManager::class)->getAdapter($snapshot);
+
+            $convertResult = $driver instanceof SnapshotCapableInterface
+                ? $driver->convertSnapshotToVm($snapshot)
+                : VirtualMachinesXenService::convertSnapshotToVm($snapshot);
 
             $this->setProgress(40, 'Converting Snapshot to VM.');
         }
 
         if($this->shouldRunCheckpoint(50)) {
-            $clonedVmUuid = VirtualMachinesXenService::cloneVm($snapshot);
-            $clonedVmUuid = $clonedVmUuid['output'];
+            $driver = app(VirtualMachineManager::class)->getAdapter($snapshot);
+
+            $cloneResponse = $driver instanceof BackupCapableInterface
+                ? $driver->cloneVmRaw($snapshot)
+                : VirtualMachinesXenService::cloneVm($snapshot);
+
+            $clonedVmUuid = $cloneResponse['output'];
 
             Log::info('[' . __METHOD__ . '] VM is cloned, the new uuid is: ' . $clonedVmUuid);
+
+            if(!$clonedVmUuid) {
+                //  Then there must be an error - was dd($cloneResponse), same reasoning as
+                //  the checkpoint-10 fix above.
+                throw new \RuntimeException('Failed to clone VM for backup: ' . json_encode($cloneResponse));
+            }
 
             $clonedVm = VirtualMachinesService::create([
                 'name'  =>  'Clone of ' . $vm->name,
@@ -228,14 +256,21 @@ class RunBackupJob extends AbstractAction
 
         if($this->shouldRunCheckpoint(55)) {
             //  Now we can delete the snapshot.
-            $destroyResult = VirtualMachinesXenService::destroyVm($snapshot);
+            $driver = app(VirtualMachineManager::class)->getAdapter($snapshot);
+
+            $driver ? $driver->delete($snapshot) : VirtualMachinesXenService::destroyVm($snapshot);
+
             $snapshot->delete();
 
             $this->setProgress(55, 'Snapshot is deleted.');
         }
 
         if($this->shouldRunCheckpoint(60)) {
-            VirtualMachinesXenService::fixName($clonedVm);
+            $driver = app(VirtualMachineManager::class)->getAdapter($clonedVm);
+
+            $driver instanceof BackupCapableInterface
+                ? $driver->fixVmName($clonedVm)
+                : VirtualMachinesXenService::fixName($clonedVm);
 
             $this->setProgress(60, 'Fixed the cloned vm name.');
         }
@@ -248,26 +283,40 @@ class RunBackupJob extends AbstractAction
                 default: ComputeMembersService::getDefaultBackupRepository($computeMember)
             );
 
-            ComputeMemberXenService::mountRepository($computeMember, $backupRepo);
+            $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($computeMember);
+
+            $driver instanceof BackupCapableInterface
+                ? $driver->mountBackupRepository($computeMember, $backupRepo)
+                : ComputeMemberXenService::mountRepository($computeMember, $backupRepo);
 
             $this->setProgress(65, 'Mounted default backup repository.');
         }
 
         if($this->shouldRunCheckpoint(75)) {
-            $vifs = VirtualMachinesXenService::getVifs($clonedVm);
+            $driver = app(VirtualMachineManager::class)->getAdapter($clonedVm);
 
-            foreach ($vifs as $vif) {
-                VirtualMachinesXenService::destroyVif($clonedVm, $vif['uuid']);
+            if ($driver instanceof BackupCapableInterface) {
+                $driver->stripAllNetworkCards($clonedVm);
+            } else {
+                $vifs = VirtualMachinesXenService::getVifs($clonedVm);
+
+                foreach ($vifs as $vif) {
+                    VirtualMachinesXenService::destroyVif($clonedVm, $vif['uuid']);
+                }
             }
 
             $this->setProgress(75, 'Removed all the VIFs of cloned VM. Starting to export it.');
         }
 
         if($this->shouldRunCheckpoint(80)) {
-            $isBackupRunning = VirtualMachinesXenService::isBackupRunning(
-                computeMember: $computeMember,
-                vmName: $clonedVm->name,
-            );
+            $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($computeMember);
+
+            $isBackupRunning = $driver instanceof BackupCapableInterface
+                ? $driver->isBackupRunning($computeMember, $clonedVm->name)
+                : VirtualMachinesXenService::isBackupRunning(
+                    computeMember: $computeMember,
+                    vmName: $clonedVm->name,
+                );
 
             Log::debug('[RunBackupJob] The backup state fo the vmBackup: ' . $vmBackup->status);
             Log::debug('[RunBackupJob] Is backup running in background: ' . $isBackupRunning);
@@ -300,12 +349,14 @@ class RunBackupJob extends AbstractAction
                         'the backup process');
                     //  This may take up to few hours.
                     //  We need to make sure that the job does not time out.
-                    $backupResult = VirtualMachinesXenService::exportToRepositoryInBackground(
-                        vm: $clonedVm,
-                        repositories: $backupRepo,
-                        exportName: $backupFilename,
-                        vmBackup: $vmBackup
-                    );
+                    $backupResult = $driver instanceof BackupCapableInterface
+                        ? $driver->exportToRepositoryInBackground($clonedVm, $backupRepo, $backupFilename, $vmBackup)
+                        : VirtualMachinesXenService::exportToRepositoryInBackground(
+                            vm: $clonedVm,
+                            repositories: $backupRepo,
+                            exportName: $backupFilename,
+                            vmBackup: $vmBackup
+                        );
                 }
             }
 
@@ -377,7 +428,9 @@ class RunBackupJob extends AbstractAction
         if($this->shouldRunCheckpoint(95)) {
             Events::fire('backed-up:NextDeveloper\IAAS\VirtualMachines', $vm);
 
-            VirtualMachinesXenService::destroyVm($clonedVm);
+            $driver = app(VirtualMachineManager::class)->getAdapter($clonedVm);
+
+            $driver ? $driver->delete($clonedVm) : VirtualMachinesXenService::destroyVm($clonedVm);
 
             $clonedVm->delete();
 

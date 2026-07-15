@@ -29,6 +29,7 @@ use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\Hypervisors\HypervisorService;
@@ -1294,5 +1295,40 @@ class XenServer82SshDriver implements
     public function exportToDefaultBackupRepository(VirtualMachines $vm): array
     {
         return VirtualMachinesXenService::exportToDefaultBackupRepository($vm);
+    }
+
+    public function takeSnapshotRaw(VirtualMachines $vm): array
+    {
+        return VirtualMachinesXenService::takeSnapshot($vm);
+    }
+
+    public function fixVmName(VirtualMachines $vm): bool
+    {
+        return VirtualMachinesXenService::fixName($vm);
+    }
+
+    public function cloneVmRaw(VirtualMachines $vm): array
+    {
+        return VirtualMachinesXenService::cloneVm($vm);
+    }
+
+    public function mountBackupRepository(ComputeMembers $computeMember, Repositories $repository): array
+    {
+        return ComputeMemberXenService::mountRepository($computeMember, $repository);
+    }
+
+    public function isBackupRunning(ComputeMembers $computeMember, string $vmName): ?float
+    {
+        return VirtualMachinesXenService::isBackupRunning($computeMember, $vmName);
+    }
+
+    public function exportToRepositoryInBackground(VirtualMachines $vm, Repositories $repository, string $exportName, VirtualMachineBackups $vmBackup): bool
+    {
+        return VirtualMachinesXenService::exportToRepositoryInBackground(
+            vm: $vm,
+            repositories: $repository,
+            exportName: $exportName,
+            vmBackup: $vmBackup,
+        );
     }
 }

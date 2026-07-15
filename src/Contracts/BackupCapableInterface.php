@@ -3,6 +3,8 @@
 namespace NextDeveloper\IAAS\Contracts;
 
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineBackups;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
 /**
@@ -31,4 +33,28 @@ interface BackupCapableInterface
      * ExportCapableInterface::exportToRepository(), which targets an explicit repository).
      */
     public function exportToDefaultBackupRepository(VirtualMachines $vm): array;
+
+    /**
+     * The following methods are deliberately granular (raw XAPI results, not persisted
+     * rows) rather than bundled like createSnapshot()/clone() - RunBackupJob.php and
+     * InitiateMultilevelBackupJob.php split "do the hypervisor operation" and "persist its
+     * DB row" into separately-resumable checkpoints, so a bundled method would break that
+     * resumability contract.
+     */
+
+    /** Takes a snapshot, returning the raw XAPI result - the caller decides if/when to persist it. */
+    public function takeSnapshotRaw(VirtualMachines $vm): array;
+
+    public function fixVmName(VirtualMachines $vm): bool;
+
+    /** Clones a VM, returning the raw XAPI result - the caller decides if/when to persist it. */
+    public function cloneVmRaw(VirtualMachines $vm): array;
+
+    /** Mounts an explicit repository to a compute member (distinct from mountRepository()/mountDefaultBackupRepository() - a third, separate XenService method used by this backup flow). */
+    public function mountBackupRepository(ComputeMembers $computeMember, Repositories $repository): array;
+
+    /** Returns the export task's progress (0-100) if one is currently running for this VM name, null otherwise. */
+    public function isBackupRunning(ComputeMembers $computeMember, string $vmName): ?float;
+
+    public function exportToRepositoryInBackground(VirtualMachines $vm, Repositories $repository, string $exportName, VirtualMachineBackups $vmBackup): bool;
 }
