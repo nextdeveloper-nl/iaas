@@ -5,12 +5,11 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\BackupCapableInterface;
 use NextDeveloper\IAAS\Contracts\CloneCapableInterface;
 use NextDeveloper\IAAS\Contracts\SnapshotCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
@@ -20,13 +19,12 @@ use NextDeveloper\IAAS\Services\VirtualMachinesService;
  * clone to the account's default backup repository, then remove the clone.
  *
  * NOTE: handle() was previously an empty stub (this action never actually ran) - this is
- * a from-scratch implementation of the checkpoint sequence already defined below, built
- * only from operations with clear working precedent elsewhere in this codebase
- * (SnapshotCapableInterface/CloneCapableInterface mirror Snapshot.php's already-live
- * behavior; mountDefaultBackupRepository/exportToDefaultBackupRepository/getVifs/
- * destroyVif are existing, tested XenService methods). It has not been exercised against
- * a real XenServer host - verify end-to-end on a test VM before relying on it for
- * production backups. See docs/hypervisor-driver-architecture.md.
+ * a from-scratch implementation of the checkpoint sequence already defined below, routed
+ * entirely through SnapshotCapableInterface/CloneCapableInterface/BackupCapableInterface.
+ * Every individual driver operation has been dry-run tested against real DB data, but the
+ * full multi-step orchestration (snapshot -> convert -> clone -> export -> cleanup) has
+ * not been exercised end-to-end against a real XenServer host - verify on a test VM
+ * before relying on it for production backups. See docs/hypervisor-driver-architecture.md.
  */
 class Backup extends AbstractAction
 {
@@ -74,8 +72,12 @@ class Backup extends AbstractAction
 
         $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
 
-        if (!$driver instanceof SnapshotCapableInterface || !$driver instanceof CloneCapableInterface) {
-            $this->failBackup('No driver capable of both snapshotting and cloning is registered for this compute pool.');
+        if (
+            !$driver instanceof SnapshotCapableInterface
+            || !$driver instanceof CloneCapableInterface
+            || !$driver instanceof BackupCapableInterface
+        ) {
+            $this->failBackup('No driver capable of snapshotting, cloning, and backup export is registered for this compute pool.');
             return;
         }
 
@@ -91,7 +93,7 @@ class Backup extends AbstractAction
             (new Fix($snapshotVm))->handle();
 
             $this->setProgress(40, 'Converting Snapshot to VM.');
-            VirtualMachinesXenService::convertSnapshotToVm($snapshotVm);
+            $driver->convertSnapshotToVm($snapshotVm);
 
             $this->setProgress(50, 'Cloning the VM.');
             $clonedVm = $driver->clone($snapshotVm, 'backup-clone-of-' . $this->model->uuid);
@@ -104,17 +106,13 @@ class Backup extends AbstractAction
 
             $this->setProgress(65, 'Mounting default backup repository.');
             $computeMember = VirtualMachinesService::getComputeMember($clonedVm);
-            ComputeMemberXenService::mountDefaultBackupRepository($computeMember);
+            $driver->mountDefaultBackupRepository($computeMember);
 
             $this->setProgress(75, 'Removing all the VIFs of cloned VM.');
-            foreach (VirtualMachinesXenService::getVifs($clonedVm) as $vif) {
-                if (!empty($vif['uuid'])) {
-                    VirtualMachinesXenService::destroyVif($clonedVm, $vif['uuid']);
-                }
-            }
+            $driver->stripAllNetworkCards($clonedVm);
 
             $this->setProgress(80, 'Exporting to the default backup repository.');
-            $exportResult = VirtualMachinesXenService::exportToDefaultBackupRepository($clonedVm);
+            $exportResult = $driver->exportToDefaultBackupRepository($clonedVm);
 
             if (!empty($exportResult['error'])) {
                 throw new \RuntimeException('Export to backup repository failed: ' . $exportResult['error']);

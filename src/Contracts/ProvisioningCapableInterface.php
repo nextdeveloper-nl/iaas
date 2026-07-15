@@ -20,6 +20,12 @@ interface ProvisioningCapableInterface
     public function unmountRepository(ComputeMembers $computeMember, Repositories $repository): bool;
 
     /**
+     * Mounts an ISO/CD-image repository onto the compute member (distinct from
+     * mountRepository(), which mounts a VM-image repository).
+     */
+    public function mountIsoRepository(ComputeMembers $computeMember, Repositories $repository): bool;
+
+    /**
      * Imports a virtual machine onto the compute member/storage volume from the given
      * repository image, returning the hypervisor-native VM reference/uuid.
      */

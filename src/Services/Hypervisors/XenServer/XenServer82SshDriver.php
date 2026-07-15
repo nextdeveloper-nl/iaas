@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
+use NextDeveloper\IAAS\Contracts\BackupCapableInterface;
 use NextDeveloper\IAAS\Contracts\CloneCapableInterface;
 use NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface;
 use NextDeveloper\IAAS\Contracts\ConsoleCapableInterface;
@@ -58,7 +59,8 @@ class XenServer82SshDriver implements
     EventTranslatorCapableInterface,
     ExportCapableInterface,
     ConfigurationIsoCapableInterface,
-    ProvisioningCapableInterface
+    ProvisioningCapableInterface,
+    BackupCapableInterface
 {
     public function __construct(private readonly array $config = [])
     {
@@ -218,6 +220,11 @@ class XenServer82SshDriver implements
             ->where('is_snapshot', true)
             ->get()
             ->all();
+    }
+
+    public function convertSnapshotToVm(VirtualMachines $vm, ?string $name = null): array
+    {
+        return VirtualMachinesXenService::convertSnapshotToVm($vm, $name);
     }
 
     // -- CloneCapableInterface ---------------------------------------------------------
@@ -476,6 +483,11 @@ class XenServer82SshDriver implements
         return ComputeMemberXenService::unmountVmRepository($computeMember, $repository);
     }
 
+    public function mountIsoRepository(ComputeMembers $computeMember, Repositories $repository): bool
+    {
+        return ComputeMemberXenService::mountIsoRepository($computeMember, $repository);
+    }
+
     public function importFromImage(
         VirtualMachines $vm,
         ComputeMembers $computeMember,
@@ -701,5 +713,26 @@ class XenServer82SshDriver implements
             'bandwitdh_limit'   =>  -1,
             'is_draft'          =>  false
         ]);
+    }
+
+    // -- BackupCapableInterface ---------------------------------------------------------
+
+    public function mountDefaultBackupRepository(ComputeMembers $computeMember): array
+    {
+        return ComputeMemberXenService::mountDefaultBackupRepository($computeMember);
+    }
+
+    public function stripAllNetworkCards(VirtualMachines $vm): void
+    {
+        foreach (VirtualMachinesXenService::getVifs($vm) as $vif) {
+            if (!empty($vif['uuid'])) {
+                VirtualMachinesXenService::destroyVif($vm, $vif['uuid']);
+            }
+        }
+    }
+
+    public function exportToDefaultBackupRepository(VirtualMachines $vm): array
+    {
+        return VirtualMachinesXenService::exportToDefaultBackupRepository($vm);
     }
 }
