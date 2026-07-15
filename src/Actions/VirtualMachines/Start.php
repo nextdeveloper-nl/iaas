@@ -100,10 +100,7 @@ class Start extends AbstractAction
             if($result['error'] == 'Error: No matching VMs found') {
                 StateHelper::setState($this->model, 'cannot-find-vm', 'true', StateHelper::STATE_ERROR);
 
-                dispatch(new HealthCheck($this->model, null, $this));
-
-                $this->setFinishedWithError('This VM needs a health check. That is why I am finishing this action here.');
-                //  We need to finish this action
+                $this->setFinishedWithError('This VM could not be found on the hypervisor. It has been marked for manual investigation.');
                 return;
             }
         }
@@ -112,20 +109,17 @@ class Start extends AbstractAction
         $vmParams = $this->model->hypervisor_data;
 
         if(!array_key_exists('power-state', $vmParams)) {
-            //  The VM must not be available to be honest. So we should make a health check here.
+            //  The hypervisor did not return a usable power-state, so this VM's state
+            //  cannot be trusted right now. HealthCheck (which used to investigate this
+            //  further) has been retired - flag it for manual investigation instead of
+            //  dispatching a no-op job.
             $this->model->update([
                 'status'    =>  'checking-health'
             ]);
 
-            $job = new HealthCheck($this->model, null, $this);
-            $id = $job->getActionId();
+            $this->setFinishedWithError('Could not determine the virtual machine\'s state after this operation. It has been marked for manual investigation.');
 
-            dispatch($job)->onQueue('iaas');
-
-            $this->setProgress(100, 'Checking the health of the VM. ' .
-                'We suspect something is happening to it.');
-
-            return $id;
+            return;
         }
 
         if(config('leo.debug.iaas.compute_members'))

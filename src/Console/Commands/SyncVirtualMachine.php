@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
-use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Sync;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;

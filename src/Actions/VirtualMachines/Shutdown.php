@@ -63,9 +63,8 @@ class Shutdown extends AbstractAction
                 return;
             }
         } catch (\Exception $e) {
-            CommentsService::createSystemComment('Virtual machine shutdown has failed. This was unexpected so checking the health of the VM.', $this->model);
+            CommentsService::createSystemComment('Virtual machine shutdown has failed. This was unexpected.', $this->model);
             Events::fire('shutdown-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
-            dispatch(new HealthCheck($this->model));
         }
 
         CommentsService::createSystemComment('Virtual machine is found as halted', $this->model);

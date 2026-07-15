@@ -9,7 +9,6 @@ use Illuminate\Support\Str;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
-use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\AnsibleRoles;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;

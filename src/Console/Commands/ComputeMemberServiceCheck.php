@@ -5,7 +5,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAAS\Actions\ComputeMembers\CheckServices;
-use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;

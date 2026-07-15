@@ -4,7 +4,6 @@ namespace NextDeveloper\IAAS\Helpers;
 
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\CommentVMActionEvent;
-use NextDeveloper\IAAS\Actions\VirtualMachines\StateChangeNotification;
 
 class BindIAASEventHelper
 {
@@ -15,14 +14,6 @@ class BindIAASEventHelper
     public static function registerCommentAction(): void
     {
         self::registerEvents(CommentVMActionEvent::getSupportedEvents(), CommentVMActionEvent::class);
-    }
-
-    /**
-     * Register state change notification events (subset focused on user-visible state transitions).
-     */
-    public static function registerStateChangeNotificationAction(): void
-    {
-        self::registerEvents(StateChangeNotification::getSupportedEvents(), StateChangeNotification::class);
     }
 
     /**

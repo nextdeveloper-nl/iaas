@@ -65,20 +65,17 @@ class ForceShutdown extends AbstractAction
         $this->model = app(VirtualMachineManager::class)->stop($this->model, true);
 
         if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
-            //  The VM must not be available to be honest. So we should make a health check here.
+            //  The hypervisor did not return a usable power-state, so this VM's state
+            //  cannot be trusted right now. HealthCheck (which used to investigate this
+            //  further) has been retired - flag it for manual investigation instead of
+            //  dispatching a no-op job.
             $this->model->update([
                 'status'    =>  'checking-health'
             ]);
 
-            $job = new HealthCheck($this->model, null, $this);
-            $id = $job->getActionId();
+            $this->setFinishedWithError('Could not determine the virtual machine\'s state after this operation. It has been marked for manual investigation.');
 
-            dispatch($job)->onQueue('iaas');
-
-            $this->setProgress(100, 'Checking the health of the VM. ' .
-                'We suspect something is happening to it.');
-
-            return $id;
+            return;
         }
 
         if($this->model->status != 'halted') {

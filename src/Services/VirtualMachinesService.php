@@ -15,7 +15,6 @@ use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Delete;
-use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Accounts as IaasAccounts;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
@@ -664,10 +663,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function isRunning(VirtualMachines $vm, $force = false): bool
     {
-        if ($force) {
-            (new HealthCheck($vm))->handle();
-        }
-
         return $vm->status == 'running';
     }
 
@@ -710,11 +705,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             return base64_encode($output);
         };
 
-        if ($vm->console_data == null) {
-            //  If we dont have the console data we are updating the VM
-            (new HealthCheck($vm))->handle();
-        }
-
         $vm = $vm->fresh();
         $computeMember = self::getComputeMember($vm);
 
@@ -732,7 +722,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             return [];
 
         if (!array_key_exists('uuid', $vm->console_data)) {
-            dispatch(new HealthCheck($vm));
             return [];
         }
 
@@ -799,10 +788,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             return ['console' => 'Not available while the server is shutdown.'];
         }
 
-        if ($vm->console_data == null) {
-            (new HealthCheck($vm))->handle();
-        }
-
         $vm = $vm->fresh();
 
         if (!$vm) {
@@ -820,7 +805,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         if (!array_key_exists('uuid', $vm->console_data)) {
-            dispatch(new HealthCheck($vm));
             return [];
         }
 
