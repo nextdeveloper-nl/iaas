@@ -7,8 +7,9 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Contracts\ExportCapableInterface;
 use NextDeveloper\IAAS\Exceptions\CannotContinueException;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
@@ -71,9 +72,9 @@ class Export extends AbstractAction
             return;
         }
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if(!array_key_exists('power-state', $vmParams)) {
+        if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'
@@ -92,13 +93,16 @@ class Export extends AbstractAction
             return $id;
         }
 
-        if($vmParams['power-state'] != 'halted') {
+        if($this->model->status != 'halted') {
             $this->setFinishedWithError('We cannot export the virtual machine. It is not halted.');
             Events::fire('export-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
 
-        $exported = VirtualMachinesXenService::export($this->model, $this->repository);
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+        $exported = $driver instanceof ExportCapableInterface
+            ? $driver->exportToRepository($this->model, $this->repository)
+            : null;
 
         $this->model->status = 'initiated';
         $this->model->save();

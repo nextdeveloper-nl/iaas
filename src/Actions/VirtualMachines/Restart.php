@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
@@ -53,9 +54,13 @@ class Restart extends AbstractAction
 
         (new Fix($this->model))->handle();
 
-        //  Not routed through VirtualMachineManager: config-ISO regeneration has no
-        //  capability interface yet - see docs/hypervisor-driver-architecture.md.
-        VirtualMachinesXenService::updateConfigurationIso($this->model);
+        $configIsoDriver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+        if($configIsoDriver instanceof ConfigurationIsoCapableInterface) {
+            $configIsoDriver->regenerateConfigurationIso($this->model);
+        } else {
+            VirtualMachinesXenService::updateConfigurationIso($this->model);
+        }
 
         Events::fire('restarting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 

@@ -5,8 +5,10 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action regenerates and uploads the configuration ISO for the virtual machine,
@@ -47,7 +49,11 @@ class UpdateConfigurationIso extends AbstractAction
         Events::fire('updating-configuration-iso:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
         try {
-            $result = VirtualMachinesXenService::updateConfigurationIso($this->model);
+            $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+            $result = $driver instanceof ConfigurationIsoCapableInterface
+                ? $driver->regenerateConfigurationIso($this->model)
+                : VirtualMachinesXenService::updateConfigurationIso($this->model);
         } catch (\Exception $e) {
             CommentsService::createSystemComment('Updating configuration ISO failed: ' . $e->getMessage(), $this->model);
             Events::fire('configuration-iso-update-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);

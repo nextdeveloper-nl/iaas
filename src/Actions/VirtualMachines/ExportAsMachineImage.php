@@ -8,9 +8,10 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Contracts\ExportCapableInterface;
 use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -97,9 +98,9 @@ class ExportAsMachineImage extends AbstractAction
             return;
         }
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if(!array_key_exists('power-state', $vmParams)) {
+        if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'
@@ -118,7 +119,7 @@ class ExportAsMachineImage extends AbstractAction
             return $id;
         }
 
-        if($vmParams['power-state'] != 'halted') {
+        if($this->model->status != 'halted') {
             $this->setFinishedWithError('We cannot export the virtual machine. It is not halted.');
             Events::fire('export-as-machine-image-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
@@ -126,6 +127,8 @@ class ExportAsMachineImage extends AbstractAction
 
         $this->setProgress(20, 'Mounting the machine image repository on the compute member.');
 
+        //  Not routed through VirtualMachineManager: repo mount/unmount has no capability
+        //  interface yet - see docs/hypervisor-driver-architecture.md.
         $isMounted = ComputeMemberXenService::mountVmRepository($this->computeMember, $this->repository);
 
         if(!$isMounted) {
@@ -137,7 +140,10 @@ class ExportAsMachineImage extends AbstractAction
 
         $this->setProgress(50, 'Exporting the virtual machine. This will take a while. Please wait.');
 
-        $exportedUuid = VirtualMachinesXenService::export($this->model, $this->repository);
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+        $exportedUuid = $driver instanceof ExportCapableInterface
+            ? $driver->exportToRepository($this->model, $this->repository)
+            : null;
 
         $this->setProgress(80, 'Registering the machine image in the repository list.');
 

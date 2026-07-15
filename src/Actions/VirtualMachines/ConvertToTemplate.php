@@ -10,9 +10,10 @@ use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Contracts\ExportCapableInterface;
 use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -81,9 +82,9 @@ class ConvertToTemplate extends AbstractAction
             return;
         }
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if(!array_key_exists('power-state', $vmParams)) {
+        if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'
@@ -100,7 +101,7 @@ class ConvertToTemplate extends AbstractAction
             return $id;
         }
 
-        if($vmParams['power-state'] != 'halted') {
+        if($this->model->status != 'halted') {
             $this->setFinishedWithError('We cannot convert the virtual machine to template. It is not halted.');
             Events::fire('conversion-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
@@ -114,6 +115,8 @@ class ConvertToTemplate extends AbstractAction
 
         $this->setProgress(40, 'Mounting the repository.');
 
+        //  Not routed through VirtualMachineManager: repo mount/unmount has no capability
+        //  interface yet - see docs/hypervisor-driver-architecture.md.
         $isMounted = ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
 
         if(!$isMounted) {
@@ -125,9 +128,12 @@ class ConvertToTemplate extends AbstractAction
 
         $this->setProgress(60, 'Exporting the virtual machine. This will take a while. Please wait.');
 
-        $templateName = VirtualMachinesXenService::export($this->model, $this->repository);
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+        $templateName = $driver instanceof ExportCapableInterface
+            ? $driver->exportToRepository($this->model, $this->repository)
+            : null;
 
-        if(!Str::isUuid($templateName)) {
+        if(!$templateName || !Str::isUuid($templateName)) {
             $this->setFinishedWithError('We cannot export the virtual machine to the given repository.');
             Events::fire('conversion-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;

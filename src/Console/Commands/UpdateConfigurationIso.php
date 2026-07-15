@@ -5,8 +5,10 @@ namespace NextDeveloper\IAAS\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
+use NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -51,7 +53,11 @@ class UpdateConfigurationIso extends Command
         Log::info(__METHOD__ . ' | Updating configuration ISO for VM: ' . $vm->uuid);
 
         try {
-            $result = VirtualMachinesXenService::updateConfigurationIso($vm);
+            $driver = app(VirtualMachineManager::class)->getAdapter($vm);
+
+            $result = $driver instanceof ConfigurationIsoCapableInterface
+                ? $driver->regenerateConfigurationIso($vm)
+                : VirtualMachinesXenService::updateConfigurationIso($vm);
 
             if ($result) {
                 $this->info('Configuration ISO updated successfully for VM: ' . $vm->name);

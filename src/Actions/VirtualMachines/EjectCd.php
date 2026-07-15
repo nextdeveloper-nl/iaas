@@ -5,8 +5,9 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\DiskCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action unplugs the virtual machine, and then plugs it back in
@@ -50,7 +51,8 @@ class EjectCd extends AbstractAction
 
         Events::fire('ejecting-cd:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $result = VirtualMachinesXenService::unmountCD($this->model);
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+        $result = $driver instanceof DiskCapableInterface ? $driver->unmountCd($this->model) : false;
 
         if($result) {
             Events::fire('cd-ejected:NextDeveloper\IAAS\VirtualMachines', $this->model);

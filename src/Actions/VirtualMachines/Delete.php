@@ -11,7 +11,7 @@ use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
 /**
@@ -78,8 +78,10 @@ class Delete extends AbstractAction
             $isDeployed = $this->model->iaas_compute_member_id && $this->model->hypervisor_uuid;
 
             if ($isDeployed) {
-                VirtualMachinesXenService::forceShutdown($this->model);
-                VirtualMachinesXenService::destroyVm($this->model);
+                $manager = app(VirtualMachineManager::class);
+
+                $this->model = $manager->stop($this->model, true);
+                $manager->delete($this->model);
             }
 
             //VirtualMachinesService::delete($this->model->uuid);

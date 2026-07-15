@@ -3,15 +3,18 @@
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
 use NextDeveloper\IAAS\Contracts\CloneCapableInterface;
+use NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface;
 use NextDeveloper\IAAS\Contracts\ConsoleCapableInterface;
 use NextDeveloper\IAAS\Contracts\DiskCapableInterface;
 use NextDeveloper\IAAS\Contracts\EventTranslatorCapableInterface;
+use NextDeveloper\IAAS\Contracts\ExportCapableInterface;
 use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Contracts\NetworkCapableInterface;
 use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
 use NextDeveloper\IAAS\Contracts\SnapshotCapableInterface;
 use NextDeveloper\IAAS\Contracts\VirtualMachineAdapterInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -44,7 +47,9 @@ class XenServer82SshDriver implements
     NetworkCapableInterface,
     HostSyncInterface,
     ConsoleCapableInterface,
-    EventTranslatorCapableInterface
+    EventTranslatorCapableInterface,
+    ExportCapableInterface,
+    ConfigurationIsoCapableInterface
 {
     public function __construct(private readonly array $config = [])
     {
@@ -434,5 +439,19 @@ class XenServer82SshDriver implements
     public function translate(mixed $rawEvent): NormalizedHypervisorEvent
     {
         return XenServerEventTranslator::translate($rawEvent);
+    }
+
+    // -- ExportCapableInterface -----------------------------------------------------------
+
+    public function exportToRepository(VirtualMachines $vm, Repositories $repository): string
+    {
+        return VirtualMachinesXenService::export($vm, $repository);
+    }
+
+    // -- ConfigurationIsoCapableInterface ---------------------------------------------
+
+    public function regenerateConfigurationIso(VirtualMachines $vm): bool
+    {
+        return VirtualMachinesXenService::updateConfigurationIso($vm);
     }
 }

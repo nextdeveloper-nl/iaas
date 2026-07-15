@@ -22,12 +22,15 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
+use NextDeveloper\IAAS\Contracts\HostSyncInterface;
+use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers\UtilizeComputeMembers;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes\UtilizeStorageVolumes;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\IpAddressesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
@@ -175,7 +178,13 @@ class Commit extends AbstractAction
 
         Log::info(__METHOD__ . ' Lazy deploying, STEP 3, virtual machine with data: ' . print_r($vm, true));
 
-        ComputeMemberXenService::updateMemberInformation($computeMember);
+        $hostDriver = app(VirtualMachineManager::class)->getAdapterForComputeMember($computeMember);
+
+        if ($hostDriver instanceof HostSyncInterface) {
+            $hostDriver->syncMember($computeMember);
+        } else {
+            ComputeMemberXenService::updateMemberInformation($computeMember);
+        }
 
         //  We need to update CPU and RAM
         $this->setProgress(20, 'Setting CPU and RAM');
@@ -210,6 +219,14 @@ class Commit extends AbstractAction
 
     private function setCpuRam()
     {
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+        if ($driver instanceof ResizeCapableInterface) {
+            $driver->resize($this->model, $this->model->cpu, $this->model->ram);
+
+            return;
+        }
+
         switch ($this->computePool->virtualization) {
             case 'xenserver-8.2':
                 VirtualMachinesXenService::setCPUCore($this->model, $this->model->cpu);
@@ -262,6 +279,15 @@ class Commit extends AbstractAction
         }
     }
 
+    /**
+     * Not routed through VirtualMachineManager: this syncs/destroys/creates VIFs by
+     * diffing the hypervisor's live VIF list against our DB config, including VIFs that
+     * exist on the hypervisor with no corresponding VirtualNetworkCards row yet -
+     * NetworkCapableInterface::destroyNetworkCard() requires that DB row to resolve the
+     * owning VM, so it doesn't fit this exact shape. See
+     * docs/hypervisor-driver-architecture.md - this is flagged there as remaining work,
+     * deliberately not rushed given how central VM provisioning is.
+     */
     private function setupNetworking($step)
     {
         switch ($this->computePool->virtualization) {
@@ -343,6 +369,13 @@ class Commit extends AbstractAction
         ]);
     }
 
+    /**
+     * Not routed through VirtualMachineManager: this diffs the hypervisor's live disk
+     * list against our DB disk config (create/attach/resize/destroy, CD-vs-VDI handling),
+     * an order-dependent sequence DiskCapableInterface's per-operation methods don't
+     * capture as a single unit. See docs/hypervisor-driver-architecture.md - flagged as
+     * remaining work, deliberately not rushed given how central VM provisioning is.
+     */
     private function setupDisks($step)
     {
         $computePool = ComputePools::where('id', $this->model->iaas_compute_pool_id)->first();
@@ -354,6 +387,15 @@ class Commit extends AbstractAction
         }
     }
 
+    /**
+     * Not routed through VirtualMachineManager: importing a VM from a repository image
+     * has no capability interface yet - the plain-VDI/host-selection logic here (finding
+     * a compute member, resolving a storage volume, mounting the repo) is DB/algorithm
+     * work rather than hypervisor calls, but importXenServer() below it is a genuinely
+     * new operation with no existing interface coverage. See
+     * docs/hypervisor-driver-architecture.md - flagged as remaining work, deliberately
+     * not rushed given how central VM provisioning is.
+     */
     private function importVirtualMachine($step)
     {
         //  We know that this virtual machine is in draft state and it does not have a record in hypervisor
