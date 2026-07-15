@@ -83,7 +83,8 @@ class DetectIpCollisions extends Command {
                 $collisions = NetworkMembersService::detectIpCollisions(
                     $switch,
                     $vlan ? (int) $vlan : null,
-                    fn ($message) => $this->line($message)
+                    fn ($message) => $this->line($message),
+                    true
                 );
 
                 $allCollisions = array_merge($allCollisions, $collisions);

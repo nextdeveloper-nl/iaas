@@ -35,9 +35,14 @@ class NetworkMembersService extends AbstractNetworkMembersService
      * step, so callers can surface what is happening live (e.g. a console command) instead of
      * only finding out about the result after the whole scan is done.
      *
+     * $verbose additionally reports every single ip found in the arp table through $onProgress,
+     * not just the ones that turned out to be a collision - matched ips and ips that are on the
+     * wire but not in our IpAddresses table at all are reported too, so this can be used to
+     * actually debug a network instead of only alerting on confirmed collisions.
+     *
      * @return array List of collisions found, each with ip / macs / reason / interface / network_id
      */
-    public static function detectIpCollisions(NetworkMembers $switch, ?int $vlan = null, ?callable $onProgress = null) : array
+    public static function detectIpCollisions(NetworkMembers $switch, ?int $vlan = null, ?callable $onProgress = null, bool $verbose = false) : array
     {
         $report = function (string $message) use ($onProgress) {
             Log::info(__METHOD__ . ' | ' . $message);
@@ -92,7 +97,7 @@ class NetworkMembersService extends AbstractNetworkMembersService
 
             $collisions = array_merge(
                 $collisions,
-                self::findCollisionsOnInterface($interface, $arpRecords, $report)
+                self::findCollisionsOnInterface($interface, $arpRecords, $report, $verbose)
             );
         }
 
@@ -107,11 +112,14 @@ class NetworkMembersService extends AbstractNetworkMembersService
     }
 
     /**
-     * Groups the arp table of one interface by ip and flags:
+     * Goes through every ip seen in the arp table of one interface and, for each one, reports
+     * (when $verbose) whether it matches what we have on file, is unregistered, or is a
+     * confirmed collision. Flags:
      *  - any ip answered for by more than one mac (a real, on-the-wire collision)
-     *  - any ip whose answering mac does not match the network card we have on file for it
+     *  - any ip whose answering mac does not match the network card / custom mac we have on
+     *    file for it in IpAddresses
      */
-    private static function findCollisionsOnInterface(NetworkMembersInterfaces $interface, array $arpRecords, callable $report) : array
+    private static function findCollisionsOnInterface(NetworkMembersInterfaces $interface, array $arpRecords, callable $report, bool $verbose) : array
     {
         $macsByIp = [];
 
@@ -137,22 +145,50 @@ class NetworkMembersService extends AbstractNetworkMembersService
                 ->where('iaas_network_id', $interface->iaas_network_id)
                 ->first();
 
-            if (!$ipAddress || !$ipAddress->iaas_virtual_network_card_id) {
+            if (!$ipAddress) {
+                if ($verbose) {
+                    $report('IP ' . $ip . ' (mac ' . $mac . ') is on the wire but not registered in ' .
+                        'IpAddresses at all - possibly a manually assigned address we dont know about.');
+                }
+
                 continue;
             }
 
-            $vnc = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
-                ->find($ipAddress->iaas_virtual_network_card_id);
+            $dbMac = null;
 
-            if ($vnc && $vnc->mac_addr && strtolower($vnc->mac_addr) != $mac) {
+            if ($ipAddress->iaas_virtual_network_card_id) {
+                $vnc = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                    ->find($ipAddress->iaas_virtual_network_card_id);
+
+                $dbMac = $vnc && $vnc->mac_addr ? strtolower($vnc->mac_addr) : null;
+            } elseif ($ipAddress->custom_mac_addr) {
+                $dbMac = strtolower($ipAddress->custom_mac_addr);
+            }
+
+            if (!$dbMac) {
+                if ($verbose) {
+                    $report('IP ' . $ip . ' (mac ' . $mac . ') is registered in IpAddresses but has no ' .
+                        'mac on file to compare against.');
+                }
+
+                continue;
+            }
+
+            if ($dbMac != $mac) {
                 $collisions[] = self::reportCollision(
                     $interface,
                     $ip,
-                    [$mac, strtolower($vnc->mac_addr)],
+                    [$mac, $dbMac],
                     'ip_owned_by_different_mac',
                     $ipAddress,
                     $report
                 );
+
+                continue;
+            }
+
+            if ($verbose) {
+                $report('IP ' . $ip . ' (mac ' . $mac . ') OK - matches our records.');
             }
         }
 
