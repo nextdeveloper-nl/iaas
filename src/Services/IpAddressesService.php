@@ -6,7 +6,9 @@ use IPv4\SubnetCalculator;
 use NextDeveloper\Commons\Exceptions\ModelNotFoundException;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
+use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractIpAddressesService;
+use NextDeveloper\IAM\Database\Models\Accounts;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -62,5 +64,35 @@ class IpAddressesService extends AbstractIpAddressesService
         }
 
         return $foundIp;
+    }
+
+    /**
+     * Creates an IpAddresses record for an ip that was seen live on a switch's arp table but
+     * has no record in our database at all. Ownership is resolved from the mac address: if it
+     * matches a VirtualNetworkCards row, the ip is attached to that card and to the account
+     * (and that account's owning user) the card belongs to - the same resolution
+     * NetworkMembers\UpdateIpsWithArp already used. If the mac doesn't match any of our cards
+     * the record is still created, just unowned with only the mac on file, since an ip we cant
+     * attribute to anyone is exactly the kind of manually assigned address we want visibility
+     * into.
+     */
+    public static function createFromArpEntry(string $ip, string $mac, ?int $networkId) : IpAddresses
+    {
+        $vnc = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+            ->where('mac_addr', $mac)
+            ->first();
+
+        $owner = $vnc
+            ? Accounts::withoutGlobalScope(AuthorizationScope::class)->where('id', $vnc->iam_account_id)->first()
+            : null;
+
+        return self::create([
+            'ip_addr'                       =>  $ip,
+            'iaas_network_id'                =>  $networkId,
+            'iaas_virtual_network_card_id'   =>  $vnc ? $vnc->id : null,
+            'custom_mac_addr'                =>  $vnc ? null : $mac,
+            'iam_account_id'                 =>  $owner ? $owner->id : null,
+            'iam_user_id'                    =>  $owner ? $owner->iam_user_id : null,
+        ]);
     }
 }

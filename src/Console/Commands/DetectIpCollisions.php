@@ -17,7 +17,8 @@ class DetectIpCollisions extends Command {
     protected $signature = 'leo:detect-ip-collisions
         {--vlan= : Only scan this vlan number on each switch}
         {--switch= : Only scan the switch with this uuid}
-        {--queue : Dispatch onto the iaas queue instead of running (and printing output) right here}';
+        {--queue : Dispatch onto the iaas queue instead of running (and printing output) right here}
+        {--fix : Also create IpAddresses records for ips seen on the wire that arent registered at all}';
 
     /**
      * @var string
@@ -28,6 +29,7 @@ class DetectIpCollisions extends Command {
         $vlan = $this->option('vlan');
         $switchUuid = $this->option('switch');
         $queue = $this->option('queue');
+        $fix = $this->option('fix');
 
         $switches = NetworkMembers::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
@@ -53,6 +55,7 @@ class DetectIpCollisions extends Command {
             ($queue ? ' - dispatched onto the iaas queue.' : ' - running in the foreground.'));
 
         $allCollisions = [];
+        $allCreated = [];
 
         foreach ($switches as $switch) {
             //  We are setting this because we want this action to be able run all the times!!!!
@@ -88,6 +91,19 @@ class DetectIpCollisions extends Command {
                 );
 
                 $allCollisions = array_merge($allCollisions, $collisions);
+
+                if ($fix) {
+                    $this->line('');
+                    $this->line('-- Creating records for unregistered ips --');
+
+                    $created = NetworkMembersService::syncMissingIpAddresses(
+                        $switch,
+                        $vlan ? (int) $vlan : null,
+                        fn ($message) => $this->line($message)
+                    );
+
+                    $allCreated = array_merge($allCreated, $created);
+                }
             } catch (\Exception $e) {
                 $this->error('Failed to scan switch ' . $switch->uuid . ': ' . $e->getMessage());
                 Log::error(__METHOD__ . ' | Having a problem scanning switch: ' . $switch->uuid . ' - ' . $e->getMessage());
@@ -102,15 +118,30 @@ class DetectIpCollisions extends Command {
 
         if (empty($allCollisions)) {
             $this->info('No ip collisions found.');
+        } else {
+            $this->warn(count($allCollisions) . ' ip collision(s) found:');
 
-            return;
+            $this->table(
+                ['IP', 'MAC(s)', 'Reason', 'Interface', 'Network ID'],
+                array_map(fn ($c) => [$c['ip'], implode(', ', $c['macs']), $c['reason'], $c['interface'], $c['network_id']], $allCollisions)
+            );
         }
 
-        $this->warn(count($allCollisions) . ' ip collision(s) found:');
+        if ($fix) {
+            $this->line('');
 
-        $this->table(
-            ['IP', 'MAC(s)', 'Reason', 'Interface', 'Network ID'],
-            array_map(fn ($c) => [$c['ip'], implode(', ', $c['macs']), $c['reason'], $c['interface'], $c['network_id']], $allCollisions)
-        );
+            if (empty($allCreated)) {
+                $this->info('No missing ip address records to create.');
+
+                return;
+            }
+
+            $this->info(count($allCreated) . ' ip address record(s) created:');
+
+            $this->table(
+                ['IP', 'MAC', 'Network ID', 'Account ID'],
+                array_map(fn ($ip) => [$ip->ip_addr, $ip->custom_mac_addr ?: '(via network card)', $ip->iaas_network_id, $ip->iam_account_id ?: '(unknown)'], $allCreated)
+            );
+        }
     }
 }
