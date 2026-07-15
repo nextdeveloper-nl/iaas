@@ -12,6 +12,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
@@ -89,6 +90,10 @@ class Start extends AbstractAction
             }
         }
 
+        //  Kept as a direct call (not routed through VirtualMachineManager): the raw `xe`
+        //  error string is inspected below for a specific failure mode ("no matching VMs")
+        //  that has no generalized equivalent in the driver interface yet - see
+        //  docs/hypervisor-driver-architecture.md. Everything after this stays migrated.
         $result = VirtualMachinesXenService::start($this->model);
 
         if($result['error'] != '') {
@@ -103,7 +108,8 @@ class Start extends AbstractAction
             }
         }
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
+        $vmParams = $this->model->hypervisor_data;
 
         if(!array_key_exists('power-state', $vmParams)) {
             //  The VM must not be available to be honest. So we should make a health check here.

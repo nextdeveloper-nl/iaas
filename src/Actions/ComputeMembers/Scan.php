@@ -5,10 +5,12 @@ namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\NetworkMemberXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -36,6 +38,8 @@ class Scan extends AbstractAction
     {
         $this->setProgress(0, 'Initiate compute member started');
 
+        //  Not routed through VirtualMachineManager: task-listing and vlan cleanup have
+        //  no capability interface yet - see docs/hypervisor-driver-architecture.md.
         $runningTasks = ComputeMemberXenService::getRunningTasks($this->model);
 
         foreach ($runningTasks as $task) {
@@ -46,9 +50,11 @@ class Scan extends AbstractAction
             }
         }
 
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($this->model);
+        $canSyncViaDriver = $driver instanceof HostSyncInterface;
 
         if($this->shouldRunCheckpoint(10)) {
-            ComputeMemberXenService::updateMemberInformation($this->model);
+            $canSyncViaDriver ? $this->model = $driver->syncMember($this->model) : ComputeMemberXenService::updateMemberInformation($this->model);
             $this->setProgress(10, 'Updating compute member information');
         }
 
@@ -58,7 +64,7 @@ class Scan extends AbstractAction
         }
 
         if($this->shouldRunCheckpoint(20)) {
-            ComputeMemberXenService::updateInterfaceInformation($this->model);
+            $canSyncViaDriver ? $this->model = $driver->syncInterfaces($this->model) : ComputeMemberXenService::updateInterfaceInformation($this->model);
             $this->setProgress(20, 'Updating compute member network interface information');
         }
 
@@ -68,12 +74,12 @@ class Scan extends AbstractAction
         }
 
         if($this->shouldRunCheckpoint(40)) {
-            ComputeMemberXenService::updateNetworkInformation($this->model);
+            $canSyncViaDriver ? $this->model = $driver->syncNetworks($this->model) : ComputeMemberXenService::updateNetworkInformation($this->model);
             $this->setProgress(40, 'Updating compute member bridges/networks information');
         }
 
         if($this->shouldRunCheckpoint(60)) {
-            ComputeMemberXenService::updateStorageVolumes($this->model);
+            $canSyncViaDriver ? $this->model = $driver->syncStorageVolumes($this->model) : ComputeMemberXenService::updateStorageVolumes($this->model);
             $this->setProgress(60, 'Updating compute member storage volume information');
         }
 
@@ -83,10 +89,12 @@ class Scan extends AbstractAction
         }
 
         if($this->shouldRunCheckpoint(70)) {
-            ComputeMemberXenService::updateMemberInformation($this->model);
+            $canSyncViaDriver ? $this->model = $driver->syncMember($this->model) : ComputeMemberXenService::updateMemberInformation($this->model);
             $this->setProgress(70, 'Updating compute member resources');
         }
 
+        //  Not routed through VirtualMachineManager: connection-info sync and network-member
+        //  mirroring have no capability interface yet - see docs/hypervisor-driver-architecture.md.
         if($this->shouldRunCheckpoint(80)) {
             ComputeMemberXenService::updateConnectionInformation($this->model);
             $this->setProgress(80, 'Updating network information');

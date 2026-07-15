@@ -16,10 +16,13 @@ use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\IAAS\Actions\ComputeMembers\ScanVirtualMachines;
 use NextDeveloper\IAAS\Actions\ComputeMembers\UpdateResources;
 use NextDeveloper\IAAS\Actions\ComputeMembers\UpdateStorageVolumes;
+use NextDeveloper\IAAS\Contracts\EventTranslatorCapableInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberTasks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -324,18 +327,36 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             ->withTrashed()
             ->first();
 
-        $powerState = strtolower($event['snapshot']['power_state']);
-        $ram = intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024; // Convert from bytes to MB
-        $cpu = $event['snapshot']['VCPUs_max'];
-        $domainType = $event['snapshot']['domain_type'];
+        //  Translate XenAPI's raw event vocabulary (power_state, memory_dynamic_min in
+        //  bytes, VCPUs_max, domain_type, current_operations) into the normalized shape -
+        //  this is the one place that vocabulary is read; everything below only ever
+        //  looks at $normalized. See docs/hypervisor-driver-architecture.md §5.
+        $computePool = VirtualMachinesService::getComputePool($vm);
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputePool($computePool);
 
-        $currentOperation = $event['snapshot']['current_operations'];
+        if ($driver instanceof EventTranslatorCapableInterface) {
+            $normalized = $driver->translate($event);
 
-        if($currentOperation) {
-            switch($currentOperation[array_keys($currentOperation)[0]]) {
-                case 'clean_reboot':
-                    $powerState = 'rebooting';
-                    break;
+            $powerState = $normalized->changes['power_state'] ?? strtolower($event['snapshot']['power_state']);
+            $ram = $normalized->changes['ram_mb'] ?? (intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024);
+            $cpu = $normalized->changes['cpu'] ?? $event['snapshot']['VCPUs_max'];
+            $domainType = $normalized->changes['domain_type'] ?? $event['snapshot']['domain_type'];
+        } else {
+            //  Fallback for a driver that hasn't implemented event translation yet -
+            //  same raw-field reads this method always did.
+            $powerState = strtolower($event['snapshot']['power_state']);
+            $ram = intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024; // Convert from bytes to MB
+            $cpu = $event['snapshot']['VCPUs_max'];
+            $domainType = $event['snapshot']['domain_type'];
+
+            $currentOperation = $event['snapshot']['current_operations'];
+
+            if($currentOperation) {
+                switch($currentOperation[array_keys($currentOperation)[0]]) {
+                    case 'clean_reboot':
+                        $powerState = 'rebooting';
+                        break;
+                }
             }
         }
 

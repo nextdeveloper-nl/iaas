@@ -4,8 +4,10 @@ namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
@@ -36,9 +38,14 @@ class UpdateStorageVolumes extends AbstractAction
         Events::fire('updating:NextDeveloper\IAAS\ComputeMembers', $this->model);
 
         $cm = $this->model;
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($cm);
 
-        UserHelper::runAsAdmin(function () use ($cm) {
-            ComputeMemberXenService::updateStorageVolumes($cm);
+        UserHelper::runAsAdmin(function () use ($cm, $driver) {
+            if ($driver instanceof HostSyncInterface) {
+                $driver->syncStorageVolumes($cm);
+            } else {
+                ComputeMemberXenService::updateStorageVolumes($cm);
+            }
         });
 
         Events::fire('updated:NextDeveloper\IAAS\ComputeMembers', $this->model);

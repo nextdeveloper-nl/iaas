@@ -6,7 +6,7 @@ use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action pauses the virtual machine
@@ -49,9 +49,9 @@ class Unpause extends AbstractAction
             return;
         }
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if(!array_key_exists('power-state', $vmParams)) {
+        if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'
@@ -68,31 +68,24 @@ class Unpause extends AbstractAction
             return $id;
         }
 
-        if($vmParams['power-state'] != 'paused') {
+        if($this->model->status != 'paused') {
             CommentsService::createSystemComment('We cannot unpause the virtual machine. It is still in paused state', $this->model);
             $this->setProgress(100, 'We cannot unpause the virtual machine. It is not paused.');
             Events::fire('unpause-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
 
-        VirtualMachinesXenService::unpause($this->model);
+        $this->model = app(VirtualMachineManager::class)->resume($this->model);
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
-
-        if($vmParams['power-state'] == 'running') {
+        if($this->model->status == 'running') {
             CommentsService::createSystemComment('Virtual machine is now unpaused and running.', $this->model);
             $this->setProgress(100, 'We unpaused the virtual machine. It is now running.');
             Events::fire('unpaused:NextDeveloper\IAAS\VirtualMachines', $this->model);
         } else {
-            CommentsService::createSystemComment('We cannot unpause the virtual machine. The state is now: ' . $vmParams['power-state'], $this->model);
-            $this->setProgress(100, 'We cannot unpause the virtual machine. It is now ' . $vmParams['power-state'] . '.');
+            CommentsService::createSystemComment('We cannot unpause the virtual machine. The state is now: ' . $this->model->status, $this->model);
+            $this->setProgress(100, 'We cannot unpause the virtual machine. It is now ' . $this->model->status . '.');
             Events::fire('unpause-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
         }
-
-        $this->model->update([
-            'status'            =>  $vmParams['power-state'],
-            'hypervisor_data'   =>  $vmParams
-        ]);
 
         $this->setProgress(100, 'Virtual machine unpaused');
     }

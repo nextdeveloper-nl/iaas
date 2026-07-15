@@ -7,7 +7,7 @@ use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action pauses the virtual machine
@@ -52,32 +52,25 @@ class Pause extends AbstractAction
 
         (new Fix($this->model))->handle();
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if($vmParams['power-state'] != 'running') {
+        if($this->model->status != 'running') {
             $this->setProgress(100, 'We cannot pause the virtual machine. It is not halted.');
             Events::fire('pause-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
 
-        VirtualMachinesXenService::pause($this->model);
+        $this->model = app(VirtualMachineManager::class)->pause($this->model);
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
-
-        if($vmParams['power-state'] == 'paused') {
+        if($this->model->status == 'paused') {
             CommentsService::createSystemComment('Virtual machine paused', $this->model);
             $this->setProgress(100, 'We paused the virtual machine. It is now paused.');
             Events::fire('paused:NextDeveloper\IAAS\VirtualMachines', $this->model);
         } else {
             CommentsService::createSystemComment('Cannot pause VM.', $this->model);
-            $this->setProgress(100, 'We cannot pause the virtual machine. It is now ' . $vmParams['power-state'] . '.');
+            $this->setProgress(100, 'We cannot pause the virtual machine. It is now ' . $this->model->status . '.');
             Events::fire('pause-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
         }
-
-        $this->model->update([
-            'status'            =>  $vmParams['power-state'],
-            'hypervisor_data'   =>  $vmParams
-        ]);
 
         $this->setProgress(100, 'Virtual machine paused');
     }

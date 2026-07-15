@@ -4,10 +4,11 @@ namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
-use NextDeveloper\IAAS\Services\Hypervisors\HypervisorService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\NetworkMemberXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action initiates compute members by creating the necessary resources such as Compute, Storage, and Network.
@@ -34,18 +35,16 @@ class Initiate extends AbstractAction
     {
         $this->setProgress(0, 'Initiate compute member started');
 
-        $hypervisorModel = HypervisorService::getHypervisor($this->model);
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($this->model);
 
-        $this->model->update([
-            'hypervisor_model'  =>  $hypervisorModel
-        ]);
+        if ($driver instanceof HostSyncInterface) {
+            $this->model->update([
+                'hypervisor_model'  =>  $driver->detectVersion($this->model),
+            ]);
 
-        $this->model = $this->model->fresh();
+            $this->model = $this->model->fresh();
 
-        switch($this->model->hypervisor_model) {
-            case 'XenServer 8.2':
-                $this->initiateXenServer();
-                break;
+            $this->initiateWithDriver($driver);
         }
 
         Events::fire('initiated:NextDeveloper\IAAS\ComputeMembers', $this->model);
@@ -53,30 +52,30 @@ class Initiate extends AbstractAction
         $this->setProgress(100, 'Compute member initiated');
     }
 
-    private function initiateXenserver()
+    /**
+     * - We will create network member with the exact name as the compute member and the same for storage member.
+     * - We will copy the compute member's configuration to the network and storage members.
+     * - - we will copy ssh username, ssh password, ssh port.
+     * - - The network member and storage member will have the same IP address as the compute member.
+     * - - The network and storage member has their own network pool id and storage pool id. You can find them
+     * the relation with cloud node.
+     */
+    private function initiateWithDriver(HostSyncInterface $driver)
     {
-        /**
-         * - We will create network member with the exact name as the compute member and the same for storage member.
-         * - We will copy the compute member's configuration to the network and storage members.
-         * - - we will copy ssh username, ssh password, ssh port.
-         * - - The network member and storage member will have the same IP address as the compute member.
-         * - - The network and storage member has their own network pool id and storage pool id. You can find them
-         * the relation with cloud node.
-         *
-         */
-
         $this->setProgress(0, 'Updating compute member information');
-        ComputeMemberXenService::updateMemberInformation($this->model);
+        $this->model = $driver->syncMember($this->model);
 
         $this->setProgress(20, 'Updating compute member network interface information');
-        ComputeMemberXenService::updateInterfaceInformation($this->model);
+        $this->model = $driver->syncInterfaces($this->model);
 
         $this->setProgress(40, 'Updating compute member bridges/networks information');
-        ComputeMemberXenService::updateNetworkInformation($this->model);
+        $this->model = $driver->syncNetworks($this->model);
 
         $this->setProgress(60, 'Updating compute member storage volume information');
-        ComputeMemberXenService::updateStorageVolumes($this->model);
+        $this->model = $driver->syncStorageVolumes($this->model);
 
+        //  Not routed through VirtualMachineManager: connection-info sync and network-member
+        //  mirroring have no capability interface yet - see docs/hypervisor-driver-architecture.md.
         $this->setProgress(80, 'Updating network information');
         ComputeMemberXenService::updateConnectionInformation($this->model);
 

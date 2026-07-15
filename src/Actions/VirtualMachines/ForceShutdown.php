@@ -6,7 +6,7 @@ use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action unplugs the virtual machine
@@ -62,10 +62,9 @@ class ForceShutdown extends AbstractAction
 
         Events::fire('unplugging:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $vm = VirtualMachinesXenService::forceShutdown($this->model);
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->stop($this->model, true);
 
-        if(!array_key_exists('power-state', $vmParams)) {
+        if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'
@@ -82,17 +81,12 @@ class ForceShutdown extends AbstractAction
             return $id;
         }
 
-        if($vmParams['power-state'] != 'halted') {
+        if($this->model->status != 'halted') {
             CommentsService::createSystemComment('Virtual machine failed to hard shutdown', $this->model);
             $this->setProgress(100, 'Virtual machine failed to hard shutdown');
             Events::fire('unplug-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
-
-        $this->model->update([
-            'status'            =>  $vmParams['power-state'],
-            'hypervisor_data'   =>  $vmParams
-        ]);
 
         CommentsService::createSystemComment('Virtual machine is successfully unplugged or halted.', $this->model);
         Events::fire('unpluged:NextDeveloper\IAAS\VirtualMachines', $this->model);

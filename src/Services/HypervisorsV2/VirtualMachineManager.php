@@ -4,24 +4,28 @@ namespace NextDeveloper\IAAS\Services\HypervisorsV2;
 
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Commons\Services\CommentsService;
-use Nextdeveloper\IAAS\Contracts\CloneCapableInterface;
-use Nextdeveloper\IAAS\Contracts\SnapshotCapableInterface;
-use Nextdeveloper\IAAS\Contracts\VirtualMachineAdapterInterface;
+use NextDeveloper\IAAS\Contracts\CloneCapableInterface;
+use NextDeveloper\IAAS\Contracts\SnapshotCapableInterface;
+use NextDeveloper\IAAS\Contracts\VirtualMachineAdapterInterface;
+use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\AdapterNotFoundException;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
+/**
+ * Resolves and dispatches to the hypervisor driver registered for a given
+ * ComputePools.virtualization value (see config/virtualization.php). This is the single
+ * place Actions/Jobs/Controllers go through instead of instantiating a concrete
+ * *XenService/driver class directly - see docs/hypervisor-driver-architecture.md.
+ */
 class VirtualMachineManager
 {
     private array $adapters = [];
 
-    public function __construct()
-    {
-        // Adapters will be registered via service provider
-    }
-
     /**
-     * Register an adapter for a platform
+     * Register the driver class for a virtualization string. Called once per configured
+     * platform from IAASServiceProvider, driven by config/virtualization.php.
      */
     public function registerAdapter(string $platform, string $adapterClass): void
     {
@@ -29,26 +33,53 @@ class VirtualMachineManager
     }
 
     /**
-     * Get adapter instance for a platform
+     * Resolves the driver instance registered for a given virtualization string.
+     * This is the core resolution primitive - VM/host/disk/network level callers
+     * all end up here, they just differ in how they arrive at the $virtualization value.
      */
-    private function getAdapter(VirtualMachines $vm): VirtualMachineAdapterInterface
+    public function resolveDriver(string $virtualization): VirtualMachineAdapterInterface
+    {
+        if (!isset($this->adapters[$virtualization])) {
+            throw new AdapterNotFoundException("No driver registered for platform: {$virtualization}");
+        }
+
+        $config = config("virtualization.platforms.{$virtualization}");
+
+        if (!$config) {
+            throw new AdapterNotFoundException("No configuration found for platform: {$virtualization}");
+        }
+
+        return app($this->adapters[$virtualization], [
+            'config' => $config,
+        ]);
+    }
+
+    /**
+     * Resolves the driver for a VM via its compute pool's virtualization string.
+     */
+    public function getAdapter(VirtualMachines $vm): VirtualMachineAdapterInterface
     {
         $computePool = VirtualMachinesService::getComputePool($vm);
 
-        if (!isset($this->adapters[$computePool->virtualization])) {
-            throw new AdapterNotFoundException("No adapter registered for platform: {$computePool->virtualization}");
-        }
+        return $this->resolveDriver($computePool->virtualization);
+    }
 
-        $config = config("virtualization.platforms.{$computePool->virtualization}");
+    /**
+     * Resolves the driver for a compute member (host-level operations - see
+     * HostSyncInterface) via its compute pool's virtualization string.
+     */
+    public function getAdapterForComputeMember(ComputeMembers $computeMember): VirtualMachineAdapterInterface
+    {
+        return $this->resolveDriver($computeMember->computePools->virtualization);
+    }
 
-        if (!$config) {
-            throw new AdapterNotFoundException("No configuration found for platform: {$computePool->virtualization}");
-        }
-
-        return app($this->adapters[$computePool->virtualization], [
-            'config' => $config,
-            'compute_pool' => $computePool,
-        ]);
+    /**
+     * Resolves the driver directly from a compute pool - used wherever the caller
+     * already has the pool and doesn't need to look it up via a VM/compute member.
+     */
+    public function getAdapterForComputePool(ComputePools $computePool): VirtualMachineAdapterInterface
+    {
+        return $this->resolveDriver($computePool->virtualization);
     }
 
     public function sync(VirtualMachines $vm) : VirtualMachines
@@ -64,13 +95,12 @@ class VirtualMachineManager
 
         try {
             $hypervisor = $this->getAdapter($vm);
-            $hypervisor->start($vm);
+
+            return $hypervisor->start($vm);
         } catch (\Exception $e) {
             CommentsService::createSystemComment($e->getMessage(), $vm);
             throw $e;
         }
-
-        return $vm->fresh();
     }
 
     public function stop(VirtualMachines $vm, bool $force = false): VirtualMachines
@@ -79,13 +109,12 @@ class VirtualMachineManager
 
         try {
             $hypervisor = $this->getAdapter($vm);
-            $hypervisor->stop($vm, $force);
+
+            return $hypervisor->stop($vm, $force);
         } catch (\Exception $e) {
             CommentsService::createSystemComment($e->getMessage(), $vm);
             throw $e;
         }
-
-        return $vm->fresh();
     }
 
     public function restart(VirtualMachines $vm, bool $force = false): VirtualMachines
@@ -94,13 +123,40 @@ class VirtualMachineManager
 
         try {
             $hypervisor = $this->getAdapter($vm);
-            $hypervisor->restart($vm, $force);
+
+            return $hypervisor->restart($vm, $force);
         } catch (\Exception $e) {
             CommentsService::createSystemComment($e->getMessage(), $vm);
             throw $e;
         }
+    }
 
-        return $vm->fresh();
+    public function pause(VirtualMachines $vm): VirtualMachines
+    {
+        $vm->updateState('pausing');
+
+        try {
+            $hypervisor = $this->getAdapter($vm);
+
+            return $hypervisor->pause($vm);
+        } catch (\Exception $e) {
+            CommentsService::createSystemComment($e->getMessage(), $vm);
+            throw $e;
+        }
+    }
+
+    public function resume(VirtualMachines $vm): VirtualMachines
+    {
+        $vm->updateState('resuming');
+
+        try {
+            $hypervisor = $this->getAdapter($vm);
+
+            return $hypervisor->resume($vm);
+        } catch (\Exception $e) {
+            CommentsService::createSystemComment($e->getMessage(), $vm);
+            throw $e;
+        }
     }
 
     public function createSnapshot(VirtualMachines $vm, string $name, ?string $description = null) : VirtualMachines
@@ -110,13 +166,13 @@ class VirtualMachineManager
         $hypervisor = $this->getAdapter($vm);
 
         if (!$hypervisor instanceof SnapshotCapableInterface) {
-            throw new \Exception("Platform {$vm->platform} does not support snapshots");
+            throw new \Exception("Platform {$this->platformOf($vm)} does not support snapshots");
         }
 
         try {
             $snapshot = $hypervisor->createSnapshot($vm, $name, $description);
 
-            CommentsService::createSystemComment('Created snapshot for {$name}', $vm);
+            CommentsService::createSystemComment('Created snapshot ' . $name, $vm);
 
             return $snapshot;
         } catch (\Exception $e) {
@@ -125,59 +181,57 @@ class VirtualMachineManager
         }
     }
 
-    public function restoreSnapshot(VirtualMachines $vm, VirtualMachines $snapshot) : VirtualMachines
+    public function restoreSnapshot(VirtualMachines $vm, string $snapshotId) : bool
     {
-        $vm->updateState('taking-snapshot');
-
         $hypervisor = $this->getAdapter($vm);
 
         if (!$hypervisor instanceof SnapshotCapableInterface) {
-            throw new \Exception("Platform {$vm->platform} does not support snapshots");
+            throw new \Exception("Platform {$this->platformOf($vm)} does not support snapshots");
         }
 
         try {
-            $snapshot = $hypervisor->restoreSnapshot($vm, $snapshot);
+            $result = $hypervisor->restoreSnapshot($vm, $snapshotId);
 
-            CommentsService::createSystemComment('Created snapshot for {$name}', $vm);
+            CommentsService::createSystemComment('Restored snapshot ' . $snapshotId, $vm);
 
-            return $snapshot;
+            return $result;
         } catch (\Exception $e) {
             CommentsService::createSystemComment($e->getMessage(), $vm);
             throw $e;
         }
     }
 
-    public function clone(VirtualMachines $vm, string $name, array $options = []) : VirtualMachines
+    public function clone(VirtualMachines $vm, string $newName, array $options = []) : VirtualMachines
     {
         $hypervisor = $this->getAdapter($vm);
 
         if (!$hypervisor instanceof CloneCapableInterface) {
-            throw new \Exception("Platform {$vm->platform} does not support cloning");
+            throw new \Exception("Platform {$this->platformOf($vm)} does not support cloning");
         }
 
         try {
-            $clone = $hypervisor->clone($vm, $name, $options);
+            $clone = $hypervisor->clone($vm, $newName, $options);
 
-            CommentsService::createSystemComment('Cloned {$name}', $vm);
+            CommentsService::createSystemComment('Cloned to ' . $newName, $vm);
+
+            return $clone;
         } catch (\Exception $e) {
             CommentsService::createSystemComment($e->getMessage(), $vm);
             throw $e;
         }
     }
 
-    public function delete(VirtualMachines $vm, bool $force = false): bool
+    public function delete(VirtualMachines $vm): bool
     {
-        $hypervisor = $this->getAdapter($vm);
-
         try {
+            $hypervisor = $this->getAdapter($vm);
             $result = $hypervisor->delete($vm);
 
-            if($result) {
-                CommentsService::createSystemComment('Deleted {name}', $vm);
-                return true;
+            if ($result) {
+                CommentsService::createSystemComment('Deleted ' . $vm->name, $vm);
             }
 
-            return false;
+            return $result;
         } catch (\Exception $e) {
             CommentsService::createSystemComment($e->getMessage(), $vm);
             throw $e;
@@ -186,9 +240,11 @@ class VirtualMachineManager
 
     public function getHypervisorData(VirtualMachines $vm) : array
     {
-        $hypervisor = $this->getAdapter($vm);
-        $data = $hypervisor->getHypervisorData($vm);
+        return $this->getAdapter($vm)->getHypervisorData($vm);
+    }
 
-        return $data;
+    private function platformOf(VirtualMachines $vm) : string
+    {
+        return VirtualMachinesService::getComputePool($vm)->virtualization;
     }
 }

@@ -7,6 +7,7 @@ use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action unplugs the virtual machine, and then plugs it back in
@@ -52,11 +53,13 @@ class ForceRestart extends AbstractAction
 
         Events::fire('unplugging:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
+        //  Not routed through VirtualMachineManager: config-ISO regeneration has no
+        //  capability interface yet - see docs/hypervisor-driver-architecture.md.
         VirtualMachinesXenService::updateConfigurationIso($this->model);
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if(!array_key_exists('power-state', $vmParams)) {
+        if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
             //  The VM must not be available to be honest. So we should make a health check here.
             $this->model->update([
                 'status'    =>  'checking-health'
@@ -73,33 +76,26 @@ class ForceRestart extends AbstractAction
             return $id;
         }
 
-        if($vmParams['power-state'] != 'running') {
+        if($this->model->status != 'running') {
             CommentsService::createSystemComment('We cannot hard restart the virtual machine.', $this->model);
             $this->setFinishedWithError('We cannot hard restart the virtual machine. It is not running.');
             Events::fire('restart-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
 
-        $result = VirtualMachinesXenService::forceRestart($this->model);
+        $this->model = app(VirtualMachineManager::class)->restart($this->model, true);
 
         Events::fire('unplugged:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
-
-        if($vmParams['power-state'] == 'running') {
+        if($this->model->status == 'running') {
             CommentsService::createSystemComment('Virtual machine is hard restarted successfully.', $this->model);
             $this->setProgress(100, 'We hard restarted the virtual machine. It is now running.');
             Events::fire('plugged:NextDeveloper\IAAS\VirtualMachines', $this->model);
         } else {
             CommentsService::createSystemComment('Cannot hard restart the virtual machine.', $this->model);
-            $this->setFinishedWithError('We cannot hard restart the virtual machine. It is now ' . $vmParams['power-state'] . '.');
+            $this->setFinishedWithError('We cannot hard restart the virtual machine. It is now ' . $this->model->status . '.');
             Events::fire('restart-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
         }
-
-        $this->model->update([
-            'status'            =>  $vmParams['power-state'],
-            'hypervisor_data'   =>  $vmParams
-        ]);
 
         $this->setProgress(100, 'Virtual machine restarted');
     }

@@ -42,8 +42,13 @@ class Scan extends AbstractAction
         foreach ($list as $item) {
             $cm = ComputeMembersService::getById($item->iaas_compute_member_id);
 
-            switch ($cm->hypervisor_model) {
-                case 'XenServer 8.2':
+            //  Dispatch on ComputePools.virtualization, not the per-host free-text
+            //  hypervisor_model - see docs/hypervisor-driver-architecture.md.
+            switch ($cm->computePools?->virtualization) {
+                case 'xenserver-8.2':
+                case 'xenserver-8.2-ssh':
+                case 'xcp-ng-8.2':
+                case 'xcp-ng-8.2-ssh':
                     $this->syncXenServer($cm);
             }
         }

@@ -4,8 +4,10 @@ namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action initiates compute members by creating the necessary resources such as Compute, Storage, and Network.
@@ -34,7 +36,11 @@ class UpdateResources extends AbstractAction
 
         Events::fire('updating:NextDeveloper\IAAS\ComputeMembers', $this->model);
 
-        ComputeMemberXenService::updateMemberInformation($this->model);
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($this->model);
+
+        $this->model = $driver instanceof HostSyncInterface
+            ? $driver->syncMember($this->model)
+            : tap($this->model, fn () => ComputeMemberXenService::updateMemberInformation($this->model));
 
         Events::fire('updated:NextDeveloper\IAAS\ComputeMembers', $this->model);
 

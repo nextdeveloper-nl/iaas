@@ -327,7 +327,7 @@ class VirtualMachines extends Model
 
     public function updateState($state)
     {
-        $this->update(['state' => $state]);
+        $this->update(['status' => $state]);
 
         return $this->fresh();
     }

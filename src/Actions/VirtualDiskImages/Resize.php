@@ -3,8 +3,9 @@
 namespace NextDeveloper\IAAS\Actions\VirtualDiskImages;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\IAAS\Contracts\DiskCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
 
 /**
@@ -37,24 +38,12 @@ class Resize extends AbstractAction
     private function resizeDisk()
     {
         $computePool = VirtualDiskImagesService::getComputePool($this->model);
+        $driver = $computePool ? app(VirtualMachineManager::class)->getAdapterForComputePool($computePool) : null;
 
-        switch ($computePool->virtualization) {
-            case 'xenserver-8.2':
-                $this->resizeXenDisks();
-                break;
+        if ($driver instanceof DiskCapableInterface) {
+            $driver->resizeDisk($this->model, $this->model->size);
+
+            dispatch(new Sync($this->model));
         }
-    }
-
-    private function resizeXenDisks()
-    {
-        $cm = VirtualDiskImagesService::getComputeMember($this->model);
-
-        $result = VirtualDiskImageXenService::resize(
-            uuid: $this->model->hypervisor_uuid,
-            computeMember: $cm,
-            size: $this->model->size
-        );
-
-        dispatch(new Sync($this->model));
     }
 }

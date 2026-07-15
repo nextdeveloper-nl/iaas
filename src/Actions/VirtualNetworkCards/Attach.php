@@ -14,6 +14,10 @@ use NextDeveloper\IAAS\Services\CloudNodesService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
+//  Not routed through VirtualMachineManager in this pass: this action attaches an
+//  EXISTING draft VirtualNetworkCards row to the hypervisor and updates it in place,
+//  which doesn't match NetworkCapableInterface::createNetworkCard()'s
+//  create-and-return-a-new-row shape - see docs/hypervisor-driver-architecture.md.
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**

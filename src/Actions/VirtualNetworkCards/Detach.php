@@ -5,9 +5,11 @@ namespace NextDeveloper\IAAS\Actions\VirtualNetworkCards;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\NetworkCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -70,7 +72,13 @@ class Detach extends AbstractAction
 
         $this->setProgress(50, 'Detaching the network card from the hypervisor.');
 
-        VirtualMachinesXenService::destroyVif($vm, $vif->hypervisor_data['uuid']);
+        $driver = app(VirtualMachineManager::class)->getAdapter($vm);
+
+        if ($driver instanceof NetworkCapableInterface) {
+            $driver->destroyNetworkCard($vif);
+        } else {
+            VirtualMachinesXenService::destroyVif($vm, $vif->hypervisor_data['uuid']);
+        }
 
         $vif->updateQuietly([
             'hypervisor_uuid'   => null,

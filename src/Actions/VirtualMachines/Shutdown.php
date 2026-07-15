@@ -7,7 +7,7 @@ use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action shutdowns the Virtual Machine
@@ -54,20 +54,14 @@ class Shutdown extends AbstractAction
         (new Fix($this->model))->handle();
 
         try {
-            $vm = VirtualMachinesXenService::shutdown($this->model);
-            $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+            $this->model = app(VirtualMachineManager::class)->stop($this->model);
 
-            if($vmParams['power-state'] != 'halted') {
+            if($this->model->status != 'halted') {
                 CommentsService::createSystemComment('Virtual machine is not running or halted', $this->model);
                 $this->setProgress(100, 'Virtual machine failed to shutdown');
                 Events::fire('shutdown-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
                 return;
             }
-
-            $this->model->update([
-                'status'            =>  'halted',
-                'hypervisor_data'   =>  $vmParams
-            ]);
         } catch (\Exception $e) {
             CommentsService::createSystemComment('Virtual machine shutdown has failed. This was unexpected so checking the health of the VM.', $this->model);
             Events::fire('shutdown-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);

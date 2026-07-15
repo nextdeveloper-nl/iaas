@@ -7,8 +7,7 @@ use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
-use NextDeveloper\IAAS\Services\VirtualMachinesService;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * This action converts the virtual machine into a template
@@ -47,34 +46,11 @@ class Snapshot extends AbstractAction
 
         $this->setProgress(10, 'Taking the snapshot of the virtual machine');
 
-        $snapshot = VirtualMachinesXenService::takeSnapshot($this->model);
-
-        if($snapshot['error']) {
-            //  There is an error
-            Log::error(__METHOD__ . ' | We have an error while taking a snapshot. Here is the error: ' . print_r($snapshot, true));
-            StateHelper::setState($this->model, 'snapshot', 'Cannot take a snapshot, this should be investigated', StateHelper::STATE_ERROR);
-        }
-
-        $uuid = $snapshot['output'];
-
-        $snapshot = VirtualMachinesService::create([
-            'snapshot_of_virtual_machine'   =>  $this->model->id,
-            'name'  =>  'Snapshot of ' . $this->model->name,
-            'hypervisor_uuid'   =>  $uuid,
-            'is_snapshot'   =>  true,
-            'is_draft'  =>  false,
-            'os'    =>  $this->model->os,
-            'distro'    =>  $this->model->distro,
-            'version'   =>  $this->model->version,
-            'status'    =>  'halted',
-            'cpu'   =>  $this->model->cpu,
-            'ram'   =>  $this->model->ram,
-            'auto_backup_interval'  =>  'none',
-            'auto_backup_time'  =>  'none',
-            'iaas_compute_pool_id'  =>  $this->model->iaas_compute_pool_id,
-            'iaas_compute_member_id'    =>  $this->model->iaas_compute_member_id,
-            'iaas_cloud_node_id'  =>  $this->model->iaas_cloud_node_id
-        ]);
+        //  VirtualMachineManager::createSnapshot() throws on a failed xe snapshot instead
+        //  of silently continuing with an empty hypervisor_uuid the way the old inline
+        //  code here did - a failed snapshot now fails this action instead of creating a
+        //  broken snapshot row and reporting success.
+        $snapshot = app(VirtualMachineManager::class)->createSnapshot($this->model, 'Snapshot of ' . $this->model->name);
 
         StateHelper::setState($this->model, 'snapshot', 'Snapshot taken successfully', StateHelper::STATE_SUCCESS);
 

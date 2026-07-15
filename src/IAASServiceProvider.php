@@ -6,6 +6,7 @@ use NextDeveloper\Commons\AbstractServiceProvider;
 use NextDeveloper\IAAS\Http\Middlewares\CheckEligibility;
 use NextDeveloper\IAAS\Http\Middlewares\CheckIaasAccount;
 use NextDeveloper\IAAS\Http\Middlewares\CheckSuspension;
+use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
 
 /**
  * Class IAASServiceProvider
@@ -26,6 +27,7 @@ class IAASServiceProvider extends AbstractServiceProvider {
     public function boot() {
         $this->publishes([
             __DIR__.'/../config/iaas.php' => config_path('iaas.php'),
+            __DIR__.'/../config/virtualization.php' => config_path('virtualization.php'),
         ], 'config');
 
         $this->loadViewsFrom($this->dir.'/../resources/views', 'IAAS');
@@ -46,7 +48,10 @@ class IAASServiceProvider extends AbstractServiceProvider {
         $this->registerCommands();
 
         $this->mergeConfigFrom(__DIR__.'/../config/iaas.php', 'iaas');
+        $this->mergeConfigFrom(__DIR__.'/../config/virtualization.php', 'virtualization');
         $this->customMergeConfigFrom(__DIR__.'/../config/relation.php', 'relation');
+
+        $this->registerHypervisorDrivers();
     }
 
     /**
@@ -144,4 +149,24 @@ class IAASServiceProvider extends AbstractServiceProvider {
         return $isSuccessfull;
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    /**
+     * Binds VirtualMachineManager as a singleton and registers every driver listed in
+     * config/virtualization.php against it, so every caller resolving the manager gets
+     * the same, fully-registered registry. Also aliases it as the 'vm.manager' facade
+     * accessor for NextDeveloper\IAAS\Facades\VM.
+     */
+    private function registerHypervisorDrivers() {
+        $this->app->singleton(VirtualMachineManager::class, function () {
+            $manager = new VirtualMachineManager();
+
+            foreach (config('virtualization.platforms', []) as $platform => $platformConfig) {
+                $manager->registerAdapter($platform, $platformConfig['driver']);
+            }
+
+            return $manager;
+        });
+
+        $this->app->alias(VirtualMachineManager::class, 'vm.manager');
+    }
 }

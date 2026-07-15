@@ -1,6 +1,6 @@
 <?php
 
-namespace Nextdeveloper\IAAS\Facades;
+namespace NextDeveloper\IAAS\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
