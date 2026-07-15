@@ -3,6 +3,7 @@ namespace NextDeveloper\IAAS\Actions\StorageVolumes;
 
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
@@ -11,6 +12,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -42,14 +44,20 @@ class Scan extends AbstractAction
         foreach ($list as $item) {
             $cm = ComputeMembersService::getById($item->iaas_compute_member_id);
 
-            //  Dispatch on ComputePools.virtualization, not the per-host free-text
-            //  hypervisor_model - see docs/hypervisor-driver-architecture.md.
-            switch ($cm->computePools?->virtualization) {
-                case 'xenserver-8.2':
-                case 'xenserver-8.2-ssh':
-                case 'xcp-ng-8.2':
-                case 'xcp-ng-8.2-ssh':
-                    $this->syncXenServer($cm);
+            $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($cm);
+
+            if ($driver instanceof HostSyncInterface) {
+                $this->model = $driver->syncStorageVolumeDisks($cm, $this->model);
+            } else {
+                //  Dispatch on ComputePools.virtualization, not the per-host free-text
+                //  hypervisor_model - see docs/hypervisor-driver-architecture.md.
+                switch ($cm->computePools?->virtualization) {
+                    case 'xenserver-8.2':
+                    case 'xenserver-8.2-ssh':
+                    case 'xcp-ng-8.2':
+                    case 'xcp-ng-8.2-ssh':
+                        $this->syncXenServer($cm);
+                }
             }
         }
 

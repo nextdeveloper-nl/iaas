@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS\Contracts;
 
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 
 interface HostSyncInterface
 {
@@ -22,6 +23,13 @@ interface HostSyncInterface
     public function syncStorageVolumes(ComputeMembers $computeMember): ComputeMembers;
 
     public function syncVirtualMachines(ComputeMembers $computeMember): ComputeMembers;
+
+    /**
+     * Lists every disk the hypervisor reports on this storage volume (as seen from the
+     * given compute member) and reconciles each into VirtualDiskImages, then updates the
+     * volume's own usage totals (total/used/virtual-allocation).
+     */
+    public function syncStorageVolumeDisks(ComputeMembers $computeMember, StorageVolumes $volume): StorageVolumes;
 
     /**
      * Whether this host is joined to a real hypervisor-native pool (e.g. XenServer/XCP-ng

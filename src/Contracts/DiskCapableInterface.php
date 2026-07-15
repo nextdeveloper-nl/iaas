@@ -21,4 +21,10 @@ interface DiskCapableInterface
     public function mountCd(VirtualMachines $vm, RepositoryImages $image): bool;
 
     public function unmountCd(VirtualMachines $vm): bool;
+
+    /**
+     * Refreshes one disk's size/utilisation/storage-volume/VBD data from the hypervisor's
+     * live state and writes it to the VDI's own DB row.
+     */
+    public function syncDiskFromHypervisor(VirtualDiskImages $vdi): VirtualDiskImages;
 }

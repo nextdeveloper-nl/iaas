@@ -5,9 +5,11 @@ namespace NextDeveloper\IAAS\Actions\VirtualDiskImages;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\DiskCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
 
@@ -40,10 +42,16 @@ class Sync extends AbstractAction
         try {
             $computePool = VirtualDiskImagesService::getComputePool($this->model);
 
-            switch ($computePool->virtualization) {
-                case 'xenserver-8.2':
-                    $this->syncXenDisk();
-                    break;
+            $driver = $computePool ? app(VirtualMachineManager::class)->getAdapterForComputePool($computePool) : null;
+
+            if ($driver instanceof DiskCapableInterface) {
+                $this->model = $driver->syncDiskFromHypervisor($this->model);
+            } else {
+                switch ($computePool->virtualization) {
+                    case 'xenserver-8.2':
+                        $this->syncXenDisk();
+                        break;
+                }
             }
         } catch (\Exception $e) {
             Events::fire(

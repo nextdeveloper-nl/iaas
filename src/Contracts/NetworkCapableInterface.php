@@ -23,4 +23,12 @@ interface NetworkCapableInterface
      * vocabulary (XenServer's locking-mode: locked/unlocked/disabled/network_default).
      */
     public function setIpFilterMode(VirtualNetworkCards $vif, string $mode): bool;
+
+    /**
+     * Creates the hypervisor-side VIF for an existing draft VirtualNetworkCards row (one
+     * that already has device_number/iaas_network_id set but no hypervisor_uuid yet) and
+     * updates that same row in place - distinct from createNetworkCard(), which creates
+     * and returns a brand-new row. Throws on failure.
+     */
+    public function attachDraftNetworkCard(VirtualNetworkCards $vif): VirtualNetworkCards;
 }

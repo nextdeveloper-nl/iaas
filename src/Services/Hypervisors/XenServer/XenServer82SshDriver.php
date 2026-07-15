@@ -33,6 +33,8 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\Hypervisors\HypervisorService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Events\XenServerEventTranslator;
+use NextDeveloper\IAAS\Services\StorageVolumesService;
+use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAAS\ValueObjects\ConsoleSession;
@@ -362,6 +364,38 @@ class XenServer82SshDriver implements
         return true;
     }
 
+    public function syncDiskFromHypervisor(VirtualDiskImages $vdi): VirtualDiskImages
+    {
+        $computeMember = VirtualDiskImagesService::getComputeMember($vdi);
+
+        $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($vdi['hypervisor_uuid'], $computeMember);
+        $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($vdi['uuid'], $computeMember);
+
+        $volume = StorageVolumesService::getVolumeByUuid($diskParams['sr-uuid']);
+
+        if (!$volume) {
+            Log::warning('[XenServer82SshDriver@syncDiskFromHypervisor] Disk does not have storage volume in DB. ' .
+                'We should start storage volume sync for this compute member');
+
+            ComputeMemberXenService::updateStorageVolumes($computeMember);
+        }
+
+        $data = [
+            'size' => $diskParams['virtual-size'],
+            'physical_utilisation' => $diskParams['physical-utilisation'],
+            'hypervisor_data' => $diskParams,
+            'is_draft' => false,
+            'vbd_hypervisor_data'   =>  $vbdParams,
+            'vbd_hypervisor_uuid'   =>  $vbdParams['uuid'],
+            'iaas_storage_volume_id' =>  $volume->id,
+            'iaas_storage_pool_id'  =>  $volume->iaas_storage_pool_id,
+        ];
+
+        $vdi->updateQuietly($data);
+
+        return $vdi->fresh();
+    }
+
     // -- NetworkCapableInterface --------------------------------------------------------
 
     public function createNetworkCard(VirtualMachines $vm, string $networkUuid, int $device): VirtualNetworkCards
@@ -403,6 +437,51 @@ class XenServer82SshDriver implements
         VirtualNetworkCardsXenService::setLockingState($vif, $mode);
 
         return true;
+    }
+
+    public function attachDraftNetworkCard(VirtualNetworkCards $vif): VirtualNetworkCards
+    {
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vif->iaas_virtual_machine_id)
+            ->first();
+
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $vif->iaas_network_id)
+            ->first();
+
+        $interface = ComputeMemberXenService::createNetwork($computeMember, $network);
+
+        $networkCardResult = VirtualMachinesXenService::createVif($vm, $interface->network_uuid, $vif->device_number);
+
+        if (!Str::isUuid($networkCardResult)) {
+            $error = is_array($networkCardResult) ? ($networkCardResult[0]['error'] ?? 'unknown error') : 'unknown error';
+
+            throw new \RuntimeException('Failed to create the network card on the hypervisor: ' . $error);
+        }
+
+        $vifParams = VirtualMachinesXenService::getVifParams($vm, $networkCardResult);
+        $vifParams = $vifParams[0];
+
+        $data = [
+            'name'          =>  'eth' . $vifParams['device'],
+            'device_number' => $vifParams['device'],
+            'mac_addr'      => $vifParams['MAC'],
+            'bandwidth_limit'   => '-1', //$vifParams['qos_algorithm_params']['kbps'],
+            'iaas_network_id'       => $network->id,
+            'hypervisor_uuid'   => $vif['uuid'],
+            'hypervisor_data'   => $vifParams,
+            'iam_account_id'    => $vm->iam_account_id,
+            'iam_user_id'       => $vm->iam_user_id,
+            'is_draft'          => false,
+            'iaas_virtual_machine_id'   =>  $vm->id,
+            'status'    =>  'attached:' . $vifParams['currently-attached']
+        ];
+
+        $vif->update($data);
+
+        return $vif->fresh();
     }
 
     // -- HostSyncInterface ---------------------------------------------------------------
@@ -804,6 +883,96 @@ class XenServer82SshDriver implements
                     $vif['uuid'] . ' for VM ' . $dbVm->uuid . ': ' . $exception->getMessage());
             }
         }
+    }
+
+    public function syncStorageVolumeDisks(ComputeMembers $computeMember, StorageVolumes $volume): StorageVolumes
+    {
+        $disks = ComputeMemberXenService::getListOfDisksOnVolume($computeMember, $volume);
+
+        foreach ($disks as $disk) {
+            if (!array_key_exists('uuid', $disk)) {
+                continue;
+            }
+
+            Log::info('[XenServer82SshDriver@syncStorageVolumeDisks] Syncing disk: ' . $disk['uuid']);
+
+            $dbDisk = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                ->where('hypervisor_uuid', $disk['uuid'])
+                ->first();
+
+            $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['uuid'], $computeMember);
+
+            $vbdParams = null;
+
+            if ($diskParams['vbd-uuids']) {
+                $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($diskParams['vbd-uuids'], $computeMember);
+            }
+
+            $diskVolume = StorageVolumesService::getVolumeByUuid($diskParams['sr-uuid']);
+
+            if (!$diskVolume) {
+                Log::warning('[XenServer82SshDriver@syncStorageVolumeDisks] Disk does not have storage volume ' .
+                    'in DB. We should start storage volume sync for this compute member');
+
+                ComputeMemberXenService::updateStorageVolumes($computeMember);
+            }
+
+            $data = [
+                'name' => $dbDisk ? $dbDisk->name : $diskParams['name-label'],
+                'size' => $diskParams['virtual-size'],
+                'physical_utilisation' => $diskParams['physical-utilisation'],
+                'iaas_storage_volume_id' => $diskVolume->id,
+                'iaas_storage_pool_id' => $diskVolume->iaas_storage_pool_id,
+                'is_cdrom' => false,
+                'hypervisor_uuid' => $diskParams['uuid'],
+                'hypervisor_data' => $disk,
+                //  here we are adding default user for the disks. If we can find the vm, then we will change it.
+                'iam_account_id' => $dbDisk ? $dbDisk->iam_account_id : config('leo.current_account_id'),
+                'iam_user_id' => $dbDisk ? $dbDisk->iam_user_id : config('leo.current_user_id'),
+                'is_draft' => false,
+            ];
+
+            if ($vbdParams) {
+                $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('hypervisor_uuid', $vbdParams['vm-uuid'])
+                    ->first();
+
+                if (!$vm) {
+                    Log::warning('[XenServer82SshDriver@syncStorageVolumeDisks] We cannot find the VM with uuid: ' . $vbdParams['vm-uuid']);
+                }
+
+                $data = array_merge($data, [
+                    'iaas_virtual_machine_id' => $vm ? $vm->id : null,
+                    'device_number' => $vm ? $vbdParams['userdevice'] : null,
+                    'iam_account_id' => $vm ? $vm->iam_account_id : config('leo.current_account_id'),
+                    'iam_user_id' => $vm ? $vm->iam_user_id : config('leo.current_user_id'),
+                    'vbd_hypervisor_uuid' => $vm ? $vbdParams['uuid'] : null,
+                    'vbd_hypervisor_data' => $vm ? $vbdParams : null,
+                ]);
+
+                if ($dbDisk) {
+                    $data['created_at'] = $vm ? $vm->created_at : $dbDisk->created_at;
+                } else {
+                    $data['created_at'] = $vm ? $vm->created_at : now();
+                }
+            }
+
+            if (!$dbDisk) {
+                VirtualDiskImages::create($data);
+            } else {
+                $dbDisk->updateQuietly($data);
+            }
+        }
+
+        $volumeInfo = ComputeMemberXenService::getStorageVolumeInformationByHypervisorUuid($computeMember, $volume->hypervisor_uuid);
+
+        $volume->update([
+            'total_hdd'         =>  ceil($volumeInfo['physical-size'] / 1000 / 1000 / 1000),
+            'used_hdd'          =>  ceil($volumeInfo['physical-utilisation'] / 1000 / 1000 / 1000),
+            'virtual_allocation' =>  ceil($volumeInfo['virtual-allocation'] / 1000 / 1000 / 1000),
+        ]);
+
+        return $volume->fresh();
     }
 
     public function isPoolMember(ComputeMembers $computeMember): bool

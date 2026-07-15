@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\NetworkCapableInterface;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
@@ -13,11 +14,8 @@ use NextDeveloper\IAAS\Exceptions\NetworkNotInPoolException;
 use NextDeveloper\IAAS\Services\CloudNodesService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
-//  Not routed through VirtualMachineManager in this pass: this action attaches an
-//  EXISTING draft VirtualNetworkCards row to the hypervisor and updates it in place,
-//  which doesn't match NetworkCapableInterface::createNetworkCard()'s
-//  create-and-return-a-new-row shape - see docs/hypervisor-driver-architecture.md.
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -102,9 +100,38 @@ class Attach extends AbstractAction
         //  Checking if the network exists in the hypervisor
         $this->setProgress(15, 'Checking if the network physically exists');
 
-        $interface = ComputeMemberXenService::createNetwork($computeMember, $network);
+        $driver = app(VirtualMachineManager::class)->getAdapter($vm);
 
+        if ($driver instanceof NetworkCapableInterface) {
+            $this->setProgress(50, 'Creating the network card with in the related network.');
+
+            try {
+                $driver->attachDraftNetworkCard($vif);
+
+                $this->setFinished('Network card initiated.');
+            } catch (\Throwable $e) {
+                Log::error('[VirtualNetworkCards@Attach] Failed to attach network card: ' . $e->getMessage());
+                Events::fire('attach-failed:NextDeveloper\IAAS\VirtualNetworkCards', $vif);
+                $this->setFinished('Virtual machine initiated');
+            }
+
+            return;
+        }
+
+        $this->attachXenNetworkCard($vm, $computeMember, $network, $vif);
+    }
+
+    /**
+     * Not routed through VirtualMachineManager: fallback body kept unchanged, verbatim,
+     * as the safety net for a driver that doesn't implement
+     * NetworkCapableInterface::attachDraftNetworkCard() - see
+     * docs/hypervisor-driver-architecture.md.
+     */
+    private function attachXenNetworkCard($vm, $computeMember, $network, $vif)
+    {
         $this->setProgress(50, 'Creating the network card with in the related network.');
+
+        $interface = ComputeMemberXenService::createNetwork($computeMember, $network);
 
         $networkCardResult = VirtualMachinesXenService::createVif($vm, $interface->network_uuid, $vif->device_number);
 
