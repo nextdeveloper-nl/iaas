@@ -1250,6 +1250,13 @@ class VirtualMachinesXenService extends AbstractXenService
     {
         $result = self::performCommand(ToolkitService::ensureRemoteCacheCommand(), $centralRepo);
 
+        if ($result['dry_run'] ?? false) {
+            //  SSH_DRY_RUN never actually ran the command, so it can't produce the
+            //  TOOLKIT_CACHE_OK marker the check below looks for - that's expected, not
+            //  a real failure. See NextDeveloper\Commons\Database\Traits\SSHable.
+            return;
+        }
+
         if (!str_contains($result['output'] ?? '', 'TOOLKIT_CACHE_OK')) {
             Log::error('[VirtualMachinesXenService@ensureRemoteToolkitCache] Failed to prepare the toolkit ' .
                 'cache on repo ' . $centralRepo->name . '/' . $centralRepo->uuid . ' for VM ' . $vm->uuid .
