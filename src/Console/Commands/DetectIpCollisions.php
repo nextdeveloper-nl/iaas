@@ -18,7 +18,8 @@ class DetectIpCollisions extends Command {
         {--vlan= : Only scan this vlan number on each switch}
         {--switch= : Only scan the switch with this uuid}
         {--queue : Dispatch onto the iaas queue instead of running (and printing output) right here}
-        {--fix : Also create IpAddresses records for ips seen on the wire that arent registered at all}';
+        {--fix : Also create IpAddresses records for ips seen on the wire that arent registered at all}
+        {--summary : Only report collisions and fix results, skip the per-ip OK/unregistered trace - use this for scheduled runs}';
 
     /**
      * @var string
@@ -30,6 +31,7 @@ class DetectIpCollisions extends Command {
         $switchUuid = $this->option('switch');
         $queue = $this->option('queue');
         $fix = $this->option('fix');
+        $verbose = !$this->option('summary');
 
         $switches = NetworkMembers::withoutGlobalScope(AuthorizationScope::class)
             ->withoutGlobalScope(LimitScope::class)
@@ -87,7 +89,7 @@ class DetectIpCollisions extends Command {
                     $switch,
                     $vlan ? (int) $vlan : null,
                     fn ($message) => $this->line($message),
-                    true
+                    $verbose
                 );
 
                 $allCollisions = array_merge($allCollisions, $collisions);
