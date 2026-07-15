@@ -79,7 +79,13 @@ class XenServer82SshDriver implements
     {
         $force ? VirtualMachinesXenService::forceShutdown($vm) : VirtualMachinesXenService::shutdown($vm);
 
-        return $this->sync($vm);
+        //  xe vm-shutdown can return before the guest has actually finished powering off -
+        //  a graceful ACPI shutdown waits on the guest OS to respond, which isn't
+        //  instantaneous. A single immediate sync() right after issuing the command can
+        //  catch the VM still mid-transition and falsely report a failed shutdown, even
+        //  though it reaches 'halted' moments later. Poll briefly instead of trusting one
+        //  snapshot in time.
+        return $this->syncUntilPowerState($vm, 'halted');
     }
 
     public function restart(VirtualMachines $vm, bool $force = false): VirtualMachines
@@ -146,6 +152,26 @@ class XenServer82SshDriver implements
         ]);
 
         return $vm->fresh();
+    }
+
+    /**
+     * Polls sync() until the VM reports the expected power-state or the attempt budget
+     * runs out, instead of trusting a single immediate check right after issuing a power
+     * command - XenServer doesn't guarantee the state transition is complete by the time
+     * the triggering `xe` command returns. Non-throwing: if the state is never reached,
+     * returns the last synced (still-not-matching) state so the caller's own
+     * status-check logic decides what "still not there" means.
+     */
+    private function syncUntilPowerState(VirtualMachines $vm, string $expectedState, int $maxAttempts = 5, int $delaySeconds = 2): VirtualMachines
+    {
+        $vm = $this->sync($vm);
+
+        for ($attempt = 1; $attempt < $maxAttempts && $vm->status !== $expectedState; $attempt++) {
+            sleep($delaySeconds);
+            $vm = $this->sync($vm);
+        }
+
+        return $vm;
     }
 
     public function listAll(): array

@@ -49,11 +49,12 @@ class Delete extends AbstractAction
         $this->setProgress(0, 'Delete virtual machine started');
         Events::fire('deleting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
+        //  A VM the hypervisor no longer reports (is_lost) has nothing real to stop or
+        //  destroy there - that's exactly the case a customer most needs to be able to
+        //  delete, not one where deletion should be blocked. Skip hypervisor-side cleanup
+        //  for it (see $isDeployed below) and go straight to removing its own records.
         if($this->model->is_lost) {
-            CommentsService::createSystemComment('This VM seems to be lost, that is why we are not continuing the deletion process.', $this->model);
-            $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
-            Events::fire('delete-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
-            return;
+            CommentsService::createSystemComment('This VM is marked as lost - skipping hypervisor cleanup and removing its records directly.', $this->model);
         }
 
 //        if($this->model->deleted_at != null) {
@@ -74,8 +75,12 @@ class Delete extends AbstractAction
         try {
             //  A VM that was never deployed (draft, no compute member/hypervisor_uuid) has nothing
             //  to shut down or destroy on a hypervisor - attempting it throws (null compute member)
-            //  and aborts the whole delete before we ever reach $this->model->delete() below.
-            $isDeployed = $this->model->iaas_compute_member_id && $this->model->hypervisor_uuid;
+            //  and aborts the whole delete before we ever reach $this->model->delete() below. Same
+            //  reasoning for is_lost: the hypervisor already doesn't know about this VM, so there's
+            //  nothing real to stop/destroy there either.
+            $isDeployed = !$this->model->is_lost
+                && $this->model->iaas_compute_member_id
+                && $this->model->hypervisor_uuid;
 
             if ($isDeployed) {
                 $manager = app(VirtualMachineManager::class);
