@@ -9,6 +9,7 @@ use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Contracts\ExportCapableInterface;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
@@ -124,9 +125,11 @@ class ExportAsMachineImage extends AbstractAction
 
         $this->setProgress(20, 'Mounting the machine image repository on the compute member.');
 
-        //  Not routed through VirtualMachineManager: repo mount/unmount has no capability
-        //  interface yet - see docs/hypervisor-driver-architecture.md.
-        $isMounted = ComputeMemberXenService::mountVmRepository($this->computeMember, $this->repository);
+        $provisioningDriver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+        $isMounted = $provisioningDriver instanceof ProvisioningCapableInterface
+            ? $provisioningDriver->mountRepository($this->computeMember, $this->repository)
+            : ComputeMemberXenService::mountVmRepository($this->computeMember, $this->repository);
 
         if(!$isMounted) {
             $this->setFinishedWithError('We cannot mount the given repository, that is why we cannot' .
@@ -172,7 +175,11 @@ class ExportAsMachineImage extends AbstractAction
 
         $this->setProgress(90, 'Unmounting the repository.');
 
-        ComputeMemberXenService::unmountVmRepository($this->computeMember, $this->repository);
+        if ($provisioningDriver instanceof ProvisioningCapableInterface) {
+            $provisioningDriver->unmountRepository($this->computeMember, $this->repository);
+        } else {
+            ComputeMemberXenService::unmountVmRepository($this->computeMember, $this->repository);
+        }
 
         $this->setStateData('repository_image', $image->fresh());
 

@@ -11,6 +11,7 @@ use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Contracts\ExportCapableInterface;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
@@ -112,9 +113,11 @@ class ConvertToTemplate extends AbstractAction
 
         $this->setProgress(40, 'Mounting the repository.');
 
-        //  Not routed through VirtualMachineManager: repo mount/unmount has no capability
-        //  interface yet - see docs/hypervisor-driver-architecture.md.
-        $isMounted = ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
+        $provisioningDriver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+        $isMounted = $provisioningDriver instanceof ProvisioningCapableInterface
+            ? $provisioningDriver->mountRepository($computeMember, $this->repository)
+            : ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
 
         if(!$isMounted) {
             $this->setFinishedWithError('We cannot mount the given repository, that is why we cannot' .
@@ -161,7 +164,11 @@ class ConvertToTemplate extends AbstractAction
 
         $this->setProgress(90, 'Unmounting the repository.');
 
-        ComputeMemberXenService::unmountVmRepository($computeMember, $this->repository);
+        if ($provisioningDriver instanceof ProvisioningCapableInterface) {
+            $provisioningDriver->unmountRepository($computeMember, $this->repository);
+        } else {
+            ComputeMemberXenService::unmountVmRepository($computeMember, $this->repository);
+        }
 
         $this->setProgress(100, 'Virtual machine exported');
     }
