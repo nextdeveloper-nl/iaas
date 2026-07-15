@@ -15,11 +15,15 @@ use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
 use NextDeveloper\IAAS\Contracts\SnapshotCapableInterface;
 use NextDeveloper\IAAS\Contracts\VirtualMachineAdapterInterface;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
+use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
+use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
@@ -30,6 +34,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\Hypervisors\HypervisorService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Events\XenServerEventTranslator;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
+use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAAS\ValueObjects\ConsoleSession;
 use NextDeveloper\IAAS\ValueObjects\NormalizedHypervisorEvent;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -438,7 +443,367 @@ class XenServer82SshDriver implements
 
     public function syncVirtualMachines(ComputeMembers $computeMember): ComputeMembers
     {
-        return ComputeMemberXenService::updateVirtualMachines($computeMember);
+        $virtualMachines = ComputeMemberXenService::getListOfVirtualMachines($computeMember);
+
+        $vmCount = count($virtualMachines);
+
+        Log::info('[XenServer82SshDriver@syncVirtualMachines] Found ' . $vmCount .
+            ' virtual machines on compute member: ' . $computeMember->name);
+
+        for ($i = 0; $i < $vmCount; $i++) {
+            $vm = $virtualMachines[$i];
+
+            //  A malformed/empty hypervisor response (e.g. a compute member returning no
+            //  usable output for this entry) can produce a record with no uuid. Skip it
+            //  outright - without this guard, syncVirtualMachineRecord()'s
+            //  where('hypervisor_uuid', $vm['uuid']) lookup below would silently become
+            //  Laravel's whereNull('hypervisor_uuid') for a null/missing uuid, matching
+            //  and overwriting an arbitrary unrelated draft VM elsewhere in the database
+            //  with this empty record's data.
+            if (empty($vm['uuid'])) {
+                Log::warning('[XenServer82SshDriver@syncVirtualMachines] Skipping a malformed VM entry with no uuid from compute member: ' . $computeMember->name);
+                continue;
+            }
+
+            Log::info('[XenServer82SshDriver@syncVirtualMachines] Scanning virtual machine number: ' .
+                $i . ' [' . $vm['name-label'] . '] / [' . $vm['uuid'] . ']');
+
+            $vmInfo = ComputeMemberXenService::getVirtualMachineByUuid($computeMember, $vm['uuid']);
+
+            //  We are skipping the scan of virtual machines which has "migrated_" in the name
+            //  Because if we don't skip we will be having two servers
+            if (Str::startsWith($vmInfo[0]['name-label'], 'exported_')) {
+                continue;
+            }
+
+            if (is_array($vmInfo) && array_key_exists('error', $vmInfo)) {
+                Log::error('[XenServer82SshDriver@syncVirtualMachines] Error while scanning virtual machine: ' . $vm['uuid']);
+                Log::error($vmInfo);
+                continue;
+            }
+
+            if (is_array($vmInfo)) {
+                $vmInfo = $vmInfo[0];
+            }
+
+            $dbVm = $this->syncVirtualMachineRecord($computeMember, $vm, $vmInfo);
+
+            $this->syncVirtualMachineDisks($computeMember, $dbVm);
+            $this->syncVirtualMachineNetworkCards($computeMember, $dbVm);
+        }
+
+        return $computeMember->fresh();
+    }
+
+    /**
+     * Upserts the VirtualMachines DB row for one hypervisor-reported VM (create if we've
+     * never seen this hypervisor_uuid before, update otherwise).
+     */
+    private function syncVirtualMachineRecord(ComputeMembers $computeMember, array $vm, array $vmInfo): VirtualMachines
+    {
+        $dbVm = VirtualMachines::withoutGlobalScopes()->where('hypervisor_uuid', $vm['uuid'])->first();
+
+        $computePool = ComputePools::withoutGlobalScopes()->where('id', $computeMember->iaas_compute_pool_id)->first();
+        $cloudNode = CloudNodes::withoutGlobalScopes()->where('id', $computePool->iaas_cloud_node_id)->first();
+
+        if ($dbVm) {
+            $dbVm->updateQuietly([
+                'domain_type'   =>  $vmInfo['hvm'] == 'false' ? 'pv' : 'hvm',
+                'cpu'           =>  $vmInfo['VCPUs-max'],
+                'ram'           =>  $vmInfo['memory-static-max'] / 1024 / 1024, //  this comes in bytes, converting to MB,
+                'status'        =>  $vmInfo['power-state'],
+                //  Merge so that other keys (e.g. 'agent') set by other sources are not overwritten
+                'available_operations'  =>  array_merge(
+                    $dbVm->available_operations ?? [],
+                    ['hypervisor' => $vmInfo['allowed-operations']]
+                ),
+                'current_operations'    =>  $vmInfo['current-operations'],
+                'blocked_operations'    =>  $vmInfo['blocked-operations'],
+                'hypervisor_uuid'       =>  $vm['uuid'],
+                'hypervisor_data'       =>  $vmInfo,
+                'is_draft'              =>  false,
+                'iaas_compute_member_id'    =>  $computeMember->id,
+                'iaas_cloud_node_id'        =>  $cloudNode->id,
+                'iaas_compute_pool_id'      =>  $computePool->id
+            ]);
+
+            $dbVm = $dbVm->fresh();
+
+            if (config('iaas.regulations.pci_dss.change_names')) {
+                $isChanged = false;
+
+                if (!$isChanged) {
+                    Log::error('[XenServer82SshDriver@syncVirtualMachines] Error while renaming virtual machine: ' . $vm['uuid']);
+                    StateHelper::setState($computeMember, 'host_change_rename_error', 'true');
+                }
+            }
+        } else {
+            $dbVm = VirtualMachines::create([
+                'name'          =>  $vmInfo['name-label'],
+                'domain_type'   =>  $vmInfo['hvm'] == 'false' ? 'pv' : 'hvm',
+                'cpu'           =>  $vmInfo['VCPUs-max'],
+                'ram'           =>  $vmInfo['memory-static-max'] / 1024 / 1024, //  this comes in bytes, converting to MB,
+                'status'        =>  $vmInfo['power-state'],
+                'available_operations'  =>  ['hypervisor' => $vmInfo['allowed-operations']],
+                'current_operations'    =>  $vmInfo['current-operations'],
+                'blocked_operations'    =>  $vmInfo['blocked-operations'],
+                'hypervisor_uuid'       =>  $vm['uuid'],
+                'hypervisor_data'       =>  $vmInfo,
+                'is_draft'              =>  false,
+                'iaas_compute_member_id'    =>  $computeMember->id,
+                'iaas_cloud_node_id'        =>  $cloudNode->id,
+                'iaas_compute_pool_id'      =>  $computePool->id,
+                'iam_account_id'            =>  $computeMember->iam_account_id,
+                'iam_user_id'               =>  $computeMember->iam_user_id
+            ]);
+
+            if (config('iaas.regulations.pci_dss.change_names')) {
+                $isChanged = false;
+
+                if (!$isChanged) {
+                    Log::error('[XenServer82SshDriver@syncVirtualMachines] Error while renaming virtual machine: ' . $vm['uuid']);
+                    StateHelper::setState($computeMember, 'host_change_rename_error', 'true');
+                }
+            }
+        }
+
+        return $dbVm;
+    }
+
+    /**
+     * Upserts the VirtualDiskImages rows for one VM's VBDs/VDIs as reported by the
+     * hypervisor (including the CDROM slot, if any).
+     */
+    private function syncVirtualMachineDisks(ComputeMembers $computeMember, VirtualMachines $dbVm): void
+    {
+        $vbds = VirtualMachinesXenService::getVmDisks($dbVm);
+
+        foreach ($vbds as $vbd) {
+            //  Sometimes we get null values, we are skipping them (I dont know why)
+            if ($vbd == []) {
+                continue;
+            }
+
+            if (array_key_exists('vdi-uuid', $vbd)) {
+                $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($vbd['vdi-uuid'], $computeMember);
+            }
+
+            $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($vbd['uuid'], $computeMember);
+
+            //  We are taking CDROM if the vbd type is CDROM
+            if ($vbdParams['type'] === 'CD') {
+                $dbVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('is_cdrom', true)
+                    ->where('iaas_virtual_machine_id', $dbVm->id)
+                    ->first();
+            } else {
+                $dbVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('hypervisor_uuid', $diskParams['uuid'])
+                    ->first();
+
+                //  If we found a VDI by hypervisor_uuid but it belongs to a different VM,
+                //  check whether the current VM already has its own record for this disk
+                //  (e.g. created by a migration clone). If so, use that record instead to
+                //  avoid a unique constraint violation on (iaas_virtual_machine_id, device_number).
+                if ($dbVdi && (int) $dbVdi->iaas_virtual_machine_id !== (int) $dbVm->id) {
+                    $ownRecord = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_virtual_machine_id', $dbVm->id)
+                        ->where('device_number', $vbdParams['userdevice'])
+                        ->first();
+
+                    if ($ownRecord) {
+                        //  The current VM already owns a disk at this device position - use it.
+                        $dbVdi = $ownRecord;
+                    }
+                    //  else: no own record yet, fall through and let the update reassign the
+                    //  existing record to this VM (original VM no longer owns it on XenServer).
+
+                    if ($dbVdi) {
+                        Log::warning('[XenServer82SshDriver@syncVirtualMachines] There is a disk in the same ' .
+                            'device_number in this virtual machine: ' . $dbVm->uuid . ', but their ' .
+                            'hypervisor_uuid does not match. So it mush be updated or changed manually.');
+                    }
+                }
+            }
+
+            //  We are taking the volume if the VDI is CDROM
+            if ($vbdParams['type'] !== 'CD') {
+                $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('hypervisor_uuid', $diskParams['sr-uuid'])
+                    ->first();
+
+                if (!$diskVolume) {
+                    //  This means that there is a volume but we cannot find it. We need to make sync of this Volume
+                }
+            }
+
+            $data = [
+                'name'                      =>  $vbdParams['type'] !== 'CD' ? 'Disk of: ' . $dbVm->name : 'CDROM',
+                'size'                      =>  $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
+                'physical_utilisation'      =>  $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
+                'iaas_storage_volume_id'    =>  $vbdParams['type'] !== 'CD' ? $diskVolume->iaas_storage_volume_id : null,
+                'iaas_virtual_machine_id'   =>  $dbVm->id,
+                'device_number'             =>  $vbdParams['userdevice'],
+                'is_cdrom'                  =>  $vbdParams['type'] === 'CD',
+                'hypervisor_uuid'       =>  $vbdParams['vdi-uuid'],
+                'hypervisor_data'       =>  $diskParams ?? [],
+                'iam_account_id'        =>  $dbVm->iam_account_id,
+                'iam_user_id'           =>  $dbVm->iam_user_id,
+                'is_draft'              =>  false,
+                'vbd_hypervisor_uuid'   =>  $vbd['uuid'],
+                'vbd_hypervisor_data'   =>  $vbdParams
+            ];
+
+            if ($dbVdi) {
+                $dbVdi->updateQuietly($data);
+            } else {
+                //  We need to check if we already have a record with the iaas_virtual_machine_id and device_number
+                //  If we have, we will update it, if not we will create a new one
+                $checkVdi = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_virtual_machine_id', $dbVm->id)
+                    ->where('device_number', $vbdParams['userdevice'])
+                    ->withTrashed()
+                    ->first();
+
+                if ($checkVdi) {
+                    if ($checkVdi->trashed()) {
+                        $checkVdi->restore();
+                    }
+                }
+
+                //  This happens when the VDI is migrated to another storage. We need to update the hypervisor_uuid
+                if ($checkVdi) {
+                    $checkVdi->updateQuietly($data);
+                    $dbVdi = $checkVdi;
+                } else {
+                    $dbVdi = VirtualDiskImages::create($data);
+                }
+            }
+        }
+    }
+
+    /**
+     * Upserts the VirtualNetworkCards rows for one VM's VIFs as reported by the
+     * hypervisor.
+     */
+    private function syncVirtualMachineNetworkCards(ComputeMembers $computeMember, VirtualMachines $dbVm): void
+    {
+        $computePool = ComputePools::withoutGlobalScopes()->where('id', $computeMember->iaas_compute_pool_id)->first();
+
+        $vifs = VirtualMachinesXenService::getVifs($dbVm);
+
+        foreach ($vifs as $vif) {
+            if ($vif == []) {
+                continue;
+            }
+
+            $vifParams = VirtualMachinesXenService::getVifParams($dbVm, $vif['uuid']);
+
+            if (array_key_exists(0, $vifParams)) {
+                $vifParams = $vifParams[0];
+            }
+
+            $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                ->where('hypervisor_uuid', $vif['uuid'])
+                ->first();
+
+            if (!$dbVif) {
+                $dbVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_virtual_machine_id', $dbVm->id)
+                    ->where('mac_addr', $vifParams['MAC'])
+                    ->withTrashed()
+                    ->first();
+
+                if ($dbVif) {
+                    if ($dbVif->trashed()) {
+                        $dbVif->restore();
+                    }
+                }
+            }
+
+            $connectedInterface = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                ->where('network_uuid', $vifParams['network-uuid'])
+                ->first();
+
+            if (!$connectedInterface) {
+                //  Here we will add another trigger to scan all compute member network interfaces
+                StateHelper::setState($computeMember, 'needs_scan', true);
+
+                Log::error('[XenServer82SshDriver@syncVirtualMachines] Cannot find the connected ' .
+                    'interface for the VIF: ' . $vif['uuid'] . '. This compute member ' .
+                    'should be scanned and synced immediately.');
+
+                continue;
+            }
+
+            $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                ->where('vlan', $connectedInterface->vlan)
+                ->where('iaas_cloud_node_id', $computePool->iaas_cloud_node_id)
+                ->first();
+
+            if (!$network) {
+                //  Here we need to create another scan and create the related network
+                StateHelper::setState($computeMember, 'needs_scan', true);
+
+                Log::error('[XenServer82SshDriver@syncVirtualMachines] Cannot find the connected ' .
+                    'interface for the VIF: ' . $vif['uuid'] . '. This compute member ' .
+                    'should be scanned and synced immediately.');
+
+                continue;
+            }
+
+            $data = [
+                'name'          =>  'eth' . $vifParams['device'],
+                'device_number' => $vifParams['device'],
+                'mac_addr'      => $vifParams['MAC'],
+                'bandwidth_limit'   => '-1', //$vifParams['qos_algorithm_params']['kbps'],
+                'iaas_network_id'       => $network->id,
+                'hypervisor_uuid'   => $vif['uuid'],
+                'hypervisor_data'   => $vifParams,
+                'iam_account_id'    => $dbVm->iam_account_id,
+                'iam_user_id'       => $dbVm->iam_user_id,
+                'is_draft'          => false,
+                'status'            => 'attached:true',
+                'iaas_virtual_machine_id'   =>  $dbVm->id
+            ];
+
+            //  Check if there is another VIF on same device
+            $vifOnSameDevice = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $dbVm->id)
+                ->where('device_number', $data['device_number'])
+                ->first();
+
+            if ($vifOnSameDevice) {
+                if ($vifOnSameDevice->id != $dbVif->id) {
+                    $vifOnSameDevice->forceDelete();
+                }
+            }
+
+            $vifOnSameMac = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $dbVm->id)
+                ->where('mac_addr', $data['mac_addr'])
+                ->first();
+
+            if ($vifOnSameMac) {
+                if ($vifOnSameMac->id != $dbVif->id) {
+                    $vifOnSameMac->forceDelete();
+                }
+            }
+
+            try {
+                if ($dbVif) {
+                    $dbVif->updateQuietly($data);
+                } else {
+                    VirtualNetworkCardsService::create($data);
+                }
+            } catch (\Exception $exception) {
+                //  Was dump()/dd() in the original Action code - dd() would have killed the
+                //  whole scan job on the first VIF sync error. Logging instead so one bad
+                //  VIF doesn't take down the rest of the host scan.
+                Log::error('[XenServer82SshDriver@syncVirtualMachines] Failed to sync VIF ' .
+                    $vif['uuid'] . ' for VM ' . $dbVm->uuid . ': ' . $exception->getMessage());
+            }
+        }
     }
 
     public function isPoolMember(ComputeMembers $computeMember): bool

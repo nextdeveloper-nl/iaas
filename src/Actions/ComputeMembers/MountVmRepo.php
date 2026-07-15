@@ -4,9 +4,11 @@ namespace NextDeveloper\IAAS\Actions\ComputeMembers;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -44,7 +46,11 @@ class MountVmRepo extends AbstractAction
 
         Events::fire('mounting:NextDeveloper\IAAS\Repositories', $this->model);
 
-        $result = ComputeMemberXenService::mountVmRepository($this->model, $this->repo);
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($this->model);
+
+        $result = $driver instanceof ProvisioningCapableInterface
+            ? $driver->mountRepository($this->model, $this->repo)
+            : ComputeMemberXenService::mountVmRepository($this->model, $this->repo);
 
         if(!$result)
             $this->setFinishedWithError('Repository mounting failed');

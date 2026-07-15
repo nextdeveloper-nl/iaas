@@ -252,7 +252,12 @@ class ComputeMembers extends Model
 
     public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
+        //  Explicit FK required: Laravel's naming convention would guess
+        //  'compute_pools_id', but the real column is 'iaas_compute_pool_id' - without
+        //  this, the relation silently returns null for every row instead of erroring,
+        //  which made VirtualMachineManager::getAdapterForComputeMember() (and therefore
+        //  every HostSyncInterface call site) always fall through to its fallback path.
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class, 'iaas_compute_pool_id');
     }
     
     public function computeMemberNetworkInterfaces() : \Illuminate\Database\Eloquent\Relations\HasMany
