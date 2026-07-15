@@ -8,7 +8,7 @@ use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\NetworkMemberXenService;
-use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 
 /**
  * This action initiates compute members by creating the necessary resources such as Compute, Storage, and Network.

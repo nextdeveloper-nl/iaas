@@ -7,7 +7,7 @@ use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 
 /**
  * This action converts the virtual machine into a template

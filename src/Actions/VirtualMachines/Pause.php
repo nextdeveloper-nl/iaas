@@ -7,7 +7,7 @@ use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
-use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 
 /**
  * This action pauses the virtual machine

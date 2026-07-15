@@ -8,8 +8,8 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMigrations;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\HypervisorsV2\EvacuationService;
-use NextDeveloper\IAAS\Services\HypervisorsV2\XenServer_8_2\LocalDiskMigrationService;
+use NextDeveloper\IAAS\Services\Hypervisors\EvacuationService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\LocalDiskMigrationService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 

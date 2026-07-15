@@ -8,7 +8,7 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
-use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 
 /**
  * This action regenerates and uploads the configuration ISO for the virtual machine,

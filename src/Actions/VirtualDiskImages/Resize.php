@@ -5,7 +5,7 @@ namespace NextDeveloper\IAAS\Actions\VirtualDiskImages;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Contracts\DiskCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
-use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
 
 /**

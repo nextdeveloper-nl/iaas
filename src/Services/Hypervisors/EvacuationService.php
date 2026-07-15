@@ -1,6 +1,6 @@
 <?php
 
-namespace NextDeveloper\IAAS\Services\HypervisorsV2;
+namespace NextDeveloper\IAAS\Services\Hypervisors;
 
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;

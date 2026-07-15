@@ -6,8 +6,8 @@ use Illuminate\Console\Command;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMigrations;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\HypervisorsV2\EvacuationService;
-use NextDeveloper\IAAS\Services\HypervisorsV2\XenServer_8_2\MigrationService;
+use NextDeveloper\IAAS\Services\Hypervisors\EvacuationService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\MigrationService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 

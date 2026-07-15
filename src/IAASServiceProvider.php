@@ -6,7 +6,7 @@ use NextDeveloper\Commons\AbstractServiceProvider;
 use NextDeveloper\IAAS\Http\Middlewares\CheckEligibility;
 use NextDeveloper\IAAS\Http\Middlewares\CheckIaasAccount;
 use NextDeveloper\IAAS\Http\Middlewares\CheckSuspension;
-use NextDeveloper\IAAS\Services\HypervisorsV2\VirtualMachineManager;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 
 /**
  * Class IAASServiceProvider

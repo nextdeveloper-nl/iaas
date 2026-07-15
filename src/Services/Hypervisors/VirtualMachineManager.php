@@ -1,6 +1,6 @@
 <?php
 
-namespace NextDeveloper\IAAS\Services\HypervisorsV2;
+namespace NextDeveloper\IAAS\Services\Hypervisors;
 
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Commons\Services\CommentsService;

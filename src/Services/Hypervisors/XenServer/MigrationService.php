@@ -1,6 +1,6 @@
 <?php
 
-namespace NextDeveloper\IAAS\Services\HypervisorsV2\XenServer_8_2;
+namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -16,7 +16,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMigrations;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
-use NextDeveloper\IAAS\Services\HypervisorsV2\MigrationInterface;
+use NextDeveloper\IAAS\Services\Hypervisors\MigrationInterface;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\AbstractXenService;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualNetworkCardsXenService;
