@@ -7,6 +7,7 @@ use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\NetworkMembersInterfaces;
+use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractNetworkMembersService;
 use NextDeveloper\IAAS\Services\Switches\DellS6100;
@@ -25,11 +26,16 @@ class NetworkMembersService extends AbstractNetworkMembersService
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
     /**
-     * Connects to the given switch over SSH and reads the arp table of every vlan interface
-     * (or a single one, if $vlan is given), looking for ip addresses that are being answered
-     * for on the wire by more than one mac address, or by a mac address that does not match
-     * what our own records say should own that ip. Both situations only happen when an ip has
-     * been assigned manually outside of our provisioning system.
+     * Connects to the given switch over SSH and reads the arp table of every vlan (or a single
+     * one, if $vlan is given), looking for ip addresses that are being answered for on the wire
+     * by more than one mac address, or by a mac address that does not match what our own
+     * records say should own that ip. Both situations only happen when an ip has been assigned
+     * manually outside of our provisioning system.
+     *
+     * This talks to the switch directly and does not depend on NetworkMembersInterfaces being
+     * synced into the database: if $vlan is given we go straight to it, otherwise we ask the
+     * switch itself which vlans exist ("show vlan brief"). NetworkMembersInterfaces is only
+     * ever used here as a lightweight, unsaved value holder for the interface name.
      *
      * $onProgress, if given, is called with a human readable string after every meaningful
      * step, so callers can surface what is happening live (e.g. a console command) instead of
@@ -54,24 +60,29 @@ class NetworkMembersService extends AbstractNetworkMembersService
 
         $report('Connecting to switch ' . $switch->name . ' (' . $switch->ip_addr . ') over ssh');
 
-        $interfaces = NetworkMembersInterfaces::withoutGlobalScope(AuthorizationScope::class)
-            ->where('iaas_network_member_id', $switch->id)
-            ->where('name', 'ilike', $vlan ? 'vlan ' . $vlan : 'vlan %')
-            ->get();
+        $vlanNumbers = $vlan ? [$vlan] : self::getVlanNumbersFromSwitch($switch, $report);
 
-        if ($interfaces->isEmpty()) {
+        if (empty($vlanNumbers)) {
             $report($vlan
-                ? 'VLAN ' . $vlan . ' not found on switch ' . $switch->name
-                : 'No vlan interfaces found on switch ' . $switch->name);
+                ? 'VLAN ' . $vlan . ' was requested but the switch did not report having it'
+                : 'Could not read any vlans directly from switch ' . $switch->name);
 
             return [];
         }
 
-        $report('Found ' . $interfaces->count() . ' vlan interface(s) to scan');
+        $report('Scanning ' . count($vlanNumbers) . ' vlan(s) directly on the switch: ' . implode(', ', $vlanNumbers));
 
         $collisions = [];
 
-        foreach ($interfaces as $interface) {
+        foreach ($vlanNumbers as $vlanNumber) {
+            //  Unsaved on purpose - this is only a name/network-id holder so we can reuse the
+            //  existing DellS6100::getArp() signature without needing a synced db row.
+            $interface = new NetworkMembersInterfaces([
+                'name'                      =>  'VLAN ' . $vlanNumber,
+                'iaas_network_member_id'    =>  $switch->id,
+                'iaas_network_id'           =>  self::resolveNetworkIdForVlan($switch, $vlanNumber),
+            ]);
+
             $report('Reading arp table of interface ' . $interface->name);
 
             $arpRecords = null;
@@ -95,6 +106,11 @@ class NetworkMembersService extends AbstractNetworkMembersService
 
             $report('Got ' . count($arpRecords) . ' arp record(s) on interface ' . $interface->name);
 
+            if ($verbose && !$interface->iaas_network_id) {
+                $report('Could not resolve which network vlan ' . $vlanNumber . ' belongs to - ' .
+                    'ip ownership checks will be best-effort (matched by ip only) for this vlan.');
+            }
+
             $collisions = array_merge(
                 $collisions,
                 self::findCollisionsOnInterface($interface, $arpRecords, $report, $verbose)
@@ -109,6 +125,55 @@ class NetworkMembersService extends AbstractNetworkMembersService
         $report('Scan complete. ' . count($collisions) . ' collision(s) found in total.');
 
         return $collisions;
+    }
+
+    /**
+     * Asks the switch itself which vlans exist ("show vlan brief") instead of relying on
+     * NetworkMembersInterfaces being synced into the database, and returns their numbers.
+     */
+    private static function getVlanNumbersFromSwitch(NetworkMembers $switch, callable $report) : array
+    {
+        $vlanInterfaceNames = null;
+
+        switch ($switch->switch_type) {
+            case 'dells6100':
+                $vlanInterfaceNames = DellS6100::getVlans($switch);
+                break;
+            default:
+                $report('Switch type "' . $switch->switch_type . '" is not supported for vlan discovery');
+        }
+
+        if (!$vlanInterfaceNames) {
+            return [];
+        }
+
+        $vlanNumbers = [];
+
+        foreach ($vlanInterfaceNames as $name) {
+            $number = trim(str_ireplace('vlan', '', $name));
+
+            if ($number !== '' && is_numeric($number)) {
+                $vlanNumbers[] = (int) $number;
+            }
+        }
+
+        return array_values(array_unique($vlanNumbers));
+    }
+
+    /**
+     * Best-effort lookup of which Networks row a vlan belongs to, used only to scope the
+     * IpAddresses ownership check. Looked up directly against Networks (by vlan number + the
+     * switch's network pool), the same way NetworkMembers\Initiate resolves it - so this works
+     * even when NetworkMembersInterfaces has never been synced for this switch.
+     */
+    private static function resolveNetworkIdForVlan(NetworkMembers $switch, int $vlanNumber) : ?int
+    {
+        $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->where('vlan', $vlanNumber)
+            ->where('iaas_network_pool_id', $switch->iaas_network_pool_id)
+            ->first();
+
+        return $network->id ?? null;
     }
 
     /**
@@ -142,7 +207,9 @@ class NetworkMembersService extends AbstractNetworkMembersService
 
             $ipAddress = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
                 ->where('ip_addr', $ip)
-                ->where('iaas_network_id', $interface->iaas_network_id)
+                ->when($interface->iaas_network_id, function ($query) use ($interface) {
+                    $query->where('iaas_network_id', $interface->iaas_network_id);
+                })
                 ->first();
 
             if (!$ipAddress) {
