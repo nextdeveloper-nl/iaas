@@ -3,6 +3,8 @@ namespace NextDeveloper\IAAS\Actions\ComputePools;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
+use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Repositories;
@@ -17,6 +19,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\StorageMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -101,15 +104,31 @@ class ImportVirtualMachine extends AbstractAction
             $storageVolume = StorageMemberXenService::createStorageVolume($computeMember, $this->storagePool);
         }
 
-        $this->setProgress(15, 'Mounting repository to compute member');
-        ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
+        $provisioningDriver = app(VirtualMachineManager::class)->getAdapter($this->virtualMachine);
 
-        $this->setProgress(30, 'Importing virtual machine image');
-        $uuid = ComputeMemberXenService::importVirtualMachine($computeMember, $storageVolume, $this->image);
+        if ($provisioningDriver instanceof ProvisioningCapableInterface) {
+            $this->setProgress(30, 'Importing virtual machine image');
+            $uuid = $provisioningDriver->importFromImage(
+                $this->virtualMachine,
+                $computeMember,
+                $this->repository,
+                $storageVolume,
+                $this->image,
+                false
+            );
+        } else {
+            $this->setProgress(15, 'Mounting repository to compute member');
+            ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
+
+            $this->setProgress(30, 'Importing virtual machine image');
+            $uuid = ComputeMemberXenService::importVirtualMachine($computeMember, $storageVolume, $this->image, $this->virtualMachine);
+        }
 
         $this->setProgress(40, 'Updating virtual machine parameters');
 
-        $vmParams = VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
+        $vmParams = $provisioningDriver instanceof ProvisioningCapableInterface
+            ? $provisioningDriver->getVmParametersByRef($computeMember, $uuid)
+            : VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
 
         $this->virtualMachine->update([
             'hypervisor_uuid'           =>  $vmParams['uuid'],
@@ -129,33 +148,41 @@ class ImportVirtualMachine extends AbstractAction
 
         $this->setProgress(50, 'Updating virtual machine CPU');
 
-        VirtualMachinesXenService::setCPUCore($this->virtualMachine, $this->virtualMachine->cpu);
+        if ($provisioningDriver instanceof ResizeCapableInterface) {
+            $provisioningDriver->resize($this->virtualMachine, $this->virtualMachine->cpu, $this->virtualMachine->ram);
+        } else {
+            VirtualMachinesXenService::setCPUCore($this->virtualMachine, $this->virtualMachine->cpu);
 
-        $this->setProgress(60, 'Updating virtual machine RAM');
-        VirtualMachinesXenService::setRam($this->virtualMachine, $this->virtualMachine->ram);
+            $this->setProgress(60, 'Updating virtual machine RAM');
+            VirtualMachinesXenService::setRam($this->virtualMachine, $this->virtualMachine->ram);
+        }
 
         $this->setProgress(70, 'Updating virtual machine RAM');
         $disks = VirtualMachinesXenService::getVmDisks($this->virtualMachine);
 
         $this->setProgress(80, 'Updating virtual machine disks/cdroms');
 
+        //  Not routed through VirtualMachineManager: this populates brand-new
+        //  VirtualDiskImages rows from scratch for a freshly-imported VM (no existing DB
+        //  config to diff against), which doesn't match reconcileDiskConfiguration()'s
+        //  "diff hypervisor state against existing DB config" shape - see
+        //  docs/hypervisor-driver-architecture.md.
         foreach ($disks as $disk) {
             $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);
             $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
 
-            /**
-             * Burada sanki hata var, aşağıdaki $disk['uuid'] olmamalı. Tekrar kontrol et.
-             */
-
+            //  Storage volume is looked up by the VDI's own storage-repository uuid
+            //  (sr-uuid), not the VBD's uuid - those are unrelated identifiers, and
+            //  matching on the wrong one meant this lookup could never find a real row.
             $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-                ->where('hypervisor_uuid', $disk['uuid'])
+                ->where('hypervisor_uuid', $diskParams['sr-uuid'])
                 ->first();
 
             $data = [
                 'name'                      =>  $vbdParams['type'] !== 'CD' ? 'Disk of: ' . $this->virtualMachine->name : 'CDROM',
                 'size'                      =>  $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
                 'physical_utilisation'      =>  $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
-                'iaas_storage_volume_id'    =>  $vbdParams['type'] !== 'CD' ?? $diskVolume->iaas_storage_volume_id,
+                'iaas_storage_volume_id'    =>  $vbdParams['type'] !== 'CD' ? $diskVolume->iaas_storage_volume_id : null,
                 'iaas_virtual_machine_id'   =>  $this->virtualMachine->id,
                 'device_number'             =>  $vbdParams['userdevice'],
                 'is_cdrom'                  =>  $vbdParams['type'] === 'CD',
@@ -172,7 +199,12 @@ class ImportVirtualMachine extends AbstractAction
         }
 
         $this->setProgress(90, 'Unmounting repository from compute member');
-        $result = ComputeMemberXenService::unmountVmRepository($computeMember, $this->repository);
+
+        if ($provisioningDriver instanceof ProvisioningCapableInterface) {
+            $provisioningDriver->unmountRepository($computeMember, $this->repository);
+        } else {
+            ComputeMemberXenService::unmountVmRepository($computeMember, $this->repository);
+        }
 
         $this->setProgress(100, 'Virtual machine imported');
     }
