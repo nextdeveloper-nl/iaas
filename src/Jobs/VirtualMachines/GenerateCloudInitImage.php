@@ -7,7 +7,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -28,6 +30,12 @@ class GenerateCloudInitImage implements ShouldQueue
     {
         UserHelper::setAdminAsCurrentUser();
 
-        VirtualMachinesXenService::updateConfigurationIso($this->vm);
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->vm);
+
+        if ($driver instanceof ConfigurationIsoCapableInterface) {
+            $driver->regenerateConfigurationIso($this->vm);
+        } else {
+            VirtualMachinesXenService::updateConfigurationIso($this->vm);
+        }
     }
 }

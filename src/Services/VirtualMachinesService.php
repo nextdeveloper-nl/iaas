@@ -15,6 +15,7 @@ use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Delete;
+use NextDeveloper\IAAS\Contracts\ConsoleCapableInterface;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Accounts as IaasAccounts;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
@@ -37,6 +38,7 @@ use GuzzleHttp\Client;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAM\Database\Models\Accounts;
@@ -767,6 +769,25 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             'sign' => md5($key . $t . $endpoint . $key),
             'service' => $consoleRedisSession,
         ];
+    }
+
+    /**
+     * Driver-dispatched entry point for VirtualMachinesConsoleController's session-ref
+     * console flow. getConsoleDataWithSessionRef() below stays the XenServer-specific
+     * implementation (same role as an *XenService:: method elsewhere) - dispatching
+     * inside that method itself would recurse infinitely, since
+     * XenServer82SshDriver::getConsoleUrl() implements ConsoleCapableInterface by
+     * calling getConsoleDataWithSessionRef() internally.
+     */
+    public static function getConsoleSession(VirtualMachines $vm): array
+    {
+        $driver = app(VirtualMachineManager::class)->getAdapter($vm);
+
+        if ($driver instanceof ConsoleCapableInterface) {
+            return $driver->getConsoleUrl($vm)->extra;
+        }
+
+        return self::getConsoleDataWithSessionRef($vm);
     }
 
     /**

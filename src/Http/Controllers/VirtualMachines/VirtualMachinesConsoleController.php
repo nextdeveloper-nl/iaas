@@ -53,7 +53,7 @@ class VirtualMachinesConsoleController extends AbstractController
             return ResponseHelper::error('Virtual machine not found.');
         }
 
-        $console = VirtualMachinesService::getConsoleDataWithSessionRef($vm);
+        $console = VirtualMachinesService::getConsoleSession($vm);
 
         if (!$console) {
             return ResponseHelper::error('Virtual machine console is not available at the moment. Please make sure that virtual machine is running. Otherwise please create a support ticket.');

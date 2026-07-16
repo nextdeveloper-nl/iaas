@@ -7,7 +7,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use NextDeveloper\IAAS\Contracts\BackupCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 
 class Fix implements ShouldQueue
@@ -23,6 +25,12 @@ class Fix implements ShouldQueue
 
     public function handle()
     {
-        VirtualMachinesXenService::fixName($this->vm);
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->vm);
+
+        if ($driver instanceof BackupCapableInterface) {
+            $driver->fixVmName($this->vm);
+        } else {
+            VirtualMachinesXenService::fixName($this->vm);
+        }
     }
 }
