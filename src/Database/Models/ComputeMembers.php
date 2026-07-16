@@ -65,6 +65,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property boolean $is_event_service_running
  * @property $available_operations
  * @property \Carbon\Carbon $agent_latest_ping
+ * @property string $agent_api_key
  */
 class ComputeMembers extends Model
 {
@@ -123,6 +124,7 @@ class ComputeMembers extends Model
             'is_event_service_running',
             'available_operations',
             'agent_latest_ping',
+            'agent_api_key',
     ];
 
     /**
@@ -184,6 +186,7 @@ class ComputeMembers extends Model
     'is_event_service_running' => 'boolean',
     'available_operations' => 'array',
     'agent_latest_ping' => 'datetime',
+    'agent_api_key' => 'string',
     ];
 
     /**

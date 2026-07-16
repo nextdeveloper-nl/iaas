@@ -153,6 +153,27 @@ class ComputeMembersService extends AbstractComputeMembersService
          */
     }
 
+    /**
+     * Lazily generates and persists this compute member's NATS agent credential
+     * (used by NatsAuthConfigService to grant its agent.compute.{uuid}.cmd/evt
+     * NATS user) if it doesn't have one yet, then returns it. Mirrors the
+     * events_token lazy-generation pattern already used by checkEventsService()/
+     * checkRrdService()/checkIpmiService() below - a separate credential from
+     * events_token, which is specifically for the older XenServer SSH-webhook
+     * mechanism (see ComputeMemberXenService).
+     */
+    public static function ensureAgentApiKey(ComputeMembers $computeMember): string
+    {
+        if (empty($computeMember->agent_api_key)) {
+            $computeMember->agent_api_key = Str::random(64);
+            $computeMember->save();
+
+            $computeMember = $computeMember->fresh();
+        }
+
+        return $computeMember->agent_api_key;
+    }
+
     public static function checkEventsService(ComputeMembers $computeMember) : bool
     {
         //  Check if the compute member is alive
