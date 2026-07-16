@@ -63,6 +63,8 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $free_ram
  * @property string $events_token
  * @property boolean $is_event_service_running
+ * @property $available_operations
+ * @property \Carbon\Carbon $agent_latest_ping
  */
 class ComputeMembers extends Model
 {
@@ -119,6 +121,8 @@ class ComputeMembers extends Model
             'free_ram',
             'events_token',
             'is_event_service_running',
+            'available_operations',
+            'agent_latest_ping',
     ];
 
     /**
@@ -178,6 +182,8 @@ class ComputeMembers extends Model
     'free_ram' => 'integer',
     'events_token' => 'string',
     'is_event_service_running' => 'boolean',
+    'available_operations' => 'array',
+    'agent_latest_ping' => 'datetime',
     ];
 
     /**
@@ -191,6 +197,7 @@ class ComputeMembers extends Model
     'created_at',
     'updated_at',
     'deleted_at',
+    'agent_latest_ping',
     ];
 
     /**

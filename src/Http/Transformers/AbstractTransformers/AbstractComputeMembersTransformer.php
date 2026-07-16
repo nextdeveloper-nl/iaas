@@ -102,6 +102,8 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
             'free_ram'  =>  $model->free_ram,
             'events_token'  =>  $model->events_token,
             'is_event_service_running'  =>  $model->is_event_service_running,
+            'available_operations'  =>  $model->available_operations,
+            'agent_latest_ping'  =>  $model->agent_latest_ping,
             ]
         );
     }
