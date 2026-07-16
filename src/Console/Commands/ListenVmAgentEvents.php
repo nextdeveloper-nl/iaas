@@ -216,12 +216,12 @@ class ListenVmAgentEvents extends Command
             return;
         }
 
-        AgentCommandsService::update($command->id, [
+        UserHelper::runAsAdmin(fn () => AgentCommandsService::update($command->uuid, [
             'status'       => $result['status']     ?? 'completed',
             'result'       => $result['output']      ?? [],
             'error'        => $result['message']     ?? null,
             'completed_at' => now(),
-        ]);
+        ]));
 
         Log::info('[ListenVmAgentEvents] Command result received', [
             'command_id' => $commandUuid,
