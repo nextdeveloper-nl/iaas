@@ -52,25 +52,33 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             return;
         }
 
-        UserHelper::setAdminAsCurrentUser();
+        // runAsAdmin() (not setAdminAsCurrentUser()) because the elevated identity's
+        // "current account" is whichever account is flagged active for the system user,
+        // which is mutable shared state - without the role-check bypass runAsAdmin()
+        // also sets, ComputeMemberTasks::create()/update() below can intermittently
+        // fail with NotAllowedException whenever that flag points at an account where
+        // the system user doesn't hold system-admin.
+        $results = UserHelper::runAsAdmin(function () use ($event, $results) {
+            switch ($event['class']) {
+                case 'vm':
+                    $results = array_merge($this->computeVmEvents($event, $results), $results);
+                    break;
+                case 'message':
+                    $results = array_merge($this->computeMessageEvents($event, $results), $results);
+                    break;
+                case 'sr':
+                    $results = array_merge($this->computeSrEvents($event, $results), $results);
+                    break;
+                case 'task':
+                    $results = array_merge($this->computeTaskEvents($event, $results), $results);
+                    break;
+                case 'leo':
+                    $results = array_merge($this->computeLeoEvents($event, $results), $results);
+                    break;
+            }
 
-        switch ($event['class']) {
-            case 'vm':
-                $results = array_merge($this->computeVmEvents($event, $results), $results);
-                break;
-            case 'message':
-                $results = array_merge($this->computeMessageEvents($event, $results), $results);
-                break;
-            case 'sr':
-                $results = array_merge($this->computeSrEvents($event, $results), $results);
-                break;
-            case 'task':
-                $results = array_merge($this->computeTaskEvents($event, $results), $results);
-                break;
-            case 'leo':
-                $results = array_merge($this->computeLeoEvents($event, $results), $results);
-                break;
-        }
+            return $results;
+        });
 
         $this->event->results = $results;
         $this->event->is_executed = true;
