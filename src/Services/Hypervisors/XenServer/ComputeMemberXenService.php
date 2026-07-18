@@ -547,9 +547,48 @@ physical interfaces and vlans of compute member');
     {
         $command = 'xe vdi-list sr-uuid=' . $volume->hypervisor_uuid;
         $result = self::performCommand($command, $computeMember);
+
+        if (!$result) {
+            self::disableVolumeIfSrGone($computeMember, $volume, __METHOD__);
+
+            return [];
+        }
+
         $disks = self::parseListResult($result['output']);
 
         return $disks;
+    }
+
+    /**
+     * An unreadable SR result (missing/empty command output) can mean either a transient
+     * connection problem or that the SR has actually been removed from the hypervisor.
+     * Checks the live SR list and only disables the volume when the SR is confirmed gone,
+     * so a genuine hiccup doesn't get treated as a real deletion.
+     */
+    public static function disableVolumeIfSrGone(ComputeMembers $computeMember, StorageVolumes $volume, string $caller) : void
+    {
+        $srListResult = self::performCommand('xe sr-list', $computeMember);
+
+        if (!$srListResult) {
+            Log::warning("[$caller] Could not connect to compute member: " .
+                $computeMember->name . ', cannot confirm whether the storage repository still exists.');
+
+            return;
+        }
+
+        $srList = self::parseListResult($srListResult['output']);
+        $srStillExists = collect($srList)->contains(fn ($sr) => ($sr['uuid'] ?? null) === $volume->hypervisor_uuid);
+
+        if (!$srStillExists) {
+            Log::warning("[$caller] Storage repository " . $volume->hypervisor_uuid .
+                ' no longer exists on compute member: ' . $computeMember->name .
+                ', disabling storage volume: ' . $volume->uuid);
+
+            $volume->update(['is_alive' => false]);
+        } else {
+            Log::warning("[$caller] Storage repository " . $volume->hypervisor_uuid .
+                ' still exists on compute member: ' . $computeMember->name . ' but the command failed.');
+        }
     }
 
     public static function getVirtualMachineByUuid(ComputeMembers $computeMember, $uuid) : ?array

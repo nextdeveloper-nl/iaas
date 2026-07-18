@@ -956,6 +956,19 @@ class XenServer82SshDriver implements
                 } else {
                     $data['created_at'] = $vm ? $vm->created_at : now();
                 }
+
+                //  A disk can be detached and a different disk (different hypervisor_uuid)
+                //  attached at the same VM device slot. The lookup above only matches by
+                //  hypervisor_uuid, so the stale row left behind by the old disk still
+                //  occupies that (vm, device_number) pair and would collide with the
+                //  iaas_virtual_disk_images_vm_device_number_uidx unique index on create().
+                //  Reuse the stale row instead of inserting a conflicting duplicate.
+                if (!$dbDisk && $vm) {
+                    $dbDisk = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                        ->where('iaas_virtual_machine_id', $data['iaas_virtual_machine_id'])
+                        ->where('device_number', $data['device_number'])
+                        ->first();
+                }
             }
 
             if (!$dbDisk) {
@@ -966,6 +979,12 @@ class XenServer82SshDriver implements
         }
 
         $volumeInfo = ComputeMemberXenService::getStorageVolumeInformationByHypervisorUuid($computeMember, $volume->hypervisor_uuid);
+
+        if (!$volumeInfo || !isset($volumeInfo['physical-size'])) {
+            ComputeMemberXenService::disableVolumeIfSrGone($computeMember, $volume, __METHOD__);
+
+            return $volume->fresh();
+        }
 
         $volume->update([
             'total_hdd'         =>  ceil($volumeInfo['physical-size'] / 1000 / 1000 / 1000),
