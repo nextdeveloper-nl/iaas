@@ -37,6 +37,14 @@ class ComputeMemberXenService extends AbstractXenService
 
         $command = 'xe task-list';
         $result = self::performCommand($command, $computeMembers);
+
+        if (!$result) {
+            Log::warning('[ComputeMemberService@getRunningTasks] Could not connect to compute member: ' .
+                $computeMembers->name . ', returning no running tasks.');
+
+            return [];
+        }
+
         $xeOutput = $result['output'];
 
         $tasks = [];
@@ -95,11 +103,27 @@ class ComputeMemberXenService extends AbstractXenService
 
         $command = 'hostname';
         $hostname = self::performCommand($command, $computeMember);
+
+        if (!$hostname) {
+            Log::warning('[ComputeMemberService@sync] Could not connect to compute member: ' .
+                $computeMember->name . ', skipping this sync pass.');
+
+            return $computeMember;
+        }
+
         $hostname = $hostname['output'];
 
         //  This command will give us the uptime of the host as timestamp
         $command = 'stat -c %Z /proc/ ';
         $uptime = self::performCommand($command, $computeMember);
+
+        if (!$uptime) {
+            Log::warning('[ComputeMemberService@sync] Could not get uptime for compute member: ' .
+                $computeMember->name . ', skipping this sync pass.');
+
+            return $computeMember;
+        }
+
         $uptime = $uptime['output'];
 
         $command = 'xe host-list';
