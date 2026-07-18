@@ -216,6 +216,10 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             //  This causes problems while creating new VM and or taking snapshot. We should think about something else on this.
             //  Maybe in the future we can implement a locking mechanism for this. like scan_lock = true or false
             //  self::dispatch(new ScanVirtualMachines($computeMember));
+
+            Log::info(__METHOD__ . ': No VM found for hypervisor_uuid ' . $event['snapshot']['uuid'] . ', skipping event ID ' . $this->event->id);
+
+            return $results;
         }
 
         if(!$this->vm->iam_user_id) {
