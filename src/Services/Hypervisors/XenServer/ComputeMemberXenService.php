@@ -15,6 +15,7 @@ use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Exceptions\CannotImportException;
 use NextDeveloper\IAAS\Exceptions\NetworkNotInPoolException;
@@ -223,6 +224,14 @@ class ComputeMemberXenService extends AbstractXenService
 
         $command = 'xe vlan-list';
         $result = self::performCommand($command, $computeMembers);
+
+        if (!$result) {
+            Log::warning('[ComputeMemberService@getListOfVlans] Could not connect to compute member: ' .
+                $computeMembers->name . ', returning no vlans.');
+
+            return [];
+        }
+
         $networks = self::parseListResult($result['output']);
 
         return $networks;
@@ -591,6 +600,79 @@ physical interfaces and vlans of compute member');
         }
     }
 
+    /**
+     * Reconciles this VM's VirtualDiskImages rows against what the hypervisor actually
+     * reports it has attached right now. A disk can be detached and a different disk
+     * attached at the same device slot between sync passes - when that happens our
+     * stale row for the old disk still claims that (vm, device_number) pair and
+     * collides with the iaas_virtual_disk_images_vm_device_number_uidx unique index on
+     * write. Rather than guessing which row is "right", ask the hypervisor for the
+     * current truth and make our records match it: disks no longer actually attached to
+     * this VM get detached in our DB too, and disks that are attached get their
+     * device_number corrected.
+     */
+    public static function reconcileVmDiskDeviceNumbers(ComputeMembers $computeMember, VirtualMachines $vm) : void
+    {
+        $command = 'xe vbd-list vm-uuid=' . $vm->hypervisor_uuid;
+        $result = self::performCommand($command, $computeMember);
+
+        if (!$result) {
+            Log::warning('[ComputeMemberService@reconcileVmDiskDeviceNumbers] Could not connect to compute member: ' .
+                $computeMember->name . ', cannot reconcile disks for VM: ' . $vm->uuid);
+
+            return;
+        }
+
+        $vbds = self::parseListResult($result['output']);
+
+        //  Authoritative (vdi hypervisor_uuid => device_number) map. Built from each VBD's
+        //  own param list since the plain "xe vbd-list" output doesn't reliably include
+        //  userdevice - this mirrors how a single VBD is already resolved elsewhere.
+        $trueDeviceNumbers = [];
+
+        foreach ($vbds as $vbd) {
+            if (!isset($vbd['uuid'])) {
+                continue;
+            }
+
+            $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($vbd['uuid'], $computeMember);
+
+            if (!isset($vbdParams['vdi-uuid']) || !isset($vbdParams['userdevice'])) {
+                continue;
+            }
+
+            $trueDeviceNumbers[$vbdParams['vdi-uuid']] = $vbdParams['userdevice'];
+        }
+
+        $dbDisks = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->get();
+
+        foreach ($dbDisks as $dbDisk) {
+            if (array_key_exists($dbDisk->hypervisor_uuid, $trueDeviceNumbers)) {
+                $realDeviceNumber = $trueDeviceNumbers[$dbDisk->hypervisor_uuid];
+
+                if ($dbDisk->device_number != $realDeviceNumber) {
+                    Log::warning('[ComputeMemberService@reconcileVmDiskDeviceNumbers] Correcting device_number for disk: ' .
+                        $dbDisk->uuid . ' from ' . $dbDisk->device_number . ' to ' . $realDeviceNumber .
+                        ' to match the hypervisor for VM: ' . $vm->uuid);
+
+                    $dbDisk->updateQuietly(['device_number' => $realDeviceNumber]);
+                }
+            } else {
+                //  This disk is no longer actually attached to this VM according to the
+                //  hypervisor - our record is stale, so detach it here too.
+                Log::warning('[ComputeMemberService@reconcileVmDiskDeviceNumbers] Disk: ' . $dbDisk->uuid .
+                    ' is no longer attached to VM: ' . $vm->uuid . ' according to the hypervisor, detaching in DB.');
+
+                $dbDisk->updateQuietly([
+                    'iaas_virtual_machine_id' => null,
+                    'device_number' => null,
+                ]);
+            }
+        }
+    }
+
     public static function getVirtualMachineByUuid(ComputeMembers $computeMember, $uuid) : ?array
     {
         $command = 'xe vm-param-list uuid=' . $uuid;
@@ -930,6 +1012,11 @@ physical interfaces and vlans of compute member');
     {
         $command = 'xe sr-param-list uuid=' . $uuid;
         $result = self::performCommand($command, $computeMember);
+
+        if (!$result) {
+            return null;
+        }
+
         $result = self::parseResult($result['output']);
 
         return $result;
