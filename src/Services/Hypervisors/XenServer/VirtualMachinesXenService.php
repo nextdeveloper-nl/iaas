@@ -615,7 +615,10 @@ class VirtualMachinesXenService extends AbstractXenService
             Log::error('[VirtualMachinesXenService@updateConfigurationIso] I am updating the' .
                 ' configuration ISO of the VM (' . $vm->name . '/' . $vm->uuid . ')');
 
-        if($vm->os == 'Microsoft Windows') {
+        //  Case-insensitive: the catalog's os field has been observed stored as
+        //  "microsoft windows" (lowercase), so an exact match against
+        //  "Microsoft Windows" silently fell through to the Linux ISO branch below.
+        if(strcasecmp((string) $vm->os, 'Microsoft Windows') === 0) {
             return self::updateConfigurationIsoForWindows($vm);
         }
 
