@@ -37,13 +37,13 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function sshUsername($value)
     {
         return $this->builder->where('ssh_username', 'ilike', '%' . $value . '%');
@@ -54,7 +54,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshUsername($value);
     }
-        
+
     public function sshPassword($value)
     {
         return $this->builder->where('ssh_password', 'ilike', '%' . $value . '%');
@@ -65,7 +65,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPassword($value);
     }
-        
+
     public function switchType($value)
     {
         return $this->builder->where('switch_type', 'ilike', '%' . $value . '%');
@@ -76,7 +76,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->switchType($value);
     }
-    
+
     public function sshPort($value)
     {
         $operator = substr($value, 0, 1);
@@ -95,7 +95,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPort($value);
     }
-    
+
     public function isBehindFirewall($value)
     {
         return $this->builder->where('is_behind_firewall', $value);
@@ -106,7 +106,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isBehindFirewall($value);
     }
-     
+
     public function isRootSwitch($value)
     {
         return $this->builder->where('is_root_switch', $value);
@@ -117,7 +117,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isRootSwitch($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -198,7 +198,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetworkPool($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -208,7 +208,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -218,7 +218,7 @@ class NetworkMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

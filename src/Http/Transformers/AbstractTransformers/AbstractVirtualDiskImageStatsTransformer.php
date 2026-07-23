@@ -55,7 +55,7 @@ class AbstractVirtualDiskImageStatsTransformer extends AbstractTransformer
     public function transform(VirtualDiskImageStats $model)
     {
                                                 $iaasVirtualDiskImageId = \NextDeveloper\IAAS\Database\Models\VirtualDiskImages::where('id', $model->iaas_virtual_disk_image_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

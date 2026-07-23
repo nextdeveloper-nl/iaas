@@ -22,7 +22,7 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumeStats;
  */
 class AbstractStorageVolumeStatsService
 {
-    public static function get(StorageVolumeStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?StorageVolumeStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

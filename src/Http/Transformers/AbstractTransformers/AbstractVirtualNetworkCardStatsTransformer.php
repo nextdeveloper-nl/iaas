@@ -55,7 +55,7 @@ class AbstractVirtualNetworkCardStatsTransformer extends AbstractTransformer
     public function transform(VirtualNetworkCardStats $model)
     {
                                                 $iaasVirtualNetworkCardId = \NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::where('id', $model->iaas_virtual_network_card_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

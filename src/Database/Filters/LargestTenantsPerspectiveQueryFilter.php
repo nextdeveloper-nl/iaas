@@ -36,7 +36,7 @@ class LargestTenantsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->vmCount($value);
     }
-    
+
     public function vcpuTotal($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class LargestTenantsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->vcpuTotal($value);
     }
-    
+
     public function ramTotalGb($value)
     {
         $operator = substr($value, 0, 1);
@@ -74,7 +74,7 @@ class LargestTenantsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->ramTotalGb($value);
     }
-    
+
     public function diskCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -93,7 +93,7 @@ class LargestTenantsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->diskCount($value);
     }
-    
+
     public function networkCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -112,7 +112,7 @@ class LargestTenantsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->networkCount($value);
     }
-    
+
     public function iaasAccountId($value)
     {
             $iaasAccount = \NextDeveloper\IAAS\Database\Models\Accounts::where('uuid', $value)->first();
@@ -127,7 +127,7 @@ class LargestTenantsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasAccount($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -137,7 +137,7 @@ class LargestTenantsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

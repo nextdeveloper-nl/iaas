@@ -56,7 +56,7 @@ class AbstractVmBackupHeatmapByCloudsTransformer extends AbstractTransformer
     {
                                                 $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
                                                             $iaasDatacenterId = \NextDeveloper\IAAS\Database\Models\Datacenters::where('id', $model->iaas_datacenter_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->id,

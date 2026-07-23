@@ -58,7 +58,7 @@ class AbstractVirtualMachineEnvVarGroupsTransformer extends AbstractTransformer
                                                             $iaasEnvVarGroupId = \NextDeveloper\IAAS\Database\Models\EnvVarGroups::where('id', $model->iaas_env_var_group_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

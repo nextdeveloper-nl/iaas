@@ -36,7 +36,7 @@ class StorageVolumeStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->usedDisk($value);
     }
-    
+
     public function freeDisk($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class StorageVolumeStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->freeDisk($value);
     }
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -136,7 +136,7 @@ class StorageVolumeStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStorageVolume($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

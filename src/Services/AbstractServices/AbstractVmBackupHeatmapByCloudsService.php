@@ -25,7 +25,7 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
  */
 class AbstractVmBackupHeatmapByCloudsService
 {
-    public static function get(VmBackupHeatmapByCloudsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?VmBackupHeatmapByCloudsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 
@@ -196,7 +196,7 @@ class AbstractVmBackupHeatmapByCloudsService
                 $data['iaas_datacenter_id']
             );
         }
-                        
+
         try {
             $model = VmBackupHeatmapByClouds::create($data);
         } catch(\Exception $e) {
@@ -254,7 +254,7 @@ class AbstractVmBackupHeatmapByCloudsService
                 $data['iaas_datacenter_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();

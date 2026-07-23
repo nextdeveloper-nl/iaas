@@ -54,7 +54,7 @@ class AbstractVmBackupStatsTransformer extends AbstractTransformer
      */
     public function transform(VmBackupStats $model)
     {
-            
+
         return $this->buildPayload(
             [
             'id'  =>  $model->id,

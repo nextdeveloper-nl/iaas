@@ -24,7 +24,7 @@ class StoragePoolsUpdatedEvent
      */
     protected $timestamp = null;
 
-    public function __construct(StoragePools $model = null)
+    public function __construct(?StoragePools $model = null)
     {
         $this->_model = $model;
     }

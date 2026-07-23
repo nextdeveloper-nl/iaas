@@ -120,7 +120,7 @@ class SshPublicKeyVirtualMachinesQueryFilter extends AbstractQueryFilter
     {
         return $this->iamSshPublicKey($value);
     }
-    
+
     public function iaasVirtualMachineId($value)
     {
             $iaasVirtualMachine = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
@@ -135,7 +135,7 @@ class SshPublicKeyVirtualMachinesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 }

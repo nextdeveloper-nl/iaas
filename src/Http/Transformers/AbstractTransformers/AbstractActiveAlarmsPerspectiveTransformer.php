@@ -54,7 +54,7 @@ class AbstractActiveAlarmsPerspectiveTransformer extends AbstractTransformer
      */
     public function transform(ActiveAlarmsPerspective $model)
     {
-            
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

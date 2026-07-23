@@ -22,7 +22,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics;
  */
 class AbstractVirtualMachineMetricsService
 {
-    public static function get(VirtualMachineMetricsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?VirtualMachineMetricsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

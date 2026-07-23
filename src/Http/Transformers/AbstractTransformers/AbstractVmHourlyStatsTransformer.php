@@ -55,7 +55,7 @@ class AbstractVmHourlyStatsTransformer extends AbstractTransformer
     public function transform(VmHourlyStats $model)
     {
                                                 $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->id,

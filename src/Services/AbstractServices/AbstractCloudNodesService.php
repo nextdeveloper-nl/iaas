@@ -23,7 +23,7 @@ use NextDeveloper\IAM\Helpers\UserHelper;
  */
 class AbstractCloudNodesService
 {
-    public static function get(CloudNodesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?CloudNodesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

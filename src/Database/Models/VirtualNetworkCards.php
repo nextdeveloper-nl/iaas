@@ -168,12 +168,12 @@ class VirtualNetworkCards extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Networks::class);
     }
-    
+
     public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
     }
-    
+
     public function virtualNetworkCardStats() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCardStats::class);

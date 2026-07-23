@@ -22,7 +22,7 @@ use NextDeveloper\IAAS\Database\Models\Licences;
  */
 class AbstractLicencesService
 {
-    public static function get(LicencesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?LicencesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

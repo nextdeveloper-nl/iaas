@@ -37,19 +37,19 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function sshUsername($value)
     {
         return $this->builder->where('ssh_username', 'ilike', '%' . $value . '%');
@@ -60,7 +60,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshUsername($value);
     }
-        
+
     public function sshPassword($value)
     {
         return $this->builder->where('ssh_password', 'ilike', '%' . $value . '%');
@@ -71,7 +71,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPassword($value);
     }
-        
+
     public function hypervisorModel($value)
     {
         return $this->builder->where('hypervisor_model', 'ilike', '%' . $value . '%');
@@ -82,7 +82,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->hypervisorModel($value);
     }
-        
+
     public function eventsToken($value)
     {
         return $this->builder->where('events_token', 'ilike', '%' . $value . '%');
@@ -93,7 +93,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->eventsToken($value);
     }
-    
+
     public function sshPort($value)
     {
         $operator = substr($value, 0, 1);
@@ -112,7 +112,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPort($value);
     }
-    
+
     public function totalSocket($value)
     {
         $operator = substr($value, 0, 1);
@@ -131,7 +131,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->totalSocket($value);
     }
-    
+
     public function totalCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -150,7 +150,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->totalCpu($value);
     }
-    
+
     public function totalRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -169,7 +169,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->totalRam($value);
     }
-    
+
     public function usedCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -188,7 +188,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->usedCpu($value);
     }
-    
+
     public function usedRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -207,7 +207,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->usedRam($value);
     }
-    
+
     public function runningVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -226,7 +226,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->runningVm($value);
     }
-    
+
     public function haltedVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -245,7 +245,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->haltedVm($value);
     }
-    
+
     public function totalVm($value)
     {
         $operator = substr($value, 0, 1);
@@ -264,7 +264,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->totalVm($value);
     }
-    
+
     public function maxOverbookingRatio($value)
     {
         $operator = substr($value, 0, 1);
@@ -283,7 +283,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->maxOverbookingRatio($value);
     }
-    
+
     public function benchmarkScore($value)
     {
         $operator = substr($value, 0, 1);
@@ -302,7 +302,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->benchmarkScore($value);
     }
-    
+
     public function freeRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -321,7 +321,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->freeRam($value);
     }
-    
+
     public function isBehindFirewall($value)
     {
         return $this->builder->where('is_behind_firewall', $value);
@@ -332,7 +332,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isBehindFirewall($value);
     }
-     
+
     public function isManagementAgentAvailable($value)
     {
         return $this->builder->where('is_management_agent_available', $value);
@@ -343,7 +343,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isManagementAgentAvailable($value);
     }
-     
+
     public function isInMaintenance($value)
     {
         return $this->builder->where('is_in_maintenance', $value);
@@ -354,7 +354,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isInMaintenance($value);
     }
-     
+
     public function isAlive($value)
     {
         return $this->builder->where('is_alive', $value);
@@ -365,7 +365,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isAlive($value);
     }
-     
+
     public function isEventServiceRunning($value)
     {
         return $this->builder->where('is_event_service_running', $value);
@@ -376,7 +376,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->isEventServiceRunning($value);
     }
-     
+
     public function uptimeStart($date)
     {
         return $this->builder->where('uptime', '>=', $date);
@@ -501,7 +501,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasComputePool($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -511,7 +511,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -521,7 +521,7 @@ class ComputeMembersQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

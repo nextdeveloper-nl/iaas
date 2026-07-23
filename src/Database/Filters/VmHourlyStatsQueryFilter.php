@@ -31,7 +31,7 @@ class VmHourlyStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
-    
+
     public function ram($value)
     {
         $operator = substr($value, 0, 1);
@@ -45,7 +45,7 @@ class VmHourlyStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
-    
+
     public function statHourStart($date)
     {
         return $this->builder->where('stat_hour', '>=', $date);
@@ -126,7 +126,7 @@ class VmHourlyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

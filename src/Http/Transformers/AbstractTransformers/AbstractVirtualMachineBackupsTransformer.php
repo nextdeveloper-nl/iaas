@@ -59,7 +59,7 @@ class AbstractVirtualMachineBackupsTransformer extends AbstractTransformer
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                                                             $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
                                                             $iaasBackupJobId = \NextDeveloper\IAAS\Database\Models\BackupJobs::where('id', $model->iaas_backup_job_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

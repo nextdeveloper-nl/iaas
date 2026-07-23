@@ -56,7 +56,7 @@ class AbstractSshPublicKeyVirtualMachinesTransformer extends AbstractTransformer
     {
                                                 $iamSshPublicKeyId = \NextDeveloper\IAM\Database\Models\SshPublicKeys::where('id', $model->iam_ssh_public_key_id)->first();
                                                             $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

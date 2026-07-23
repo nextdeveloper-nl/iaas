@@ -36,7 +36,7 @@ class CloudNodeDailyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->maxVmCount($value);
     }
-    
+
     public function maxVcpus($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class CloudNodeDailyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->maxVcpus($value);
     }
-    
+
     public function maxRamGb($value)
     {
         $operator = substr($value, 0, 1);
@@ -74,7 +74,7 @@ class CloudNodeDailyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->maxRamGb($value);
     }
-    
+
     public function statDateStart($date)
     {
         return $this->builder->where('stat_date', '>=', $date);
@@ -111,7 +111,7 @@ class CloudNodeDailyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasCloudNode($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

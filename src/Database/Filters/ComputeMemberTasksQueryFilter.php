@@ -17,25 +17,25 @@ class ComputeMemberTasksQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
         return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function error($value)
     {
         return $this->builder->where('error', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function progress($value)
     {
         $operator = substr($value, 0, 1);
@@ -49,7 +49,7 @@ class ComputeMemberTasksQueryFilter extends AbstractQueryFilter
         return $this->builder->where('progress', $operator, $value);
     }
 
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -108,7 +108,7 @@ class ComputeMemberTasksQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     public function iaasComputeMemberId($value)
     {
             $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
@@ -123,7 +123,7 @@ class ComputeMemberTasksQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasComputeMember($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

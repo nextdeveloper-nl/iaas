@@ -16,7 +16,7 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMac
  */
 class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
 {
-    public function __construct(ParamBag $paramBag = null)
+    public function __construct(?ParamBag $paramBag = null)
     {
         $this->addInclude('virtualNetworkCards');
 

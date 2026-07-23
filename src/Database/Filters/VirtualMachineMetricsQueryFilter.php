@@ -17,19 +17,19 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function parameter($value)
     {
         return $this->builder->where('parameter', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function source($value)
     {
         return $this->builder->where('source', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function value($value)
     {
         $operator = substr($value, 0, 1);
@@ -43,7 +43,7 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('value', $operator, $value);
     }
 
-    
+
     public function timestampStart($date)
     {
         return $this->builder->where('timestamp', '>=', $date);
@@ -146,7 +146,7 @@ class VirtualMachineMetricsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

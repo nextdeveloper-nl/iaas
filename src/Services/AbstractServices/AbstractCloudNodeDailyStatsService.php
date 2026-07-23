@@ -25,7 +25,7 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
  */
 class AbstractCloudNodeDailyStatsService
 {
-    public static function get(CloudNodeDailyStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?CloudNodeDailyStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 
@@ -190,7 +190,7 @@ class AbstractCloudNodeDailyStatsService
                 $data['iaas_cloud_node_id']
             );
         }
-                        
+
         try {
             $model = CloudNodeDailyStats::create($data);
         } catch(\Exception $e) {
@@ -242,7 +242,7 @@ class AbstractCloudNodeDailyStatsService
                 $data['iaas_cloud_node_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();

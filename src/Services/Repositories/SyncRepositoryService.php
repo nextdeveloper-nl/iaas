@@ -285,7 +285,7 @@ class SyncRepositoryService
         return [$hash, $size];
     }
 
-    public static function getReleaseVersion(RepositoryImages $image = null)
+    public static function getReleaseVersion(?RepositoryImages $image = null)
     {
         if(!$image)
             return 1;

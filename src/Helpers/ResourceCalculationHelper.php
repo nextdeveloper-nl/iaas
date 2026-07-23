@@ -86,7 +86,7 @@ class ResourceCalculationHelper
      * @param $ram
      * @return float|int|void
      */
-    public static function getCpuPerRam($ram, ComputePools $cp = null) {
+    public static function getCpuPerRam($ram, ?ComputePools $cp = null) {
         // Modifying the data before creating the record
         //  Here we will bring CPU/RAM ratio later to fix this issue
         //  - we need to bring max_cpu_per_vm field also in the compute_pools

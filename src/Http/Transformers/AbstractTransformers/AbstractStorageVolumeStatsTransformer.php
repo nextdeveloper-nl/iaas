@@ -55,7 +55,7 @@ class AbstractStorageVolumeStatsTransformer extends AbstractTransformer
     public function transform(StorageVolumeStats $model)
     {
                                                 $iaasStorageVolumeId = \NextDeveloper\IAAS\Database\Models\StorageVolumes::where('id', $model->iaas_storage_volume_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

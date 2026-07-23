@@ -17,7 +17,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function jobName($value)
     {
         return $this->builder->where('job_name', 'ilike', '%' . $value . '%');
@@ -28,7 +28,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->jobName($value);
     }
-        
+
     public function jobType($value)
     {
         return $this->builder->where('job_type', 'ilike', '%' . $value . '%');
@@ -39,7 +39,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->jobType($value);
     }
-        
+
     public function notificationWebhook($value)
     {
         return $this->builder->where('notification_webhook', 'ilike', '%' . $value . '%');
@@ -50,7 +50,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->notificationWebhook($value);
     }
-        
+
     public function virtualMachineName($value)
     {
         return $this->builder->where('virtual_machine_name', 'ilike', '%' . $value . '%');
@@ -61,13 +61,13 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->virtualMachineName($value);
     }
-        
+
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function retentionPolicyName($value)
     {
         return $this->builder->where('retention_policy_name', 'ilike', '%' . $value . '%');
@@ -78,7 +78,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->retentionPolicyName($value);
     }
-        
+
     public function lastRunStatus($value)
     {
         return $this->builder->where('last_run_status', 'ilike', '%' . $value . '%');
@@ -89,7 +89,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->lastRunStatus($value);
     }
-        
+
     public function statusIndicator($value)
     {
         return $this->builder->where('status_indicator', 'ilike', '%' . $value . '%');
@@ -100,7 +100,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->statusIndicator($value);
     }
-        
+
     public function replicationStatusIndicator($value)
     {
         return $this->builder->where('replication_status_indicator', 'ilike', '%' . $value . '%');
@@ -111,7 +111,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->replicationStatusIndicator($value);
     }
-    
+
     public function expectedRpoHours($value)
     {
         $operator = substr($value, 0, 1);
@@ -130,7 +130,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->expectedRpoHours($value);
     }
-    
+
     public function expectedRtoHours($value)
     {
         $operator = substr($value, 0, 1);
@@ -149,7 +149,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->expectedRtoHours($value);
     }
-    
+
     public function maxAllowedFailures($value)
     {
         $operator = substr($value, 0, 1);
@@ -168,7 +168,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->maxAllowedFailures($value);
     }
-    
+
     public function slaTargetPct($value)
     {
         $operator = substr($value, 0, 1);
@@ -187,7 +187,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->slaTargetPct($value);
     }
-    
+
     public function keepForDays($value)
     {
         $operator = substr($value, 0, 1);
@@ -206,7 +206,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->keepForDays($value);
     }
-    
+
     public function keepLastNBackups($value)
     {
         $operator = substr($value, 0, 1);
@@ -225,7 +225,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->keepLastNBackups($value);
     }
-    
+
     public function lastRunProgress($value)
     {
         $operator = substr($value, 0, 1);
@@ -244,7 +244,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->lastRunProgress($value);
     }
-    
+
     public function lastRunDurationSecs($value)
     {
         $operator = substr($value, 0, 1);
@@ -263,7 +263,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->lastRunDurationSecs($value);
     }
-    
+
     public function lastRunSizeBytes($value)
     {
         $operator = substr($value, 0, 1);
@@ -282,7 +282,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->lastRunSizeBytes($value);
     }
-    
+
     public function consecutiveFailures($value)
     {
         $operator = substr($value, 0, 1);
@@ -301,7 +301,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->consecutiveFailures($value);
     }
-    
+
     public function rpoAchievedHours($value)
     {
         $operator = substr($value, 0, 1);
@@ -320,7 +320,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->rpoAchievedHours($value);
     }
-    
+
     public function replicationCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -339,7 +339,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->replicationCount($value);
     }
-    
+
     public function replicationOkCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -358,7 +358,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->replicationOkCount($value);
     }
-    
+
     public function replicationFailedCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -377,7 +377,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->replicationFailedCount($value);
     }
-    
+
     public function isEnabled($value)
     {
         return $this->builder->where('is_enabled', $value);
@@ -388,7 +388,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isEnabled($value);
     }
-     
+
     public function isScheduled($value)
     {
         return $this->builder->where('is_scheduled', $value);
@@ -399,7 +399,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isScheduled($value);
     }
-     
+
     public function lastRunAtStart($date)
     {
         return $this->builder->where('last_run_at', '>=', $date);
@@ -519,7 +519,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iaasVirtualMachineId($value)
     {
             $iaasVirtualMachine = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
@@ -534,7 +534,7 @@ class VmBackupJobsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

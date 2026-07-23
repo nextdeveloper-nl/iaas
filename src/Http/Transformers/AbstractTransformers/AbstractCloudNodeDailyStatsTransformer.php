@@ -55,7 +55,7 @@ class AbstractCloudNodeDailyStatsTransformer extends AbstractTransformer
     public function transform(CloudNodeDailyStats $model)
     {
                                                 $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->id,

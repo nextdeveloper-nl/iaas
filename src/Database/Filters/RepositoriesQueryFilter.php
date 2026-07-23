@@ -17,19 +17,19 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
         return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function sshUsername($value)
     {
         return $this->builder->where('ssh_username', 'ilike', '%' . $value . '%');
@@ -40,7 +40,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->sshUsername($value);
     }
-        
+
     public function sshPassword($value)
     {
         return $this->builder->where('ssh_password', 'ilike', '%' . $value . '%');
@@ -51,7 +51,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPassword($value);
     }
-        
+
     public function lastHash($value)
     {
         return $this->builder->where('last_hash', 'ilike', '%' . $value . '%');
@@ -62,7 +62,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->lastHash($value);
     }
-        
+
     public function isoPath($value)
     {
         return $this->builder->where('iso_path', 'ilike', '%' . $value . '%');
@@ -73,7 +73,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isoPath($value);
     }
-        
+
     public function vmPath($value)
     {
         return $this->builder->where('vm_path', 'ilike', '%' . $value . '%');
@@ -84,7 +84,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->vmPath($value);
     }
-        
+
     public function registryUsername($value)
     {
         return $this->builder->where('registry_username', 'ilike', '%' . $value . '%');
@@ -95,7 +95,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->registryUsername($value);
     }
-        
+
     public function registryPassword($value)
     {
         return $this->builder->where('registry_password', 'ilike', '%' . $value . '%');
@@ -106,7 +106,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->registryPassword($value);
     }
-    
+
     public function dockerRegistryPort($value)
     {
         $operator = substr($value, 0, 1);
@@ -125,7 +125,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->dockerRegistryPort($value);
     }
-    
+
     public function sshPort($value)
     {
         $operator = substr($value, 0, 1);
@@ -144,7 +144,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->sshPort($value);
     }
-    
+
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -155,7 +155,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-     
+
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -166,7 +166,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-     
+
     public function isVmRepo($value)
     {
         return $this->builder->where('is_vm_repo', $value);
@@ -177,7 +177,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isVmRepo($value);
     }
-     
+
     public function isIsoRepo($value)
     {
         return $this->builder->where('is_iso_repo', $value);
@@ -188,7 +188,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isIsoRepo($value);
     }
-     
+
     public function isDockerRegistry($value)
     {
         return $this->builder->where('is_docker_registry', $value);
@@ -199,7 +199,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isDockerRegistry($value);
     }
-     
+
     public function isBehindFirewall($value)
     {
         return $this->builder->where('is_behind_firewall', $value);
@@ -210,7 +210,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isBehindFirewall($value);
     }
-     
+
     public function isManagementAgentAvailable($value)
     {
         return $this->builder->where('is_management_agent_available', $value);
@@ -221,7 +221,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isManagementAgentAvailable($value);
     }
-     
+
     public function isBackupRepository($value)
     {
         return $this->builder->where('is_backup_repository', $value);
@@ -232,7 +232,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->isBackupRepository($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -308,7 +308,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -318,7 +318,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function commonCurrencyId($value)
     {
             $commonCurrency = \NextDeveloper\Commons\Database\Models\Currencies::where('uuid', $value)->first();
@@ -333,7 +333,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->commonCurrency($value);
     }
-    
+
     public function iaasCloudNodeId($value)
     {
             $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
@@ -348,7 +348,7 @@ class RepositoriesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasCloudNode($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

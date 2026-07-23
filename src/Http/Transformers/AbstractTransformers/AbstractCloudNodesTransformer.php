@@ -58,7 +58,7 @@ class AbstractCloudNodesTransformer extends AbstractTransformer
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
                                                             $backupRepositoryId = \NextDeveloper\IAAS\Database\Models\Repositories::where('id', $model->backup_repository_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

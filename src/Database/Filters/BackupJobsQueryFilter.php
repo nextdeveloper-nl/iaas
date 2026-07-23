@@ -17,19 +17,19 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function type($value)
     {
         return $this->builder->where('type', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function objectType($value)
     {
         return $this->builder->where('object_type', 'ilike', '%' . $value . '%');
@@ -40,7 +40,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->objectType($value);
     }
-        
+
     public function notificationWebhook($value)
     {
         return $this->builder->where('notification_webhook', 'ilike', '%' . $value . '%');
@@ -51,7 +51,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->notificationWebhook($value);
     }
-    
+
     public function expectedRpoHours($value)
     {
         $operator = substr($value, 0, 1);
@@ -70,7 +70,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->expectedRpoHours($value);
     }
-    
+
     public function expectedRtoHours($value)
     {
         $operator = substr($value, 0, 1);
@@ -89,7 +89,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->expectedRtoHours($value);
     }
-    
+
     public function slaTargetPct($value)
     {
         $operator = substr($value, 0, 1);
@@ -108,7 +108,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->slaTargetPct($value);
     }
-    
+
     public function maxAllowedFailures($value)
     {
         $operator = substr($value, 0, 1);
@@ -127,7 +127,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->maxAllowedFailures($value);
     }
-    
+
     public function isEnabled($value)
     {
         return $this->builder->where('is_enabled', $value);
@@ -138,7 +138,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->isEnabled($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -219,7 +219,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasRepository($value);
     }
-    
+
     public function iaasBackupRetentionPolicyId($value)
     {
             $iaasBackupRetentionPolicy = \NextDeveloper\IAAS\Database\Models\BackupRetentionPolicies::where('uuid', $value)->first();
@@ -234,7 +234,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasBackupRetentionPolicy($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -244,7 +244,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -254,7 +254,7 @@ class BackupJobsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

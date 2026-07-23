@@ -17,7 +17,7 @@ class HealthChecksPerformanceQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function objectType($value)
     {
         return $this->builder->where('object_type', 'ilike', '%' . $value . '%');
@@ -28,7 +28,7 @@ class HealthChecksPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->objectType($value);
     }
-        
+
     public function overallStatus($value)
     {
         return $this->builder->where('overall_status', 'ilike', '%' . $value . '%');
@@ -39,7 +39,7 @@ class HealthChecksPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->overallStatus($value);
     }
-    
+
     public function totalChecks($value)
     {
         $operator = substr($value, 0, 1);
@@ -58,7 +58,7 @@ class HealthChecksPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->totalChecks($value);
     }
-    
+
     public function healthyCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -77,7 +77,7 @@ class HealthChecksPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->healthyCount($value);
     }
-    
+
     public function warningCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -96,7 +96,7 @@ class HealthChecksPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->warningCount($value);
     }
-    
+
     public function criticalCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -115,7 +115,7 @@ class HealthChecksPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->criticalCount($value);
     }
-    
+
     public function failedCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -134,7 +134,7 @@ class HealthChecksPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->failedCount($value);
     }
-    
+
     public function lastCheckAtStart($date)
     {
         return $this->builder->where('last_check_at', '>=', $date);

@@ -60,7 +60,7 @@ class AbstractComputeMemberStorageVolumesTransformer extends AbstractTransformer
                                                             $iaasStorageMemberId = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('id', $model->iaas_storage_member_id)->first();
                                                             $iaasStoragePoolId = \NextDeveloper\IAAS\Database\Models\StoragePools::where('id', $model->iaas_storage_pool_id)->first();
                                                             $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

@@ -31,7 +31,7 @@ class VirtualMachineEnvVarGroupsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('priority', $operator, $value);
     }
 
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -112,7 +112,7 @@ class VirtualMachineEnvVarGroupsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     public function iaasEnvVarGroupId($value)
     {
             $iaasEnvVarGroup = \NextDeveloper\IAAS\Database\Models\EnvVarGroups::where('uuid', $value)->first();
@@ -127,7 +127,7 @@ class VirtualMachineEnvVarGroupsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasEnvVarGroup($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -137,7 +137,7 @@ class VirtualMachineEnvVarGroupsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -147,7 +147,7 @@ class VirtualMachineEnvVarGroupsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 }

@@ -1153,7 +1153,7 @@ physical interfaces and vlans of compute member');
         RepositoryImages $image,
         VirtualMachines $vm,
         bool $isLazyDeploy = false,
-        string $vmUuid = null
+        ?string $vmUuid = null
     )
     {
         if(config('leo.debug.iaas.compute_members'))

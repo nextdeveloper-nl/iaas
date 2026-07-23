@@ -23,7 +23,7 @@ class NetworksService extends AbstractNetworksService
 {
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-    public static function get(NetworksQueryFilter $filter = null, array $params = []) : LengthAwarePaginator|Collection
+    public static function get(?NetworksQueryFilter $filter = null, array $params = []) : LengthAwarePaginator|Collection
     {
         return parent::get($filter, $params);
     }

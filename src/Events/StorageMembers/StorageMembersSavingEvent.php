@@ -24,7 +24,7 @@ class sStorageMembersSavingEvent
      */
     protected $timestamp = null;
 
-    public function __construct(StorageMembers $model = null)
+    public function __construct(?StorageMembers $model = null)
     {
         $this->_model = $model;
     }

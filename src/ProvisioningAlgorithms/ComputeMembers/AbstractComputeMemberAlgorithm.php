@@ -33,7 +33,7 @@ abstract class AbstractComputeMemberAlgorithm
      *
      * @param ComputePools|null $computePool
      */
-    public function __construct(ComputePools $computePool = null)
+    public function __construct(?ComputePools $computePool = null)
     {
         $this->computePool = $computePool;
 

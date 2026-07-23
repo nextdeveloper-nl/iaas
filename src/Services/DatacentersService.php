@@ -38,7 +38,7 @@ class DatacentersService extends AbstractDatacentersService
         return $priceList;
     }
 
-    public static function getComputePoolPricing(Datacenters $datacenters = null)
+    public static function getComputePoolPricing(?Datacenters $datacenters = null)
     {
         if($datacenters) {
             $computePools = ComputePools::withoutGlobalScope(LimitScope::class)

@@ -17,7 +17,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function cloudNodeName($value)
     {
         return $this->builder->where('cloud_node_name', 'ilike', '%' . $value . '%');
@@ -28,7 +28,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->cloudNodeName($value);
     }
-        
+
     public function datacenterName($value)
     {
         return $this->builder->where('datacenter_name', 'ilike', '%' . $value . '%');
@@ -39,7 +39,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->datacenterName($value);
     }
-        
+
     public function dayOfWeek($value)
     {
         return $this->builder->where('day_of_week', 'ilike', '%' . $value . '%');
@@ -50,7 +50,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->dayOfWeek($value);
     }
-        
+
     public function dayStatus($value)
     {
         return $this->builder->where('day_status', 'ilike', '%' . $value . '%');
@@ -61,7 +61,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->dayStatus($value);
     }
-    
+
     public function dayOffset($value)
     {
         $operator = substr($value, 0, 1);
@@ -80,7 +80,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->dayOffset($value);
     }
-    
+
     public function distinctJobs($value)
     {
         $operator = substr($value, 0, 1);
@@ -99,7 +99,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->distinctJobs($value);
     }
-    
+
     public function rpoBreachCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -118,7 +118,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->rpoBreachCount($value);
     }
-    
+
     public function totalRuns($value)
     {
         $operator = substr($value, 0, 1);
@@ -137,7 +137,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->totalRuns($value);
     }
-    
+
     public function successRuns($value)
     {
         $operator = substr($value, 0, 1);
@@ -156,7 +156,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->successRuns($value);
     }
-    
+
     public function failedRuns($value)
     {
         $operator = substr($value, 0, 1);
@@ -175,7 +175,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->failedRuns($value);
     }
-    
+
     public function daySizeBytes($value)
     {
         $operator = substr($value, 0, 1);
@@ -194,7 +194,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->daySizeBytes($value);
     }
-    
+
     public function avgDurationSecs($value)
     {
         $operator = substr($value, 0, 1);
@@ -213,7 +213,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->avgDurationSecs($value);
     }
-    
+
     public function backupDateStart($date)
     {
         return $this->builder->where('backup_date', '>=', $date);
@@ -250,7 +250,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasCloudNode($value);
     }
-    
+
     public function iaasDatacenterId($value)
     {
             $iaasDatacenter = \NextDeveloper\IAAS\Database\Models\Datacenters::where('uuid', $value)->first();
@@ -265,7 +265,7 @@ class VmBackupHeatmapByCloudStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasDatacenter($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

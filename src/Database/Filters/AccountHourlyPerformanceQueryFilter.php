@@ -36,7 +36,7 @@ class AccountHourlyPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->vmCount($value);
     }
-    
+
     public function totalVcpus($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class AccountHourlyPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->totalVcpus($value);
     }
-    
+
     public function totalRamGb($value)
     {
         $operator = substr($value, 0, 1);
@@ -74,7 +74,7 @@ class AccountHourlyPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->totalRamGb($value);
     }
-    
+
     public function statHourStart($date)
     {
         return $this->builder->where('stat_hour', '>=', $date);
@@ -106,6 +106,6 @@ class AccountHourlyPerformanceQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }

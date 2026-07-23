@@ -63,7 +63,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
                                                             $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
                                                             $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
                                                             $backupRepositoryId = \NextDeveloper\IAAS\Database\Models\Repositories::where('id', $model->backup_repository_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

@@ -56,7 +56,7 @@ class AbstractComputeMemberTasksTransformer extends AbstractTransformer
     {
                                                 $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
                                                             $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

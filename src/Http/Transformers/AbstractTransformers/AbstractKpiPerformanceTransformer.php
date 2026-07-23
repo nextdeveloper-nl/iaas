@@ -54,7 +54,7 @@ class AbstractKpiPerformanceTransformer extends AbstractTransformer
      */
     public function transform(KpiPerformance $model)
     {
-            
+
         return $this->buildPayload(
             [
             'id'  =>  $model->id,

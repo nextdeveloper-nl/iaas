@@ -23,7 +23,7 @@ class VirtualMachinesPerspectiveService extends AbstractVirtualMachinesPerspecti
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-    public static function get(VirtualMachinesPerspectiveQueryFilter $filter = null, array $params = []): \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public static function get(?VirtualMachinesPerspectiveQueryFilter $filter = null, array $params = []): \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         if(array_key_exists('snapshot_of_virtual_machine', $filter->filters())) {
             $vm = VirtualMachinesPerspective::withoutGlobalScopes()

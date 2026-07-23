@@ -22,7 +22,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualNetworkCardStats;
  */
 class AbstractVirtualNetworkCardStatsService
 {
-    public static function get(VirtualNetworkCardStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?VirtualNetworkCardStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

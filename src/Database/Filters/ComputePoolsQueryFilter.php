@@ -37,13 +37,13 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function resourceValidator($value)
     {
         return $this->builder->where('resource_validator', 'ilike', '%' . $value . '%');
@@ -54,13 +54,13 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->resourceValidator($value);
     }
-        
+
     public function virtualization($value)
     {
         return $this->builder->where('virtualization', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function provisioningAlg($value)
     {
         return $this->builder->where('provisioning_alg', 'ilike', '%' . $value . '%');
@@ -71,7 +71,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->provisioningAlg($value);
     }
-        
+
     public function poolType($value)
     {
         return $this->builder->where('pool_type', 'ilike', '%' . $value . '%');
@@ -82,7 +82,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->poolType($value);
     }
-        
+
     public function codeName($value)
     {
         return $this->builder->where('code_name', 'ilike', '%' . $value . '%');
@@ -93,7 +93,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->codeName($value);
     }
-    
+
     public function totalCpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -112,7 +112,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->totalCpu($value);
     }
-    
+
     public function totalRam($value)
     {
         $operator = substr($value, 0, 1);
@@ -131,7 +131,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->totalRam($value);
     }
-    
+
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -142,7 +142,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-     
+
     public function isAlive($value)
     {
         return $this->builder->where('is_alive', $value);
@@ -153,7 +153,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->isAlive($value);
     }
-     
+
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -164,7 +164,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-     
+
     public function isDefault($value)
     {
         return $this->builder->where('is_default', $value);
@@ -175,7 +175,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->isDefault($value);
     }
-     
+
     public function isIso27001Enabled($value)
     {
         return $this->builder->where('is_iso27001_enabled', $value);
@@ -186,7 +186,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->isIso27001Enabled($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -267,7 +267,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasDatacenter($value);
     }
-    
+
     public function iaasCloudNodeId($value)
     {
             $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
@@ -282,7 +282,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasCloudNode($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -292,7 +292,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -302,7 +302,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function commonCurrencyId($value)
     {
             $commonCurrency = \NextDeveloper\Commons\Database\Models\Currencies::where('uuid', $value)->first();
@@ -317,7 +317,7 @@ class ComputePoolsQueryFilter extends AbstractQueryFilter
     {
         return $this->commonCurrency($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

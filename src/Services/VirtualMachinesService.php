@@ -57,7 +57,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-    public static function get(VirtualMachinesQueryFilter $filter = null, array $params = []): Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public static function get(?VirtualMachinesQueryFilter $filter = null, array $params = []): Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         // If filtering by a specific IAM account, verify that account has an iaas_accounts
         // record. Without one the account is not provisioned for IAAS and should see no VMs.
@@ -1048,7 +1048,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         ];
     }
 
-    public static function getMetadata(VirtualMachines $vm = null): array
+    public static function getMetadata(?VirtualMachines $vm = null): array
     {
         if (!$vm) {
             return [

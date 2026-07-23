@@ -36,7 +36,7 @@ class VirtualMachineCpuHourlyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->dataPoints($value);
     }
-    
+
     public function hourBucketStart($date)
     {
         return $this->builder->where('hour_bucket', '>=', $date);
@@ -139,7 +139,7 @@ class VirtualMachineCpuHourlyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

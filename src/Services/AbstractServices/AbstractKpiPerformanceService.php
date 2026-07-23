@@ -25,7 +25,7 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
  */
 class AbstractKpiPerformanceService
 {
-    public static function get(KpiPerformanceQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?KpiPerformanceQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 
@@ -184,7 +184,7 @@ class AbstractKpiPerformanceService
      */
     public static function create(array $data)
     {
-        
+
         try {
             $model = KpiPerformance::create($data);
         } catch(\Exception $e) {
@@ -230,7 +230,7 @@ class AbstractKpiPerformanceService
             );
         }
 
-        
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();

@@ -22,7 +22,7 @@ use NextDeveloper\IAAS\Database\Models\StorageMemberStats;
  */
 class AbstractStorageMemberStatsService
 {
-    public static function get(StorageMemberStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?StorageMemberStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

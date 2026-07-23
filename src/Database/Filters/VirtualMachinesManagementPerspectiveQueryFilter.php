@@ -17,13 +17,13 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function hypervisorNameLabel($value)
     {
         return $this->builder->where('hypervisor_name_label', 'ilike', '%' . $value . '%');
@@ -34,7 +34,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
     {
         return $this->hypervisorNameLabel($value);
     }
-        
+
     public function diskName($value)
     {
         return $this->builder->where('disk_name', 'ilike', '%' . $value . '%');
@@ -45,7 +45,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
     {
         return $this->diskName($value);
     }
-        
+
     public function diskHypervisorUuid($value)
     {
         return $this->builder->where('disk_hypervisor_uuid', 'ilike', '%' . $value . '%');
@@ -56,7 +56,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
     {
         return $this->diskHypervisorUuid($value);
     }
-        
+
     public function storageVolumeName($value)
     {
         return $this->builder->where('storage_volume_name', 'ilike', '%' . $value . '%');
@@ -67,7 +67,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
     {
         return $this->storageVolumeName($value);
     }
-        
+
     public function storageVolumeHypervisorUuid($value)
     {
         return $this->builder->where('storage_volume_hypervisor_uuid', 'ilike', '%' . $value . '%');
@@ -78,7 +78,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
     {
         return $this->storageVolumeHypervisorUuid($value);
     }
-        
+
     public function computeMemberName($value)
     {
         return $this->builder->where('compute_member_name', 'ilike', '%' . $value . '%');
@@ -89,7 +89,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
     {
         return $this->computeMemberName($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -99,7 +99,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -109,7 +109,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
         }
     }
 
-    
+
     public function iaasComputeMemberId($value)
     {
             $iaasComputeMember = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('uuid', $value)->first();
@@ -124,7 +124,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
     {
         return $this->iaasComputeMember($value);
     }
-    
+
     public function iaasComputePoolId($value)
     {
             $iaasComputePool = \NextDeveloper\IAAS\Database\Models\ComputePools::where('uuid', $value)->first();
@@ -139,7 +139,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
     {
         return $this->iaasComputePool($value);
     }
-    
+
     public function iaasCloudNodeId($value)
     {
             $iaasCloudNode = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('uuid', $value)->first();
@@ -154,7 +154,7 @@ class VirtualMachinesManagementPerspectiveQueryFilter extends AbstractQueryFilte
     {
         return $this->iaasCloudNode($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 }
