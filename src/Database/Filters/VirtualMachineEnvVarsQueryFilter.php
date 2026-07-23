@@ -4,7 +4,9 @@ namespace NextDeveloper\IAAS\Database\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
-                
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAM\Database\Models\Accounts;
+use NextDeveloper\IAM\Database\Models\Users;
 
 /**
  * This class automatically puts where clause on database so that use can filter
@@ -12,52 +14,48 @@ use NextDeveloper\Commons\Database\Filters\AbstractQueryFilter;
  */
 class VirtualMachineEnvVarsQueryFilter extends AbstractQueryFilter
 {
-
     /**
      * @var Builder
      */
     protected $builder;
-    
+
     public function key($value)
     {
-        return $this->builder->where('key', 'ilike', '%' . $value . '%');
+        return $this->builder->where('key', 'ilike', '%'.$value.'%');
     }
 
-        
     public function value($value)
     {
-        return $this->builder->where('value', 'ilike', '%' . $value . '%');
+        return $this->builder->where('value', 'ilike', '%'.$value.'%');
     }
 
-        
     public function sourceType($value)
     {
-        return $this->builder->where('source_type', 'ilike', '%' . $value . '%');
+        return $this->builder->where('source_type', 'ilike', '%'.$value.'%');
     }
 
-        //  This is an alias function of sourceType
+    //  This is an alias function of sourceType
     public function source_type($value)
     {
         return $this->sourceType($value);
     }
-        
+
     public function description($value)
     {
-        return $this->builder->where('description', 'ilike', '%' . $value . '%');
+        return $this->builder->where('description', 'ilike', '%'.$value.'%');
     }
 
-    
     public function isSecret($value)
     {
         return $this->builder->where('is_secret', $value);
     }
 
-        //  This is an alias function of isSecret
+    //  This is an alias function of isSecret
     public function is_secret($value)
     {
         return $this->isSecret($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -126,54 +124,48 @@ class VirtualMachineEnvVarsQueryFilter extends AbstractQueryFilter
 
     public function iaasVirtualMachineId($value)
     {
-            $iaasVirtualMachine = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
+        $iaasVirtualMachine = VirtualMachines::where('uuid', $value)->first();
 
-        if($iaasVirtualMachine) {
+        if ($iaasVirtualMachine) {
             return $this->builder->where('iaas_virtual_machine_id', '=', $iaasVirtualMachine->id);
         }
     }
 
-        //  This is an alias function of iaasVirtualMachine
+    //  This is an alias function of iaasVirtualMachine
     public function iaas_virtual_machine_id($value)
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     public function sourceId($value)
     {
-            $source = \NextDeveloper\Commons\Database\Models\Ai.ids::where('uuid', $value)->first();
-
-        if($source) {
-            return $this->builder->where('source_id', '=', $source->id);
-        }
+        return $this->builder->where('source_id', '=', $value);
     }
 
-        //  This is an alias function of source
+    //  This is an alias function of sourceId
     public function source_id($value)
     {
-        return $this->source($value);
+        return $this->sourceId($value);
     }
-    
+
     public function iamAccountId($value)
     {
-            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
+        $iamAccount = Accounts::where('uuid', $value)->first();
 
-        if($iamAccount) {
+        if ($iamAccount) {
             return $this->builder->where('iam_account_id', '=', $iamAccount->id);
         }
     }
 
-    
     public function iamUserId($value)
     {
-            $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
+        $iamUser = Users::where('uuid', $value)->first();
 
-        if($iamUser) {
+        if ($iamUser) {
             return $this->builder->where('iam_user_id', '=', $iamUser->id);
         }
     }
 
-    
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 }

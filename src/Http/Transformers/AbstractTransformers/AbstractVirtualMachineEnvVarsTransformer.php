@@ -3,38 +3,35 @@
 namespace NextDeveloper\IAAS\Http\Transformers\AbstractTransformers;
 
 use NextDeveloper\Commons\Database\Models\Addresses;
+use NextDeveloper\Commons\Database\Models\AvailableActions;
 use NextDeveloper\Commons\Database\Models\Comments;
+use NextDeveloper\Commons\Database\Models\Media;
 use NextDeveloper\Commons\Database\Models\Meta;
 use NextDeveloper\Commons\Database\Models\PhoneNumbers;
 use NextDeveloper\Commons\Database\Models\SocialMedia;
-use NextDeveloper\Commons\Database\Models\Votes;
-use NextDeveloper\Commons\Database\Models\Media;
-use NextDeveloper\Commons\Http\Transformers\MediaTransformer;
-use NextDeveloper\Commons\Database\Models\AvailableActions;
-use NextDeveloper\Commons\Http\Transformers\AvailableActionsTransformer;
 use NextDeveloper\Commons\Database\Models\States;
-use NextDeveloper\Commons\Http\Transformers\StatesTransformer;
-use NextDeveloper\Commons\Http\Transformers\CommentsTransformer;
-use NextDeveloper\Commons\Http\Transformers\SocialMediaTransformer;
-use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
-use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
-use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
-use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
-use NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars;
+use NextDeveloper\Commons\Database\Models\Votes;
 use NextDeveloper\Commons\Http\Transformers\AbstractTransformer;
+use NextDeveloper\Commons\Http\Transformers\AddressesTransformer;
+use NextDeveloper\Commons\Http\Transformers\AvailableActionsTransformer;
+use NextDeveloper\Commons\Http\Transformers\CommentsTransformer;
+use NextDeveloper\Commons\Http\Transformers\MediaTransformer;
+use NextDeveloper\Commons\Http\Transformers\MetaTransformer;
+use NextDeveloper\Commons\Http\Transformers\PhoneNumbersTransformer;
+use NextDeveloper\Commons\Http\Transformers\SocialMediaTransformer;
+use NextDeveloper\Commons\Http\Transformers\StatesTransformer;
+use NextDeveloper\Commons\Http\Transformers\VotesTransformer;
+use NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAM\Database\Models\Accounts;
+use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * Class VirtualMachineEnvVarsTransformer. This class is being used to manipulate the data we are serving to the customer
- *
- * @package NextDeveloper\IAAS\Http\Transformers
  */
 class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
 {
-
-    /**
-     * @var array
-     */
     protected array $availableIncludes = [
         'states',
         'actions',
@@ -44,36 +41,33 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
         'socialMedia',
         'phoneNumbers',
         'addresses',
-        'meta'
+        'meta',
     ];
 
     /**
-     * @param VirtualMachineEnvVars $model
-     *
      * @return array
      */
     public function transform(VirtualMachineEnvVars $model)
     {
-                                                $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
-                                                            $sourceId = \NextDeveloper\Commons\Database\Models\Ai.ids::where('id', $model->source_id)->first();
-                                                            $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                                                            $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                        
+        $iaasVirtualMachineId = VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
+        $iamAccountId = Accounts::where('id', $model->iam_account_id)->first();
+        $iamUserId = Users::where('id', $model->iam_user_id)->first();
+
         return $this->buildPayload(
             [
-            'id'  =>  $model->uuid,
-            'iaas_virtual_machine_id'  =>  $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
-            'key'  =>  $model->key,
-            'value'  =>  $model->value,
-            'source_type'  =>  $model->source_type,
-            'source_id'  =>  $sourceId ? $sourceId->uuid : null,
-            'is_secret'  =>  $model->is_secret,
-            'description'  =>  $model->description,
-            'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
-            'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
-            'created_at'  =>  $model->created_at,
-            'updated_at'  =>  $model->updated_at,
-            'deleted_at'  =>  $model->deleted_at,
+                'id' => $model->uuid,
+                'iaas_virtual_machine_id' => $iaasVirtualMachineId ? $iaasVirtualMachineId->uuid : null,
+                'key' => $model->key,
+                'value' => $model->value,
+                'source_type' => $model->source_type,
+                'source_id' => $model->source_id,
+                'is_secret' => $model->is_secret,
+                'description' => $model->description,
+                'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
+                'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
+                'created_at' => $model->created_at,
+                'updated_at' => $model->updated_at,
+                'deleted_at' => $model->deleted_at,
             ]
         );
     }
@@ -84,7 +78,7 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
             ->where('object_id', $model->id)
             ->get();
 
-        return $this->collection($states, new StatesTransformer());
+        return $this->collection($states, new StatesTransformer);
     }
 
     public function includeActions(VirtualMachineEnvVars $model)
@@ -96,7 +90,7 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
             ->where('input', $input)
             ->get();
 
-        return $this->collection($actions, new AvailableActionsTransformer());
+        return $this->collection($actions, new AvailableActionsTransformer);
     }
 
     public function includeMedia(VirtualMachineEnvVars $model)
@@ -105,7 +99,7 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
             ->where('object_id', $model->id)
             ->get();
 
-        return $this->collection($media, new MediaTransformer());
+        return $this->collection($media, new MediaTransformer);
     }
 
     public function includeSocialMedia(VirtualMachineEnvVars $model)
@@ -114,7 +108,7 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
             ->where('object_id', $model->id)
             ->get();
 
-        return $this->collection($socialMedia, new SocialMediaTransformer());
+        return $this->collection($socialMedia, new SocialMediaTransformer);
     }
 
     public function includeComments(VirtualMachineEnvVars $model)
@@ -123,7 +117,7 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
             ->where('object_id', $model->id)
             ->get();
 
-        return $this->collection($comments, new CommentsTransformer());
+        return $this->collection($comments, new CommentsTransformer);
     }
 
     public function includeVotes(VirtualMachineEnvVars $model)
@@ -132,7 +126,7 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
             ->where('object_id', $model->id)
             ->get();
 
-        return $this->collection($votes, new VotesTransformer());
+        return $this->collection($votes, new VotesTransformer);
     }
 
     public function includeMeta(VirtualMachineEnvVars $model)
@@ -141,7 +135,7 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
             ->where('object_id', $model->id)
             ->get();
 
-        return $this->collection($meta, new MetaTransformer());
+        return $this->collection($meta, new MetaTransformer);
     }
 
     public function includePhoneNumbers(VirtualMachineEnvVars $model)
@@ -150,7 +144,7 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
             ->where('object_id', $model->id)
             ->get();
 
-        return $this->collection($phoneNumbers, new PhoneNumbersTransformer());
+        return $this->collection($phoneNumbers, new PhoneNumbersTransformer);
     }
 
     public function includeAddresses(VirtualMachineEnvVars $model)
@@ -159,7 +153,7 @@ class AbstractVirtualMachineEnvVarsTransformer extends AbstractTransformer
             ->where('object_id', $model->id)
             ->get();
 
-        return $this->collection($addresses, new AddressesTransformer());
+        return $this->collection($addresses, new AddressesTransformer);
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
