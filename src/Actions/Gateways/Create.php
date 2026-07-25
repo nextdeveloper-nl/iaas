@@ -34,7 +34,22 @@ class Create extends AbstractAction
     {
         $this->setProgress(0, 'Provisioning gateway');
 
-        $gatewayType = is_array($this->params) ? ($this->params['gateway_type'] ?? null) : null;
+        //  Dispatched through the generic AbstractNetworksService::doAction(), which
+        //  passes the whole request body as a single element of the variadic ...$params
+        //  it collects (NetworksController::doAction() calls
+        //  NetworksService::doAction($objectId, $action, request()->all())) - so
+        //  $this->params here arrives as [0 => [...request body...]], not the request
+        //  body directly. AbstractAction's own constructor only unwraps that when
+        //  static::PARAMS is defined (it isn't, here), so we unwrap it ourselves the
+        //  same way, while still tolerating a direct, unwrapped array for callers that
+        //  construct this action themselves instead of going through doAction().
+        $params = $this->params;
+
+        if (is_array($params) && array_key_exists(0, $params) && is_array($params[0])) {
+            $params = $params[0];
+        }
+
+        $gatewayType = is_array($params) ? ($params['gateway_type'] ?? null) : null;
 
         try {
             $gateway = GatewaysService::provisionForNetwork($this->model, [
