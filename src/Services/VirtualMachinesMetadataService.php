@@ -13,7 +13,9 @@ use NextDeveloper\IAAS\Database\Models\AnsibleRoles;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\DhcpServers;
 use NextDeveloper\IAAS\Database\Models\EnvVarGroupVars;
+use NextDeveloper\IAAS\Database\Models\Gateways;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\SshPublicKeyVirtualMachines;
@@ -68,27 +70,10 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         $vifConfiguration = [];
 
         foreach ($vifs as $vif) {
-            //  Look up the related network so we can expose its name in the metadata
-            $network = Networks::withoutGlobalScope(AuthorizationScope::class)
-                ->where('id', $vif->iaas_network_id)
-                ->first();
-
             $data = [
                 'device_number' => $vif->device_number,
                 'mac_addr'      => $vif->mac_addr,
-                'network_name'  => $network?->name,
-//                'network'       => [
-//                    'ip_addr'           => $vif->ip_addr,
-//                    'ip_range_start'    => $vif->ip_range_start,
-//                    'ip_range_end'      => $vif->ip_range_end,
-//                    'gateway'           => $vif->gateway,
-//                    'subnet'            => $vif->subnet,
-//                    'netmask'           => $vif->netmask,
-//                    'network'           => $vif->network,
-//                    'dhcp_server'       => $vif->dhcp_server,
-//                    'dns_nameservers'   => $vif->dns_nameservers,
-//                    'mtu'               => $vif->mtu,
-//                ],
+                'network'       => self::buildNetworkData($vif->iaas_network_id),
             ];
 
             if($vif->ipList) {
@@ -133,7 +118,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'hostname' => $vm->hostname,
             'username' => $vm->username,
             'password' => VirtualMachinesService::getRawPassword($vm),
-            'virtual_machine_id' => $vm->id_ref,
+            'virtual_machine_id' => $vm->uuid,
             'virtual_disks' => $diskConfiguration,
             'virtual_network_cards' => $vifConfiguration,
             'service_roles' => self::collectServiceRoles($vm),
@@ -142,6 +127,65 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'ssh_keys' => self::collectSshKeys($vm),
             'env_vars' => self::collectEnvVars($vm),
             'tokens'   => $vm->tokens ?? [],
+        ];
+    }
+
+    private static function buildNetworkData(?int $networkId) : array
+    {
+        if (!$networkId) {
+            return [];
+        }
+
+        $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $networkId)
+            ->first();
+
+        if (!$network) {
+            return [];
+        }
+
+        $gatewayIp = null;
+        $subnet = null;
+        $netmask = null;
+        $networkAddr = null;
+
+        if ($network->cidr) {
+            [$networkAddr, $prefix] = explode('/', $network->cidr, 2);
+            $prefix = (int) $prefix;
+            $netmask = long2ip(-1 << (32 - $prefix));
+            $subnet = (string) $prefix;
+        }
+
+        if ($network->iaas_gateway_id) {
+            $gateway = Gateways::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $network->iaas_gateway_id)
+                ->first();
+
+            $gatewayIp = $gateway?->ip_addr;
+        }
+
+        $dhcpServerIp = null;
+
+        if ($network->iaas_dhcp_server_id) {
+            $dhcpServer = DhcpServers::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $network->iaas_dhcp_server_id)
+                ->first();
+
+            $dhcpServerIp = $dhcpServer?->ip_addr;
+        }
+
+        return [
+            'name'             => $network->name,
+            'ip_addr'          => $network->ip_addr,
+            'ip_range_start'   => $network->ip_addr_range_start,
+            'ip_range_end'     => $network->ip_addr_range_end,
+            'gateway'          => $gatewayIp,
+            'subnet'           => $subnet,
+            'netmask'          => $netmask,
+            'network'          => $networkAddr,
+            'dhcp_server'      => $dhcpServerIp,
+            'dns_nameservers'  => $network->dns_nameservers,
+            'mtu'              => $network->mtu,
         ];
     }
 
