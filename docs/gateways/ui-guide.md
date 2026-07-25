@@ -7,8 +7,8 @@ endpoints/fields; this doc is about what to build on top of it and why.
 ## Where this fits
 
 A gateway isn't a resource users create standalone — it's always attached to a
-Network, and in the common case (auto-provisioning on a firewall-enabled cloud node)
-users won't consciously "create" one at all. Design around that:
+Network, and in the common case (auto-provisioning on network creation) users won't
+consciously "create" one at all. Design around that:
 
 - Surface the gateway **on the Network's detail page**, not as a top-level nav item.
   A network either has a gateway or it doesn't — show a card/section that reflects

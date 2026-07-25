@@ -5,7 +5,6 @@ namespace NextDeveloper\IAAS\Services;
 use App\Services\IAAS\VirtualMachineServices;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Helpers\MetaHelper;
-use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Contracts\FirewallRuleCapableInterface;
 use NextDeveloper\IAAS\Contracts\NatCapableInterface;
@@ -52,14 +51,9 @@ class GatewaysService extends AbstractGatewaysService
 
     /**
      * Provisions a firewall VM for $network and creates its Gateways row - the shared
-     * implementation behind both the implicit "network created on a firewall-enabled
-     * cloud node" flow (Actions\Networks\Create) and the explicit, user-triggered
-     * Actions\Gateways\Create action.
-     *
-     * Returns null (same as the previous inline behavior) when the network's cloud
-     * node isn't firewall-enabled and no gateway_type override was explicitly
-     * requested - this is expected, "no gateway wanted" behavior, not an error, so it's
-     * only recorded as an informational comment on $network, not thrown.
+     * implementation behind both the implicit "network created" flow
+     * (Actions\Networks\Create, gated by its own create_gateway param) and the
+     * explicit, user-triggered Actions\Gateways\Create action.
      *
      * Throws CannotFindAvailableResourceException (same exception type
      * ComputePoolsService::getDefaultPool()/NetworksService::getPublicNetwork() already
@@ -80,17 +74,6 @@ class GatewaysService extends AbstractGatewaysService
         $cloudNode = NetworksService::getCloudNode($network);
 
         $gatewayType = $overrides['gateway_type'] ?? config('leo.iaas.default_firewall_type');
-
-        if (!in_array($cloudNode->slug, config('leo.iaas.firewall_enabled_cloud_nodes'))
-            && empty($overrides['gateway_type'])) {
-            CommentsService::createSystemComment(
-                'A gateway was not provisioned automatically for this network: cloud node "' .
-                $cloudNode->slug . '" is not firewall-enabled.',
-                $network
-            );
-
-            return null;
-        }
 
         $imageConfig = config('leo.iaas.firewalls.' . $gatewayType);
 

@@ -10,7 +10,6 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Services\GatewaysService;
-use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\Switches\DellS6100;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -60,27 +59,13 @@ class Create extends AbstractAction
 
         //  Gateway auto-provisioning is opt-out, not mandatory - a caller (e.g.
         //  VdcServices::createWizard()) can pass ['create_gateway' => false] to skip it
-        //  entirely for this network, regardless of whether the cloud node is
-        //  firewall-enabled. Defaults to true to preserve the existing automatic behavior
-        //  for every other caller that doesn't pass this param.
+        //  entirely for this network. Defaults to true to preserve the existing automatic
+        //  behavior for every other caller that doesn't pass this param.
         $createGateway = is_array($this->params) ? ($this->params['create_gateway'] ?? true) : true;
 
         if (!$createGateway) {
             CommentsService::createSystemComment(
                 'Gateway provisioning was skipped for this network because create_gateway was set to false.',
-                $this->model
-            );
-
-            $this->setProgress(100, 'Network initiated');
-            return;
-        }
-
-        $cloudNode = NetworksService::getCloudNode($this->model);
-
-        if(!in_array($cloudNode->slug, config('leo.iaas.firewall_enabled_cloud_nodes'))) {
-            CommentsService::createSystemComment(
-                'A gateway was not provisioned automatically for this network: cloud node "' .
-                $cloudNode->slug . '" is not firewall-enabled.',
                 $this->model
             );
 

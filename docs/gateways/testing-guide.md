@@ -30,11 +30,7 @@ expected. Pairs with `changes-and-usage.md` (what the API looks like) and
    firewall" step with a `CannotFindAvailableResourceException`, this is the first
    thing to re-check.
 
-3. **The cloud node you're testing against is firewall-enabled** —
-   `config('leo.iaas.firewall_enabled_cloud_nodes')` must include its `slug`
-   (comma-separated env var `IAAS_FIREWALL_ENABLED_CLOUD_NODES`).
-
-4. **The `provision-gateway` action row exists** (only needed if you're testing the
+3. **The `provision-gateway` action row exists** (only needed if you're testing the
    *explicit* provisioning path, not the automatic one) — an `AvailableActions` row
    with `name = provision-gateway`, `input = NextDeveloper\IAAS\Networks`,
    `class = NextDeveloper\IAAS\Actions\Gateways\Create`. This is managed externally
@@ -87,7 +83,7 @@ response. Three places to look, in order of usefulness:
 
 ```
 POST /iaas/vdc
-{ "name": "test-network", "iaas_cloud_node_id": "<a firewall-enabled cloud node>" }
+{ "name": "test-network", "iaas_cloud_node_id": "<a cloud node>" }
 ```
 
 **Immediately after the response:**
@@ -131,7 +127,7 @@ total), something's wrong — check the comments/logs for the specific
 
 ```
 POST /iaas/vdc
-{ "name": "test-no-gateway", "iaas_cloud_node_id": "<firewall-enabled node>", "create_gateway": false }
+{ "name": "test-no-gateway", "iaas_cloud_node_id": "<a cloud node>", "create_gateway": false }
 ```
 
 Expect: `network.iaas_gateway_id` stays `null` forever, and a system comment
@@ -139,28 +135,14 @@ appears on the network: *"Gateway provisioning was skipped for this network
 because create_gateway was set to false."* No VM, no `Gateways` row, nothing
 queued beyond the network creation itself.
 
-## Test 3 — Cloud node not firewall-enabled
+## Test 3 — Explicit provisioning
 
-```
-POST /iaas/vdc
-{ "name": "test-non-firewall-node", "iaas_cloud_node_id": "<a node NOT in firewall_enabled_cloud_nodes>" }
-```
-
-Expect: same clean no-op as Test 2, but the comment differs: *"A gateway was not
-provisioned automatically for this network: cloud node \"<slug>\" is not
-firewall-enabled."*
-
-## Test 4 — Explicit provisioning
-
-Create a network on a **non**-firewall-enabled node first (so it has no gateway),
-then:
+Create a network with `create_gateway: false` first (so it has no gateway, per
+Test 2), then:
 ```
 POST /iaas/networks/{ref}/do/provision-gateway
 ```
-This bypasses the cloud-node-enabled check entirely (that check only exists in the
-*implicit* `Actions\Networks\Create` path) — it should provision a gateway
-regardless of the node's firewall-enabled status, since you're explicitly asking
-for one. Verify the same way as Test 1 (poll health, check credentials).
+Verify the same way as Test 1 (poll health, check credentials).
 
 Optionally pass a different type:
 ```json
@@ -170,7 +152,7 @@ Optionally pass a different type:
 the param is actually threaded through — check
 `config/gateway_drivers.php`'s `platforms` array resolves it).
 
-## Test 5 — Missing image error path
+## Test 4 — Missing image error path
 
 This is the one genuinely worth deliberately breaking to verify the fix. Temporarily
 point the config at a version that doesn't exist in your `RepositoryImages` catalog:
@@ -195,7 +177,7 @@ Run Test 1 again. Expect:
 
 Revert the config change afterward.
 
-## Test 6 — Firewall rules
+## Test 5 — Firewall rules
 
 Once a gateway is healthy (`api_auth_ok: true`):
 ```
@@ -220,9 +202,9 @@ DELETE /iaas/gateways/{ref}/firewall-rules/{ref}
 ```
 and confirm it's gone from both the list and pfSense's UI.
 
-## Test 7 — Port forwards
+## Test 6 — Port forwards
 
-Same shape as Test 6, against `/iaas/gateways/{ref}/port-forwards`:
+Same shape as Test 5, against `/iaas/gateways/{ref}/port-forwards`:
 ```
 POST /iaas/gateways/{ref}/port-forwards
 {
@@ -235,7 +217,7 @@ POST /iaas/gateways/{ref}/port-forwards
 ```
 Verify in pfSense's Firewall → NAT → Port Forward UI, then delete and re-verify.
 
-## Test 8 — Deletion cascade
+## Test 7 — Deletion cascade
 
 With a gateway fully provisioned:
 ```

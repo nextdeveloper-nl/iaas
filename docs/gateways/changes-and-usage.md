@@ -61,8 +61,8 @@ this codebase needs to change.
   `Actions/Networks/Create.php`). Resolves the cloud node, the image from
   `leo.iaas.firewalls.<gateway_type>`, builds the firewall VM + WAN/LAN NICs, creates
   the `Gateways` row, dispatches the VM commit, and schedules credential collection.
-  Returns `null` if the cloud node isn't firewall-enabled and no `gateway_type`
-  override was passed.
+  Whether it's called at all is gated by the caller (`Actions\Networks\Create`'s
+  `create_gateway` param, default `true`) - not by the cloud node itself.
 - **`Actions/Networks/Create.php`** — shrunk to: switch config, then call
   `provisionForNetwork()`. Same observable behavior as before, just de-duplicated.
 - **`Actions/Gateways/Create.php`** — now the *explicit* entry point. Takes a
@@ -133,7 +133,7 @@ provisioning (below), not direct creation.
 
 ### Get a gateway automatically
 
-Nothing to do — create a network on a firewall-enabled cloud node as usual:
+Nothing to do — create a network as usual:
 
 ```
 POST /iaas/networks
@@ -146,13 +146,14 @@ POST /iaas/networks
 }
 ```
 
-If the cloud node is listed in `leo.iaas.firewall_enabled_cloud_nodes`, a gateway is
-provisioned automatically and linked via the network's `iaas_gateway_id`.
+A gateway is provisioned automatically and linked via the network's
+`iaas_gateway_id`, unless the request set `"create_gateway": false`.
 
 ### Provision a gateway explicitly
 
-For a network that didn't get one automatically (wrong cloud node, or provisioning
-failed) or to pick a different `gateway_type` than the deployment default:
+For a network that didn't get one automatically (`create_gateway: false` was set, or
+provisioning failed) or to pick a different `gateway_type` than the deployment
+default:
 
 ```
 POST /iaas/networks/{ref}/do/provision-gateway

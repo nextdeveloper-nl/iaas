@@ -9,11 +9,11 @@ use NextDeveloper\IAAS\Services\GatewaysService;
 
 /**
  * Explicit, user-triggerable gateway provisioning - dispatched via
- * POST /iaas/networks/{ref}/do/provision-gateway for a Network that either isn't on a
- * firewall-enabled cloud node (so the implicit Actions\Networks\Create flow skipped it)
- * or didn't get a gateway for some other reason. Shares its actual provisioning logic
- * with that implicit flow via GatewaysService::provisionForNetwork() - see
- * Actions/Networks/Create.php.
+ * POST /iaas/networks/{ref}/do/provision-gateway for a Network that didn't get a
+ * gateway from the implicit Actions\Networks\Create flow (e.g. it was created with
+ * create_gateway: false) or didn't get one for some other reason. Shares its actual
+ * provisioning logic with that implicit flow via GatewaysService::provisionForNetwork()
+ * - see Actions/Networks/Create.php.
  */
 class Create extends AbstractAction
 {
@@ -66,7 +66,7 @@ class Create extends AbstractAction
         }
 
         if (!$gateway) {
-            $this->setFinished('Cannot provision a gateway for this network - its cloud node is not firewall-enabled and no gateway_type was specified.');
+            $this->setFinished('Cannot provision a gateway for this network.');
             return;
         }
 

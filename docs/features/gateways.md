@@ -4,7 +4,7 @@ A gateway gives a network its own dedicated firewall appliance — provisioned a
 
 ## Key Capabilities
 
-- Auto-provision a firewall VM (WAN + LAN NICs, sane defaults) when a network is created on a firewall-enabled cloud node
+- Auto-provision a firewall VM (WAN + LAN NICs, sane defaults) when a network is created, unless `create_gateway: false` is passed
 - Explicitly provision a gateway on demand for a network that didn't get one automatically
 - Real, working admin credentials and API access populated automatically after first boot — no manual setup wizard
 - Self-service firewall-rule and NAT/port-forward management through our own API, translated per-driver to the underlying appliance's native config
@@ -16,7 +16,7 @@ A gateway gives a network its own dedicated firewall appliance — provisioned a
 `NextDeveloper\IAAS\Services\Hypervisors\GatewayDriverManager` resolves a `Gateways.gateway_type` value to a driver class implementing `Contracts\GatewayDriverInterface` (bootstrap/healthCheck/applyConfiguration/teardown), with optional `FirewallRuleCapableInterface`/`NatCapableInterface` capabilities a driver can add if its backend supports them. `Services\Hypervisors\PfSense\PfSenseGatewayDriver` is the first concrete driver.
 
 Provisioning logic lives in `GatewaysService::provisionForNetwork()`, shared by two entry points:
-- **Implicit** — `Actions\Networks\Create` provisions a gateway automatically when a network is created on a cloud node listed in `leo.iaas.firewall_enabled_cloud_nodes`.
+- **Implicit** — `Actions\Networks\Create` provisions a gateway automatically for every new network, unless the request explicitly passed `create_gateway: false`.
 - **Explicit** — `Actions\Gateways\Create`, dispatched via `POST /iaas/networks/{ref}/do/provision-gateway`, for a network that needs a gateway added after the fact.
 
 Credentials can't be known synchronously at provisioning time (the VM hasn't booted yet), so `Jobs\Gateways\CollectGatewayCredentials` is dispatched with a delay, polls until the appliance is reachable, and runs the driver's `bootstrap()` to populate `ssh_username`/`ssh_password`/`api_token`/`api_url` on the `Gateways` row.
