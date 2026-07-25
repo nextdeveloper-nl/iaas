@@ -380,10 +380,19 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
      * stored value (and encrypts it in place) for VMs whose password predates
      * encryption being introduced.
      */
-    public static function getRawPassword(VirtualMachines $vm): string
+    public static function getRawPassword(VirtualMachines $vm): ?string
     {
         try {
-            return decrypt($vm->password);
+            $decrypted = decrypt($vm->password);
+
+            if ($decrypted === null) {
+                Log::error(__METHOD__ . ' | decrypt() returned null. The password is not ' .
+                    'encrypted. That is why I am returning the raw password');
+
+                return $vm->password;
+            }
+
+            return $decrypted;
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
             if ($e->getMessage() == 'The payload is invalid.') {
                 Log::error(__METHOD__ . ' | We got the payload is invalid error. Maybe the password is not ' .
