@@ -68,9 +68,15 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         $vifConfiguration = [];
 
         foreach ($vifs as $vif) {
+            //  Look up the related network so we can expose its name in the metadata
+            $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $vif->iaas_network_id)
+                ->first();
+
             $data = [
                 'device_number' => $vif->device_number,
                 'mac_addr'      => $vif->mac_addr,
+                'network_name'  => $network?->name,
 //                'network'       => [
 //                    'ip_addr'           => $vif->ip_addr,
 //                    'ip_range_start'    => $vif->ip_range_start,
