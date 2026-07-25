@@ -137,7 +137,6 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'username' => $vm->username,
             'password' => VirtualMachinesService::getRawPassword($vm),
             'virtual_machine_id' => $vm->uuid,
-            'agent_api_key' => $vm->agent_api_key,
             'virtual_disks' => $diskConfiguration,
             'virtual_network_cards' => $vifConfiguration,
             'service_roles' => self::collectServiceRoles($vm),
