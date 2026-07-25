@@ -79,14 +79,13 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                 'network'       => $network,
             ];
 
-            if($vif->ipList) {
+            if($vif->ipAddresses) {
                 $data['ipList'] = [
-                    'data' => $vif->ipList->map(function ($ip) {
+                    'data' => $vif->ipAddresses->map(function ($ip) {
                         return [
-                            'id'            => $ip->id,
-                            'ip_addr'      => $ip->ip_addr,
-                            'version'      => $ip->version,
-                            'is_reachable' => $ip->is_reachable
+                            'id'          => $ip->id,
+                            'ip_addr'     => $ip->ip_addr,
+                            'is_reserved' => $ip->is_reserved,
                         ];
                     }),
                 ];
