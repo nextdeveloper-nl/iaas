@@ -97,13 +97,27 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         }
 
         $computePool = VirtualMachinesService::getComputePool($vm);
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        //  hypervisor_type/hypervisor_version aren't real columns; ComputeMembers only
+        //  stores a combined "<Type> <version>" string (e.g. "XenServer 8.2.5")
+        $hypervisorType = null;
+        $hypervisorVersion = null;
+
+        if ($computeMember?->hypervisor_model) {
+            [$hypervisorType, $hypervisorVersion] = array_pad(
+                explode(' ', $computeMember->hypervisor_model, 2),
+                2,
+                null
+            );
+        }
 
         $computePoolArray = [
             'id' => $computePool->uuid,
             'name' => $computePool->name,
             'pool_type' => $computePool->pool_type,
-            'hypervisor_type' => $computePool->hypervisor_type,
-            'hypervisor_version' => $computePool->hypervisor_version,
+            'hypervisor_type' => $hypervisorType,
+            'hypervisor_version' => $hypervisorVersion,
         ];
 
         $cloudNode = VirtualMachinesService::getCloudPool($vm);
