@@ -810,6 +810,16 @@ Route::prefix('iaas')->group(
                 Route::get('{iaas_gateways}/addresses', 'Gateways\GatewaysController@addresses');
                 Route::post('{iaas_gateways}/addresses', 'Gateways\GatewaysController@saveAddresses');
 
+                Route::get('{iaas_gateways}/health', 'Gateways\GatewaysController@health');
+
+                Route::get('{iaas_gateways}/firewall-rules', 'Gateways\GatewayFirewallRulesController@index');
+                Route::post('{iaas_gateways}/firewall-rules', 'Gateways\GatewayFirewallRulesController@store');
+                Route::delete('{iaas_gateways}/firewall-rules/{rule}', 'Gateways\GatewayFirewallRulesController@destroy');
+
+                Route::get('{iaas_gateways}/port-forwards', 'Gateways\GatewayPortForwardsController@index');
+                Route::post('{iaas_gateways}/port-forwards', 'Gateways\GatewayPortForwardsController@store');
+                Route::delete('{iaas_gateways}/port-forwards/{forward}', 'Gateways\GatewayPortForwardsController@destroy');
+
                 Route::get('/{iaas_gateways}/{subObjects}', 'Gateways\GatewaysController@relatedObjects');
                 Route::get('/{iaas_gateways}', 'Gateways\GatewaysController@show');
 

@@ -1,0 +1,180 @@
+# Gateways — UI Guide
+
+Guidance for whoever builds the control-panel screens for this feature. Written from
+the API surface documented in `changes-and-usage.md` — read that first for exact
+endpoints/fields; this doc is about what to build on top of it and why.
+
+## Where this fits
+
+A gateway isn't a resource users create standalone — it's always attached to a
+Network, and in the common case (auto-provisioning on a firewall-enabled cloud node)
+users won't consciously "create" one at all. Design around that:
+
+- Surface the gateway **on the Network's detail page**, not as a top-level nav item.
+  A network either has a gateway or it doesn't — show a card/section that reflects
+  whichever state applies.
+- Only if a network doesn't have one, show a **"Provision a gateway"** action, which
+  calls `POST /iaas/networks/{ref}/do/provision-gateway`.
+- Once a gateway exists, that section becomes the gateway's own mini-dashboard
+  (status, credentials, firewall rules, port forwards) — it doesn't need its own
+  separate top-level page unless you want one for cross-network gateway management.
+
+## Screen: Network detail → Gateway section
+
+### State 1 — No gateway
+
+```
+┌─────────────────────────────────────────────┐
+│  Firewall Gateway                            │
+│                                               │
+│  This network doesn't have a dedicated       │
+│  firewall yet.                               │
+│                                               │
+│  [ Provision a Firewall ]                    │
+└─────────────────────────────────────────────┘
+```
+
+- Button dispatches `POST /iaas/networks/{ref}/do/provision-gateway`.
+- If more than one `gateway_type` is registered (multi-vendor future), this becomes a
+  small select (default pre-selected from whatever the API/account default is) instead
+  of a single button. For the pfSense-only launch, skip the select entirely.
+- On submit, the action returns an `action_id` immediately (provisioning is async —
+  the VM has to be built and booted). Move straight to State 2.
+
+### State 2 — Provisioning (VM booting, credentials not ready yet)
+
+```
+┌─────────────────────────────────────────────┐
+│  Firewall Gateway            ⏳ Provisioning │
+│                                               │
+│  Your pfSense firewall is booting up. This   │
+│  usually takes a few minutes.                │
+└─────────────────────────────────────────────┘
+```
+
+- Detect this state as: gateway row exists (`iaas_gateway_id` set on the network, or
+  `GET /iaas/gateways/{ref}` returns a row), but `GET /iaas/gateways/{ref}/health`
+  returns `reachable: false`, or `ssh_username`/`api_token` are still null on the
+  gateway record.
+- **Poll `GET /iaas/gateways/{ref}/health` every ~15–20s** while in this state. Stop
+  polling once `api_auth_ok` is `true`, or after a generous timeout (~10 minutes —
+  matches the job's own retry window) at which point show State 4 (see below).
+- Don't block the rest of the network page on this — it's a background card, not a
+  full-page spinner.
+
+### State 3 — Ready
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Firewall Gateway                         ● Healthy  │
+│                                                       │
+│  IP Address     203.0.113.42                         │
+│  Admin Login    admin  [Show password ▾]             │
+│  API Access     Enabled  [Copy API token]             │
+│                                                       │
+│  [ Firewall Rules (3) ]   [ Port Forwards (1) ]       │
+└─────────────────────────────────────────────────────┘
+```
+
+- Health dot: green when `GET .../health` → `reachable: true && api_auth_ok: true`;
+  amber if reachable but `api_auth_ok: false` (rare — bootstrap partially failed);
+  red if unreachable (appliance may be down — still show cached credentials, don't
+  hide them).
+- **Credentials are sensitive** — mask `ssh_password` and `api_token` by default
+  behind a "Show" toggle / click-to-reveal, same treatment you'd give any other secret
+  displayed in the panel (e.g. VM root passwords). Don't log them to browser console
+  or analytics.
+- Only show the credential fields at all to users who can see them via the API — a
+  non-privileged `GET` still returns whatever's on the record (reads aren't stripped,
+  only writes from `POST /iaas/gateways` are role-gated), so this is purely a display
+  choice, not an access-control one enforced by the UI.
+- "Firewall Rules" / "Port Forwards" open the sub-panels below (either inline
+  expansion or a dedicated tab — either works, pick whatever matches this panel's
+  existing pattern for VM sub-resources like disks/NICs).
+
+### State 4 — Provisioning failed / timed out
+
+```
+┌─────────────────────────────────────────────┐
+│  Firewall Gateway                ⚠ Problem   │
+│                                               │
+│  We couldn't finish setting up your          │
+│  firewall. [ Retry ]  [ Contact support ]     │
+└─────────────────────────────────────────────┘
+```
+
+- Trigger: health polling exceeded the timeout, or the gateway's VM ended up in a
+  failed/lost state (check the VM's own status the same way any other VM failure is
+  surfaced elsewhere in the panel).
+- "Retry" re-dispatches `provision-gateway`. Don't auto-retry from the frontend beyond
+  the backend's own retry budget — surface the failure and let the user decide.
+
+## Screen/panel: Firewall Rules
+
+A simple list + create form, scoped to one gateway.
+
+| Column | Source field |
+|---|---|
+| Action | `action` (`pass` / `block` / `reject`) — render as a colored tag (pass=green, block=amber, reject=red) |
+| Protocol | `protocol` |
+| Source → Destination | `source` → `destination` |
+| Port | `port` |
+| Description | `description` |
+| — | delete button, using the row's `ref` |
+
+**Create form fields**, mapped 1:1 to `POST .../firewall-rules`:
+
+- Action — select: Pass / Block / Reject (`pass`/`block`/`reject`)
+- Protocol — text or select (tcp/udp/icmp/any) — the API takes any string, but a
+  constrained select avoids typos
+- Source — text, default `any`
+- Destination — text, default `any`
+- Port — text (optional — leave blank for "any port")
+- Description — text (optional, but strongly encourage it — this is the only
+  human-readable label on a rule, and rules are otherwise opaque tuples)
+
+No "edit" — deleting and recreating is simpler than modeling partial updates against
+a driver that may not support them uniformly. Match this to whatever the design
+system's existing "add tag / add rule"-style list pattern already does.
+
+**Empty state**: "No firewall rules yet. Traffic follows pfSense's default policy
+until you add one." — don't imply a rule is required to have working NAT/DHCP; it
+isn't.
+
+## Screen/panel: Port Forwards
+
+Same shape as Firewall Rules, mapped to `POST .../port-forwards`:
+
+| Column | Source field |
+|---|---|
+| Protocol | `protocol` (tcp/udp) |
+| External Port | `external_port` |
+| Forwards to | `internal_ip` : `internal_port` |
+| Description | `description` |
+| — | delete, using `ref` |
+
+**Create form**: Protocol (tcp/udp select), External Port (integer, 1–65535),
+Internal IP (IP input — validate against the network's own CIDR client-side as a
+nice-to-have, since a forward to an IP outside the LAN silently does nothing useful),
+Internal Port (integer, 1–65535), Description (optional).
+
+## Cross-cutting concerns
+
+- **Don't build a "gateway_type" picker beyond a simple default for this launch.**
+  The multi-vendor design exists so it *can* be added later without backend changes,
+  but until a second driver actually ships, exposing the choice in the UI is dead
+  weight. Revisit when a second `gateway_type` is registered in
+  `config/gateway_drivers.php`.
+- **Deleting a network deletes its gateway.** If your network delete confirmation
+  dialog doesn't already say so, add a line: "This will also remove the network's
+  firewall (VM, rules, and configuration)." — this is a real, hard-to-reverse action
+  now that the cleanup bug is fixed; previously it silently orphaned everything, so
+  there was nothing to warn about before.
+- **Errors from rule/NAT endpoints can be capability errors, not validation errors** —
+  e.g. `"Gateway type X does not support NAT/port-forward management"` if a future
+  non-pfSense driver doesn't implement that capability. Surface these as plain
+  messages (they're already human-readable), don't try to map them to form-field
+  errors.
+- **The health check is a real network call to the appliance**, not a cached DB flag —
+  don't poll it faster than every ~15s per gateway, and don't poll at all for gateways
+  the user isn't currently looking at.

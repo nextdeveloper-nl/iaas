@@ -2,23 +2,16 @@
 
 namespace NextDeveloper\IAAS\Actions\Networks;
 
-use App\Services\IAAS\VirtualMachineServices;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
-use NextDeveloper\Commons\Helpers\MetaHelper;
+use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
-use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Database\Models\NetworkMembers;
 use NextDeveloper\IAAS\Database\Models\Networks;
-use NextDeveloper\IAAS\Database\Models\RepositoryImages;
-use NextDeveloper\IAAS\Services\CloudNodesService;
-use NextDeveloper\IAAS\Services\ComputePoolsService;
 use NextDeveloper\IAAS\Services\GatewaysService;
-use NextDeveloper\IAAS\Services\IpAddressesService;
 use NextDeveloper\IAAS\Services\NetworksService;
 use NextDeveloper\IAAS\Services\Switches\DellS6100;
-use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -65,77 +58,64 @@ class Create extends AbstractAction
 
         Events::fire('created:NextDeveloper\IAAS\Networks', $this->model);
 
+        //  Gateway auto-provisioning is opt-out, not mandatory - a caller (e.g.
+        //  VdcServices::createWizard()) can pass ['create_gateway' => false] to skip it
+        //  entirely for this network, regardless of whether the cloud node is
+        //  firewall-enabled. Defaults to true to preserve the existing automatic behavior
+        //  for every other caller that doesn't pass this param.
+        $createGateway = is_array($this->params) ? ($this->params['create_gateway'] ?? true) : true;
+
+        if (!$createGateway) {
+            CommentsService::createSystemComment(
+                'Gateway provisioning was skipped for this network because create_gateway was set to false.',
+                $this->model
+            );
+
+            $this->setProgress(100, 'Network initiated');
+            return;
+        }
+
         $cloudNode = NetworksService::getCloudNode($this->model);
 
         if(!in_array($cloudNode->slug, config('leo.iaas.firewall_enabled_cloud_nodes'))) {
+            CommentsService::createSystemComment(
+                'A gateway was not provisioned automatically for this network: cloud node "' .
+                $cloudNode->slug . '" is not firewall-enabled.',
+                $this->model
+            );
+
             $this->setProgress(100, 'Network initiated');
             return;
         }
 
         $this->setProgress(50, 'Initiating firewall');
 
-        $repositories = CloudNodesService::getRepositories($cloudNode);
+        //  Provisioning failure (e.g. no matching firewall image) should not fail the
+        //  whole network-creation action - the network itself was created successfully
+        //  above. Caught here, logged, and left as a visible comment on the network so
+        //  the customer/support can see exactly why there's no gateway, instead of the
+        //  action either silently completing or dying with an uncaught exception that
+        //  a queue worker would just retry from the top (redoing switch config, events,
+        //  etc.) until it lands in failed_jobs with nothing user-visible to show for it.
+        try {
+            $gateway = GatewaysService::provisionForNetwork($this->model);
 
-        $repositoryImage = RepositoryImages::where([
-            'os'        =>  config('leo.iaas.firewall_os'),
-            'distro'    =>  config('leo.iaas.firewall_distro'),
-            'version'   =>  config('leo.iaas.firewall_version'),
-        ])
-            ->whereIn('iaas_repository_id', $repositories->pluck('id'))
-            ->first();
+            if ($gateway) {
+                $this->model->update([
+                    'iaas_gateway_id' => $gateway->id,
+                ]);
+            }
 
-        $defaultComputePool = ComputePoolsService::getDefaultPool($cloudNode);
+            $this->setProgress(100, 'Network initiated');
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' | Gateway provisioning failed for network ' . $this->model->uuid . ': ' . $e->getMessage());
 
-        $publicNetwork = NetworksService::getPublicNetwork($cloudNode);
+            CommentsService::createSystemComment(
+                'We could not provision a gateway for this network: ' . $e->getMessage(),
+                $this->model
+            );
 
-        $firewall = VirtualMachineServices::createWizard([
-            'iaas_repository_image_id' =>  $repositoryImage->uuid,
-            'iaas_compute_pool_id'  =>  $defaultComputePool->uuid,
-            'iaas_network_id' => $publicNetwork->uuid,
-            'name' => $this->model->name . ' VDC Firewall',
-            'ram' => '2gb',
-            'cpu' => 2,
-            'disk' => 20,
-            'backup_interval'     =>  'none',
-            'backup_time'       =>  'in:12+4',
-            'monitoring_enabled'    =>  false,
-            'auto_deploy'       =>  false,
-            'boot_after_deploy' =>  true,
-        ]);
-
-        $vif = VirtualNetworkCardsService::create([
-            'name'  =>  'eth1',
-            'iaas_virtual_machine_id'   =>  $firewall->id,
-            'iaas_network_id'   =>  $this->model->id
-        ]);
-
-        if($vif) {
-            MetaHelper::set($vif, 'auto_add_ip_v4', false);
-
-            $ip = IpAddressesService::create([
-                'iaas_network_id'   =>  $this->model->id,
-                'iaas_virtual_network_card_id'  =>  $vif->id,
-                'ip_addr'   =>  '10.128.0.1/32',
-            ]);
+            $this->setProgress(100, 'Network initiated, but gateway provisioning failed: ' . $e->getMessage());
         }
-
-        $gateway = GatewaysService::create([
-            'name'  =>  $this->model->name . ' Gateway',
-            'iaas_virtual_machine_id'   =>  $firewall->id,
-            'gateway_data'  =>  [],
-            'is_public'  =>  false
-        ]);
-
-        $this->model->update([
-            'iaas_gateway_id' => $gateway->id,
-        ]);
-
-        /**
-         * 1) Here we need to setup the disk
-         * 2) We need to setup the network
-         */
-        dispatch(new Commit($firewall));
-
-        $this->setProgress(100, 'Network initiated');
     }
 }
