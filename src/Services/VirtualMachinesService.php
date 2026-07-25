@@ -386,9 +386,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             $decrypted = decrypt($vm->password);
 
             if ($decrypted === null) {
-                Log::error(__METHOD__ . ' | decrypt() returned null. The password is not ' .
-                    'encrypted. That is why I am returning the raw password');
-
                 return $vm->password;
             }
 
