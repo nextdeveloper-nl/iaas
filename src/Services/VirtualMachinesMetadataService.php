@@ -61,7 +61,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
 
         foreach ($vdis as $vdi) {
             $diskConfiguration[] = [
-                'disk_type'     => $vdi->disk_type,
+                'disk_type'     => $vdi->is_cdrom ? 'cdrom' : 'user',
                 'device_number' => $vdi->device_number,
                 'total_disk'    => $vdi->size,
             ];
@@ -70,10 +70,13 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         $vifConfiguration = [];
 
         foreach ($vifs as $vif) {
+            $network = self::buildNetworkData($vif->iaas_network_id);
+
             $data = [
                 'device_number' => $vif->device_number,
                 'mac_addr'      => $vif->mac_addr,
-                'network'       => self::buildNetworkData($vif->iaas_network_id),
+                'network_name'  => $network['name'] ?? null,
+                'network'       => $network,
             ];
 
             if($vif->ipList) {
