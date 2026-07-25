@@ -79,17 +79,19 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                 'network'       => $network,
             ];
 
-            if($vif->ipAddresses) {
-                $data['ipList'] = [
-                    'data' => $vif->ipAddresses->map(function ($ip) {
-                        return [
-                            'id'          => $ip->id,
-                            'ip_addr'     => $ip->ip_addr,
-                            'is_reserved' => $ip->is_reserved,
-                        ];
-                    }),
-                ];
-            }
+            $ips = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_network_card_id', $vif->id)
+                ->get();
+
+            $data['ip_list'] = [
+                'data' => $ips->map(function ($ip) {
+                    return [
+                        'id'          => $ip->id,
+                        'ip_addr'     => $ip->ip_addr,
+                        'is_reserved' => $ip->is_reserved,
+                    ];
+                }),
+            ];
 
             $vifConfiguration[] = $data;
         }
