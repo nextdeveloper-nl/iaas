@@ -21,6 +21,7 @@ use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAAS\Services\RepositoriesService;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\ToolkitService;
+use NextDeveloper\IAAS\Services\VirtualMachinesMetadataService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -716,10 +717,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
             //  Copying the plusclouds agent to the config-iso folder
             $command .= 'cp /home/plusclouds/plusclouds.linux config-iso/' . $vm->uuid . '/plusclouds.service ' . PHP_EOL;
-            $agentConfiguration = ToolkitService::read('agents/vm-service/agent.yaml');
-
-            $agentConfiguration = str_replace('{agent_uuid}', $vm->uuid, $agentConfiguration);
-            $agentConfiguration = str_replace('{api_key}', $vm->agent_api_key, $agentConfiguration);
+            $agentConfiguration = VirtualMachinesMetadataService::getAgentYaml($vm);
 
             $command .= $uploadConfig(
                 filename: 'agent.yaml',

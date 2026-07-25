@@ -146,7 +146,85 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'ssh_keys' => self::collectSshKeys($vm),
             'env_vars' => self::collectEnvVars($vm),
             'tokens'   => $vm->tokens ?? [],
+            'agent'    => self::buildAgentConfiguration($vm),
         ];
+    }
+
+    /**
+     * Single source of truth for the PlusClouds agent's own config (agent.yaml on the
+     * config ISO). NATS endpoints are pulled from the same config the platform's own
+     * NatsService uses, so the agent can never drift from what the platform connects to.
+     */
+    private static function buildAgentConfiguration(VirtualMachines $vm) : array
+    {
+        return [
+            'nats' => [
+                'connection_type' => 'websocket',
+                'url'             => 'nats://' . config('events.nats.server_host') . ':' . config('events.nats.server_port'),
+                'websocket_url'   => 'wss://' . config('events.nats.host') . ':' . config('events.nats.port'),
+                'agent_uuid'      => $vm->uuid,
+                'api_key'         => $vm->agent_api_key,
+                'max_reconnects'  => -1,
+                'reconnect_wait'  => '5s',
+            ],
+            'agent' => [
+                'heartbeat_interval' => '30s',
+                'telemetry_interval' => '30s',
+                'allowed_operations' => [
+                    'agent.allowed_operations',
+                    'services.list',
+                    'services.get',
+                    'services.start',
+                    'services.stop',
+                    'services.restart',
+                    'services.reload',
+                    'services.enable',
+                    'services.disable',
+                    'system.info',
+                    'system.metrics',
+                    'system.cpu',
+                    'system.memory',
+                    'system.disk',
+                    'system.network',
+                    'system.update',
+                    'telemetry.set_interval',
+                ],
+                'allowed_commands' => [
+                    '/usr/bin/journalctl',
+                    '/usr/bin/df',
+                    '/usr/bin/free',
+                ],
+            ],
+            'iso' => [
+                'mount_path' => '/media/plusclouds-config',
+            ],
+            'log' => [
+                'level'  => 'debug',
+                'format' => 'console',
+                'file'   => '/var/log/plusclouds/agent.log',
+            ],
+            'autoheal' => [
+                'enabled'       => true,
+                'restart_delay' => '10s',
+            ],
+        ];
+    }
+
+    public static function getAgentYaml(VirtualMachines $vm) : string
+    {
+        $yaml = yaml_emit(self::buildAgentConfiguration($vm), YAML_UTF8_ENCODING, YAML_LN_BREAK);
+
+        $yaml = preg_replace('/^---\s*\n/', '', $yaml);
+        $yaml = preg_replace('/\n\.\.\.\s*$/', '', $yaml);
+
+        $header = "# PlusClouds Agent v2 Configuration\n" .
+            "#\n" .
+            "# This file is the primary source of identity for the agent. In production it\n" .
+            "# is written by the platform during VM provisioning (via the ISO config drive)\n" .
+            "# and the ISO is unmounted before the agent starts. All values here can also be\n" .
+            "# overridden by environment variables (prefix: PLUSCLOUDS_AGENT_).\n\n";
+
+        return $header . $yaml;
     }
 
     private static function buildNetworkData(?int $networkId) : array
