@@ -13,6 +13,7 @@ class FirewallRuleCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
+            'interface' => 'nullable|string',
             'action' => 'required|string|in:pass,block,reject',
             'protocol' => 'required|string',
             'source' => 'nullable|string',

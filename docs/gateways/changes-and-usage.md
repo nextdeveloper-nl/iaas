@@ -91,9 +91,16 @@ gateway is provisioned. It polls until the appliance is reachable, then runs
   `Gateways` row, if this isn't the first attempt),
 - rotates the admin password to a generated one via pfSense's `pfSsh.php playback
   changePassword` shell command,
-- installs/enables pfSense's REST API package,
-- writes `ssh_username`, `ssh_password`, `api_token`, `api_url`, and `ip_addr` back
-  onto the `Gateways` row via `GatewaysService::update()`.
+- writes `ssh_username`, `ssh_password`, and `ip_addr` back onto the `Gateways` row via
+  `GatewaysService::update()`,
+- then confirms readiness the same way `healthCheck()` does: a `system.info` command
+  sent over NATS to the gateway VM's `pfsense.agent`.
+
+Firewall/NAT/health no longer go through a REST API on the box - `pfsense.agent`
+connects to NATS the same way any other VM agent does (via the config-drive, not
+anything `bootstrap()` sets up), so there's no API package to install or token to
+generate anymore. `api_token`/`api_url` on the `Gateways` row are no longer populated by
+this driver.
 
 If the VM isn't booted yet, `bootstrap()` reports `reachable: false` and the job
 retries with backoff (10 attempts, backing off from 60s up to 300s) rather than
@@ -252,11 +259,12 @@ removes the `Gateways` row. Deleting the network itself
 
 ## Known gaps / things to confirm before relying on this in production
 
-- **pfSense REST API package** — `PfSenseGatewayDriver` assumes the community
-  `jaredhendrickson13/pfsense-api` v2-style endpoints
-  (`/api/v2/firewall/rule`, `/api/v2/firewall/nat/port_forward`, bearer token auth).
-  Confirm this matches whatever's actually installed via the bootstrap script before
-  trusting the rule/NAT endpoints in production.
+- **`pfsense.agent` NATS operations** — `PfSenseGatewayDriver` now assumes the gateway
+  VM's `pfsense.agent` supports `pfsense.firewall.{list,create,delete}` and
+  `pfsense.nat.{list,create,delete}` (see `pfsense.agent/docs/firewall-api.md`), and
+  that those six names are in the config-drive's `allowed_operations` (added in
+  `VirtualMachinesMetadataService::buildAgentConfiguration()`). No REST API package or
+  bearer token is used anymore.
 - **`AvailableActions` row** for `provision-gateway` needs to be added externally (see
   above) — not something a code change can deliver.
 - **`gateway_data` schema** is currently an open JSON shape (`{rules: [...], nat:

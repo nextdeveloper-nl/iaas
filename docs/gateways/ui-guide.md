@@ -54,11 +54,14 @@ consciously "create" one at all. Design around that:
 
 - Detect this state as: gateway row exists (`iaas_gateway_id` set on the network, or
   `GET /iaas/gateways/{ref}` returns a row), but `GET /iaas/gateways/{ref}/health`
-  returns `reachable: false`, or `ssh_username`/`api_token` are still null on the
-  gateway record.
+  returns `reachable: false`, or `ssh_username` is still null on the gateway record.
 - **Poll `GET /iaas/gateways/{ref}/health` every ~15–20s** while in this state. Stop
   polling once `api_auth_ok` is `true`, or after a generous timeout (~10 minutes —
   matches the job's own retry window) at which point show State 4 (see below).
+- `api_auth_ok` no longer means "REST API auth succeeded" — it means the gateway VM's
+  `pfsense.agent` responded to a `system.info` command over NATS. In practice this
+  resolves faster than the old REST-bootstrap flow did, since there's no package
+  install step on the box anymore, just the VM booting and the agent connecting.
 - Don't block the rest of the network page on this — it's a background card, not a
   full-page spinner.
 
@@ -70,20 +73,24 @@ consciously "create" one at all. Design around that:
 │                                                       │
 │  IP Address     203.0.113.42                         │
 │  Admin Login    admin  [Show password ▾]             │
-│  API Access     Enabled  [Copy API token]             │
 │                                                       │
 │  [ Firewall Rules (3) ]   [ Port Forwards (1) ]       │
 └─────────────────────────────────────────────────────┘
 ```
 
 - Health dot: green when `GET .../health` → `reachable: true && api_auth_ok: true`;
-  amber if reachable but `api_auth_ok: false` (rare — bootstrap partially failed);
-  red if unreachable (appliance may be down — still show cached credentials, don't
-  hide them).
-- **Credentials are sensitive** — mask `ssh_password` and `api_token` by default
-  behind a "Show" toggle / click-to-reveal, same treatment you'd give any other secret
-  displayed in the panel (e.g. VM root passwords). Don't log them to browser console
-  or analytics.
+  amber if reachable but `api_auth_ok: false` (rare — the agent connected but the
+  `system.info` command itself came back `failed`); red if unreachable (appliance may
+  be down, or the VM agent hasn't connected yet — still show cached credentials,
+  don't hide them).
+- **There's no "API Access" row anymore.** Firewall/NAT/health management goes over
+  the same NATS connection every VM agent uses — there's no separate REST API on the
+  box, no token to display or copy. Only show SSH access (`ssh_username`/`ssh_password`),
+  which is real console/shell access to the appliance, not something needed for the
+  rule/NAT panels below to work.
+- **Credentials are sensitive** — mask `ssh_password` by default behind a "Show"
+  toggle / click-to-reveal, same treatment you'd give any other secret displayed in
+  the panel (e.g. VM root passwords). Don't log it to browser console or analytics.
 - Only show the credential fields at all to users who can see them via the API — a
   non-privileged `GET` still returns whatever's on the record (reads aren't stripped,
   only writes from `POST /iaas/gateways` are role-gated), so this is purely a display
@@ -115,6 +122,7 @@ A simple list + create form, scoped to one gateway.
 
 | Column | Source field |
 |---|---|
+| Interface | `interface` (e.g. `wan`/`lan`/`opt1`) — pfSense's logical interface name, not the network's own name |
 | Action | `action` (`pass` / `block` / `reject`) — render as a colored tag (pass=green, block=amber, reject=red) |
 | Protocol | `protocol` |
 | Source → Destination | `source` → `destination` |
@@ -124,12 +132,16 @@ A simple list + create form, scoped to one gateway.
 
 **Create form fields**, mapped 1:1 to `POST .../firewall-rules`:
 
+- Interface — select (`wan`/`lan`/`opt1`/...), default `wan` if omitted. Populate the
+  options from the gateway's own interfaces if you have that list available;
+  otherwise a plain text field defaulting to `wan` is fine for the pfSense-only launch.
 - Action — select: Pass / Block / Reject (`pass`/`block`/`reject`)
 - Protocol — text or select (tcp/udp/icmp/any) — the API takes any string, but a
   constrained select avoids typos
 - Source — text, default `any`
 - Destination — text, default `any`
-- Port — text (optional — leave blank for "any port")
+- Port — text (optional — leave blank for "any port"; a single port like `443` or a
+  `low-high` range like `8000-9000` both work, it's passed through as-is)
 - Description — text (optional, but strongly encourage it — this is the only
   human-readable label on a rule, and rules are otherwise opaque tuples)
 
@@ -147,19 +159,37 @@ Same shape as Firewall Rules, mapped to `POST .../port-forwards`:
 
 | Column | Source field |
 |---|---|
+| Interface | `interface` — the interface traffic arrives on, usually `wan` |
 | Protocol | `protocol` (tcp/udp) |
 | External Port | `external_port` |
 | Forwards to | `internal_ip` : `internal_port` |
 | Description | `description` |
 | — | delete, using `ref` |
 
-**Create form**: Protocol (tcp/udp select), External Port (integer, 1–65535),
-Internal IP (IP input — validate against the network's own CIDR client-side as a
-nice-to-have, since a forward to an IP outside the LAN silently does nothing useful),
-Internal Port (integer, 1–65535), Description (optional).
+**Create form**: Interface (select/text, default `wan`), Protocol (tcp/udp select),
+External Port (integer, 1–65535), Internal IP (IP input — validate against the
+network's own CIDR client-side as a nice-to-have, since a forward to an IP outside the
+LAN silently does nothing useful), Internal Port (integer, 1–65535), Description
+(optional).
+
+**Port ranges aren't supported here yet** — unlike the firewall rule's `port` field,
+`external_port`/`internal_port` are plain integers end-to-end (single port only). The
+underlying agent operation accepts `low-high` ranges, but this pass doesn't expose
+that; keep the inputs as single-port number fields, not range pickers.
 
 ## Cross-cutting concerns
 
+- **Rule/NAT create-or-delete calls can now time out**, distinct from a validation or
+  capability error — the request reaches the gateway VM's agent over NATS and the
+  agent didn't reply in time (box unreachable, agent not running, etc.). Show this as
+  "The gateway didn't respond in time — check its health status and try again," not
+  as a form-field error, and don't auto-retry from the frontend; let the user retry
+  manually once the health card shows reachable again.
+- **A create/delete can also fail for a pfSense-side reason** (bad params the API
+  itself didn't catch, an unknown `tracker` on delete, etc.) — these come back as a
+  plain exception message from the backend (e.g. `pfSense agent operation
+  'pfsense.firewall.create' failed: ...`); show it as-is, same treatment as the
+  capability-error case below.
 - **Don't build a "gateway_type" picker beyond a simple default for this launch.**
   The multi-vendor design exists so it *can* be added later without backend changes,
   but until a second driver actually ships, exposing the choice in the UI is dead

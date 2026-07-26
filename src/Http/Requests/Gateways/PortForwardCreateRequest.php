@@ -13,6 +13,7 @@ class PortForwardCreateRequest extends AbstractFormRequest
     public function rules()
     {
         return [
+            'interface' => 'nullable|string',
             'protocol' => 'required|string|in:tcp,udp',
             'external_port' => 'required|integer|min:1|max:65535',
             'internal_ip' => 'required|ip',

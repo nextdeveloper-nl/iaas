@@ -186,6 +186,12 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                     'system.disk',
                     'system.network',
                     'system.update',
+                    'pfsense.firewall.list',
+                    'pfsense.firewall.create',
+                    'pfsense.firewall.delete',
+                    'pfsense.nat.list',
+                    'pfsense.nat.create',
+                    'pfsense.nat.delete',
                     'telemetry.set_interval',
                 ],
                 'allowed_commands' => [

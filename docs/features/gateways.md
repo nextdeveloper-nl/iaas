@@ -19,7 +19,7 @@ Provisioning logic lives in `GatewaysService::provisionForNetwork()`, shared by 
 - **Implicit** — `Actions\Networks\Create` provisions a gateway automatically for every new network, unless the request explicitly passed `create_gateway: false`.
 - **Explicit** — `Actions\Gateways\Create`, dispatched via `POST /iaas/networks/{ref}/do/provision-gateway`, for a network that needs a gateway added after the fact.
 
-Credentials can't be known synchronously at provisioning time (the VM hasn't booted yet), so `Jobs\Gateways\CollectGatewayCredentials` is dispatched with a delay, polls until the appliance is reachable, and runs the driver's `bootstrap()` to populate `ssh_username`/`ssh_password`/`api_token`/`api_url` on the `Gateways` row.
+Credentials can't be known synchronously at provisioning time (the VM hasn't booted yet), so `Jobs\Gateways\CollectGatewayCredentials` is dispatched with a delay, polls until the appliance is reachable, and runs the driver's `bootstrap()` to populate `ssh_username`/`ssh_password`/`ip_addr` on the `Gateways` row, then confirms readiness over NATS (firewall/NAT/health calls no longer go through a REST API on the box).
 
 ## API Examples
 
@@ -71,8 +71,8 @@ GET /iaas/gateways/{ref}/health
 A few pieces of this feature depend on data or infrastructure this codebase can't manage directly (no migrations, no direct SQL, per project convention):
 
 - **`provision-gateway` action row** — the explicit provisioning endpoint dispatches through the existing generic `AvailableActions` mechanism (same as every other `do/{action}` route). A row needs to exist with `name = provision-gateway`, `input = NextDeveloper\IAAS\Networks`, `class = NextDeveloper\IAAS\Actions\Gateways\Create`.
-- **pfSense image `post_boot_script`** — for unattended bootstrap to work, the pfSense CE 2.7.2 `RepositoryImages` catalog row's `post_boot_script` should install/enable pfSense's REST API package before `PfSenseGatewayDriver::bootstrap()` runs. `bootstrap()` also does this itself over SSH as a fallback (rotating the factory admin password and installing the API package via `pfSsh.php playback` and `pkg-static install`), so a pre-baked script isn't strictly required, just faster/more reliable.
-- **pfSense REST API package/version** — `PfSenseGatewayDriver` assumes the community `jaredhendrickson13/pfsense-api` v2-style endpoint conventions (`/api/v2/firewall/rule`, `/api/v2/firewall/nat/port_forward`, bearer token auth). Confirm this matches whatever package actually ships on the registered image before relying on the rule/NAT endpoints in production.
+- **`pfsense.agent` on the image** — the pfSense CE `RepositoryImages` catalog entry must ship `pfsense.agent` so it connects to NATS via the config-drive on boot, the same way the Linux/Windows agent does. `bootstrap()` only rotates the factory admin password over SSH now; it doesn't install or depend on anything else.
+- **`pfsense.agent` NATS operations** — `PfSenseGatewayDriver` assumes the agent supports `pfsense.firewall.{list,create,delete}` and `pfsense.nat.{list,create,delete}` (see `pfsense.agent/docs/firewall-api.md`), and that those six names are in the config-drive's `allowed_operations`.
 - **`gateway_data` schema** — currently an open JSON shape (`{rules: [...], nat: [...]}`, consumed by `applyConfiguration()`/`Actions\Gateways\Commit`). Worth pinning down a versioned shape before building UI on top of it.
 
 ## Related Features
