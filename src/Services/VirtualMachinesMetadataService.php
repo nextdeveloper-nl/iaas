@@ -261,12 +261,6 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             $gatewayIp = $gateway?->ip_addr;
         }
 
-        //  No explicit gateway - assume the network's first usable address
-        //  (network address + 1), matching how these networks are actually provisioned.
-        if (!$gatewayIp && $networkAddr) {
-            $gatewayIp = long2ip(ip2long($networkAddr) + 1);
-        }
-
         $dhcpServerIp = null;
 
         if ($network->iaas_dhcp_server_id) {
