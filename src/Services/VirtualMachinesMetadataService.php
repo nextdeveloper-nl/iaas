@@ -240,7 +240,6 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             return [];
         }
 
-        $gatewayIp = null;
         $subnet = null;
         $netmask = null;
         $networkAddr = null;
@@ -252,7 +251,9 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             $subnet = (string) $prefix;
         }
 
-        if ($network->iaas_gateway_id) {
+        $gatewayIp = $network->gateway_ip_addr;
+
+        if (!$gatewayIp && $network->iaas_gateway_id) {
             $gateway = Gateways::withoutGlobalScope(AuthorizationScope::class)
                 ->where('id', $network->iaas_gateway_id)
                 ->first();
@@ -260,7 +261,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             $gatewayIp = $gateway?->ip_addr;
         }
 
-        //  No explicit gateway record - assume the network's first usable address
+        //  No explicit gateway - assume the network's first usable address
         //  (network address + 1), matching how these networks are actually provisioned.
         if (!$gatewayIp && $networkAddr) {
             $gatewayIp = long2ip(ip2long($networkAddr) + 1);

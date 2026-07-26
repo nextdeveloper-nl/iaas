@@ -48,6 +48,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property \Carbon\Carbon $deleted_at
  * @property $cidr
  * @property integer $iaas_datacenter_id
+ * @property string $gateway_ip_addr
  */
 class Networks extends Model
 {
@@ -90,6 +91,7 @@ class Networks extends Model
             'iam_user_id',
             'cidr',
             'iaas_datacenter_id',
+            'gateway_ip_addr',
     ];
 
     /**
@@ -133,6 +135,7 @@ class Networks extends Model
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
     'iaas_datacenter_id' => 'integer',
+    'gateway_ip_addr' => 'string',
     ];
 
     /**
