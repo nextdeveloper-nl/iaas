@@ -156,6 +156,43 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
      */
     private static function buildAgentConfiguration(VirtualMachines $vm) : array
     {
+        $allowedOperations = [
+            'agent.allowed_operations',
+            'services.list',
+            'services.get',
+            'services.start',
+            'services.stop',
+            'services.restart',
+            'services.reload',
+            'services.enable',
+            'services.disable',
+            'system.info',
+            'system.metrics',
+            'system.cpu',
+            'system.memory',
+            'system.disk',
+            'system.network',
+            'system.update',
+            'telemetry.set_interval',
+            'disk.resize',
+            'cron.list',
+            'agent.version',
+        ];
+
+        //  pfsense.* operations are only meaningful for pfSense CE gateway VMs - other
+        //  VMs' agents don't have a pfSense install to operate on.
+        if (self::isPfSenseCe($vm)) {
+            $allowedOperations = array_merge($allowedOperations, [
+                'pfsense.set_password',
+                'pfsense.firewall.list',
+                'pfsense.firewall.create',
+                'pfsense.firewall.delete',
+                'pfsense.nat.list',
+                'pfsense.nat.create',
+                'pfsense.nat.delete',
+            ]);
+        }
+
         return [
             'nats' => [
                 'connection_type' => 'websocket',
@@ -169,31 +206,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'agent' => [
                 'heartbeat_interval' => '30s',
                 'telemetry_interval' => '30s',
-                'allowed_operations' => [
-                    'agent.allowed_operations',
-                    'services.list',
-                    'services.get',
-                    'services.start',
-                    'services.stop',
-                    'services.restart',
-                    'services.reload',
-                    'services.enable',
-                    'services.disable',
-                    'system.info',
-                    'system.metrics',
-                    'system.cpu',
-                    'system.memory',
-                    'system.disk',
-                    'system.network',
-                    'system.update',
-                    'pfsense.firewall.list',
-                    'pfsense.firewall.create',
-                    'pfsense.firewall.delete',
-                    'pfsense.nat.list',
-                    'pfsense.nat.create',
-                    'pfsense.nat.delete',
-                    'telemetry.set_interval',
-                ],
+                'allowed_operations' => $allowedOperations,
                 'allowed_commands' => [
                     '/usr/bin/journalctl',
                     '/usr/bin/df',
@@ -213,6 +226,24 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
                 'restart_delay' => '10s',
             ],
         ];
+    }
+
+    /**
+     * Matches the VM's RepositoryImages.distro against config('leo.iaas.firewalls.pfsense.distro')
+     * (default 'pfsense ce'), the same os/distro/version triple the gateway provisioning
+     * flow uses to pick the pfSense CE image (see config/leo.php, docs/gateways/testing-guide.md).
+     */
+    private static function isPfSenseCe(VirtualMachines $vm) : bool
+    {
+        $repositoryImage = VirtualMachinesService::getRepositoryImage($vm);
+
+        if (!$repositoryImage || !$repositoryImage->distro) {
+            return false;
+        }
+
+        $pfSenseDistro = config('leo.iaas.firewalls.pfsense.distro', 'pfsense ce');
+
+        return Str::lower(trim($repositoryImage->distro)) === Str::lower(trim($pfSenseDistro));
     }
 
     public static function getAgentYaml(VirtualMachines $vm) : string
