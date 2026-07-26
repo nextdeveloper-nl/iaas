@@ -176,7 +176,7 @@ class Gateways extends Model
 
     public function virtualMachines() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class);
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\VirtualMachines::class, 'iaas_virtual_machine_id');
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
