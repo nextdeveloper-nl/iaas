@@ -2,7 +2,6 @@
 
 namespace NextDeveloper\IAAS\Services;
 
-use NextDeveloper\Events\Services\AgentCommandsService;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
 /**
@@ -24,15 +23,7 @@ class VmAgentCommandService
         array           $params = [],
         int             $timeoutS = 300
     ): string {
-        $available = ($vm->available_operations ?? [])['agent'] ?? [];
-
-        if (!in_array($operation, $available, true)) {
-            throw new \InvalidArgumentException(
-                "Operation '{$operation}' is not available for this VM agent. Available: " . implode(', ', $available)
-            );
-        }
-
-        return AgentCommandsService::dispatch('vm', $vm->uuid, $operation, $params, $timeoutS);
+        return $vm->sendAgentCommand($operation, $params, $timeoutS);
     }
 
     public static function getAvailableOperations(VirtualMachines $vm): array

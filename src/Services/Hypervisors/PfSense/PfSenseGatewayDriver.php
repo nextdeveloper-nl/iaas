@@ -91,7 +91,7 @@ class PfSenseGatewayDriver implements GatewayDriverInterface, FirewallRuleCapabl
         }
 
         try {
-            $result = app(AgentCommandService::class)->send($vm->uuid, 'system.info', [], 10);
+            $result = app(AgentCommandService::class)->send('vm', $vm->uuid, 'system.info', [], 10);
         } catch (AgentTimeoutException $e) {
             return new GatewayHealthStatus(false, false, 'Agent did not respond: ' . $e->getMessage());
         }
@@ -209,7 +209,7 @@ class PfSenseGatewayDriver implements GatewayDriverInterface, FirewallRuleCapabl
             throw new \Exception("Gateway {$gateway->uuid} has no underlying VM to reach its agent.");
         }
 
-        $result  = app(AgentCommandService::class)->send($vm->uuid, $operation, $params, $timeoutS);
+        $result  = app(AgentCommandService::class)->send('vm', $vm->uuid, $operation, $params, $timeoutS);
         $payload = $result['payload'] ?? [];
         $status  = $payload['status'] ?? 'failed';
 

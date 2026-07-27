@@ -316,6 +316,25 @@ class VirtualMachines extends Model
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    use \NextDeveloper\Events\Database\Traits\HasAgentCommands;
+
+    public function getAgentType(): string
+    {
+        return 'vm';
+    }
+
+    protected function assertAgentOperationAllowed(string $operation): void
+    {
+        $available = ($this->available_operations ?? [])['agent'] ?? [];
+
+        if (!in_array($operation, $available, true)) {
+            throw new \InvalidArgumentException(
+                "Operation '{$operation}' is not available for this VM agent. Available: " . implode(', ', $available)
+            );
+        }
+    }
+
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(

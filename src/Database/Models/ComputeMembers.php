@@ -297,6 +297,23 @@ class ComputeMembers extends Model
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
+    use \NextDeveloper\Events\Database\Traits\HasAgentCommands;
+
+    public function getAgentType(): string
+    {
+        return 'compute';
+    }
+
+    protected function assertAgentOperationAllowed(string $operation): void
+    {
+        $available = ($this->available_operations ?? [])['agent'] ?? [];
+
+        if (!in_array($operation, $available, true)) {
+            throw new \InvalidArgumentException(
+                "Operation '{$operation}' is not available for this compute member agent. Available: " . implode(', ', $available)
+            );
+        }
+    }
 
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
     {

@@ -83,6 +83,7 @@ class VirtualMachineAgentCommandsController extends AbstractController
 
         try {
             $result = app(AgentCommandService::class)->send(
+                agentType:      'vm',
                 agentUuid:      $vm->uuid,
                 operation:      $operation,
                 params:         $params,

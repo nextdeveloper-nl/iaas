@@ -2,7 +2,6 @@
 
 namespace NextDeveloper\IAAS\Services;
 
-use NextDeveloper\Events\Services\AgentCommandsService;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 
 /**
@@ -10,7 +9,7 @@ use NextDeveloper\IAAS\Database\Models\ComputeMembers;
  *
  * Valid operations are read from $computeMember->available_operations - no
  * operations are hardcoded here. The agent is responsible for keeping
- * available_operations current (see ListenComputeAgentEvents).
+ * available_operations current (see HandleComputeAgentEventJob).
  */
 class ComputeMemberAgentCommandService
 {
@@ -26,15 +25,7 @@ class ComputeMemberAgentCommandService
         array          $params = [],
         int            $timeoutS = 300
     ): string {
-        $available = ($computeMember->available_operations ?? [])['agent'] ?? [];
-
-        if (!in_array($operation, $available, true)) {
-            throw new \InvalidArgumentException(
-                "Operation '{$operation}' is not available for this compute member agent. Available: " . implode(', ', $available)
-            );
-        }
-
-        return AgentCommandsService::dispatch('compute', $computeMember->uuid, $operation, $params, $timeoutS);
+        return $computeMember->sendAgentCommand($operation, $params, $timeoutS);
     }
 
     public static function getAvailableOperations(ComputeMembers $computeMember): array
