@@ -6,6 +6,7 @@ use App\Helpers\Http\ResponseHelper;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
@@ -57,6 +58,16 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    //  How long after a VM transitions to 'halted' we still treat an agent ping as a stale,
+    //  in-flight last gasp rather than proof the shutdown didn't take. See haltedAtCacheKey().
+    public const HALT_PING_GRACE_SECONDS = 120;
+
+    public static function haltedAtCacheKey(string $uuid): string
+    {
+        return "iaas:vm:halted-at:{$uuid}";
+    }
+
     public static function get(?VirtualMachinesQueryFilter $filter = null, array $params = []): Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         // If filtering by a specific IAM account, verify that account has an iaas_accounts
@@ -433,10 +444,22 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
         //  A heartbeat from the agent living inside the VM is direct proof the OS is up and networked,
         //  which can only happen once the VM is actually running - draft/deploying have no agent yet,
-        //  and updating happens while halted - so this also resolves stale 'checking-health' or 'lost'
-        //  states without needing to special-case any other status value.
+        //  so this also resolves stale 'checking-health' or 'lost' states without needing to
+        //  special-case any other status value.
+        //
+        //  Except 'halted': the agent's last ping is sometimes still in flight when we record the
+        //  shutdown, which used to flip the VM straight back to 'running' right after the user
+        //  closed it. VirtualMachinesObserver marks a short grace window (HALT_PING_GRACE_SECONDS)
+        //  whenever status transitions into 'halted'; pings inside that window are treated as that
+        //  stale last gasp and ignored. A ping arriving after the window means the shutdown didn't
+        //  actually take and the VM is genuinely still running, so we trust it and self-correct.
         if (array_key_exists('agent_latest_ping', $data)) {
-            $data['status'] = 'running';
+            $withinHaltGrace = $vm->status === 'halted'
+                && Cache::has(self::haltedAtCacheKey($vm->uuid));
+
+            if (!$withinHaltGrace) {
+                $data['status'] = 'running';
+            }
         }
 
         //  Sometimes ram can be null and we want to change something else with the virtual machinne
