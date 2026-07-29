@@ -4,10 +4,12 @@ namespace NextDeveloper\IAAS\Actions\Gateways;
 
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
+use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAAS\Database\Models\Gateways;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Services\GatewaysService;
 use NextDeveloper\IAAS\Services\Hypervisors\GatewayDriverManager;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * Tears down a gateway: best-effort driver-side cleanup, unlinks any Network pointing at
@@ -45,7 +47,19 @@ class Delete extends AbstractAction
             }
         }
 
-        Networks::where('iaas_gateway_id', $this->model->id)->update(['iaas_gateway_id' => null]);
+        //  Unscoped: this is an internal system cleanup write, not a user-facing query.
+        //  Networks carries AuthorizationScope + LimitScope as global scopes: if this
+        //  action runs where AuthorizationScope can't resolve a role for the current
+        //  context (e.g. a queue worker without a re-established user/account), it falls
+        //  back to AnonymousRole, which restricts the query to is_public=true - VDC
+        //  networks are always created is_public=false, so the plain (scoped) version of
+        //  this call could silently match zero rows, leaving iaas_gateway_id pointed at
+        //  the gateway we just tore down and permanently blocking ProvisionGateway's
+        //  already-has-a-gateway guard from ever clearing.
+        Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
+            ->where('iaas_gateway_id', $this->model->id)
+            ->update(['iaas_gateway_id' => null]);
 
         $vm = $this->model->virtualMachines;
 

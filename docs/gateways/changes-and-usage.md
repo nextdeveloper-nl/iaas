@@ -84,12 +84,17 @@ this codebase needs to change.
   Takes a `Networks $network` (was wrongly typed `VirtualMachines` before), calls the
   same `provisionForNetwork()`, optionally passing a `gateway_type` and/or
   `iaas_repository_image_id` from action params. Refuses to run if the network already
-  has a gateway (see "Provision a gateway explicitly" below) rather than silently
-  creating a duplicate.
+  has a *live* gateway (see "Provision a gateway explicitly" below), but self-heals a
+  stale `iaas_gateway_id` (one pointing at an already-deleted gateway/VM) instead of
+  refusing forever.
 - **`Actions/Gateways/Delete.php`** — now real: best-effort driver `teardown()`,
-  unlinks `Networks.iaas_gateway_id`, dispatches the existing (already fully
-  implemented) `Actions\VirtualMachines\Delete` on the underlying VM, then removes the
-  `Gateways` row.
+  unlinks `Networks.iaas_gateway_id` (bypassing `AuthorizationScope`/`LimitScope` -
+  this write previously used the plain scoped query, which could silently match zero
+  rows and leave the FK stuck if this action ran somewhere `AuthorizationScope`
+  couldn't resolve a role, e.g. an async queue worker without a re-established
+  user/account context), dispatches the existing (already fully implemented)
+  `Actions\VirtualMachines\Delete` on the underlying VM, then removes the `Gateways`
+  row.
 - **`Actions/Networks/Delete.php`** — fixed to take `Networks $network` (was wrongly
   typed), and now dispatches `Actions\Gateways\Delete` first if the network has one,
   closing the orphaned-VM leak.
@@ -214,9 +219,13 @@ Same constraints as the wizard's version of this field (see "Get a gateway
 automatically" above): must be an `os = 'firewall'` image available on the network's
 own cloud node.
 
-If the network **already has** a gateway, this is refused (a system comment is left on
-the network, the action ends in an error state) rather than silently provisioning a
-second one — delete the existing gateway first (see "Delete a gateway" below).
+If the network **already has a live gateway**, this is refused (a system comment is
+left on the network, the action ends in an error state) rather than silently
+provisioning a second one — delete the existing gateway first (see "Delete a gateway"
+below). "Live" means the referenced `Gateways` row and its underlying VM both actually
+still exist and aren't lost/soft-deleted — if `iaas_gateway_id` is a stale leftover
+from an already-torn-down gateway, this clears it and provisions normally instead of
+refusing forever.
 
 > **Requires a manual step outside this codebase**: this dispatches through the
 > generic `do/{action}` mechanism, which looks up the action by name in the
@@ -253,7 +262,9 @@ POST /iaas/networks/{ref}/do/provision-gateway
 
 Calling `provision-gateway` before the delete has finished tearing down the old gateway
 is refused by the guard described above — both the old and new firewall's LAN NIC want
-the same fixed IP (`10.128.0.1`), so this isn't safe to race.
+the same fixed IP (`10.128.0.1`), so this isn't safe to race. Once the old gateway's VM
+is actually gone, the guard detects the stale `iaas_gateway_id` and self-heals rather
+than requiring a manual `PATCH /iaas/networks/{ref}` to clear it.
 
 ### Wait for credentials, then check health
 

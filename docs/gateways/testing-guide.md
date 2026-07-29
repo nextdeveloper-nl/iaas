@@ -213,6 +213,29 @@ Expect: refused. No second `Gateways` row, no second VM, a system comment readin
 before provisioning a new one."* — confirm via `Networks::find(...)->iaas_gateway_id`
 still pointing at the original gateway, and no new `Gateways` row for this network.
 
+## Test 3b.1 — Self-heal from a stale `iaas_gateway_id`
+
+Simulates the state a bug in `Actions\Gateways\Delete`'s unlinking write could leave
+behind (see `changes-and-usage.md`) — a network whose `iaas_gateway_id` still points at
+a gateway/VM that's actually gone. Using the network + gateway from Test 3b, soft-delete
+the underlying VM directly without going through the normal delete flow (so the FK is
+deliberately left stale):
+```php
+$gateway = \NextDeveloper\IAAS\Database\Models\Gateways::withoutGlobalScopes()->find($network->iaas_gateway_id);
+\NextDeveloper\IAAS\Database\Models\VirtualMachines::withoutGlobalScopes()->find($gateway->iaas_virtual_machine_id)->delete();
+// network->iaas_gateway_id is still set at this point - deliberately not cleared
+```
+Then call `provision-gateway` again:
+```
+POST /iaas/networks/{ref}/do/provision-gateway
+{ "iaas_repository_image_id": "<any firewall image>" }
+```
+Expect: **not** refused — the guard detects the VM is soft-deleted, clears the stale
+`iaas_gateway_id`, and provisions a new gateway normally. Confirm `network->iaas_gateway_id`
+now points at a *new* `Gateways` row (different id than the stale one), and repeat with
+`is_lost: true` on the VM instead of soft-deleting it, to confirm that path self-heals
+too.
+
 ## Test 3c — Replace an existing gateway's firewall image
 
 Using the network + gateway from Test 3b:
