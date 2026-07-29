@@ -202,8 +202,19 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
     private function computeVmEvents($event, $results = []) : array
     {
+        //  XenAPI 'del' events (and some malformed events) can arrive with a
+        //  snapshot that has no 'uuid' since the VM record no longer exists -
+        //  bail out instead of letting the undefined array key crash the job.
+        $hypervisorUuid = $event['snapshot']['uuid'] ?? null;
+
+        if(!$hypervisorUuid) {
+            Log::info(__METHOD__ . ': Event snapshot has no uuid for operation ' . ($event['operation'] ?? 'unknown') . ', skipping event ID ' . $this->event->id);
+            $this->event->forceDelete();
+            return $results;
+        }
+
         $this->vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-            ->where('hypervisor_uuid', $event['snapshot']['uuid'])
+            ->where('hypervisor_uuid', $hypervisorUuid)
             ->withTrashed()
             ->first();
 
@@ -217,7 +228,7 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             //  Maybe in the future we can implement a locking mechanism for this. like scan_lock = true or false
             //  self::dispatch(new ScanVirtualMachines($computeMember));
 
-            Log::info(__METHOD__ . ': No VM found for hypervisor_uuid ' . $event['snapshot']['uuid'] . ', skipping event ID ' . $this->event->id);
+            Log::info(__METHOD__ . ': No VM found for hypervisor_uuid ' . $hypervisorUuid . ', skipping event ID ' . $this->event->id);
 
             return $results;
         }
