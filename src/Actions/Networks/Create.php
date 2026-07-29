@@ -82,8 +82,17 @@ class Create extends AbstractAction
         //  action either silently completing or dying with an uncaught exception that
         //  a queue worker would just retry from the top (redoing switch config, events,
         //  etc.) until it lands in failed_jobs with nothing user-visible to show for it.
+        //  Lets a caller (e.g. VdcServices::createWizard()) pin the gateway to a specific
+        //  firewall RepositoryImages row instead of the config-driven os/distro/version
+        //  default that provisionForNetwork() falls back to.
+        $overrides = [];
+
+        if (is_array($this->params) && !empty($this->params['repository_image_id'])) {
+            $overrides['repository_image_id'] = $this->params['repository_image_id'];
+        }
+
         try {
-            $gateway = GatewaysService::provisionForNetwork($this->model);
+            $gateway = GatewaysService::provisionForNetwork($this->model, $overrides);
 
             if ($gateway) {
                 $this->model->update([

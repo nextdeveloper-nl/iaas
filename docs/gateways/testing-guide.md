@@ -82,7 +82,7 @@ response. Three places to look, in order of usefulness:
 ## Test 1 — Happy path: automatic provisioning
 
 ```
-POST /iaas/vdc
+POST /iaas/virtual-datacenters
 { "name": "test-network", "iaas_cloud_node_id": "<a cloud node>" }
 ```
 
@@ -126,7 +126,7 @@ total), something's wrong — check the comments/logs for the specific
 ## Test 2 — Opt-out (`create_gateway: false`)
 
 ```
-POST /iaas/vdc
+POST /iaas/virtual-datacenters
 { "name": "test-no-gateway", "iaas_cloud_node_id": "<a cloud node>", "create_gateway": false }
 ```
 
@@ -134,6 +134,41 @@ Expect: `network.iaas_gateway_id` stays `null` forever, and a system comment
 appears on the network: *"Gateway provisioning was skipped for this network
 because create_gateway was set to false."* No VM, no `Gateways` row, nothing
 queued beyond the network creation itself.
+
+## Test 2b — Explicit firewall image (`iaas_repository_image_id`)
+
+First, find a second `os=firewall` image to pick against (needs to differ from
+whatever `leo.iaas.firewalls.<default_firewall_type>` would resolve to, so you can
+tell the override actually took effect):
+```
+GET /iaas/repository-images?filter[os]=firewall
+```
+
+```
+POST /iaas/virtual-datacenters
+{
+  "name": "test-custom-firewall",
+  "iaas_cloud_node_id": "<a cloud node>",
+  "iaas_repository_image_id": "<uuid of an os=firewall image on that cloud node>"
+}
+```
+
+**Once the `default` queue worker picks up `Actions\Networks\Create`:**
+```php
+$network->refresh();
+$gateway = \NextDeveloper\IAAS\Database\Models\Gateways::find($network->iaas_gateway_id);
+$firewall = \NextDeveloper\IAAS\Database\Models\VirtualMachines::find($gateway->iaas_virtual_machine_id);
+
+$firewall->iaas_repository_image_id; // should match the requested image's id, not the config default
+```
+
+Then verify failure handling: repeat with an `iaas_repository_image_id` that either
+doesn't exist, isn't `os = 'firewall'`, or belongs to a repository not attached to
+the chosen cloud node. Expect the same shape as Test 4 (network still created, no
+gateway, system comment on the network) reading:
+*"We could not provision a gateway for this network: The requested firewall image
+\"\<uuid\>\" was not found, is not a firewall image, or is not available on cloud
+node \"...\"."*
 
 ## Test 3 — Explicit provisioning
 

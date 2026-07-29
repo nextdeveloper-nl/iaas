@@ -19,6 +19,40 @@ consciously "create" one at all. Design around that:
   (status, credentials, firewall rules, port forwards) — it doesn't need its own
   separate top-level page unless you want one for cross-network gateway management.
 
+## Screen: VDC creation form — optional firewall image override
+
+`POST /iaas/virtual-datacenters` now accepts an optional `iaas_repository_image_id`,
+letting the user pick which firewall image provisions the auto-created gateway
+instead of always getting the deployment default. This is a *separate* control from
+anything on the Network detail page below — it only applies at creation time, before
+a gateway exists.
+
+- Default to **not showing this at all** — nothing changes for users who don't touch
+  it, and the deployment default (whatever `leo.iaas.firewalls.<default_firewall_type>`
+  resolves to) covers the common case.
+- If you do surface it, put it behind an "Advanced" toggle or similar on the VDC
+  creation form, not as a required field alongside name/cloud node.
+- Populate the options from `GET /iaas/repository-images?filter[os]=firewall`,
+  scoped to the cloud node the user already picked for the VDC (the images need to
+  belong to a repository attached to that specific cloud node — an image valid on
+  one cloud node may not be available on another). If the endpoint doesn't yet
+  support filtering repository images by cloud node directly, fall back to fetching
+  the cloud node's repositories first, then filtering images by
+  `iaas_repository_id`.
+- Show each option as whatever's human-readable on the image (`name`, or
+  `distro`/`version`) — not the raw uuid.
+- If the field is left blank, omit `iaas_repository_image_id` from the request
+  entirely rather than sending an empty string — the backend treats "not present" as
+  "use the default", not "explicitly nothing."
+- Failure mode is the same shape as any other gateway-provisioning failure: the VDC
+  itself is still created successfully even if the chosen image turns out to be
+  invalid (removed, wrong repository, etc.) by the time the queued job runs — the
+  network just ends up without a gateway and a system comment explaining why (see
+  "State 4" below). There's no synchronous validation of the image at request time
+  beyond what the `exists:iaas_repository_images,uuid` rule on the request checks
+  (i.e. the uuid exists at all — not that it's a firewall image or available on that
+  cloud node).
+
 ## Screen: Network detail → Gateway section
 
 ### State 1 — No gateway
@@ -190,11 +224,13 @@ that; keep the inputs as single-port number fields, not range pickers.
   plain exception message from the backend (e.g. `pfSense agent operation
   'pfsense.firewall.create' failed: ...`); show it as-is, same treatment as the
   capability-error case below.
-- **Don't build a "gateway_type" picker beyond a simple default for this launch.**
-  The multi-vendor design exists so it *can* be added later without backend changes,
-  but until a second driver actually ships, exposing the choice in the UI is dead
-  weight. Revisit when a second `gateway_type` is registered in
-  `config/gateway_drivers.php`.
+- **Don't build a "gateway_type" (driver/vendor) picker beyond a simple default for
+  this launch.** The multi-vendor design exists so it *can* be added later without
+  backend changes, but until a second driver actually ships, exposing that choice in
+  the UI is dead weight. Revisit when a second `gateway_type` is registered in
+  `config/gateway_drivers.php`. This is distinct from the firewall **image** picker
+  (`iaas_repository_image_id`, see "VDC creation form" above) — that one's already
+  wired and fine to expose (optionally) even with a single `gateway_type`.
 - **Deleting a network deletes its gateway.** If your network delete confirmation
   dialog doesn't already say so, add a line: "This will also remove the network's
   firewall (VM, rules, and configuration)." — this is a real, hard-to-reverse action

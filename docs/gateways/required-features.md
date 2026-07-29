@@ -21,6 +21,7 @@ and how to call it), `ui-guide.md` (what to build on top of it), and
 | R9 | Deleting a gateway (directly, or via deleting its network) leaves nothing behind — no orphaned VM, disks, NICs, or DB rows. | ✅ Implemented | `Actions\Gateways\Delete` (driver teardown + VM delete + row cleanup) and `Actions\Networks\Delete` (dispatches the above first). This was the specific bug (`trigger_error()` stubs, wrong model types) that made this pass necessary in the first place. |
 | R10 | Credential fields can't be set directly by a normal client — only the system's own bootstrap process, or a privileged admin explicitly attaching an existing VM. | ✅ Implemented | `GatewaysService::create()` strips `ssh_username`/`ssh_password`/`api_token`/`api_url` unless the caller has `datacenter-admin`/`cloud-node-admin`. |
 | R11 | A failure anywhere in provisioning (missing image, misconfiguration) is surfaced clearly to whoever's watching the resource — never a silent no-op, never an uncaught fatal error. | ✅ Implemented | `CannotFindAvailableResourceException` replaces the old uncaught `TypeError`; every skip/failure path (`create_gateway: false`, missing image, provisioning exception) leaves a `CommentsService::createSystemComment()` on the network. |
+| R12 | A caller can pick which firewall image provisions the auto-created gateway, instead of always getting the deployment's config-driven default. | ✅ Implemented (VDC creation only) | `iaas_repository_image_id`, threaded from `VdcCreateRequest`/`VirtualDatacenterController` → `VdcServices::createWizard()` → `Actions\Networks\Create`'s `repository_image_id` param → `GatewaysService::provisionForNetwork()`'s `repository_image_id` override. Must resolve to an `os = 'firewall'` `RepositoryImages` row available on the target cloud node's repositories, or provisioning fails the same way a missing config-driven image does (R11). **Not** wired into the explicit `provision-gateway` action (`Actions\Gateways\Create`) — that path still only accepts `gateway_type`. |
 
 ## Non-functional requirements
 
@@ -40,6 +41,10 @@ and how to call it), `ui-guide.md` (what to build on top of it), and
 - **A second firewall vendor.** The abstraction exists to make this cheap later, but
   no second driver has been built — `gateway_type` has exactly one registered value
   (`pfsense`) today.
+- **Picking a custom firewall image (R12) on the explicit `provision-gateway` action.**
+  Only the implicit auto-provision-on-VDC-creation path accepts
+  `iaas_repository_image_id` today; the on-demand action still resolves the image from
+  config only.
 - **HA/failover firewall pairs, VPN/site-to-site configuration, or any config beyond
   basic firewall rules + NAT.** `gateway_data`'s schema is deliberately left open
   (see below) rather than committing to a shape that would need to support these.

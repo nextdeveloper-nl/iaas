@@ -66,7 +66,10 @@ class GatewaysService extends AbstractGatewaysService
      *
      * @param  Networks  $network
      * @param  array  $overrides  may contain 'gateway_type' to pick a driver other than
-     *                            config('leo.iaas.default_firewall_type').
+     *                            config('leo.iaas.default_firewall_type'), and/or
+     *                            'repository_image_id' (a RepositoryImages uuid) to pin
+     *                            the gateway to a specific firewall image instead of the
+     *                            config-driven os/distro/version lookup below.
      * @throws CannotFindAvailableResourceException
      */
     public static function provisionForNetwork(Networks $network, array $overrides = []): ?Gateways
@@ -75,31 +78,45 @@ class GatewaysService extends AbstractGatewaysService
 
         $gatewayType = $overrides['gateway_type'] ?? config('leo.iaas.default_firewall_type');
 
-        $imageConfig = config('leo.iaas.firewalls.' . $gatewayType);
-
-        if (!$imageConfig) {
-            throw new CannotFindAvailableResourceException(
-                "We don't have an image configuration for gateway type \"{$gatewayType}\". " .
-                'Please consult to your cloud provider.'
-            );
-        }
-
         $repositories = CloudNodesService::getRepositories($cloudNode);
 
-        $repositoryImage = RepositoryImages::where([
-            'os'        =>  $imageConfig['os'],
-            'distro'    =>  $imageConfig['distro'],
-            'version'   =>  $imageConfig['version'],
-        ])
-            ->whereIn('iaas_repository_id', $repositories->pluck('id'))
-            ->first();
+        if (!empty($overrides['repository_image_id'])) {
+            $repositoryImage = RepositoryImages::where('uuid', $overrides['repository_image_id'])
+                ->where('os', 'firewall')
+                ->whereIn('iaas_repository_id', $repositories->pluck('id'))
+                ->first();
 
-        if (!$repositoryImage) {
-            throw new CannotFindAvailableResourceException(
-                "We cannot find a firewall image matching \"{$imageConfig['distro']} {$imageConfig['version']}\" " .
-                "for gateway type \"{$gatewayType}\" on cloud node \"{$cloudNode->name}\". " .
-                'Please consult to your cloud provider.'
-            );
+            if (!$repositoryImage) {
+                throw new CannotFindAvailableResourceException(
+                    "The requested firewall image \"{$overrides['repository_image_id']}\" was not found, " .
+                    "is not a firewall image, or is not available on cloud node \"{$cloudNode->name}\"."
+                );
+            }
+        } else {
+            $imageConfig = config('leo.iaas.firewalls.' . $gatewayType);
+
+            if (!$imageConfig) {
+                throw new CannotFindAvailableResourceException(
+                    "We don't have an image configuration for gateway type \"{$gatewayType}\". " .
+                    'Please consult to your cloud provider.'
+                );
+            }
+
+            $repositoryImage = RepositoryImages::where([
+                'os'        =>  $imageConfig['os'],
+                'distro'    =>  $imageConfig['distro'],
+                'version'   =>  $imageConfig['version'],
+            ])
+                ->whereIn('iaas_repository_id', $repositories->pluck('id'))
+                ->first();
+
+            if (!$repositoryImage) {
+                throw new CannotFindAvailableResourceException(
+                    "We cannot find a firewall image matching \"{$imageConfig['distro']} {$imageConfig['version']}\" " .
+                    "for gateway type \"{$gatewayType}\" on cloud node \"{$cloudNode->name}\". " .
+                    'Please consult to your cloud provider.'
+                );
+            }
         }
 
         $defaultComputePool = ComputePoolsService::getDefaultPool($cloudNode);

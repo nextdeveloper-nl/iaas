@@ -59,10 +59,21 @@ this codebase needs to change.
 - **`GatewaysService::provisionForNetwork(Networks $network, array $overrides = [])`**
   (new) — the extracted, shared provisioning logic (was inlined in
   `Actions/Networks/Create.php`). Resolves the cloud node, the image from
-  `leo.iaas.firewalls.<gateway_type>`, builds the firewall VM + WAN/LAN NICs, creates
-  the `Gateways` row, dispatches the VM commit, and schedules credential collection.
-  Whether it's called at all is gated by the caller (`Actions\Networks\Create`'s
-  `create_gateway` param, default `true`) - not by the cloud node itself.
+  `leo.iaas.firewalls.<gateway_type>` (or from `overrides['repository_image_id']` if
+  given — see below), builds the firewall VM + WAN/LAN NICs, creates the `Gateways`
+  row, dispatches the VM commit, and schedules credential collection. Whether it's
+  called at all is gated by the caller (`Actions\Networks\Create`'s `create_gateway`
+  param, default `true`) - not by the cloud node itself.
+- **`overrides['repository_image_id']` (new)** — lets a caller pin the gateway to a
+  specific `RepositoryImages` row instead of the config-driven os/distro/version
+  lookup. Must be an `os = 'firewall'` image belonging to a repository attached to the
+  network's cloud node, or `provisionForNetwork()` throws
+  `CannotFindAvailableResourceException` the same way a missing config-driven image
+  does. Currently threaded through from `VdcServices::createWizard()`'s new
+  `$repositoryImageId` param (see "Get a gateway automatically" below) via
+  `Actions\Networks\Create`'s `repository_image_id` action param - **not** yet wired
+  into the explicit `Actions\Gateways\Create` (`provision-gateway`) action, which still
+  only accepts `gateway_type`.
 - **`Actions/Networks/Create.php`** — shrunk to: switch config, then call
   `provisionForNetwork()`. Same observable behavior as before, just de-duplicated.
 - **`Actions/Gateways/Create.php`** — now the *explicit* entry point. Takes a
@@ -140,21 +151,38 @@ provisioning (below), not direct creation.
 
 ### Get a gateway automatically
 
-Nothing to do — create a network as usual:
+Nothing to do — create a VDC as usual:
 
 ```
-POST /iaas/networks
+POST /iaas/virtual-datacenters
 ```
 ```json
 {
   "name": "prod-network",
-  "iaas_cloud_node_id": "...",
-  "cidr": "10.128.0.0/24"
+  "iaas_cloud_node_id": "..."
 }
 ```
 
 A gateway is provisioned automatically and linked via the network's
 `iaas_gateway_id`, unless the request set `"create_gateway": false`.
+
+To pin the gateway to a specific firewall image instead of the deployment default
+(`leo.iaas.firewalls.<default_firewall_type>`), pass its `RepositoryImages` uuid:
+
+```json
+{
+  "name": "prod-network",
+  "iaas_cloud_node_id": "...",
+  "iaas_repository_image_id": "<uuid of an os=firewall RepositoryImages row>"
+}
+```
+
+`iaas_repository_image_id` is optional and nullable — omit it to keep the existing
+config-driven default behavior. It must reference an `os = 'firewall'` image
+available on the target cloud node's own repositories; otherwise provisioning fails
+the same way a missing config-driven image does (see "Missing image error path" in
+`testing-guide.md`) - the VDC itself is still created, only the gateway is affected.
+List candidate images with `GET /iaas/repository-images?filter[os]=firewall`.
 
 ### Provision a gateway explicitly
 
