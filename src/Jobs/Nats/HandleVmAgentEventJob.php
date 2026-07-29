@@ -52,7 +52,10 @@ class HandleVmAgentEventJob extends AbstractAgentEventJob
         // already hit with other self-healing loops).
         $hasVersion = !empty(($model->features ?? [])['agent_version']);
 
-        if (!$hasVersion && in_array('agent.version', $agentOps, true)) {
+        // $agentOps holds capability objects ({operation, description, params}),
+        // not plain strings - check the 'operation' column, same fix as
+        // assertAgentOperationAllowed() in the VirtualMachines model.
+        if (!$hasVersion && in_array('agent.version', array_column($agentOps, 'operation'), true)) {
             $model->sendAgentCommand('agent.version', [], 10);
         }
     }

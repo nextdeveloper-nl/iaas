@@ -306,11 +306,15 @@ class ComputeMembers extends Model
 
     protected function assertAgentOperationAllowed(string $operation): void
     {
-        $available = ($this->available_operations ?? [])['agent'] ?? [];
+        // available_operations['agent'] holds the agent's raw capability objects
+        // ({operation, description, params}), not plain operation-name strings -
+        // pull out the 'operation' column before checking against it.
+        $available    = ($this->available_operations ?? [])['agent'] ?? [];
+        $operationIds = array_column($available, 'operation');
 
-        if (!in_array($operation, $available, true)) {
+        if (!in_array($operation, $operationIds, true)) {
             throw new \InvalidArgumentException(
-                "Operation '{$operation}' is not available for this compute member agent. Available: " . implode(', ', $available)
+                "Operation '{$operation}' is not available for this compute member agent. Available: " . implode(', ', $operationIds)
             );
         }
     }
