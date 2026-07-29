@@ -86,7 +86,13 @@ this codebase needs to change.
   `iaas_repository_image_id` from action params. Refuses to run if the network already
   has a *live* gateway (see "Provision a gateway explicitly" below), but self-heals a
   stale `iaas_gateway_id` (one pointing at an already-deleted gateway/VM) instead of
-  refusing forever.
+  refusing forever. Both writes to `Networks` (the self-heal, and the final
+  `iaas_gateway_id` assignment once provisioning succeeds) run inside
+  `UserHelper::runAsAdmin()`: this action runs on the `iaas` queue - a separate worker
+  process with no authenticated session of its own - and an instance `->update()` fires
+  `NetworksObserver`'s `saving()`/`updating()` hooks, which run a `UserHelper::can()`
+  authorization check that has nothing to authorize against there, failing with "You
+  are not allowed to save this record" otherwise.
 - **`Actions/Gateways/Delete.php`** — now real: best-effort driver `teardown()`,
   unlinks `Networks.iaas_gateway_id` (bypassing `AuthorizationScope`/`LimitScope` -
   this write previously used the plain scoped query, which could silently match zero

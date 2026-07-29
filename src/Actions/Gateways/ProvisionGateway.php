@@ -10,6 +10,7 @@ use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\GatewaysService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
+use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * Explicit, user-triggerable gateway provisioning - dispatched via
@@ -91,12 +92,16 @@ class ProvisionGateway extends AbstractAction
                 return;
             }
 
-            //  Stale reference - self-heal instead of refusing forever. An instance
-            //  ->update() (rather than a Networks::where(...) query) is used deliberately:
-            //  it matches by primary key via newQueryWithoutScopes() internally, so it
-            //  isn't subject to the same AuthorizationScope gap this whole check exists
-            //  to work around.
-            $network->update(['iaas_gateway_id' => null]);
+            //  Stale reference - self-heal instead of refusing forever. Wrapped in
+            //  runAsAdmin() because this instance ->update() fires NetworksObserver's
+            //  saving()/updating() hooks, which run a UserHelper::can() authorization
+            //  check - this action runs on the iaas queue (a separate worker process
+            //  with no authenticated session of its own), so that check has nothing to
+            //  authorize against and fails otherwise. This is an internal system
+            //  cleanup write, not a user-facing one, so bypassing is appropriate here.
+            UserHelper::runAsAdmin(function () use ($network) {
+                $network->update(['iaas_gateway_id' => null]);
+            });
         }
 
         $this->setProgress(0, 'Provisioning gateway');
@@ -146,9 +151,14 @@ class ProvisionGateway extends AbstractAction
             return;
         }
 
-        $this->model->update([
-            'iaas_gateway_id' => $gateway->id,
-        ]);
+        //  Same reasoning as the self-heal write above: this instance ->update() fires
+        //  NetworksObserver's authorization check, which has nothing to authorize
+        //  against from inside this queue worker.
+        UserHelper::runAsAdmin(function () use ($gateway) {
+            $this->model->update([
+                'iaas_gateway_id' => $gateway->id,
+            ]);
+        });
 
         $this->setProgress(100, 'Gateway provisioned');
     }
