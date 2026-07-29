@@ -3,6 +3,8 @@
 namespace NextDeveloper\IAAS\Http\Controllers\VirtualMachines;
 
 use Illuminate\Http\Request;
+use NextDeveloper\Commons\Http\Response\ResponsableFactory;
+use NextDeveloper\Events\Database\Filters\AgentCommandsQueryFilter;
 use NextDeveloper\Events\Exceptions\AgentTimeoutException;
 use NextDeveloper\Events\Services\AgentCommandService;
 use NextDeveloper\IAAS\Http\Controllers\AbstractController;
@@ -13,6 +15,7 @@ use NextDeveloper\IAAS\Services\VmAgentCommandService;
  * Exposes VM agent commands over HTTP.
  *
  * GET  /{vm}/agent/operations           — list operations available for this VM
+ * GET  /{vm}/agent/commands             — list previously dispatched commands and their results
  * POST /{vm}/agent/{operation}          — run a command async, returns 202 with command UUID
  * POST /{vm}/agent/{operation}/sync     — send a command and block until the agent replies
  */
@@ -33,6 +36,24 @@ class VirtualMachineAgentCommandsController extends AbstractController
             'vm_uuid'    => $vm->uuid,
             'operations' => VmAgentCommandService::getAvailableOperations($vm),
         ]);
+    }
+
+    /**
+     * List previously dispatched commands for this VM and their status/result.
+     * Accepts the same filters as GET /events/agent-commands (status, operation,
+     * date ranges, ...) already scoped down to this VM's own commands.
+     */
+    public function commands(AgentCommandsQueryFilter $filter, Request $request, $vmId)
+    {
+        $vm = VirtualMachinesService::getByRef($vmId);
+
+        if (!$vm) {
+            return $this->setStatusCode(404)->withError('Virtual machine not found.', 'ERROR-VM-NOT-FOUND');
+        }
+
+        $data = VmAgentCommandService::getCommands($vm, $filter, $request->all());
+
+        return ResponsableFactory::makeResponse($this, $data);
     }
 
     /**

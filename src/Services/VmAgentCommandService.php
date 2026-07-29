@@ -2,6 +2,8 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use NextDeveloper\Events\Database\Filters\AgentCommandsQueryFilter;
+use NextDeveloper\Events\Services\AgentCommandsService;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
 /**
@@ -29,5 +31,19 @@ class VmAgentCommandService
     public static function getAvailableOperations(VirtualMachines $vm): array
     {
         return $vm->available_operations ?? [];
+    }
+
+    /**
+     * List previously dispatched agent commands for this VM (and their status/result),
+     * scoping the shared event_agent_commands table down to this VM's own commands.
+     * Any other filter (status, operation, date ranges, ...) from $params still applies
+     * on top - only agent_type/agent_uuid are forced.
+     */
+    public static function getCommands(VirtualMachines $vm, AgentCommandsQueryFilter $filter, array $params = [])
+    {
+        $filter->updateValue('agentType', 'vm');
+        $filter->updateValue('agentUuid', $vm->uuid);
+
+        return AgentCommandsService::get($filter, $params);
     }
 }

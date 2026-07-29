@@ -2054,6 +2054,7 @@ Route::prefix('iaas')->group(
         Route::prefix('virtual-machines')->group(
             function () {
                 Route::get('/{iaas_virtual_machines}/agent/operations', 'VirtualMachines\VirtualMachineAgentCommandsController@index');
+                Route::get('/{iaas_virtual_machines}/agent/commands', 'VirtualMachines\VirtualMachineAgentCommandsController@commands');
                 Route::post('/{iaas_virtual_machines}/agent/{operation}', 'VirtualMachines\VirtualMachineAgentCommandsController@run');
                 Route::post('/{iaas_virtual_machines}/agent/{operation}/sync', 'VirtualMachines\VirtualMachineAgentCommandsController@send');
             }

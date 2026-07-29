@@ -8,6 +8,7 @@ Every VM can run an in-guest agent that stays connected over NATS and reports he
 - Run a command asynchronously and poll for the result later
 - Run a command synchronously and get the result inline (with a timeout)
 - Every command is recorded so its status and result can be looked up independently of the original request
+- Pull a VM's full command history (with results) in one call, already scoped to that VM
 
 ## How Discovery Works
 
@@ -79,13 +80,7 @@ Returns `202` immediately:
 }
 ```
 
-Poll the command's status and result via the shared agent-commands endpoint:
-
-```
-GET /events/agent-commands/{command_uuid}
-```
-
-The `status` field moves through `pending` → `sent` → `completed` / `failed` / `rejected` as the agent processes and replies. Once `completed`, the `result` field holds the agent's output and `error` holds the failure message if `failed`/`rejected`.
+Poll the command's status and result via the shared agent-commands endpoint — see [Tracking Commands](#tracking-commands) below for the full lookup/listing/filtering options.
 
 ### 3. Run it — sync (block for the result)
 
@@ -133,6 +128,87 @@ If you request an operation that isn't in the VM's current `available_operations
 }
 ```
 
+## Tracking Commands
+
+Every command dispatched to an agent (whether via the async or sync endpoint) is recorded in a shared table owned by the Events module, independent of which resource type (`vm`, `compute`, ...) sent it. You look these up under `/events/agent-commands` — **note the plural `events`**, not `event`; hitting the singular path returns a "route could not be found" error rather than a 404 on a missing record, since the route itself doesn't exist.
+
+### Look up a single command
+
+Use the `command_uuid` returned from the async dispatch call:
+
+```
+GET /events/agent-commands/{command_uuid}
+```
+
+```json
+{
+  "id": "3fa1c2e0-...-uuid",
+  "agent_type": "vm",
+  "operation": "services.restart",
+  "params": { "name": "nginx" },
+  "status": "completed",
+  "result": { "name": "nginx", "active": true },
+  "error": null,
+  "sent_at": "2026-07-29T10:00:00Z",
+  "completed_at": "2026-07-29T10:00:02Z"
+}
+```
+
+The `status` field moves through `pending` → `sent` → `completed` / `failed` / `rejected` as the agent processes and replies. Once `completed`, `result` holds the agent's output; if `failed` or `rejected`, `error` holds the failure message instead.
+
+### List commands for a specific VM
+
+This is the one to use for a "command history" view in the dashboard — it's scoped to a single VM's own commands, so you don't need to filter the shared table by UUID yourself:
+
+```
+GET /iaas/virtual-machines/{id}/agent/commands
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "3fa1c2e0-...-uuid",
+      "agent_type": "vm",
+      "operation": "services.restart",
+      "params": { "name": "nginx" },
+      "status": "completed",
+      "result": { "name": "nginx", "active": true },
+      "error": null,
+      "sent_at": "2026-07-29T10:00:00Z",
+      "completed_at": "2026-07-29T10:00:02Z"
+    }
+  ]
+}
+```
+
+It accepts the same query-string filters as the shared `/events/agent-commands` listing below (`status`, `operation`, date ranges, `paginate`, ...) — `agent_type`/`agent_uuid` are already forced to this VM and can't be overridden by the query string.
+
+### List and filter commands (any agent type)
+
+```
+GET /events/agent-commands
+```
+
+Supported filters (query string parameters), from `AgentCommandsQueryFilter`:
+
+| Filter | Matches |
+| --- | --- |
+| `agent_type` | Partial match on agent type (`vm`, `compute`, ...) |
+| `agent_uuid` | Exact match on the owning resource's UUID (e.g. a specific VM) |
+| `operation` | Partial match on operation name (e.g. `services.restart`) |
+| `status` | Partial match on status (`pending`, `sent`, `completed`, `failed`, `rejected`) |
+| `error` | Partial match on the error message |
+| `sent_at_start` / `sent_at_end` | Date range on when the command was sent |
+| `completed_at_start` / `completed_at_end` | Date range on when the command completed |
+| `created_at_start` / `created_at_end` | Date range on when the command row was created |
+
+Example — find recently failed restart commands for a specific VM without using the VM-scoped endpoint above:
+
+```
+GET /events/agent-commands?agent_type=vm&agent_uuid=8d2e0a1b-...-uuid&operation=services.restart&status=failed
+```
+
 ## Compute Host Agents
 
 Compute hosts (`ComputeMembers` — the hypervisor nodes VMs run on) have the same underlying mechanism (`available_operations['agent']`, the same command dispatch/tracking pipeline) but are not yet wired up to their own HTTP endpoints — there's no `/compute-members/{id}/agent/...` route today. The service-layer plumbing (`ComputeMemberAgentCommandService`) already exists, so adding the equivalent controller/routes is a small follow-up if host-level agent commands are needed from the dashboard.
@@ -160,10 +236,22 @@ POST /iaas/virtual-machines/{id}/agent/services.restart
 POST /iaas/virtual-machines/{id}/agent/system.metrics/sync
 ```
 
+**List a VM's command history**
+
+```
+GET /iaas/virtual-machines/{id}/agent/commands
+```
+
 **Check on an async command**
 
 ```
 GET /events/agent-commands/{command_uuid}
+```
+
+**List failed commands for a given operation**
+
+```
+GET /events/agent-commands?operation=services.restart&status=failed
 ```
 
 ## Related Features
