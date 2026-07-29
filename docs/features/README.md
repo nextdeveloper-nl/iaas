@@ -9,6 +9,7 @@ All API paths are relative to the platform's API base URL and prefixed with `/ia
 | Feature | What it covers |
 | --- | --- |
 | [Virtual Machines](virtual-machines.md) | Launching, sizing, starting/stopping, snapshotting, and templating VMs |
+| [VM Agent Commands](agent-commands.md) | Discovering and triggering in-guest agent operations (services, system info, disk resize) |
 | [Networking](networking.md) | Networks, network cards, IP addresses, gateways, and DHCP |
 | [Storage](storage.md) | Storage pools/volumes and virtual disk attach, resize, and clone |
 | [Image Library](image-library.md) | OS images, ISOs, and Docker images that VMs are created from |

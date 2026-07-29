@@ -28,7 +28,7 @@ CPU core count and RAM are adjustable per VM. Resizing doesn't require migrating
 
 ## Console and Remote Access
 
-Each VM exposes console connection details so you can access it directly from the dashboard, even before networking or SSH is fully configured. For Windows VMs, WinRM connectivity can be enabled for remote management. An in-VM agent can also be deployed to report health and accept commands without opening a separate management channel.
+Each VM exposes console connection details so you can access it directly from the dashboard, even before networking or SSH is fully configured. For Windows VMs, WinRM connectivity can be enabled for remote management. An in-VM agent can also be deployed to report health and accept commands without opening a separate management channel — see [VM Agent Commands](agent-commands.md) for how to discover and trigger what a given VM's agent supports.
 
 ## Automatic Backups
 
@@ -78,6 +78,7 @@ GET /iaas/virtual-machines
 
 ## Related Features
 
+- [VM Agent Commands](agent-commands.md) — run in-guest agent operations like service restarts and system metrics
 - [Image Library](image-library.md) — choose the operating system image or template a VM is created from
 - [Service Roles](service-roles.md) — pre-install services like Docker or PostgreSQL on a VM at boot
 - [Networking](networking.md) — attach network cards and IP addresses to a VM
