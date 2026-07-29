@@ -625,6 +625,26 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     }
 
     /**
+     * Persists the version reported by a VM's agent (via the 'agent.version' NATS
+     * command) into the `features` JSON column under the 'agent_version' key, merging
+     * so that other keys already stored there (service_roles, scan-lock, ...) are left
+     * untouched. Called from HandleVmAgentEventJob::onCommandResult() once the async
+     * 'agent.version' command completes.
+     */
+    public static function recordAgentVersion(VirtualMachines $vm, string $version): VirtualMachines
+    {
+        $features = is_array($vm->features) ? $vm->features : [];
+
+        if (($features['agent_version'] ?? null) === $version) {
+            return $vm;
+        }
+
+        $features['agent_version'] = $version;
+
+        return self::update($vm->uuid, ['features' => $features]);
+    }
+
+    /**
      * If the compute pool design is in One design then we should update the disk, if it is in star design, then we
      * dont need to update the disk.
      *

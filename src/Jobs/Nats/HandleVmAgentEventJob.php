@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Jobs\Nats;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Services\CommentsService;
+use NextDeveloper\Events\Database\Models\AgentCommands;
 use NextDeveloper\Events\Jobs\AbstractAgentEventJob;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
@@ -44,6 +45,16 @@ class HandleVmAgentEventJob extends AbstractAgentEventJob
         if (empty($agentOps)) {
             $model->sendAgentCommand('agent.allowed_operations', [], 10);
         }
+
+        // Once capabilities are known and the agent supports reporting its version,
+        // request it — but only until we actually have one recorded, so this doesn't
+        // re-fire on every heartbeat (see the queue-flood incidents this project has
+        // already hit with other self-healing loops).
+        $hasVersion = !empty(($model->features ?? [])['agent_version']);
+
+        if (!$hasVersion && in_array('agent.version', $agentOps, true)) {
+            $model->sendAgentCommand('agent.version', [], 10);
+        }
     }
 
     protected function updateCapabilities($model, array $operations): void
@@ -54,6 +65,25 @@ class HandleVmAgentEventJob extends AbstractAgentEventJob
         $existing['agent'] = $operations;
 
         VirtualMachinesService::update($model->uuid, ['available_operations' => $existing]);
+    }
+
+    protected function onCommandResult($model, ?AgentCommands $command, array $payload): void
+    {
+        if (!$model || !$command || $command->operation !== 'agent.version') {
+            return;
+        }
+
+        $version = $command->result['version'] ?? $payload['output']['version'] ?? null;
+
+        if (!$version) {
+            Log::warning('[HandleVmAgentEventJob] agent.version result had no version', [
+                'agent_uuid' => $model->uuid,
+                'payload'    => $payload,
+            ]);
+            return;
+        }
+
+        VirtualMachinesService::recordAgentVersion($model, $version);
     }
 
     protected function handleDomainEvent(string $type, $model, array $payload): void
