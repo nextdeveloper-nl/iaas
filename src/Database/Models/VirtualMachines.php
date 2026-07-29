@@ -282,37 +282,37 @@ class VirtualMachines extends Model
     
     public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DhcpServers::class, 'iaas_virtual_machine_id');
     }
 
     public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class, 'iaas_virtual_machine_id');
     }
 
     public function sshPublicKeyVirtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\SshPublicKeyVirtualMachines::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\SshPublicKeyVirtualMachines::class, 'iaas_virtual_machine_id');
     }
 
     public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class, 'iaas_virtual_machine_id');
     }
 
     public function virtualMachineEnvVars() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars::class, 'iaas_virtual_machine_id');
     }
 
     public function virtualMachineEnvVarGroups() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVarGroups::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVarGroups::class, 'iaas_virtual_machine_id');
     }
 
     public function virtualMachineMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class, 'iaas_virtual_machine_id');
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
