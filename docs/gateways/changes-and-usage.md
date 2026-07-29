@@ -69,16 +69,23 @@ this codebase needs to change.
   lookup. Must be an `os = 'firewall'` image belonging to a repository attached to the
   network's cloud node, or `provisionForNetwork()` throws
   `CannotFindAvailableResourceException` the same way a missing config-driven image
-  does. Currently threaded through from `VdcServices::createWizard()`'s new
+  does. Threaded through from both provisioning entry points: `VdcServices::createWizard()`'s
   `$repositoryImageId` param (see "Get a gateway automatically" below) via
-  `Actions\Networks\Create`'s `repository_image_id` action param - **not** yet wired
-  into the explicit `Actions\Gateways\Create` (`provision-gateway`) action, which still
-  only accepts `gateway_type`.
+  `Actions\Networks\Create`'s `repository_image_id` action param, and the explicit
+  `Actions\Gateways\ProvisionGateway` action's `iaas_repository_image_id` request field
+  (see "Provision a gateway explicitly" below).
 - **`Actions/Networks/Create.php`** — shrunk to: switch config, then call
   `provisionForNetwork()`. Same observable behavior as before, just de-duplicated.
-- **`Actions/Gateways/Create.php`** — now the *explicit* entry point. Takes a
-  `Networks $network` (was wrongly typed `VirtualMachines` before), calls the same
-  `provisionForNetwork()`, optionally passing a `gateway_type` from action params.
+- **`Actions/Gateways/ProvisionGateway.php`** (renamed from `Create.php` to avoid an
+  `AvailableActions` name collision — both this class and `Actions\Networks\Create` take
+  a `Networks $network` first constructor param, so both would auto-derive
+  `name=create` from `leo:register-actions`, the tool that seeds the `AvailableActions`
+  table used by the generic `do/{action}` dispatcher) — now the *explicit* entry point.
+  Takes a `Networks $network` (was wrongly typed `VirtualMachines` before), calls the
+  same `provisionForNetwork()`, optionally passing a `gateway_type` and/or
+  `iaas_repository_image_id` from action params. Refuses to run if the network already
+  has a gateway (see "Provision a gateway explicitly" below) rather than silently
+  creating a duplicate.
 - **`Actions/Gateways/Delete.php`** — now real: best-effort driver `teardown()`,
   unlinks `Networks.iaas_gateway_id`, dispatches the existing (already fully
   implemented) `Actions\VirtualMachines\Delete` on the underlying VM, then removes the
@@ -186,8 +193,9 @@ List candidate images with `GET /iaas/repository-images?filter[os]=firewall`.
 
 ### Provision a gateway explicitly
 
-For a network that didn't get one automatically (`create_gateway: false` was set, or
-provisioning failed) or to pick a different `gateway_type` than the deployment
+For a network that doesn't currently have one — never got one automatically
+(`create_gateway: false` was set, or provisioning failed), or had a previous one
+deleted — or to pick a different `gateway_type`/firewall image than the deployment
 default:
 
 ```
@@ -195,18 +203,57 @@ POST /iaas/networks/{ref}/do/provision-gateway
 ```
 ```json
 {
-  "gateway_type": "pfsense"
+  "gateway_type": "pfsense",
+  "iaas_repository_image_id": "<uuid of an os=firewall RepositoryImages row>"
 }
 ```
 
-`gateway_type` is optional — omit it to use `leo.iaas.default_firewall_type`.
+Both fields are optional — omit `gateway_type` to use `leo.iaas.default_firewall_type`,
+omit `iaas_repository_image_id` to use the config-driven image lookup for that type.
+Same constraints as the wizard's version of this field (see "Get a gateway
+automatically" above): must be an `os = 'firewall'` image available on the network's
+own cloud node.
+
+If the network **already has** a gateway, this is refused (a system comment is left on
+the network, the action ends in an error state) rather than silently provisioning a
+second one — delete the existing gateway first (see "Delete a gateway" below).
 
 > **Requires a manual step outside this codebase**: this dispatches through the
 > generic `do/{action}` mechanism, which looks up the action by name in the
 > `AvailableActions` table (managed externally, same as schema — no seeder exists in
 > this repo). A row needs to exist with `name = provision-gateway`,
-> `input = NextDeveloper\IAAS\Networks`, `class = NextDeveloper\IAAS\Actions\Gateways\Create`
-> before this endpoint will do anything.
+> `input = NextDeveloper\IAAS\Networks`, `class = NextDeveloper\IAAS\Actions\Gateways\ProvisionGateway`
+> before this endpoint will do anything — run `php artisan leo:register-actions` (the
+> existing auto-discovery command) once per environment after this ships to create it;
+> it derives that exact name/input/class from the class itself, no manual DB edit
+> needed.
+
+### Replace an existing gateway's firewall image
+
+There's no atomic "swap" operation — replacing a gateway's firewall image is delete the
+old one, then provision a new one with the image you want, same as changing a VM's
+underlying image anywhere else in this codebase:
+
+```
+DELETE /iaas/gateways/{gateway_id}
+```
+
+Wait for the delete to fully finish (poll `GET /iaas/networks/{ref}` until
+`iaas_gateway_id` is `null` again — deletion tears down the old firewall VM/disks/NICs,
+see "Delete a gateway" below), then:
+
+```
+POST /iaas/networks/{ref}/do/provision-gateway
+```
+```json
+{
+  "iaas_repository_image_id": "<uuid of the new firewall image>"
+}
+```
+
+Calling `provision-gateway` before the delete has finished tearing down the old gateway
+is refused by the guard described above — both the old and new firewall's LAN NIC want
+the same fixed IP (`10.128.0.1`), so this isn't safe to race.
 
 ### Wait for credentials, then check health
 

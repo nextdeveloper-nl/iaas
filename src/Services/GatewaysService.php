@@ -38,7 +38,7 @@ class GatewaysService extends AbstractGatewaysService
      * kept available (not removed, to avoid breaking existing route consumers) only for
      * a datacenter-admin/cloud-node-admin manually attaching an already-existing VM as a
      * gateway; everyone else should provision through GatewaysService::provisionForNetwork()
-     * (via Actions\Networks\Create or the explicit Actions\Gateways\Create action) instead.
+     * (via Actions\Networks\Create or the explicit Actions\Gateways\ProvisionGateway action) instead.
      */
     public static function create(array $data)
     {
@@ -53,7 +53,7 @@ class GatewaysService extends AbstractGatewaysService
      * Provisions a firewall VM for $network and creates its Gateways row - the shared
      * implementation behind both the implicit "network created" flow
      * (Actions\Networks\Create, gated by its own create_gateway param) and the
-     * explicit, user-triggered Actions\Gateways\Create action.
+     * explicit, user-triggered Actions\Gateways\ProvisionGateway action.
      *
      * Throws CannotFindAvailableResourceException (same exception type
      * ComputePoolsService::getDefaultPool()/NetworksService::getPublicNetwork() already
@@ -62,7 +62,7 @@ class GatewaysService extends AbstractGatewaysService
      * real misconfigurations, not expected states, and previously caused an uncaught
      * TypeError (null->uuid) that silently killed the queued provisioning job instead
      * of surfacing anything to the caller. Callers are expected to catch this and
-     * report it clearly (see Actions\Networks\Create and Actions\Gateways\Create).
+     * report it clearly (see Actions\Networks\Create and Actions\Gateways\ProvisionGateway).
      *
      * @param  Networks  $network
      * @param  array  $overrides  may contain 'gateway_type' to pick a driver other than

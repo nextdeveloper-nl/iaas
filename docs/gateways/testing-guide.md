@@ -10,7 +10,7 @@ expected. Pairs with `changes-and-usage.md` (what the API looks like) and
 1. **Queue workers are running for the right queues.** This feature's async steps
    are spread across three queues, all already configured in
    `.docker/supervisord.conf`:
-   - `default` — `Actions\Networks\Create`, `Actions\Gateways\{Create,Delete,Commit}`
+   - `default` — `Actions\Networks\Create`, `Actions\Gateways\{ProvisionGateway,Delete,Commit}`
      (none of these override `$this->queue`, so they land here)
    - `iaas` — `Actions\VirtualMachines\{Commit,Delete,Start}` (the actual hypervisor
      provisioning/teardown)
@@ -33,8 +33,10 @@ expected. Pairs with `changes-and-usage.md` (what the API looks like) and
 3. **The `provision-gateway` action row exists** (only needed if you're testing the
    *explicit* provisioning path, not the automatic one) — an `AvailableActions` row
    with `name = provision-gateway`, `input = NextDeveloper\IAAS\Networks`,
-   `class = NextDeveloper\IAAS\Actions\Gateways\Create`. This is managed externally
-   (no seeder in the repo); confirm it exists before testing that path specifically.
+   `class = NextDeveloper\IAAS\Actions\Gateways\ProvisionGateway`. Run
+   `php artisan leo:register-actions` once per environment to create it (it derives
+   the row from the class itself) if it doesn't exist yet; confirm it exists before
+   testing that path specifically.
 
 ## How to observe what's happening
 
@@ -69,7 +71,7 @@ response. Three places to look, in order of usefulness:
   feature - worth knowing since it'll affect any comment lookup in this codebase,
   not just gateways.
 - **Application logs** — every catch block in `Actions\Networks\Create` and
-  `Actions\Gateways\Create` logs via `Log::error(...)` before leaving a comment;
+  `Actions\Gateways\ProvisionGateway` logs via `Log::error(...)` before leaving a comment;
   `CollectGatewayCredentials` logs each bootstrap attempt's outcome.
 - **`php artisan queue:failed`** — if something threw *before* reaching one of the
   try/catch blocks we added (i.e. a bug rather than an anticipated failure mode),
@@ -186,6 +188,49 @@ Optionally pass a different type:
 (no other type is registered yet, so this is mostly a no-op today, but confirms
 the param is actually threaded through — check
 `config/gateway_drivers.php`'s `platforms` array resolves it).
+
+## Test 3b — Explicit provisioning with a specific firewall image
+
+Same setup as Test 3 (a network with no gateway), but pass `iaas_repository_image_id`
+the same way Test 2b does for the wizard:
+```
+POST /iaas/networks/{ref}/do/provision-gateway
+{ "iaas_repository_image_id": "<uuid of an os=firewall image on that cloud node>" }
+```
+Verify the same way as Test 2b — `$firewall->iaas_repository_image_id` matches the
+requested image, not the config default.
+
+Then verify the guard: call `provision-gateway` again on the **same** network (which
+now has a gateway from the call above):
+```
+POST /iaas/networks/{ref}/do/provision-gateway
+{ "iaas_repository_image_id": "<any other firewall image>" }
+```
+Expect: refused. No second `Gateways` row, no second VM, a system comment reading
+*"This network already has a gateway; delete it first (DELETE /iaas/gateways/{id})
+before provisioning a new one."* — confirm via `Networks::find(...)->iaas_gateway_id`
+still pointing at the original gateway, and no new `Gateways` row for this network.
+
+## Test 3c — Replace an existing gateway's firewall image
+
+Using the network + gateway from Test 3b:
+```
+DELETE /iaas/gateways/{gateway_ref}
+```
+Verify the same way as Test 7 (VM/disks/NICs gone, `iaas_gateway_id` back to `null`).
+Then:
+```
+POST /iaas/networks/{ref}/do/provision-gateway
+{ "iaas_repository_image_id": "<a *different* firewall image than Test 3b used>" }
+```
+Confirm a new gateway/VM exists with the second image, and — since both the deleted
+and the new gateway's LAN NIC want `10.128.0.1/32` — that there's exactly **one**
+`IpAddresses` row at that address for the network, not two left over:
+```php
+\NextDeveloper\IAAS\Database\Models\IpAddresses::where('iaas_network_id', $network->id)
+    ->where('ip_addr', '10.128.0.1/32')
+    ->count(); // should be 1
+```
 
 ## Test 4 — Missing image error path
 

@@ -5,7 +5,8 @@ A gateway gives a network its own dedicated firewall appliance — provisioned a
 ## Key Capabilities
 
 - Auto-provision a firewall VM (WAN + LAN NICs, sane defaults) when a network is created, unless `create_gateway: false` is passed
-- Explicitly provision a gateway on demand for a network that didn't get one automatically
+- Explicitly provision a gateway on demand for a network that doesn't have one — never got one automatically, or a previous one was deleted — refusing rather than duplicating if one already exists
+- Pick a specific firewall image (`iaas_repository_image_id`) instead of the deployment default, at creation time or when provisioning/replacing a gateway explicitly
 - Real, working admin credentials and API access populated automatically after first boot — no manual setup wizard
 - Self-service firewall-rule and NAT/port-forward management through our own API, translated per-driver to the underlying appliance's native config
 - Clean teardown: deleting a gateway (or the network it belongs to) removes the firewall VM, its NICs/disks, and all gateway records — nothing is left orphaned
@@ -17,7 +18,7 @@ A gateway gives a network its own dedicated firewall appliance — provisioned a
 
 Provisioning logic lives in `GatewaysService::provisionForNetwork()`, shared by two entry points:
 - **Implicit** — `Actions\Networks\Create` provisions a gateway automatically for every new network, unless the request explicitly passed `create_gateway: false`.
-- **Explicit** — `Actions\Gateways\Create`, dispatched via `POST /iaas/networks/{ref}/do/provision-gateway`, for a network that needs a gateway added after the fact.
+- **Explicit** — `Actions\Gateways\ProvisionGateway`, dispatched via `POST /iaas/networks/{ref}/do/provision-gateway`, for a network that needs a gateway added after the fact (or replaced — delete the existing one first, see `changes-and-usage.md`).
 
 Credentials can't be known synchronously at provisioning time (the VM hasn't booted yet), so `Jobs\Gateways\CollectGatewayCredentials` is dispatched with a delay, polls until the appliance is reachable, and runs the driver's `bootstrap()` to populate `ssh_username`/`ssh_password`/`ip_addr` on the `Gateways` row, then confirms readiness over NATS (firewall/NAT/health calls no longer go through a REST API on the box).
 
@@ -70,7 +71,7 @@ GET /iaas/gateways/{ref}/health
 
 A few pieces of this feature depend on data or infrastructure this codebase can't manage directly (no migrations, no direct SQL, per project convention):
 
-- **`provision-gateway` action row** — the explicit provisioning endpoint dispatches through the existing generic `AvailableActions` mechanism (same as every other `do/{action}` route). A row needs to exist with `name = provision-gateway`, `input = NextDeveloper\IAAS\Networks`, `class = NextDeveloper\IAAS\Actions\Gateways\Create`.
+- **`provision-gateway` action row** — the explicit provisioning endpoint dispatches through the existing generic `AvailableActions` mechanism (same as every other `do/{action}` route). Run `php artisan leo:register-actions` once per environment to create the row (derives `name = provision-gateway`, `input = NextDeveloper\IAAS\Networks`, `class = NextDeveloper\IAAS\Actions\Gateways\ProvisionGateway` from the class itself).
 - **`pfsense.agent` on the image** — the pfSense CE `RepositoryImages` catalog entry must ship `pfsense.agent` so it connects to NATS via the config-drive on boot, the same way the Linux/Windows agent does. `bootstrap()` only rotates the factory admin password over SSH now; it doesn't install or depend on anything else.
 - **`pfsense.agent` NATS operations** — `PfSenseGatewayDriver` assumes the agent supports `pfsense.firewall.{list,create,delete}` and `pfsense.nat.{list,create,delete}` (see `pfsense.agent/docs/firewall-api.md`), and that those six names are in the config-drive's `allowed_operations`.
 - **`gateway_data` schema** — currently an open JSON shape (`{rules: [...], nat: [...]}`, consumed by `applyConfiguration()`/`Actions\Gateways\Commit`). Worth pinning down a versioned shape before building UI on top of it.

@@ -25,7 +25,10 @@ consciously "create" one at all. Design around that:
 letting the user pick which firewall image provisions the auto-created gateway
 instead of always getting the deployment default. This is a *separate* control from
 anything on the Network detail page below — it only applies at creation time, before
-a gateway exists.
+a gateway exists. The explicit `provision-gateway` action (State 1 and the "Replace
+firewall image" flow below) accepts the same `iaas_repository_image_id` field with the
+same constraints — reuse this same image-picker component/guidance for both, don't
+build it twice.
 
 - Default to **not showing this at all** — nothing changes for users who don't touch
   it, and the deployment default (whatever `leo.iaas.firewalls.<default_firewall_type>`
@@ -109,6 +112,7 @@ a gateway exists.
 │  Admin Login    admin  [Show password ▾]             │
 │                                                       │
 │  [ Firewall Rules (3) ]   [ Port Forwards (1) ]       │
+│                                    [ Replace image ▾]│
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -132,6 +136,23 @@ a gateway exists.
 - "Firewall Rules" / "Port Forwards" open the sub-panels below (either inline
   expansion or a dedicated tab — either works, pick whatever matches this panel's
   existing pattern for VM sub-resources like disks/NICs).
+- **"Replace image"** — a secondary/menu action, not a primary button (this is a
+  destructive, low-frequency operation, unlike the rule/NAT panels). There's no atomic
+  swap on the backend — this button drives a two-step flow client-side:
+  1. Confirm with the same firewall-image picker used on the VDC creation form (same
+     `GET /iaas/repository-images?filter[os]=firewall` source, scoped to this network's
+     cloud node), plus an explicit warning: "This will destroy the current firewall VM
+     and its rules/port forwards. The network will briefly have no gateway until the
+     new one finishes provisioning. This cannot be undone."
+  2. On confirm: `DELETE /iaas/gateways/{ref}`, then poll `GET /iaas/networks/{ref}`
+     until `iaas_gateway_id` goes back to `null`, then `POST
+     /iaas/networks/{ref}/do/provision-gateway` with the newly picked
+     `iaas_repository_image_id`. Fall back to State 2 ("Provisioning") once the second
+     call succeeds.
+  - Calling `provision-gateway` before the delete has finished tearing down is refused
+    by the backend (it doesn't silently create a duplicate) — if that error surfaces
+    (e.g. a client retry raced the delete), just keep polling/waiting rather than
+    treating it as a hard failure.
 
 ### State 4 — Provisioning failed / timed out
 

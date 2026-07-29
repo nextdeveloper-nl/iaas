@@ -12,7 +12,7 @@ and how to call it), `ui-guide.md` (what to build on top of it), and
 |---|---|---|---|
 | R1 | A network gets a working firewall appliance automatically when created, with no extra step required from the caller. | ✅ Implemented | `Actions\Networks\Create` calls `GatewaysService::provisionForNetwork()` unconditionally unless opted out (R2). |
 | R2 | Auto-provisioning can be turned off per network-creation request. | ✅ Implemented | `create_gateway: false` param, threaded from `VdcCreateRequest`/`VirtualDatacenterController` → `VdcServices::createWizard()` → the dispatched action. Default `true`. |
-| R3 | A gateway can also be requested explicitly/on demand for a network that doesn't have one yet (opted out earlier, or provisioning previously failed). | ✅ Implemented | `POST /iaas/networks/{ref}/do/provision-gateway` → `Actions\Gateways\Create`, sharing the same `provisionForNetwork()` logic. **Needs an externally-managed `AvailableActions` row to actually dispatch** — see "External dependencies" below. |
+| R3 | A gateway can also be requested explicitly/on demand for a network that doesn't have one yet (opted out earlier, provisioning previously failed, or a previous gateway was deleted). | ✅ Implemented | `POST /iaas/networks/{ref}/do/provision-gateway` → `Actions\Gateways\ProvisionGateway`, sharing the same `provisionForNetwork()` logic. **Needs `php artisan leo:register-actions` run once per environment to seed its `AvailableActions` row** — see "External dependencies" below. |
 | R4 | The firewall vendor/type is not hardcoded to pfSense — a second vendor can be added without touching calling code. | ✅ Implemented | `Contracts\GatewayDriverInterface` + `GatewayDriverManager`, keyed off `Gateways.gateway_type`, registered in `config/gateway_drivers.php`. `PfSenseGatewayDriver` is the first (only, so far) driver. |
 | R5 | A newly provisioned gateway is reachable with real, working credentials the moment it's ready — no manual pfSense setup wizard. | ✅ Implemented | `Jobs\Gateways\CollectGatewayCredentials` (delayed, retrying job) + `PfSenseGatewayDriver::bootstrap()`, populating `ssh_username`/`ssh_password`/`ip_addr` on the `Gateways` row over SSH, then confirming readiness via a NATS `system.info` call to `pfsense.agent` (see R6-R8; `api_token`/`api_url` are no longer used - firewall/NAT/health go over NATS, not a REST API on the box). |
 | R6 | Users can create, list, and delete firewall rules without touching the appliance's own UI. | ✅ Implemented | `GET/POST /iaas/gateways/{ref}/firewall-rules`, `DELETE .../firewall-rules/{rule}` → `GatewaysService` → `FirewallRuleCapableInterface`. No "edit" — delete + recreate by design (see `ui-guide.md`). |
@@ -21,7 +21,8 @@ and how to call it), `ui-guide.md` (what to build on top of it), and
 | R9 | Deleting a gateway (directly, or via deleting its network) leaves nothing behind — no orphaned VM, disks, NICs, or DB rows. | ✅ Implemented | `Actions\Gateways\Delete` (driver teardown + VM delete + row cleanup) and `Actions\Networks\Delete` (dispatches the above first). This was the specific bug (`trigger_error()` stubs, wrong model types) that made this pass necessary in the first place. |
 | R10 | Credential fields can't be set directly by a normal client — only the system's own bootstrap process, or a privileged admin explicitly attaching an existing VM. | ✅ Implemented | `GatewaysService::create()` strips `ssh_username`/`ssh_password`/`api_token`/`api_url` unless the caller has `datacenter-admin`/`cloud-node-admin`. |
 | R11 | A failure anywhere in provisioning (missing image, misconfiguration) is surfaced clearly to whoever's watching the resource — never a silent no-op, never an uncaught fatal error. | ✅ Implemented | `CannotFindAvailableResourceException` replaces the old uncaught `TypeError`; every skip/failure path (`create_gateway: false`, missing image, provisioning exception) leaves a `CommentsService::createSystemComment()` on the network. |
-| R12 | A caller can pick which firewall image provisions the auto-created gateway, instead of always getting the deployment's config-driven default. | ✅ Implemented (VDC creation only) | `iaas_repository_image_id`, threaded from `VdcCreateRequest`/`VirtualDatacenterController` → `VdcServices::createWizard()` → `Actions\Networks\Create`'s `repository_image_id` param → `GatewaysService::provisionForNetwork()`'s `repository_image_id` override. Must resolve to an `os = 'firewall'` `RepositoryImages` row available on the target cloud node's repositories, or provisioning fails the same way a missing config-driven image does (R11). **Not** wired into the explicit `provision-gateway` action (`Actions\Gateways\Create`) — that path still only accepts `gateway_type`. |
+| R12 | A caller can pick which firewall image provisions the gateway, instead of always getting the deployment's config-driven default — both at VDC-creation time and when provisioning/replacing a gateway explicitly. | ✅ Implemented (both entry points) | `iaas_repository_image_id`, threaded from `VdcCreateRequest`/`VirtualDatacenterController` → `VdcServices::createWizard()` → `Actions\Networks\Create`'s `repository_image_id` param, **and** from the explicit `provision-gateway` action's own `iaas_repository_image_id` request field → `Actions\Gateways\ProvisionGateway` — both converge on `GatewaysService::provisionForNetwork()`'s `repository_image_id` override. Must resolve to an `os = 'firewall'` `RepositoryImages` row available on the target cloud node's repositories, or provisioning fails the same way a missing config-driven image does (R11). |
+| R13 | Provisioning a gateway for a network that already has one is refused, not silently duplicated. | ✅ Implemented | `Actions\Gateways\ProvisionGateway::handle()` checks `iaas_gateway_id` on a fresh load of the network before doing anything else, and leaves a system comment + error status if one already exists. Needed because both old and new firewalls' LAN NIC want the same fixed IP (`10.128.0.1`), and `IpAddressesService::create()` has no uniqueness check — see "Replace an existing gateway's firewall image" in `changes-and-usage.md`. |
 
 ## Non-functional requirements
 
@@ -41,10 +42,6 @@ and how to call it), `ui-guide.md` (what to build on top of it), and
 - **A second firewall vendor.** The abstraction exists to make this cheap later, but
   no second driver has been built — `gateway_type` has exactly one registered value
   (`pfsense`) today.
-- **Picking a custom firewall image (R12) on the explicit `provision-gateway` action.**
-  Only the implicit auto-provision-on-VDC-creation path accepts
-  `iaas_repository_image_id` today; the on-demand action still resolves the image from
-  config only.
 - **HA/failover firewall pairs, VPN/site-to-site configuration, or any config beyond
   basic firewall rules + NAT.** `gateway_data`'s schema is deliberately left open
   (see below) rather than committing to a shape that would need to support these.
@@ -55,10 +52,13 @@ and how to call it), `ui-guide.md` (what to build on top of it), and
 
 ## External dependencies (outside what code alone can deliver)
 
-- **`provision-gateway` `AvailableActions` row** — R3 depends on a DB row this
-  codebase can't seed itself (no migrations, no direct SQL, per project convention).
+- **`provision-gateway` `AvailableActions` row** — R3 depends on a DB row that gets
+  created by running `php artisan leo:register-actions` (the existing action
+  auto-discovery command — not a migration or raw SQL, per project convention) once per
+  environment after `Actions\Gateways\ProvisionGateway` ships. It derives
   `name = provision-gateway`, `input = NextDeveloper\IAAS\Networks`,
-  `class = NextDeveloper\IAAS\Actions\Gateways\Create`.
+  `class = NextDeveloper\IAAS\Actions\Gateways\ProvisionGateway` automatically from the
+  class itself — no manual DB edit needed, just remembering to run the command.
 - **pfSense CE 2.7.2 `RepositoryImages` catalog entry** — R1/R3/R5 all depend on this
   existing and matching `config('leo.iaas.firewalls.pfsense')`. Confirmed already
   registered.
