@@ -14,24 +14,24 @@ use NextDeveloper\IAAS\Services\GatewaysService;
 use NextDeveloper\IAAS\ValueObjects\GatewayFirewallRule;
 use NextDeveloper\IAAS\ValueObjects\GatewayHealthStatus;
 use NextDeveloper\IAAS\ValueObjects\GatewayPortForward;
-use phpseclib3\Net\SSH2;
 
 /**
  * First concrete GatewayDriverInterface implementation, registered under the "pfsense"
- * gateway_type in config/gateway_drivers.php. Firewall-rule/NAT management and health
- * checks go over the NATS connection pfsense.agent already holds (see
- * pfsense.agent/docs/firewall-api.md) via AgentCommandService - no REST API package or
- * inbound port needed on the appliance. SSH is used only for bootstrap()'s one-time
- * admin password rotation.
+ * gateway_type in config/gateway_drivers.php. Everything - bootstrap's one-time admin
+ * password rotation included - goes over the NATS connection pfsense.agent already
+ * holds (see pfsense.agent/docs/firewall-api.md) via AgentCommandService. No REST API
+ * package, and no inbound port (SSH included) needed on the appliance at all: the agent
+ * connects out to NATS on its own and runs commands with its own local privileges,
+ * which is also why bootstrap() doesn't need to authenticate with any existing/factory
+ * credentials before rotating the password.
  */
 class PfSenseGatewayDriver implements GatewayDriverInterface, FirewallRuleCapableInterface, NatCapableInterface
 {
     /**
-     * Factory-default pfSense CE credentials - public, documented defaults (not a secret),
-     * used only to reach a freshly booted appliance before bootstrap() rotates them.
+     * pfSense CE's default admin account name - assumed for a gateway that hasn't had
+     * its credentials rotated yet (no ssh_username recorded on the row).
      */
     private const FACTORY_USERNAME = 'admin';
-    private const FACTORY_PASSWORD = 'pfsense';
 
     public function __construct(private readonly array $config = [])
     {
@@ -41,43 +41,40 @@ class PfSenseGatewayDriver implements GatewayDriverInterface, FirewallRuleCapabl
 
     public function bootstrap(Gateways $gateway): GatewayHealthStatus
     {
-        $ipAddr = $gateway->ip_addr ?: $this->resolveWanIp($gateway);
-
-        if (!$ipAddr) {
-            return new GatewayHealthStatus(false, false, 'Gateway VM has no WAN IP yet - not booted, or DHCP lease not assigned.');
-        }
-
-        try {
-            $ssh = new SSH2($ipAddr, 22, 15);
-        } catch (\Throwable $e) {
-            return new GatewayHealthStatus(false, false, 'Could not open SSH connection: ' . $e->getMessage());
-        }
-
         $username = $gateway->ssh_username ?: self::FACTORY_USERNAME;
-        $password = $gateway->ssh_password ?: self::FACTORY_PASSWORD;
-
-        if (!$ssh->login($username, $password)) {
-            return new GatewayHealthStatus(false, false, 'SSH authentication failed with configured/factory credentials.');
-        }
-
         $generatedPassword = $gateway->ssh_password ?: Str::password(24, symbols: false);
 
-        //  pfSense's console shell exposes pfSsh.php for scripted admin operations
-        //  (documented, long-standing pfSense feature) - used here to rotate the admin
-        //  password away from the factory default so nobody has to walk through the web
-        //  setup wizard by hand. Firewall/NAT management and health no longer go through
-        //  a REST API on the box - they go over the NATS connection pfsense.agent already
-        //  holds (see healthCheck()/listRules()/etc below), so there's nothing else to
-        //  provision here.
-        $ssh->exec('pfSsh.php playback changePassword ' . escapeshellarg($generatedPassword));
+        try {
+            //  Runs locally on the box via the agent's own privileges - no inbound
+            //  connectivity to the appliance needed (a gateway/firewall may legitimately
+            //  never allow that), and no need to authenticate with any existing/factory
+            //  password first, unlike the SSH approach this replaced. Also covers
+            //  AgentTimeoutException (VM/agent not up yet - the expected state on early
+            //  CollectGatewayCredentials attempts - see that class's own retry/backoff),
+            //  since agentSend() lets it propagate rather than catching it itself.
+            $output = $this->agentSend($gateway, 'pfsense.set_password', [
+                'username' => $username,
+                'password' => $generatedPassword,
+            ]);
+        } catch (\Throwable $e) {
+            return new GatewayHealthStatus(false, false, 'Could not set admin password: ' . $e->getMessage());
+        }
+
+        //  agentSend() only checks the envelope's own status (rejected/failed/completed).
+        //  A nil Go-level error can still carry success=false in the operation's own
+        //  result (see SetPasswordResult in pfsense.agent) - status is "completed" either
+        //  way, so this has to be checked separately.
+        if (!($output['success'] ?? false)) {
+            return new GatewayHealthStatus(false, false, 'Agent reported password change failure: ' . ($output['message'] ?? 'no message'));
+        }
 
         GatewaysService::update($gateway->uuid, [
-            'ip_addr'      => $ipAddr,
+            'ip_addr'      => $gateway->ip_addr ?: $this->resolveWanIp($gateway),
             'ssh_username' => $username,
             'ssh_password' => $generatedPassword,
         ]);
 
-        Log::info(__METHOD__ . " | Bootstrapped pfSense gateway {$gateway->uuid} at {$ipAddr}");
+        Log::info(__METHOD__ . " | Bootstrapped pfSense gateway {$gateway->uuid}");
 
         return $this->healthCheck($gateway);
     }

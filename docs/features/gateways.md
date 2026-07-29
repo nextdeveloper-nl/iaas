@@ -20,7 +20,7 @@ Provisioning logic lives in `GatewaysService::provisionForNetwork()`, shared by 
 - **Implicit** — `Actions\Networks\Create` provisions a gateway automatically for every new network, unless the request explicitly passed `create_gateway: false`.
 - **Explicit** — `Actions\Gateways\ProvisionGateway`, dispatched via `POST /iaas/networks/{ref}/do/provision-gateway`, for a network that needs a gateway added after the fact (or replaced — delete the existing one first, see `changes-and-usage.md`).
 
-Credentials can't be known synchronously at provisioning time (the VM hasn't booted yet), so `Jobs\Gateways\CollectGatewayCredentials` is dispatched with a delay, polls until the appliance is reachable, and runs the driver's `bootstrap()` to populate `ssh_username`/`ssh_password`/`ip_addr` on the `Gateways` row, then confirms readiness over NATS (firewall/NAT/health calls no longer go through a REST API on the box).
+Credentials can't be known synchronously at provisioning time (the VM hasn't booted yet), so `Jobs\Gateways\CollectGatewayCredentials` is dispatched with a delay, polls until the appliance is reachable, and runs the driver's `bootstrap()` to populate `ssh_username`/`ssh_password`/`ip_addr` on the `Gateways` row - by sending `pfsense.set_password` to the VM's own agent over NATS, not SSH, so no inbound connectivity to the appliance is ever needed - then confirms readiness over NATS the same way (firewall/NAT/health calls go through the same channel, not a REST API or SSH on the box).
 
 ## API Examples
 
@@ -72,8 +72,8 @@ GET /iaas/gateways/{ref}/health
 A few pieces of this feature depend on data or infrastructure this codebase can't manage directly (no migrations, no direct SQL, per project convention):
 
 - **`provision-gateway` action row** — the explicit provisioning endpoint dispatches through the existing generic `AvailableActions` mechanism (same as every other `do/{action}` route). Run `php artisan leo:register-actions` once per environment to create the row (derives `name = provision-gateway`, `input = NextDeveloper\IAAS\Networks`, `class = NextDeveloper\IAAS\Actions\Gateways\ProvisionGateway` from the class itself).
-- **`pfsense.agent` on the image** — the pfSense CE `RepositoryImages` catalog entry must ship `pfsense.agent` so it connects to NATS via the config-drive on boot, the same way the Linux/Windows agent does. `bootstrap()` only rotates the factory admin password over SSH now; it doesn't install or depend on anything else.
-- **`pfsense.agent` NATS operations** — `PfSenseGatewayDriver` assumes the agent supports `pfsense.firewall.{list,create,delete}` and `pfsense.nat.{list,create,delete}` (see `pfsense.agent/docs/firewall-api.md`), and that those six names are in the config-drive's `allowed_operations`.
+- **`pfsense.agent` on the image** — the pfSense CE `RepositoryImages` catalog entry must ship `pfsense.agent` so it connects to NATS via the config-drive on boot, the same way the Linux/Windows agent does. `bootstrap()` rotates the admin password by sending `pfsense.set_password` to the agent over that same NATS connection now (no SSH, no inbound port); it doesn't install or depend on anything else.
+- **`pfsense.agent` NATS operations** — `PfSenseGatewayDriver` assumes the agent supports `pfsense.set_password`, `pfsense.firewall.{list,create,delete}` and `pfsense.nat.{list,create,delete}` (see `pfsense.agent/docs/firewall-api.md`), and that those seven names are in the config-drive's `allowed_operations`.
 - **`gateway_data` schema** — currently an open JSON shape (`{rules: [...], nat: [...]}`, consumed by `applyConfiguration()`/`Actions\Gateways\Commit`). Worth pinning down a versioned shape before building UI on top of it.
 
 ## Related Features

@@ -125,7 +125,7 @@ GET /iaas/gateways/{gateway_ref}
 populated. If they're still null after ~30 minutes (10 retry attempts at the
 job's own backoff schedule: 60s, 60s, 120s, 120s, 180s, 180s, 300s×4 ≈ 27 min
 total), something's wrong — check the comments/logs for the specific
-`bootstrap()` failure message (SSH auth failure, no WAN IP, etc.).
+`bootstrap()` failure message (agent didn't respond yet, `pfsense.set_password` rejected/failed, etc.).
 
 ## Test 2 — Opt-out (`create_gateway: false`)
 

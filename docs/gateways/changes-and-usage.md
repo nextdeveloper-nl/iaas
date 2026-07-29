@@ -116,20 +116,26 @@ this codebase needs to change.
 gateway is provisioned. It polls until the appliance is reachable, then runs
 `PfSenseGatewayDriver::bootstrap()`, which:
 
-- SSHes in with the factory-default pfSense credentials (or whatever's already on the
-  `Gateways` row, if this isn't the first attempt),
-- rotates the admin password to a generated one via pfSense's `pfSsh.php playback
-  changePassword` shell command,
+- sends `pfsense.set_password` (username + a generated password, or whatever's already
+  on the `Gateways` row if this isn't the first attempt) to the gateway VM's
+  `pfsense.agent` over NATS - the agent runs the rotation locally with its own
+  privileges, so this needs no inbound connectivity to the appliance at all (originally
+  this was SSH-based; that required inbound reachability to the appliance's WAN IP,
+  which a firewall/gateway may legitimately never allow - switched over once the agent
+  gained a NATS-native `pfsense.set_password` operation, already whitelisted in
+  `VirtualMachinesMetadataService::buildAgentConfiguration()`'s `allowed_operations`
+  but never actually wired up here until this pass),
 - writes `ssh_username`, `ssh_password`, and `ip_addr` back onto the `Gateways` row via
-  `GatewaysService::update()`,
+  `GatewaysService::update()` (the field names are unchanged - these are still the
+  appliance's real admin credentials, just no longer used by this app *over* SSH; a
+  human admin can still use them to SSH/console/web-login directly if that path is open),
 - then confirms readiness the same way `healthCheck()` does: a `system.info` command
   sent over NATS to the gateway VM's `pfsense.agent`.
 
-Firewall/NAT/health no longer go through a REST API on the box - `pfsense.agent`
-connects to NATS the same way any other VM agent does (via the config-drive, not
-anything `bootstrap()` sets up), so there's no API package to install or token to
-generate anymore. `api_token`/`api_url` on the `Gateways` row are no longer populated by
-this driver.
+Firewall/NAT/health/bootstrap all go over the NATS connection `pfsense.agent` already
+holds (via the config-drive, not anything `bootstrap()` sets up) - no REST API package,
+and no inbound port of any kind, needed on the box. `api_token`/`api_url` on the
+`Gateways` row are no longer populated by this driver.
 
 If the VM isn't booted yet, `bootstrap()` reports `reachable: false` and the job
 retries with backoff (10 attempts, backing off from 60s up to 300s) rather than
@@ -363,5 +369,5 @@ removes the `Gateways` row. Deleting the network itself
   [...]}`). Worth pinning down a versioned shape before building UI or automation on
   top of `Actions\Gateways\Commit`'s bulk-apply path.
 - **`RepositoryImages.post_boot_script`** for the pfSense image is optional but
-  recommended — without it, `bootstrap()` still works purely over SSH, just slightly
-  slower on first boot.
+  recommended — without it, `bootstrap()` still works once `pfsense.agent` connects to
+  NATS on its own, just slightly slower on first boot.
