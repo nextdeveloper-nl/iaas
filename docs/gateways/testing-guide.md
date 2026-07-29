@@ -10,10 +10,12 @@ expected. Pairs with `changes-and-usage.md` (what the API looks like) and
 1. **Queue workers are running for the right queues.** This feature's async steps
    are spread across three queues, all already configured in
    `.docker/supervisord.conf`:
-   - `default` — `Actions\Networks\Create`, `Actions\Gateways\{ProvisionGateway,Delete,Commit}`
-     (none of these override `$this->queue`, so they land here)
-   - `iaas` — `Actions\VirtualMachines\{Commit,Delete,Start}` (the actual hypervisor
-     provisioning/teardown)
+   - `default` — `Actions\Networks\Create`, `Actions\Gateways\{Delete,Commit}` (none of
+     these override `$this->queue`, so they land here)
+   - `iaas` — `Actions\Gateways\ProvisionGateway` (sets `$this->queue = 'iaas'`, since
+     it does the same actual hypervisor provisioning work as the implicit path, just
+     triggered explicitly) and `Actions\VirtualMachines\{Commit,Delete,Start}` (the
+     actual hypervisor provisioning/teardown)
    - `iaas-config` — `Jobs\Gateways\CollectGatewayCredentials`,
      `Jobs\VirtualMachines\GenerateCloudInitImage`
 

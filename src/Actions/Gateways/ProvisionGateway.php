@@ -31,6 +31,8 @@ class ProvisionGateway extends AbstractAction
     {
         $this->model = $network;
 
+        $this->queue = 'iaas';
+
         parent::__construct($params, $previousAction);
     }
 
