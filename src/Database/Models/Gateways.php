@@ -30,6 +30,9 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property string $api_token
  * @property string $api_url
  * @property string $gateway_type
+ * @property string $hostname
+ * @property string $domain_type
+ * @property integer $common_domain_id
  * @property integer $iam_account_id
  * @property integer $iam_user_id
  * @property \Carbon\Carbon $created_at
@@ -62,6 +65,9 @@ class Gateways extends Model
             'api_token',
             'api_url',
             'gateway_type',
+            'hostname',
+            'domain_type',
+            'common_domain_id',
             'iam_account_id',
             'iam_user_id',
     ];
@@ -96,6 +102,9 @@ class Gateways extends Model
     'api_token' => 'string',
     'api_url' => 'string',
     'gateway_type' => 'string',
+    'hostname' => 'string',
+    'domain_type' => 'string',
+    'common_domain_id' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',

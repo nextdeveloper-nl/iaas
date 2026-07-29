@@ -55,6 +55,7 @@ class AbstractGatewaysTransformer extends AbstractTransformer
     public function transform(Gateways $model)
     {
                                                 $iaasVirtualMachineId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->iaas_virtual_machine_id)->first();
+                                                            $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
 
@@ -71,6 +72,9 @@ class AbstractGatewaysTransformer extends AbstractTransformer
             'api_token'  =>  $model->api_token,
             'api_url'  =>  $model->api_url,
             'gateway_type'  =>  $model->gateway_type,
+            'hostname'  =>  $model->hostname,
+            'domain_type'  =>  $model->domain_type,
+            'common_domain_id'  =>  $commonDomainId ? $commonDomainId->uuid : null,
             'iam_account_id'  =>  $iamAccountId ? $iamAccountId->uuid : null,
             'iam_user_id'  =>  $iamUserId ? $iamUserId->uuid : null,
             'created_at'  =>  $model->created_at,

@@ -183,6 +183,12 @@ class AbstractGatewaysService
                 $data['iaas_virtual_machine_id']
             );
         }
+        if (array_key_exists('common_domain_id', $data)) {
+            $data['common_domain_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\Commons\Database\Models\Domains',
+                $data['common_domain_id']
+            );
+        }
         if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
@@ -253,6 +259,12 @@ class AbstractGatewaysService
             $data['iaas_virtual_machine_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\VirtualMachines',
                 $data['iaas_virtual_machine_id']
+            );
+        }
+        if (array_key_exists('common_domain_id', $data)) {
+            $data['common_domain_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\Commons\Database\Models\Domains',
+                $data['common_domain_id']
             );
         }
         if (array_key_exists('iam_account_id', $data)) {

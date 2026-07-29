@@ -190,6 +190,36 @@ class GatewaysQueryFilter extends AbstractQueryFilter
         }
     }
 
+    public function hostname($value)
+    {
+        return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
+    }
+
+    public function domainType($value)
+    {
+        return $this->builder->where('domain_type', 'ilike', '%' . $value . '%');
+    }
+
+        //  This is an alias function of domainType
+    public function domain_type($value)
+    {
+        return $this->domainType($value);
+    }
+
+    public function commonDomainId($value)
+    {
+            $commonDomain = \NextDeveloper\Commons\Database\Models\Domains::where('uuid', $value)->first();
+
+        if($commonDomain) {
+            return $this->builder->where('common_domain_id', '=', $commonDomain->id);
+        }
+    }
+
+        //  This is an alias function of commonDomainId
+    public function common_domain_id($value)
+    {
+        return $this->commonDomainId($value);
+    }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
