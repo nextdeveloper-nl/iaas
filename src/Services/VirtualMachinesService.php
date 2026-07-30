@@ -17,11 +17,13 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Delete;
 use NextDeveloper\IAAS\Contracts\ConsoleCapableInterface;
+use NextDeveloper\IAAS\Actions\DhcpServers\UpdateConfiguration as UpdateDhcpConfiguration;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
 use NextDeveloper\IAAS\Database\Models\Accounts as IaasAccounts;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
@@ -42,6 +44,7 @@ use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
 use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualNetworkCardsXenService;
 use NextDeveloper\IAM\Database\Models\Accounts;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -1328,13 +1331,21 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     /**
      * Merges $orphan's network card records onto $target's, matched by device_number - same
-     * approach as mergeMigratedDisks().
+     * approach as mergeMigratedDisks(). Since the newly imported VIF gets a fresh hypervisor
+     * object (and usually a new mac_addr), any ip already bound to the surviving VIF row (via
+     * IpAddresses.iaas_virtual_network_card_id, which is untouched here since we update rows in
+     * place rather than cloning them) needs its ipv4-allowed/locking-mode re-applied against the
+     * *new* hypervisor object, and the network's DHCP config regenerated so its fixed-address
+     * stanza points at the new mac. Mirrors the steps
+     * LocalDiskMigrationService::syncDatabaseRecords() takes after cloning a VIF.
      */
     private static function mergeMigratedNetworkCards(VirtualMachines $orphan, VirtualMachines $target): void
     {
         $orphanVifs = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_virtual_machine_id', $orphan->id)
             ->get();
+
+        $dhcpServersSeen = [];
 
         foreach ($orphanVifs as $orphanVif) {
             $targetVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
@@ -1343,6 +1354,8 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 ->first();
 
             if ($targetVif) {
+                $hypervisorObjectChanged = $targetVif->hypervisor_uuid !== $orphanVif->hypervisor_uuid;
+
                 $targetVif->updateQuietly([
                     'mac_addr'        => $orphanVif->mac_addr,
                     'iaas_network_id' => $orphanVif->iaas_network_id,
@@ -1352,12 +1365,61 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 ]);
 
                 $orphanVif->forceDelete();
+
+                $vif = $targetVif->fresh();
             } else {
+                $hypervisorObjectChanged = true;
+
                 $orphanVif->updateQuietly([
                     'iaas_virtual_machine_id' => $target->id,
                     'iam_account_id'          => $target->iam_account_id,
                     'iam_user_id'             => $target->iam_user_id,
                 ]);
+
+                $vif = $orphanVif->fresh();
+            }
+
+            if (!$hypervisorObjectChanged) {
+                continue;
+            }
+
+            $ipAddresses = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_network_card_id', $vif->id)
+                ->whereNull('deleted_at')
+                ->get();
+
+            if ($ipAddresses->isEmpty()) {
+                continue;
+            }
+
+            try {
+                VirtualNetworkCardsXenService::setIpv4Allowed($vif);
+                VirtualNetworkCardsXenService::setLockingState($vif, VirtualNetworkCardsXenService::LOCKED);
+
+                Log::info('[VirtualMachinesService::mergeMigratedNetworkCards] Applied ipv4-allowed + ' .
+                    'locking-mode=locked on VIF id=' . $vif->id . ' for ' . $ipAddresses->count() . ' ip(s).');
+            } catch (\Exception $e) {
+                Log::error('[VirtualMachinesService::mergeMigratedNetworkCards] Failed to re-apply ' .
+                    'ipv4-allowed/locking-mode on VIF id=' . $vif->id . ': ' . $e->getMessage() .
+                    ' - the ip(s) may not pass traffic on the new host until this is fixed manually.');
+            }
+
+            if ($vif->iaas_network_id && !isset($dhcpServersSeen[$vif->iaas_network_id])) {
+                $dhcpServersSeen[$vif->iaas_network_id] = true;
+
+                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('id', $vif->iaas_network_id)
+                    ->first();
+
+                $dhcpServer = $network?->dhcpServers;
+
+                if ($dhcpServer) {
+                    dispatch(new UpdateDhcpConfiguration($dhcpServer));
+
+                    Log::info('[VirtualMachinesService::mergeMigratedNetworkCards] Dispatched DHCP ' .
+                        'UpdateConfiguration for network_id=' . $vif->iaas_network_id .
+                        ', dhcp_server_id=' . $dhcpServer->id);
+                }
             }
         }
     }
