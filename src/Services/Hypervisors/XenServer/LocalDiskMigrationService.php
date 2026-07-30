@@ -197,24 +197,56 @@ class LocalDiskMigrationService implements MigrationInterface
         $options['target_sr_mount_path'] = $targetSrPath;
         $migration->updateQuietly(['options' => json_encode($options)]);
 
-        // ── CHECK 7: Source hypervisor can reach target hypervisor via SSH ─────
-        // Required for the direct rsync-over-SSH in copyVhdFiles.
+        // ── CHECK 7: sshpass is available on the source host ───────────────────
+        // Hypervisors aren't assumed to have passwordless key trust between
+        // them, so the cross-host hop in copyVhdFiles() authenticates with the
+        // target's own stored ssh_password (the same credential this app uses
+        // to reach it directly) via sshpass. Install it on the fly if missing.
+        $this->updateStep($migration, 'pre-flight-checks', 10, 'Verifying sshpass is available on source host');
+
+        $sshpassCheck = trim(self::performCommand(
+            'command -v sshpass >/dev/null 2>&1 && echo ok || echo missing',
+            $source
+        )['output'] ?? '');
+
+        if ($sshpassCheck !== 'ok') {
+            self::performCommand(
+                '(yum install -y sshpass || apt-get install -y sshpass) >/dev/null 2>&1',
+                $source
+            );
+
+            $sshpassCheck = trim(self::performCommand(
+                'command -v sshpass >/dev/null 2>&1 && echo ok || echo missing',
+                $source
+            )['output'] ?? '');
+        }
+
+        if ($sshpassCheck !== 'ok') {
+            throw new \Exception(
+                '"sshpass" is not installed on source host "' . $source->name . '" and could not be installed '
+                . 'automatically. Install it manually (e.g. "yum install -y sshpass") — it\'s required to '
+                . 'authenticate the cross-host export/import stream with the target host\'s password.'
+            );
+        }
+
+        // ── CHECK 8: Source hypervisor can reach target hypervisor via SSH ─────
+        // Required for the export/import stream in copyVhdFiles.
         $this->updateStep($migration, 'pre-flight-checks', 11,
             'Verifying SSH reachability from source to target hypervisor');
 
-        $targetIp = explode('/', $target->ip_addr)[0];
+        [$sshPrefix, $sshPrefixRedacted] = self::crossHostSshPrefix($target);
 
         $result = self::performCommand(
-            'ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=10 '
-            . escapeshellarg('root@' . $targetIp) . ' echo ok 2>&1',
-            $source
+            $sshPrefix . ' echo ok 2>&1',
+            $source,
+            $sshPrefixRedacted . ' echo ok 2>&1'
         );
 
         if (trim($result['output']) !== 'ok') {
             throw new \Exception(
                 'Source host "' . $source->name . '" cannot reach target host "' . $target->name . '" ('
-                . $targetIp . ') via passwordless SSH. '
-                . 'Ensure SSH key authentication is configured between the two hypervisors.'
+                . explode('/', $target->ip_addr)[0] . ') via SSH using the target\'s stored credentials. '
+                . 'Output: ' . trim($result['output']) . (!empty($result['error']) ? ' | Error: ' . trim($result['error']) : '')
             );
         }
 
@@ -758,20 +790,23 @@ class LocalDiskMigrationService implements MigrationInterface
             ->where('id', $migration->target_iaas_storage_volume_id)
             ->firstOrFail();
 
-        $targetIp = explode('/', $target->ip_addr)[0];
-
         $importCmd = 'xe vm-import filename=/dev/stdin'
             . ' sr-uuid=' . escapeshellarg($targetStorageVolume->hypervisor_uuid)
             . ' --preserve';
 
+        [$sshPrefix, $sshPrefixRedacted] = self::crossHostSshPrefix($target);
+
         $pipeCmd = 'xe vm-export uuid=' . escapeshellarg($vm->hypervisor_uuid) . ' filename=/dev/stdout'
-            . ' | ssh -o StrictHostKeyChecking=no -o BatchMode=yes ' . escapeshellarg('root@' . $targetIp)
-            . ' ' . escapeshellarg($importCmd);
+            . ' | ' . $sshPrefix . ' ' . escapeshellarg($importCmd);
+        $pipeCmdRedacted = 'xe vm-export uuid=' . escapeshellarg($vm->hypervisor_uuid) . ' filename=/dev/stdout'
+            . ' | ' . $sshPrefixRedacted . ' ' . escapeshellarg($importCmd);
 
         if ($isDryRun) {
+            // Redacted form only — the real command embeds the target host's plaintext
+            // ssh_password and must never be logged or persisted to migration options.
             $options['dry_run_commands'] = [[
                 'host'    => $source->name,
-                'command' => $pipeCmd,
+                'command' => $pipeCmdRedacted,
                 'note'    => 'Stream-export VM "' . $vm->name . '" → import on ' . $target->name
                     . ' (SR ' . $targetStorageVolume->name . ')',
             ]];
@@ -792,7 +827,7 @@ class LocalDiskMigrationService implements MigrationInterface
         Log::info(__METHOD__ . ' | Starting export/import stream: ' . $source->name . ' → ' . $target->name
             . ' (SR ' . $targetStorageVolume->hypervisor_uuid . ')');
 
-        $result = self::performCommand($pipeCmd, $source);
+        $result = self::performCommand($pipeCmd, $source, $pipeCmdRedacted);
 
         $outputLines = preg_split('/\r\n|\r|\n/', trim($result['output'] ?? ''));
         $newVmUuid   = trim((string) end($outputLines));
@@ -1603,9 +1638,14 @@ class LocalDiskMigrationService implements MigrationInterface
         return $newCmni->network_uuid;
     }
 
-    private static function performCommand(string $command, ComputeMembers $computeMember): array
+    /**
+     * @param string|null $logAs Redacted version of $command to log instead — use when
+     *                           $command embeds a secret (e.g. a cross-host SSH password)
+     *                           that must not land in logs or be persisted to migration options.
+     */
+    private static function performCommand(string $command, ComputeMembers $computeMember, ?string $logAs = null): array
     {
-        logger()->debug('[LocalDiskMigrationService] [ComputeMember:' . $computeMember->name . '] $ ' . $command);
+        logger()->debug('[LocalDiskMigrationService] [ComputeMember:' . $computeMember->name . '] $ ' . ($logAs ?? $command));
 
         $result = $computeMember->is_management_agent_available
             ? $computeMember->performAgentCommand($command)
@@ -1616,6 +1656,32 @@ class LocalDiskMigrationService implements MigrationInterface
             . ($result['error'] ? ' | err: ' . trim($result['error']) : ''));
 
         return $result;
+    }
+
+    /**
+     * Builds an sshpass-wrapped `ssh` prefix authenticating to $target as root using its
+     * own stored ssh_password (the same credential this app already uses to reach it
+     * directly) — hypervisors aren't assumed to have passwordless key trust between them.
+     * Returns [realPrefix, redactedPrefix]; always use the redacted form for anything that
+     * gets logged or persisted (e.g. migration options), since the real one embeds the
+     * plaintext password.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private static function crossHostSshPrefix(ComputeMembers $target): array
+    {
+        $targetIp = explode('/', $target->ip_addr)[0];
+        $password = decrypt($target->ssh_password);
+
+        $sshOpts = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10'
+            . ' -o PreferredAuthentications=password -o PubkeyAuthentication=no';
+
+        $real     = 'SSHPASS=' . escapeshellarg($password) . ' sshpass -e ssh ' . $sshOpts
+            . ' ' . escapeshellarg('root@' . $targetIp);
+        $redacted = 'SSHPASS=' . escapeshellarg('***') . ' sshpass -e ssh ' . $sshOpts
+            . ' ' . escapeshellarg('root@' . $targetIp);
+
+        return [$real, $redacted];
     }
 
     private static function parseVmDiskList(string $output): array
