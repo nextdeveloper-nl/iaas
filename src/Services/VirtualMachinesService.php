@@ -1214,18 +1214,23 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
      * This finds those (orphan, target) pairs: an orphan VM whose name is itself a uuid, and a
      * different VM whose uuid equals that name.
      *
+     * Uses withoutGlobalScopes() (not just AuthorizationScope) because VirtualMachines also
+     * registers Commons\LimitScope, which silently caps unscoped queries at $perPage (20) rows -
+     * same reason ScanVirtualMachines::scanXenVirtualMachines() and DetectIpCollisions strip it.
+     * Without this, a production table with more than 20 VMs would never reach the orphan row.
+     *
      * @return \Illuminate\Support\Collection<int, array{orphan: VirtualMachines, target: VirtualMachines}>
      */
     public static function findMigratedLocalDiskVmCandidates(): \Illuminate\Support\Collection
     {
-        $orphans = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+        $orphans = VirtualMachines::withoutGlobalScopes()
             ->get()
             ->filter(fn ($vm) => Str::isUuid($vm->name));
 
         $pairs = collect();
 
         foreach ($orphans as $orphan) {
-            $target = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            $target = VirtualMachines::withoutGlobalScopes()
                 ->where('uuid', $orphan->name)
                 ->where('id', '!=', $orphan->id)
                 ->first();
@@ -1295,12 +1300,12 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
      */
     private static function mergeMigratedDisks(VirtualMachines $orphan, VirtualMachines $target): void
     {
-        $orphanDisks = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+        $orphanDisks = VirtualDiskImages::withoutGlobalScopes()
             ->where('iaas_virtual_machine_id', $orphan->id)
             ->get();
 
         foreach ($orphanDisks as $orphanDisk) {
-            $targetDisk = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            $targetDisk = VirtualDiskImages::withoutGlobalScopes()
                 ->where('iaas_virtual_machine_id', $target->id)
                 ->where('device_number', $orphanDisk->device_number)
                 ->first();
@@ -1341,14 +1346,14 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
      */
     private static function mergeMigratedNetworkCards(VirtualMachines $orphan, VirtualMachines $target): void
     {
-        $orphanVifs = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+        $orphanVifs = VirtualNetworkCards::withoutGlobalScopes()
             ->where('iaas_virtual_machine_id', $orphan->id)
             ->get();
 
         $dhcpServersSeen = [];
 
         foreach ($orphanVifs as $orphanVif) {
-            $targetVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+            $targetVif = VirtualNetworkCards::withoutGlobalScopes()
                 ->where('iaas_virtual_machine_id', $target->id)
                 ->where('device_number', $orphanVif->device_number)
                 ->first();
@@ -1383,7 +1388,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 continue;
             }
 
-            $ipAddresses = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+            $ipAddresses = IpAddresses::withoutGlobalScopes()
                 ->where('iaas_virtual_network_card_id', $vif->id)
                 ->whereNull('deleted_at')
                 ->get();
@@ -1407,7 +1412,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             if ($vif->iaas_network_id && !isset($dhcpServersSeen[$vif->iaas_network_id])) {
                 $dhcpServersSeen[$vif->iaas_network_id] = true;
 
-                $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+                $network = Networks::withoutGlobalScopes()
                     ->where('id', $vif->iaas_network_id)
                     ->first();
 
