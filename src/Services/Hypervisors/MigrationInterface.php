@@ -42,28 +42,40 @@ interface MigrationInterface
     public function shutdownSourceVm(VirtualMachineMigrations $migration): void;
 
     /**
-     * STEP 5 — Copy each VDI's VHD file from the source NFS SR to the target NFS SR.
-     * Preferred: rsync with --checksum --progress over SSH.
-     * Fallback: dd over SSH pipe.
-     * Verifies file integrity (size or checksum) after each transfer.
+     * STEP 5 — Get the VM's disk data onto the target host. Strategy is
+     * implementation-specific: MigrationService rsyncs each VDI's VHD file from
+     * the source NFS SR to the target NFS SR; LocalDiskMigrationService streams
+     * `xe vm-export | ssh ... xe vm-import` so xe itself imports the VM (disks
+     * and metadata) directly onto the target's local SR — this also produces
+     * the target VM UUID that later steps use, since a live import can't be
+     * matched back to the source by VDI UUID (see Step 6).
      *
      * @throws \Exception on transfer or integrity failure
      */
     public function copyVhdFiles(VirtualMachineMigrations $migration): void;
 
     /**
-     * STEP 6 — Trigger `xe sr-scan` on the target host, then query the SR to find
-     * newly detected VDIs. Returns a map of original VDI UUID => new VDI UUID on target.
+     * STEP 6 — Reconcile disk identity between source and target. Returns a map
+     * of original VDI UUID => new VDI UUID on target. Strategy is
+     * implementation-specific: MigrationService triggers `xe sr-scan` on the
+     * target SR since its rsync copy preserves VDI UUIDs, so the source UUID is
+     * still present after the scan; LocalDiskMigrationService's target VM
+     * already exists (from Step 5's vm-import, which always allocates fresh
+     * VDI UUIDs), so it matches disks by VBD device number instead.
      *
      * @return array<string, string> [ source_vdi_uuid => target_vdi_uuid ]
      */
     public function rescanTargetSr(VirtualMachineMigrations $migration): array;
 
     /**
-     * STEP 7 — Recreate the VM record on the target host using the metadata collected
-     * in Step 2: VM record, vCPU/memory params, HVM/platform params, VBDs (with the
-     * new VDI UUIDs from Step 6), and VIFs (using operator-supplied network UUID mapping,
-     * preserving original MAC addresses). VM is NOT started.
+     * STEP 7 — Get the VM into its final, correctly-networked state on the
+     * target host. VM is NOT started. Strategy is implementation-specific:
+     * MigrationService builds the VM record from scratch (VM record,
+     * vCPU/memory/platform params, VBDs using the Step 6 VDI map, VIFs);
+     * LocalDiskMigrationService's VM already exists post-import with correct
+     * vCPU/memory/platform/VBDs, so it only needs to destroy the imported VIFs
+     * (whose network UUIDs reference the source pool) and recreate them
+     * against the correct target network, preserving original MAC addresses.
      *
      * @return string the new VM UUID on the target host
      */

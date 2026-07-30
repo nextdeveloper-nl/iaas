@@ -5,9 +5,7 @@ namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\Networks;
-use NextDeveloper\IAAS\Database\Models\StorageMembers;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -712,9 +710,17 @@ class LocalDiskMigrationService implements MigrationInterface
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // STEP 5 — mixed copy: local SR → direct hypervisor rsync;
-    //           NFS SR → local rsync on storage member (same SM)
-    //                   or SM-to-SM rsync over SSH (different SMs)
+    // STEP 5 — Stream the whole VM (disks + metadata) straight from source to
+    //           target with `xe vm-export | ssh ... xe vm-import`, instead of
+    //           rsyncing raw VHD files and reconstructing the VM by hand.
+    //           xe handles the SR-specific disk format (LVM/EXT) internally,
+    //           so this works uniformly regardless of source/target SR type —
+    //           the file-copy approach below this comment used to fail here
+    //           because it depended on brittle VHD-path/coalesce assumptions
+    //           per SR type. `--preserve` keeps VIF MAC addresses from source;
+    //           network attachment is still fixed up in recreateVmOnTarget()
+    //           since imported VIFs reference source network UUIDs that
+    //           usually don't exist on the target pool.
     // ─────────────────────────────────────────────────────────────────────────
 
     public function copyVhdFiles(VirtualMachineMigrations $migration): void
@@ -729,7 +735,7 @@ class LocalDiskMigrationService implements MigrationInterface
             $migration,
             'copying-vhd',
             45,
-            $isDryRun ? 'Dry-run: resolving VHD copy commands (mixed local/NFS)' : 'Preparing VHD copy (mixed local/NFS)'
+            $isDryRun ? 'Dry-run: resolving export/import command' : 'Streaming VM export/import to target'
         );
 
         if (empty($options['coalesced_vhd_paths'])) {
@@ -744,466 +750,146 @@ class LocalDiskMigrationService implements MigrationInterface
             ->where('id', $migration->target_iaas_compute_member_id)
             ->firstOrFail();
 
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $migration->iaas_virtual_machine_id)
+            ->firstOrFail();
+
         $targetStorageVolume = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $migration->target_iaas_storage_volume_id)
             ->firstOrFail();
 
-        $targetIp       = explode('/', $target->ip_addr)[0];
-        $targetLocalDir = $options['target_sr_mount_path']
-            ?? $this->resolveLocalSrMountPath($targetStorageVolume->hypervisor_uuid, $target)
-            ?? ('/var/run/sr-mount/' . $targetStorageVolume->hypervisor_uuid);
-        $storageMapping = $options['storage_mapping'] ?? [];
-        $vhdPaths       = $options['coalesced_vhd_paths'];
+        $targetIp = explode('/', $target->ip_addr)[0];
 
-        $allCommands    = [];
-        $copiedPaths    = [];
-        $total          = count($vhdPaths);
-        $progressPerVhd = (int) floor(22 / max($total, 1));
+        $importCmd = 'xe vm-import filename=/dev/stdin'
+            . ' sr-uuid=' . escapeshellarg($targetStorageVolume->hypervisor_uuid)
+            . ' --preserve';
 
-        foreach ($vhdPaths as $index => $vhdPath) {
-            // LVM paths look like /dev/VG_XenStorage-<sr-uuid>/VHD-<vdi-uuid>.
-            // EXT paths look like /var/run/sr-mount/<sr-uuid>/<vdi-uuid>.vhd.
-            $isLvmSource = str_starts_with($vhdPath, '/dev/VG_XenStorage-');
-            $vdiUuid     = $isLvmSource
-                ? substr(basename($vhdPath), 4)        // strip leading 'VHD-'
-                : basename($vhdPath, '.vhd');
+        $pipeCmd = 'xe vm-export uuid=' . escapeshellarg($vm->hypervisor_uuid) . ' filename=/dev/stdout'
+            . ' | ssh -o StrictHostKeyChecking=no -o BatchMode=yes ' . escapeshellarg('root@' . $targetIp)
+            . ' ' . escapeshellarg($importCmd);
 
-            // ── Determine SR type from the evacuation plan's storage_mapping ──
-            // The VHD filename is the hypervisor UUID; storage_mapping keys by DB id,
-            // so look up the VirtualDiskImage record first and match by id.
-            $dbDisk = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
-                ->where('hypervisor_uuid', $vdiUuid)
-                ->where('iaas_virtual_machine_id', $migration->iaas_virtual_machine_id)
-                ->first();
-
-            $diskMapping = null;
-            if ($dbDisk) {
-                foreach ($storageMapping as $mapping) {
-                    if (($mapping['disk']['id'] ?? null) == $dbDisk->id) {
-                        $diskMapping = $mapping;
-                        break;
-                    }
-                }
-            }
-
-            $sourceStorageType = $diskMapping['source_storage_volume']['disk_physical_type'] ?? 'local';
-            $isNfs             = $sourceStorageType === 'nfs';
-
-            if (!$isNfs && $isLvmSource) {
-                // ── Strategy A2: LVM SR → lvcreate on target + dd over SSH ────
-                // LVM LVs are raw block devices; dd is more reliable than rsync --inplace
-                // across hosts. We must create the target LV first.
-                $lvName     = 'VHD-' . $vdiUuid;
-                $tmpLvName  = 'TMP-' . $vdiUuid;   // hidden from SMAPI until copy is complete
-                $vgName     = basename($targetLocalDir);
-                $tmpLvPath  = $targetLocalDir . '/' . $tmpLvName;
-                $targetLvPath = $targetLocalDir . '/' . $lvName;
-
-                $sizeCmd     = 'blockdev --getsize64 ' . escapeshellarg($vhdPath);
-                $ssh         = 'ssh -o StrictHostKeyChecking=no -o BatchMode=yes ' . escapeshellarg('root@' . $targetIp);
-                $createLvCmd = $ssh . ' lvcreate -L $(blockdev --getsize64 ' . escapeshellarg($vhdPath) . ')B'
-                    . ' -n ' . escapeshellarg($tmpLvName)
-                    . ' ' . escapeshellarg($vgName)
-                    . ' 2>/dev/null || true';
-                // rsync --inplace uses stat() to determine block device size, which returns 0
-                // on Linux LVs — so rsync copies nothing. Use dd with an explicit block count
-                // derived from blockdev --getsize64, which reads the true device size.
-                // Writing to TMP-<uuid> keeps SMAPI from seeing a partial VHD mid-copy.
-                $rsyncLvCmd  = 'dd if=' . escapeshellarg($vhdPath) . ' bs=64M'
-                    . ' count=$(( $(blockdev --getsize64 ' . escapeshellarg($vhdPath) . ') / 64 / 1024 / 1024 + 1 ))'
-                    . ' | ssh -o StrictHostKeyChecking=no -o BatchMode=yes '
-                    . escapeshellarg('root@' . $targetIp)
-                    . ' dd of=' . escapeshellarg($tmpLvPath) . ' bs=64M';
-                $renameCmd   = $ssh . ' lvrename '
-                    . escapeshellarg($vgName . '/' . $tmpLvName) . ' '
-                    . escapeshellarg($lvName);
-
-                $allCommands[] = [
-                    'host'    => $source->name,
-                    'command' => $sizeCmd,
-                    'note'    => '[LVM SR] Get source LV size: ' . $lvName,
-                ];
-                $allCommands[] = [
-                    'host'    => $source->name,
-                    'command' => $createLvCmd,
-                    'note'    => '[LVM SR] Create temp LV ' . $tmpLvName . ' on target (hidden from SMAPI)',
-                ];
-                $allCommands[] = [
-                    'host'    => $source->name,
-                    'command' => $rsyncLvCmd,
-                    'note'    => '[LVM SR] rsync --inplace ' . $vhdPath . ' → ' . $targetIp . ':' . $tmpLvPath,
-                ];
-                $allCommands[] = [
-                    'host'    => $source->name,
-                    'command' => $renameCmd,
-                    'note'    => '[LVM SR] Rename ' . $tmpLvName . ' → ' . $lvName . ' (make visible to SMAPI)',
-                ];
-                $allCommands[] = [
-                    'host'    => $source->name,
-                    'command' => 'blockdev --getsize64 ' . escapeshellarg($vhdPath),
-                    'note'    => '[LVM SR] Integrity check — source size',
-                ];
-                $allCommands[] = [
-                    'host'    => $target->name,
-                    'command' => 'blockdev --getsize64 ' . escapeshellarg($targetLvPath),
-                    'note'    => '[LVM SR] Integrity check — target size',
-                ];
-
-                if (!$isDryRun) {
-                    $progress = 46 + ($index * $progressPerVhd);
-                    $this->updateStep($migration, 'copying-vhd', $progress,
-                        'Copying LVM VHD ' . ($index + 1) . '/' . $total . ': ' . $lvName);
-
-                    $sourceSize = (int) trim(self::performCommand($sizeCmd, $source)['output']);
-
-                    if ($sourceSize === 0) {
-                        throw new \Exception('[LVM SR] Source LV size is 0 for ' . $lvName . ' — LV may be missing or inactive.');
-                    }
-
-                    // If VHD-<uuid> already exists (previous run completed the rename),
-                    // skip straight to integrity check — the copy is already done.
-                    $vhdExists = trim(self::performCommand(
-                        $ssh . ' test -b ' . escapeshellarg($targetLvPath) . ' && echo yes || echo no',
-                        $source
-                    )['output'] ?? '');
-
-                    if ($vhdExists === 'yes') {
-                        Log::info(__METHOD__ . ' | [LVM SR] ' . $lvName . ' already exists on target — skipping copy.');
-                        $targetSize = (int) trim(self::performCommand(
-                            'blockdev --getsize64 ' . escapeshellarg($targetLvPath), $target
-                        )['output']);
-                        $copiedPaths[] = [
-                            'vdi_uuid'    => $vdiUuid,
-                            'source_path' => $vhdPath,
-                            'target_path' => $targetLvPath,
-                            'size_bytes'  => $sourceSize,
-                            'copy_type'   => 'lvm',
-                        ];
-                        continue;
-                    }
-
-                    Log::info(__METHOD__ . ' | [LVM SR] Creating temp LV ' . $tmpLvName . ' (' . $this->formatBytes($sourceSize) . ')');
-                    self::performCommand($createLvCmd, $source);
-
-                    Log::info(__METHOD__ . ' | [LVM SR] dd copy: ' . $vhdPath . ' → ' . $targetIp . ':' . $tmpLvPath);
-                    self::performCommand($rsyncLvCmd, $source);
-
-                    // dd writes progress stats to stderr — size integrity check below catches any partial copy
-
-                    $targetSize = (int) trim(self::performCommand(
-                        'blockdev --getsize64 ' . escapeshellarg($tmpLvPath), $target
-                    )['output']);
-
-                    if ($sourceSize !== $targetSize) {
-                        throw new \Exception('[LVM SR] Integrity check failed for ' . $lvName . ': '
-                            . 'source=' . $this->formatBytes($sourceSize) . ', target=' . $this->formatBytes($targetSize));
-                    }
-
-                    Log::info(__METHOD__ . ' | [LVM SR] Integrity OK — renaming ' . $tmpLvName . ' → ' . $lvName);
-                    self::performCommand($renameCmd, $source);
-
-                    Log::info(__METHOD__ . ' | [LVM SR] Copy complete: ' . $lvName . ' (' . $this->formatBytes($sourceSize) . ')');
-
-                    $copiedPaths[] = [
-                        'vdi_uuid'    => $vdiUuid,
-                        'source_path' => $vhdPath,
-                        'target_path' => $targetLvPath,
-                        'size_bytes'  => $sourceSize,
-                        'copy_type'   => 'lvm',
-                    ];
-                }
-            } elseif (!$isNfs) {
-                // ── Strategy A1: EXT SR → direct rsync between hypervisors ────
-                $targetPath = $targetLocalDir . '/' . $vdiUuid . '.vhd';
-
-                $rsyncCmd = 'rsync -av --partial -e '
-                    . escapeshellarg('ssh -o StrictHostKeyChecking=no -o BatchMode=yes')
-                    . ' ' . escapeshellarg($vhdPath)
-                    . ' ' . escapeshellarg('root@' . $targetIp . ':' . $targetPath);
-
-                $allCommands[] = [
-                    'host'    => $source->name,
-                    'command' => $rsyncCmd,
-                    'note'    => '[EXT SR] Copy VHD: ' . $vdiUuid . '.vhd → ' . $targetIp . ':' . $targetPath,
-                ];
-                $allCommands[] = [
-                    'host'    => $source->name,
-                    'command' => 'stat -c%s ' . escapeshellarg($vhdPath),
-                    'note'    => '[EXT SR] Integrity check — source size of ' . $vdiUuid . '.vhd',
-                ];
-                $allCommands[] = [
-                    'host'    => $target->name,
-                    'command' => 'stat -c%s ' . escapeshellarg($targetPath),
-                    'note'    => '[EXT SR] Integrity check — target size of ' . $vdiUuid . '.vhd',
-                ];
-
-                if (!$isDryRun) {
-                    $progress = 46 + ($index * $progressPerVhd);
-                    $this->updateStep($migration, 'copying-vhd', $progress,
-                        'Copying EXT VHD ' . ($index + 1) . '/' . $total . ': ' . $vdiUuid . '.vhd');
-
-                    Log::info(__METHOD__ . ' | [EXT SR] rsync: ' . $vhdPath . ' → ' . $targetIp . ':' . $targetPath);
-
-                    $rsyncResult = self::performCommand($rsyncCmd, $source);
-
-                    if (!empty($rsyncResult['error']) && !str_contains($rsyncResult['output'], 'sent')) {
-                        throw new \Exception('[EXT SR] rsync failed for ' . $vdiUuid . '.vhd: ' . $rsyncResult['error']);
-                    }
-
-                    $sourceSize = (int) trim(self::performCommand('stat -c%s ' . escapeshellarg($vhdPath), $source)['output']);
-                    $targetSize = (int) trim(self::performCommand('stat -c%s ' . escapeshellarg($targetPath), $target)['output']);
-
-                    if ($sourceSize === 0) {
-                        throw new \Exception('[EXT SR] Source VHD size is 0 for ' . $vdiUuid . '.vhd — file may be missing.');
-                    }
-                    if ($sourceSize !== $targetSize) {
-                        throw new \Exception('[EXT SR] Integrity check failed for ' . $vdiUuid . '.vhd: '
-                            . 'source=' . $this->formatBytes($sourceSize) . ', target=' . $this->formatBytes($targetSize));
-                    }
-
-                    Log::info(__METHOD__ . ' | [EXT SR] Integrity OK: ' . $vdiUuid . '.vhd (' . $this->formatBytes($sourceSize) . ')');
-
-                    $copiedPaths[] = [
-                        'vdi_uuid'    => $vdiUuid,
-                        'source_path' => $vhdPath,
-                        'target_path' => $targetPath,
-                        'size_bytes'  => $sourceSize,
-                        'copy_type'   => 'local',
-                    ];
-                }
-            } else {
-                // ── Strategy B: NFS SR → copy on storage member(s) ───────────
-                // Resolving paths on the storage member avoids routing data over
-                // the network twice (hypervisor → NFS server → hypervisor → NFS server).
-                // Instead we SSH into the SM and rsync within it (or SM-to-SM).
-
-                $sourceStorageVolumeId = $diskMapping['source_storage_volume']['id'] ?? null;
-                $targetStorageVolumeId = $diskMapping['target_storage_volume']['id'] ?? null;
-
-                if (!$sourceStorageVolumeId || !$targetStorageVolumeId) {
-                    throw new \Exception(
-                        '[NFS SR] Storage volume IDs missing in storage_mapping for disk ' . $vdiUuid
-                        . '. Re-run the propose/approve step.'
-                    );
-                }
-
-                // Source NFS coordinates
-                $sourceCmVol = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-                    ->where('iaas_compute_member_id', $migration->source_iaas_compute_member_id)
-                    ->where('iaas_storage_volume_id', $sourceStorageVolumeId)
-                    ->firstOrFail();
-
-                $sourceSm = StorageMembers::withoutGlobalScope(AuthorizationScope::class)
-                    ->where('id', $sourceCmVol->iaas_storage_member_id ?? $migration->source_iaas_storage_member_id)
-                    ->firstOrFail();
-
-                $sourceSmPath = rtrim($sourceCmVol->block_device_data['device-config']['serverpath'] ?? '', '/')
-                    . '/' . ($diskMapping['source_storage_volume']['hypervisor_uuid'] ?? '');
-
-                // Target NFS coordinates
-                $targetCmVol = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-                    ->where('iaas_compute_member_id', $migration->target_iaas_compute_member_id)
-                    ->where('iaas_storage_volume_id', $targetStorageVolumeId)
-                    ->firstOrFail();
-
-                $targetSmId = $targetCmVol->iaas_storage_member_id ?? $migration->target_iaas_storage_member_id;
-
-                $targetSmPath = rtrim($targetCmVol->block_device_data['device-config']['serverpath'] ?? '', '/')
-                    . '/' . ($diskMapping['target_storage_volume']['hypervisor_uuid'] ?? '');
-
-                $sourceVhdOnSm = $sourceSmPath . '/' . $vdiUuid . '.vhd';
-                $targetVhdOnSm = $targetSmPath . '/' . $vdiUuid . '.vhd';
-
-                $sameSm = (string) $sourceSm->id === (string) $targetSmId;
-
-                if ($sameSm) {
-                    // Both SRs live on the same physical storage server — pure local copy.
-                    $rsyncCmd = self::sudo(
-                        'rsync -av --partial ' . escapeshellarg($sourceVhdOnSm) . ' ' . escapeshellarg($targetVhdOnSm),
-                        $sourceSm
-                    );
-
-                    $allCommands[] = [
-                        'host'    => $sourceSm->name,
-                        'command' => $rsyncCmd,
-                        'note'    => '[NFS SR, same SM] Local copy on ' . $sourceSm->name . ': ' . $vdiUuid . '.vhd',
-                    ];
-                    $allCommands[] = [
-                        'host'    => $sourceSm->name,
-                        'command' => 'stat -c%s ' . escapeshellarg($sourceVhdOnSm),
-                        'note'    => '[NFS SR, same SM] Integrity check — source size',
-                    ];
-                    $allCommands[] = [
-                        'host'    => $sourceSm->name,
-                        'command' => 'stat -c%s ' . escapeshellarg($targetVhdOnSm),
-                        'note'    => '[NFS SR, same SM] Integrity check — target size',
-                    ];
-                } else {
-                    // Different storage servers — rsync from source SM to target SM via SSH.
-                    $targetSm = StorageMembers::withoutGlobalScope(AuthorizationScope::class)
-                        ->where('id', $targetSmId)
-                        ->firstOrFail();
-
-                    $rsyncCmd = self::sudo(
-                        'rsync -av --partial -e '
-                            . escapeshellarg('ssh -o StrictHostKeyChecking=no -o BatchMode=yes')
-                            . ' ' . escapeshellarg($sourceVhdOnSm)
-                            . ' ' . escapeshellarg('root@' . explode('/', $targetSm->ip_addr)[0] . ':' . $targetVhdOnSm),
-                        $sourceSm
-                    );
-
-                    $allCommands[] = [
-                        'host'    => $sourceSm->name,
-                        'command' => $rsyncCmd,
-                        'note'    => '[NFS SR, cross-SM] rsync ' . $sourceSm->name . ' → ' . $targetSm->name . ': ' . $vdiUuid . '.vhd',
-                    ];
-                    $allCommands[] = [
-                        'host'    => $sourceSm->name,
-                        'command' => 'stat -c%s ' . escapeshellarg($sourceVhdOnSm),
-                        'note'    => '[NFS SR, cross-SM] Integrity check — source size',
-                    ];
-                    $allCommands[] = [
-                        'host'    => $targetSm->name,
-                        'command' => 'stat -c%s ' . escapeshellarg($targetVhdOnSm),
-                        'note'    => '[NFS SR, cross-SM] Integrity check — target size (on target SM)',
-                    ];
-                }
-
-                if (!$isDryRun) {
-                    $copyLabel = $sameSm ? 'local on SM' : 'cross-SM';
-                    $progress  = 46 + ($index * $progressPerVhd);
-
-                    $this->updateStep($migration, 'copying-vhd', $progress,
-                        'Copying NFS VHD ' . ($index + 1) . '/' . $total . ': ' . $vdiUuid . '.vhd (' . $copyLabel . ')');
-
-                    Log::info(__METHOD__ . ' | [NFS SR] copy (' . $copyLabel . '): '
-                        . $sourceVhdOnSm . ' → ' . $targetVhdOnSm);
-
-                    $rsyncResult = self::performStorageCommand($rsyncCmd, $sourceSm);
-
-                    if (!empty($rsyncResult['error']) && !str_contains($rsyncResult['output'], 'sent')) {
-                        throw new \Exception('[NFS SR] rsync failed for ' . $vdiUuid . '.vhd: ' . $rsyncResult['error']);
-                    }
-
-                    $sourceSize = (int) trim(
-                        self::performStorageCommand('stat -c%s ' . escapeshellarg($sourceVhdOnSm), $sourceSm)['output']
-                    );
-
-                    $targetSize = $sameSm
-                        ? (int) trim(self::performStorageCommand('stat -c%s ' . escapeshellarg($targetVhdOnSm), $sourceSm)['output'])
-                        : (int) trim(self::performStorageCommand('stat -c%s ' . escapeshellarg($targetVhdOnSm), $targetSm)['output']);
-
-                    if ($sourceSize === 0) {
-                        throw new \Exception('[NFS SR] Source VHD size is 0 for ' . $vdiUuid . '.vhd — file may be missing.');
-                    }
-                    if ($sourceSize !== $targetSize) {
-                        throw new \Exception('[NFS SR] Integrity check failed for ' . $vdiUuid . '.vhd: '
-                            . 'source=' . $this->formatBytes($sourceSize) . ', target=' . $this->formatBytes($targetSize));
-                    }
-
-                    Log::info(__METHOD__ . ' | [NFS SR] Integrity OK: ' . $vdiUuid . '.vhd (' . $this->formatBytes($sourceSize) . ')');
-
-                    $copiedPaths[] = [
-                        'vdi_uuid'    => $vdiUuid,
-                        'source_path' => $sourceVhdOnSm,
-                        'target_path' => $targetVhdOnSm,
-                        'size_bytes'  => $sourceSize,
-                        'copy_type'   => $sameSm ? 'nfs-local' : 'nfs-cross-sm',
-                    ];
-                }
-            }
-        }
-
-        // ── Dry-run: persist full command list and return ─────────────────────
         if ($isDryRun) {
-            $options['dry_run_commands'] = $allCommands;
+            $options['dry_run_commands'] = [[
+                'host'    => $source->name,
+                'command' => $pipeCmd,
+                'note'    => 'Stream-export VM "' . $vm->name . '" → import on ' . $target->name
+                    . ' (SR ' . $targetStorageVolume->name . ')',
+            ]];
 
             $migration->updateQuietly([
                 'options'      => json_encode($options),
-                'step_message' => 'Dry-run complete — ' . count($allCommands) . ' command(s) listed in options.dry_run_commands',
+                'step_message' => 'Dry-run complete — export/import command listed in options.dry_run_commands',
             ]);
 
-            Log::info(__METHOD__ . ' | Dry-run: ' . count($allCommands) . ' command(s) listed, nothing executed.');
+            Log::info(__METHOD__ . ' | Dry-run: export/import command listed, nothing executed.');
 
             return;
         }
 
         unset($options['dry_run'], $options['dry_run_commands']);
-        $options['copied_vhd_paths'] = $copiedPaths;
+        $migration->updateQuietly(['options' => json_encode($options)]);
+
+        Log::info(__METHOD__ . ' | Starting export/import stream: ' . $source->name . ' → ' . $target->name
+            . ' (SR ' . $targetStorageVolume->hypervisor_uuid . ')');
+
+        $result = self::performCommand($pipeCmd, $source);
+
+        $outputLines = preg_split('/\r\n|\r|\n/', trim($result['output'] ?? ''));
+        $newVmUuid   = trim((string) end($outputLines));
+
+        if (!preg_match('/^[0-9a-f-]{36}$/i', $newVmUuid)) {
+            throw new \Exception(
+                'vm-export/vm-import did not return a valid VM UUID. Output: ' . trim($result['output'] ?? '')
+                . (!empty($result['error']) ? ' | Error: ' . trim($result['error']) : '')
+            );
+        }
+
+        Log::info(__METHOD__ . ' | Import complete — new VM UUID on target: ' . $newVmUuid);
+
+        $options['target_vm_uuid'] = $newVmUuid;
 
         $migration->updateQuietly(['options' => json_encode($options)]);
 
-        $this->updateStep($migration, 'copying-vhd', 70, 'All ' . count($copiedPaths) . ' VHD(s) copied and verified');
+        $this->updateStep($migration, 'copying-vhd', 70, 'VM streamed and imported as ' . $newVmUuid);
 
-        Log::info(__METHOD__ . ' | VHD copy complete for migration: ' . $migration->uuid);
+        Log::info(__METHOD__ . ' | VM export/import complete for migration: ' . $migration->uuid);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // STEP 6 — identical to MigrationService
+    // STEP 6 — The VM (and its VBDs/VDIs) already exist on the target after
+    //           the export/import stream. VDIs get brand-new UUIDs on import
+    //           (xe always allocates fresh object UUIDs for an XVA import), so
+    //           match each source disk to its target VDI by VBD userdevice —
+    //           the same device_number-based reconciliation XenServer82SshDriver
+    //           already uses elsewhere for post-import disk sync — rather than
+    //           by UUID.
     // ─────────────────────────────────────────────────────────────────────────
 
     public function rescanTargetSr(VirtualMachineMigrations $migration): array
     {
-        $this->updateStep($migration, 'rescanning-sr', 70, 'Triggering SR scan on target host');
+        $this->updateStep($migration, 'rescanning-sr', 70, 'Matching imported disks to source metadata');
 
         $options = is_array($migration->options)
             ? $migration->options
             : (json_decode($migration->options, true) ?? []);
 
-        if (empty($options['copied_vhd_paths'])) {
-            throw new \Exception('No copied VHD paths found. Run copyVhdFiles before this step.');
+        $targetVmUuid = $options['target_vm_uuid'] ?? null;
+
+        if (empty($targetVmUuid)) {
+            throw new \Exception('No target VM UUID found. Run copyVhdFiles before this step.');
+        }
+
+        $metadata = $options['source_metadata'] ?? null;
+
+        if (empty($metadata['disks'])) {
+            throw new \Exception('No disk metadata found. Run collectSourceMetadata before this step.');
         }
 
         $target = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $migration->target_iaas_compute_member_id)
             ->firstOrFail();
 
-        $targetStorageVolume = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', $migration->target_iaas_storage_volume_id)
-            ->firstOrFail();
+        $result  = self::performCommand('xe vm-disk-list uuid=' . $targetVmUuid, $target);
+        $vmDisks = self::parseVmDiskList($result['output']);
 
-        $targetSrUuid = $targetStorageVolume->hypervisor_uuid;
+        // Index imported VBDs by userdevice — the DB's device_number counterpart.
+        $targetByDevice = [];
 
-        self::performCommand('xe sr-scan uuid=' . $targetSrUuid, $target);
+        foreach ($vmDisks as $vmDisk) {
+            $userDevice = trim($vmDisk['vbd']['userdevice'] ?? '');
+            $vdiUuid    = trim($vmDisk['vdi']['uuid'] ?? '');
 
-        sleep(5);
-
-        $this->updateStep($migration, 'rescanning-sr', 73, 'Querying VDI list on target SR');
-
-        $result  = self::performCommand('xe vdi-list sr-uuid=' . $targetSrUuid . ' params=uuid,name-label,virtual-size', $target);
-        $vdiList = AbstractXenService::parseListResult($result['output']);
-
-        $targetVdisByUuid = [];
-
-        foreach ($vdiList as $vdi) {
-            $uuid = trim($vdi['uuid'] ?? '');
-            if (!empty($uuid)) {
-                $targetVdisByUuid[$uuid] = $vdi;
+            if ($userDevice === '' || $vdiUuid === '') {
+                continue;
             }
+
+            $targetByDevice[$userDevice] = $vdiUuid;
         }
 
-        Log::info(__METHOD__ . ' | Found ' . count($targetVdisByUuid) . ' VDI(s) in target SR after scan');
+        Log::info(__METHOD__ . ' | Found ' . count($targetByDevice) . ' VBD(s) on imported VM: ' . $targetVmUuid);
 
         $vdiUuidMap = [];
         $unmatched  = [];
 
-        foreach ($options['copied_vhd_paths'] as $copied) {
-            $sourceVdiUuid = $copied['vdi_uuid'];
+        foreach ($metadata['disks'] as $disk) {
+            $sourceVdiUuid = $disk['vdi_uuid'];
+            $userDevice    = trim($disk['vbd_userdevice'] ?? '');
 
-            if (isset($targetVdisByUuid[$sourceVdiUuid])) {
-                $vdiUuidMap[$sourceVdiUuid] = $sourceVdiUuid;
-                Log::info(__METHOD__ . ' | Matched VDI: ' . $sourceVdiUuid);
+            if ($userDevice !== '' && isset($targetByDevice[$userDevice])) {
+                $vdiUuidMap[$sourceVdiUuid] = $targetByDevice[$userDevice];
+                Log::info(__METHOD__ . ' | Matched disk (device ' . $userDevice . '): '
+                    . $sourceVdiUuid . ' → ' . $targetByDevice[$userDevice]);
             } else {
                 $unmatched[] = $sourceVdiUuid;
-                Log::warning(__METHOD__ . ' | VDI not found in target SR after scan: ' . $sourceVdiUuid);
+                Log::warning(__METHOD__ . ' | No imported VBD found for source VDI ' . $sourceVdiUuid
+                    . ' (expected device ' . $userDevice . ')');
             }
         }
 
         if (!empty($unmatched)) {
             throw new \Exception(
-                'The following VDI(s) were not detected in the target SR after scan: '
-                . implode(', ', $unmatched) . '. '
-                . 'Verify the VHD files were copied correctly and re-run this step.'
+                'The following source disk(s) could not be matched to an imported VBD by device number: '
+                . implode(', ', $unmatched) . '. Check the imported VM\'s disk layout on the target host.'
             );
         }
 
@@ -1212,7 +898,7 @@ class LocalDiskMigrationService implements MigrationInterface
         $migration->updateQuietly(['options' => json_encode($options)]);
 
         $this->updateStep($migration, 'rescanning-sr', 80,
-            'SR scan complete — ' . count($vdiUuidMap) . ' VDI(s) confirmed on target');
+            'Matched ' . count($vdiUuidMap) . ' imported disk(s) to source metadata');
 
         Log::info(__METHOD__ . ' | VDI map: ' . json_encode($vdiUuidMap));
 
@@ -1220,29 +906,34 @@ class LocalDiskMigrationService implements MigrationInterface
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // STEPS 7–10 — identical to MigrationService
+    // STEP 7 — The VM, VBDs, and VDIs already exist on the target after the
+    //           export/import stream (vCPUs, memory, and platform params are
+    //           carried over from the XVA by xe itself — no need to rebuild
+    //           them). The only gap is networking: imported VIFs reference the
+    //           SOURCE network UUIDs, which usually don't exist on a different
+    //           host/pool, so destroy them and recreate each one pointed at
+    //           the correct target network via the existing
+    //           resolveTargetNetworkUuid() VLAN-matching logic.
     // ─────────────────────────────────────────────────────────────────────────
 
     public function recreateVmOnTarget(VirtualMachineMigrations $migration, array $vdiUuidMap): string
     {
-        $this->updateStep($migration, 'recreating-vm', 80, 'Recreating VM record on target host');
+        $this->updateStep($migration, 'recreating-vm', 80, 'Reconciling network interfaces on target VM');
 
         $options = is_array($migration->options)
             ? $migration->options
             : (json_decode($migration->options, true) ?? []);
 
+        $targetVmUuid = $options['target_vm_uuid'] ?? null;
+
+        if (empty($targetVmUuid)) {
+            throw new \Exception('No target VM UUID found. Run copyVhdFiles before this step.');
+        }
+
         $metadata = $options['source_metadata'] ?? null;
 
         if (empty($metadata)) {
             throw new \Exception('No source metadata found. Run collectSourceMetadata before this step.');
-        }
-
-        if (empty($vdiUuidMap)) {
-            $vdiUuidMap = $options['vdi_uuid_map'] ?? [];
-        }
-
-        if (empty($vdiUuidMap)) {
-            throw new \Exception('No VDI UUID map found. Run rescanTargetSr before this step.');
         }
 
         $isDryRun = !empty($options['dry_run_recreate']);
@@ -1255,88 +946,31 @@ class LocalDiskMigrationService implements MigrationInterface
             ->where('id', $migration->target_iaas_compute_member_id)
             ->firstOrFail();
 
-        $vmMeta   = $metadata['vm'];
-        $vmUuid   = '{NEW_VM_UUID}';
+        // ── Destroy whatever VIFs the import created — their network UUIDs are
+        //    carried over from the source pool and generally won't resolve on
+        //    the target, so they're unreliable at best. ─────────────────────
+        $result       = self::performCommand('xe vif-list vm-uuid=' . $targetVmUuid . ' params=uuid', $target);
+        $existingVifs = array_values(array_filter(
+            AbstractXenService::parseListResult($result['output']),
+            fn($v) => !empty($v['uuid'])
+        ));
+
         $commands = [];
 
-        // ── VM skeleton ───────────────────────────────────────────────────────
-        $commands[] = [
-            'note' => 'Create VM skeleton',
-            'cmd'  => 'xe vm-create name-label=' . escapeshellarg($vmMeta['name_label'])
-                . ' name-description=' . escapeshellarg($vmMeta['description'] ?? ''),
-        ];
-
-        $commands[] = [
-            'note' => 'Set vCPU count',
-            'cmd'  => 'xe vm-param-set uuid={VM_UUID}'
-                . ' VCPUs-max=' . (int) $vmMeta['vcpus_max']
-                . ' VCPUs-at-startup=' . (int) $vmMeta['vcpus_at_startup'],
-        ];
-
-        $commands[] = [
-            'note' => 'Set memory limits',
-            'cmd'  => 'xe vm-memory-limits-set uuid={VM_UUID}'
-                . ' static-min=' . (int) $vmMeta['memory_static_min']
-                . ' static-max=' . (int) $vmMeta['memory_static_max']
-                . ' dynamic-min=' . (int) $vmMeta['memory_dynamic_min']
-                . ' dynamic-max=' . (int) $vmMeta['memory_dynamic_max'],
-        ];
-
-        if (!empty($vmMeta['hvm_boot_policy'])) {
+        foreach ($existingVifs as $vif) {
             $commands[] = [
-                'note' => 'Set HVM boot policy',
-                'cmd'  => 'xe vm-param-set uuid={VM_UUID} HVM-boot-policy=' . escapeshellarg($vmMeta['hvm_boot_policy']),
+                'note' => 'Destroy imported VIF ' . trim($vif['uuid']),
+                'cmd'  => 'xe vif-destroy uuid=' . trim($vif['uuid']),
             ];
         }
 
-        if (!empty($vmMeta['hvm_boot_params'])) {
-            $commands[] = [
-                'note' => 'Set HVM boot params',
-                'cmd'  => 'xe vm-param-set uuid={VM_UUID} HVM-boot-params=' . escapeshellarg($vmMeta['hvm_boot_params']),
-            ];
-        }
-
-        if (!empty($vmMeta['platform'])) {
-            $commands[] = [
-                'note' => 'Set platform params',
-                'cmd'  => 'xe vm-param-set uuid={VM_UUID} platform=' . escapeshellarg($vmMeta['platform']),
-            ];
-        }
-
-        if (!empty($vmMeta['pv_args'])) {
-            $commands[] = [
-                'note' => 'Set PV args',
-                'cmd'  => 'xe vm-param-set uuid={VM_UUID} PV-args=' . escapeshellarg($vmMeta['pv_args']),
-            ];
-        }
-
-        // ── VBDs ──────────────────────────────────────────────────────────────
-        foreach ($metadata['disks'] as $disk) {
-            $targetVdiUuid = $vdiUuidMap[$disk['vdi_uuid']] ?? null;
-
-            if (!$targetVdiUuid) {
-                throw new \Exception('No target VDI UUID found for source VDI: ' . $disk['vdi_uuid']);
-            }
-
-            $commands[] = [
-                'note' => 'Create VBD for VDI ' . $targetVdiUuid,
-                'cmd'  => 'xe vbd-create vm-uuid={VM_UUID}'
-                    . ' vdi-uuid=' . escapeshellarg($targetVdiUuid)
-                    . ' device=' . escapeshellarg($disk['vbd_userdevice'])
-                    . ' bootable=' . ($disk['vbd_bootable'] === 'true' ? 'true' : 'false')
-                    . ' mode=' . escapeshellarg($disk['vbd_mode'])
-                    . ' type=' . escapeshellarg($disk['vbd_type']),
-            ];
-        }
-
-        // ── VIFs ──────────────────────────────────────────────────────────────
         foreach ($metadata['nics'] as $nic) {
             $targetNetworkUuid = $this->resolveTargetNetworkUuid($nic, $source, $target);
 
             $commands[] = [
                 'note' => 'Create VIF device=' . $nic['device']
                     . (($nic['vlan'] ?? null) !== null ? ' (VLAN ' . $nic['vlan'] . ')' : ''),
-                'cmd'  => 'xe vif-create vm-uuid={VM_UUID}'
+                'cmd'  => 'xe vif-create vm-uuid=' . $targetVmUuid
                     . ' network-uuid=' . escapeshellarg($targetNetworkUuid)
                     . ' device=' . escapeshellarg($nic['device'])
                     . ' mac=' . escapeshellarg($nic['mac'])
@@ -1348,104 +982,22 @@ class LocalDiskMigrationService implements MigrationInterface
         if ($isDryRun) {
             $options['dry_run_commands_recreate'] = $commands;
             $migration->updateQuietly(['options' => json_encode($options)]);
-            Log::info(__METHOD__ . ' | Dry-run: ' . count($commands) . ' recreate command(s) listed.');
-            return $vmUuid;
+            Log::info(__METHOD__ . ' | Dry-run: ' . count($commands) . ' VIF reconciliation command(s) listed.');
+            return $targetVmUuid;
         }
 
-        // ── Live: create VM skeleton ──────────────────────────────────────────
-        $createResult = self::performCommand(
-            'xe vm-create name-label=' . escapeshellarg($vmMeta['name_label'])
-                . ' name-description=' . escapeshellarg($vmMeta['description'] ?? ''),
-            $target
-        );
-
-        $vmUuid = trim($createResult['output'] ?? '');
-
-        if (empty($vmUuid)) {
-            throw new \Exception('xe vm-create returned empty UUID. Output: ' . $createResult['output']);
+        foreach ($existingVifs as $vif) {
+            self::performCommand('xe vif-destroy uuid=' . trim($vif['uuid']), $target);
+            Log::info(__METHOD__ . ' | Destroyed imported VIF: ' . trim($vif['uuid']));
         }
 
-        Log::info(__METHOD__ . ' | Created VM skeleton: ' . $vmUuid);
-
-        // Set vCPUs
-        self::performCommand(
-            'xe vm-param-set uuid=' . $vmUuid
-                . ' VCPUs-max=' . (int) $vmMeta['vcpus_max']
-                . ' VCPUs-at-startup=' . (int) $vmMeta['vcpus_at_startup'],
-            $target
-        );
-
-        // Set memory
-        self::performCommand(
-            'xe vm-memory-limits-set uuid=' . $vmUuid
-                . ' static-min=' . (int) $vmMeta['memory_static_min']
-                . ' static-max=' . (int) $vmMeta['memory_static_max']
-                . ' dynamic-min=' . (int) $vmMeta['memory_dynamic_min']
-                . ' dynamic-max=' . (int) $vmMeta['memory_dynamic_max'],
-            $target
-        );
-
-        if (!empty($vmMeta['hvm_boot_policy'])) {
-            self::performCommand(
-                'xe vm-param-set uuid=' . $vmUuid . ' HVM-boot-policy=' . escapeshellarg($vmMeta['hvm_boot_policy']),
-                $target
-            );
-        }
-
-        if (!empty($vmMeta['hvm_boot_params'])) {
-            self::performCommand(
-                'xe vm-param-set uuid=' . $vmUuid . ' HVM-boot-params=' . escapeshellarg($vmMeta['hvm_boot_params']),
-                $target
-            );
-        }
-
-        if (!empty($vmMeta['platform'])) {
-            self::performCommand(
-                'xe vm-param-set uuid=' . $vmUuid . ' platform=' . escapeshellarg($vmMeta['platform']),
-                $target
-            );
-        }
-
-        if (!empty($vmMeta['pv_args'])) {
-            self::performCommand(
-                'xe vm-param-set uuid=' . $vmUuid . ' PV-args=' . escapeshellarg($vmMeta['pv_args']),
-                $target
-            );
-        }
-
-        // Create VBDs
-        foreach ($metadata['disks'] as $disk) {
-            $targetVdiUuid = $vdiUuidMap[$disk['vdi_uuid']] ?? null;
-
-            if (!$targetVdiUuid) {
-                throw new \Exception('No target VDI UUID found for source VDI: ' . $disk['vdi_uuid']);
-            }
-
-            $result = self::performCommand(
-                'xe vbd-create vm-uuid=' . $vmUuid
-                    . ' vdi-uuid=' . escapeshellarg($targetVdiUuid)
-                    . ' device=' . escapeshellarg($disk['vbd_userdevice'])
-                    . ' bootable=' . ($disk['vbd_bootable'] === 'true' ? 'true' : 'false')
-                    . ' mode=' . escapeshellarg($disk['vbd_mode'])
-                    . ' type=' . escapeshellarg($disk['vbd_type']),
-                $target
-            );
-
-            if (!empty($result['error'])) {
-                throw new \Exception('Failed to create VBD for VDI ' . $targetVdiUuid . ': ' . $result['error']);
-            }
-
-            Log::info(__METHOD__ . ' | VBD created for VDI: ' . $targetVdiUuid);
-        }
-
-        // Create VIFs
         foreach ($metadata['nics'] as $nic) {
             $targetNetworkUuid = $this->resolveTargetNetworkUuid($nic, $source, $target);
 
             Log::info(__METHOD__ . ' | Creating VIF device=' . $nic['device'] . ' with network-uuid=' . $targetNetworkUuid);
 
             $result = self::performCommand(
-                'xe vif-create vm-uuid=' . $vmUuid
+                'xe vif-create vm-uuid=' . $targetVmUuid
                     . ' network-uuid=' . escapeshellarg($targetNetworkUuid)
                     . ' device=' . escapeshellarg($nic['device'])
                     . ' mac=' . escapeshellarg($nic['mac'])
@@ -1460,15 +1012,13 @@ class LocalDiskMigrationService implements MigrationInterface
             Log::info(__METHOD__ . ' | VIF created: device=' . $nic['device'] . ' mac=' . $nic['mac']);
         }
 
-        $options['target_vm_uuid'] = $vmUuid;
-
         $migration->updateQuietly(['options' => json_encode($options)]);
 
-        $this->updateStep($migration, 'recreating-vm', 90, 'VM recreated on target: ' . $vmUuid);
+        $this->updateStep($migration, 'recreating-vm', 90, 'Network interfaces reconciled on target: ' . $targetVmUuid);
 
-        Log::info(__METHOD__ . ' | VM recreated on target: ' . $vmUuid);
+        Log::info(__METHOD__ . ' | VIF reconciliation complete for target VM: ' . $targetVmUuid);
 
-        return $vmUuid;
+        return $targetVmUuid;
     }
 
     public function postMigrationValidation(VirtualMachineMigrations $migration): array
@@ -2066,26 +1616,6 @@ class LocalDiskMigrationService implements MigrationInterface
             . ($result['error'] ? ' | err: ' . trim($result['error']) : ''));
 
         return $result;
-    }
-
-    private static function performStorageCommand(string $command, StorageMembers $storageMember): array
-    {
-        logger()->debug('[LocalDiskMigrationService] [StorageMember:' . $storageMember->name . '] $ ' . $command);
-
-        $result = $storageMember->performSSHCommand($command);
-
-        logger()->debug('[LocalDiskMigrationService] [StorageMember:' . $storageMember->name . '] out: '
-            . trim($result['output'] ?? '')
-            . ($result['error'] ? ' | err: ' . trim($result['error']) : ''));
-
-        return $result;
-    }
-
-    private static function sudo(string $command, StorageMembers $storageMember): string
-    {
-        $password = decrypt($storageMember->ssh_password);
-
-        return 'echo ' . escapeshellarg($password) . ' | sudo -S -p \'\' -- ' . $command;
     }
 
     private static function parseVmDiskList(string $output): array
