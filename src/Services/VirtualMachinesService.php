@@ -1200,4 +1200,165 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             $vm->update(['tokens' => $tokens]);
         });
     }
+
+    /**
+     * When a VM with local disk is migrated by hand (xe vm-export/vm-import between hosts,
+     * outside of leo:migrate-local-vm), the operator sets the imported VM's name-label to the
+     * original VM's uuid to dodge a name-label collision with the still-registered old VM.
+     * ScanVirtualMachines then creates a fresh orphan record for it (matched by the new
+     * hypervisor_uuid, not by uuid), since it has no way to know it's the same server.
+     *
+     * This finds those (orphan, target) pairs: an orphan VM whose name is itself a uuid, and a
+     * different VM whose uuid equals that name.
+     *
+     * @return \Illuminate\Support\Collection<int, array{orphan: VirtualMachines, target: VirtualMachines}>
+     */
+    public static function findMigratedLocalDiskVmCandidates(): \Illuminate\Support\Collection
+    {
+        $orphans = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->get()
+            ->filter(fn ($vm) => Str::isUuid($vm->name));
+
+        $pairs = collect();
+
+        foreach ($orphans as $orphan) {
+            $target = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+                ->where('uuid', $orphan->name)
+                ->where('id', '!=', $orphan->id)
+                ->first();
+
+            if ($target) {
+                $pairs->push(['orphan' => $orphan, 'target' => $target]);
+            }
+        }
+
+        return $pairs;
+    }
+
+    /**
+     * Repoints $target (the original VM record - keeps its uuid/id, name, password, ownership,
+     * etc. so every other subsystem keyed to it - disks, network cards, DNS, billing - keeps
+     * working) onto the hypervisor object that $orphan was auto-created for, then merges
+     * $orphan's disks/network cards onto $target's and removes the now-redundant $orphan record.
+     *
+     * The old VM object on the source host is intentionally left untouched - it's up to the
+     * operator to remove it by hand once the migration is confirmed good.
+     *
+     * @param VirtualMachines $orphan the auto-created record pointing at the newly imported VM
+     * @param VirtualMachines $target the original VM record, to be repointed
+     * @return VirtualMachines the refreshed target record
+     */
+    public static function mergeMigratedLocalDiskVm(VirtualMachines $orphan, VirtualMachines $target): VirtualMachines
+    {
+        UserHelper::runAsAdmin(function () use ($orphan, $target) {
+            //  Hand the hypervisor-derived fields that ScanVirtualMachines normally maintains
+            //  over to the target - this is the same field set ScanVirtualMachines would have
+            //  updated had it matched this hypervisor VM to $target by hypervisor_uuid.
+            $target->updateQuietly([
+                'domain_type'            => $orphan->domain_type,
+                'cpu'                    => $orphan->cpu,
+                'ram'                    => $orphan->ram,
+                'status'                 => $orphan->status,
+                'available_operations'   => $orphan->available_operations,
+                'current_operations'     => $orphan->current_operations,
+                'blocked_operations'     => $orphan->blocked_operations,
+                'hypervisor_uuid'        => $orphan->hypervisor_uuid,
+                'hypervisor_data'        => $orphan->hypervisor_data,
+                'is_draft'               => false,
+                'is_lost'                => false,
+                'iaas_compute_member_id' => $orphan->iaas_compute_member_id,
+                'iaas_cloud_node_id'     => $orphan->iaas_cloud_node_id,
+                'iaas_compute_pool_id'   => $orphan->iaas_compute_pool_id,
+            ]);
+
+            self::mergeMigratedDisks($orphan, $target);
+            self::mergeMigratedNetworkCards($orphan, $target);
+
+            $orphan->fresh()->deleteQuietly();
+        });
+
+        Log::info('[VirtualMachinesService::mergeMigratedLocalDiskVm] Repointed ' . $target->uuid .
+            ' onto the hypervisor object formerly tracked as orphan ' . $orphan->uuid .
+            ' (hypervisor_uuid ' . $orphan->hypervisor_uuid . ')');
+
+        return $target->fresh();
+    }
+
+    /**
+     * Merges $orphan's disk records onto $target's: where $target already has a disk at the same
+     * device_number (the common case - same server, same disk layout), the target disk row is
+     * updated with the orphan's (freshly imported) hypervisor identity and the orphan's row is
+     * discarded. Otherwise the orphan's disk is simply repointed onto $target.
+     */
+    private static function mergeMigratedDisks(VirtualMachines $orphan, VirtualMachines $target): void
+    {
+        $orphanDisks = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $orphan->id)
+            ->get();
+
+        foreach ($orphanDisks as $orphanDisk) {
+            $targetDisk = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $target->id)
+                ->where('device_number', $orphanDisk->device_number)
+                ->first();
+
+            if ($targetDisk) {
+                $targetDisk->updateQuietly([
+                    'size'                   => $orphanDisk->size,
+                    'physical_utilisation'   => $orphanDisk->physical_utilisation,
+                    'iaas_storage_volume_id' => $orphanDisk->iaas_storage_volume_id,
+                    'is_cdrom'               => $orphanDisk->is_cdrom,
+                    'hypervisor_uuid'        => $orphanDisk->hypervisor_uuid,
+                    'hypervisor_data'        => $orphanDisk->hypervisor_data,
+                    'vbd_hypervisor_uuid'    => $orphanDisk->vbd_hypervisor_uuid,
+                    'vbd_hypervisor_data'    => $orphanDisk->vbd_hypervisor_data,
+                ]);
+
+                $orphanDisk->forceDelete();
+            } else {
+                $orphanDisk->updateQuietly([
+                    'iaas_virtual_machine_id' => $target->id,
+                    'iam_account_id'          => $target->iam_account_id,
+                    'iam_user_id'             => $target->iam_user_id,
+                    'name'                    => $orphanDisk->is_cdrom ? 'CDROM' : 'Disk of: ' . $target->name,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Merges $orphan's network card records onto $target's, matched by device_number - same
+     * approach as mergeMigratedDisks().
+     */
+    private static function mergeMigratedNetworkCards(VirtualMachines $orphan, VirtualMachines $target): void
+    {
+        $orphanVifs = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_machine_id', $orphan->id)
+            ->get();
+
+        foreach ($orphanVifs as $orphanVif) {
+            $targetVif = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $target->id)
+                ->where('device_number', $orphanVif->device_number)
+                ->first();
+
+            if ($targetVif) {
+                $targetVif->updateQuietly([
+                    'mac_addr'        => $orphanVif->mac_addr,
+                    'iaas_network_id' => $orphanVif->iaas_network_id,
+                    'hypervisor_uuid' => $orphanVif->hypervisor_uuid,
+                    'hypervisor_data' => $orphanVif->hypervisor_data,
+                    'status'          => $orphanVif->status,
+                ]);
+
+                $orphanVif->forceDelete();
+            } else {
+                $orphanVif->updateQuietly([
+                    'iaas_virtual_machine_id' => $target->id,
+                    'iam_account_id'          => $target->iam_account_id,
+                    'iam_user_id'             => $target->iam_user_id,
+                ]);
+            }
+        }
+    }
 }
