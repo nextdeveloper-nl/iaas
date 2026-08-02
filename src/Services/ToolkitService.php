@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -25,9 +26,12 @@ use RuntimeException;
  *   template/generate their content before pushing it, same as
  *   user-data/meta-data/pc-meta-data.json already are.
  *
- * Never reads from a branch: only from a specific release tag pinned via
- * config('iaas.toolkit.version'), so upgrading the toolkit is a deliberate
- * version bump rather than something that changes silently underneath us.
+ * Never reads from a branch: only from a specific release tag, resolved from
+ * config('iaas.toolkit.version'). By default that's an explicit tag, so
+ * upgrading the toolkit is a deliberate version bump rather than something
+ * that changes silently underneath us; it may also be set to the literal
+ * string "latest" to opt into always tracking GitHub's newest release
+ * instead (see resolveLatestVersion()).
  *
  * Service roles (docker, postgresql, ...) follow the same capability
  * convention: each active iaas_ansible_roles catalog entry's `name` must
@@ -61,9 +65,61 @@ class ToolkitService
         'alma'     => ['ansible_facts.distribution == "AlmaLinux"'],
     ];
 
+    private const LATEST_SENTINEL = 'latest';
+    private const LATEST_CACHE_KEY = 'iaas:toolkit:latest-version';
+    private const LATEST_CACHE_TTL = 300; // seconds - bounds how long a freshly-published GitHub release takes to reach new config-ISO builds
+    private const LATEST_LAST_KNOWN_KEY = 'iaas:toolkit:latest-version:last-known';
+
+    /**
+     * Resolves config('iaas.toolkit.version'): almost always an explicit tag
+     * (the deliberate-bump path this class is built around - see the class
+     * docblock), but also accepts the literal string "latest" for anyone who
+     * deliberately wants to track whatever GitHub currently considers the
+     * newest plusclouds/toolkit release, resolved via resolveLatestVersion().
+     */
     public static function pinnedVersion(): string
     {
-        return config('iaas.toolkit.version', 'v1.0.0');
+        $configured = config('iaas.toolkit.version', 'v1.0.0');
+
+        if (strcasecmp($configured, self::LATEST_SENTINEL) === 0) {
+            return self::resolveLatestVersion();
+        }
+
+        return $configured;
+    }
+
+    /**
+     * Resolves "latest" against GitHub's releases API, cached for
+     * self::LATEST_CACHE_TTL so a config-ISO build doesn't hit the GitHub API
+     * on every call. On a transient GitHub failure, falls back to the last
+     * tag we successfully resolved (cached without expiry) rather than
+     * breaking every config-ISO build until GitHub recovers - only throws if
+     * we've never resolved a version at all.
+     */
+    private static function resolveLatestVersion(): string
+    {
+        return Cache::remember(self::LATEST_CACHE_KEY, self::LATEST_CACHE_TTL, function () {
+            $response = Http::withHeaders(['Accept' => 'application/vnd.github+json'])
+                ->get('https://api.github.com/repos/' . self::REPO . '/releases/latest');
+
+            $tag = $response->successful() ? $response->json('tag_name') : null;
+
+            if (empty($tag)) {
+                $lastKnown = Cache::get(self::LATEST_LAST_KNOWN_KEY);
+
+                if ($lastKnown) {
+                    Log::warning("[ToolkitService] Failed to resolve 'latest' toolkit release from GitHub (HTTP {$response->status()}), falling back to last known [{$lastKnown}]");
+
+                    return $lastKnown;
+                }
+
+                throw new RuntimeException("ToolkitService: failed to resolve 'latest' toolkit release from GitHub (HTTP {$response->status()}) and no previously-resolved version is cached");
+            }
+
+            Cache::forever(self::LATEST_LAST_KNOWN_KEY, $tag);
+
+            return $tag;
+        });
     }
 
     /* =======================================================================
@@ -423,20 +479,46 @@ class ToolkitService
      */
     public static function stageForDocker(): string
     {
-        $version = self::pinnedVersion();
+        return self::ensureStaged(self::pinnedVersion());
+    }
+
+    /**
+     * Downloads the given release's checksums.sha256 + tarball into
+     * public/toolkit/{version}/ so this app server can serve them to central
+     * ISO-repo hosts that have no internet access (see releaseAssetUrl()).
+     * Idempotent - skips the download if both files are already staged, so
+     * unlike the original build-time-only stageForDocker(), it's also safe to
+     * call per-request (see ensureRemoteToolkitCache() in
+     * VirtualMachinesXenService) - that's what lets a "latest" pin (see
+     * resolveLatestVersion()) actually reach central hosts without waiting
+     * for the next Docker image rebuild.
+     */
+    public static function ensureStaged(string $version): string
+    {
         $destDir = public_path('toolkit/' . $version);
+        $filenames = ['checksums.sha256', "toolkit-{$version}.tar.gz"];
+
+        $alreadyStaged = array_reduce(
+            $filenames,
+            fn (bool $carry, string $filename) => $carry && file_exists($destDir . '/' . $filename),
+            true
+        );
+
+        if ($alreadyStaged) {
+            return $destDir;
+        }
 
         if (!is_dir($destDir)) {
             mkdir($destDir, 0755, true);
         }
 
-        foreach (['checksums.sha256', "toolkit-{$version}.tar.gz"] as $filename) {
+        foreach ($filenames as $filename) {
             $url = 'https://github.com/' . self::REPO . "/releases/download/{$version}/{$filename}";
 
             $response = Http::get($url);
 
             if (!$response->successful()) {
-                throw new RuntimeException("ToolkitService: failed to download [{$filename}] for [{$version}] while staging for docker (HTTP {$response->status()})");
+                throw new RuntimeException("ToolkitService: failed to download [{$filename}] for [{$version}] while staging (HTTP {$response->status()})");
             }
 
             file_put_contents($destDir . '/' . $filename, $response->body());

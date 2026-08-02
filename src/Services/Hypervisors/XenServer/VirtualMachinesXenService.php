@@ -1249,6 +1249,13 @@ class VirtualMachinesXenService extends AbstractXenService
      */
     private static function ensureRemoteToolkitCache(Repositories $centralRepo, VirtualMachines $vm): void
     {
+        //  Guarantees this app server has the resolved version's tarball staged at
+        //  public/toolkit/{version}/ *before* asking the central host to curl it from
+        //  there - without this, a "latest" pin (see ToolkitService::pinnedVersion())
+        //  could resolve to a release never staged at Docker build time, and the
+        //  central host's curl below would 404 until the next image rebuild.
+        ToolkitService::ensureStaged(ToolkitService::pinnedVersion());
+
         $result = self::performCommand(ToolkitService::ensureRemoteCacheCommand(), $centralRepo);
 
         if ($result['dry_run'] ?? false) {
