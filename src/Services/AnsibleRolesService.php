@@ -60,7 +60,16 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
                 );
             }
 
-            $defaultConfig = is_array($role->config) ? $role->config : [];
+            //  role->config is the catalog shape - `{key: {default, description}}` - not what a VM's
+            //  Ansible run reads, so this flattens to `{key: default}` before merging in the
+            //  customer's override. Without this, the description text would ride along into
+            //  service_roles.<name>.config.* and get templated straight into config files.
+            $defaultConfig = [];
+
+            foreach ((is_array($role->config) ? $role->config : []) as $key => $spec) {
+                $defaultConfig[$key] = is_array($spec) ? ($spec['default'] ?? null) : $spec;
+            }
+
             $overrideConfig = is_array($override['config'] ?? null) ? $override['config'] : [];
 
             $resolved[$name] = [

@@ -146,17 +146,22 @@ class ToolkitService
      * content changed between toolkit versions), its meta.yml description
      * (iaas_ansible_roles.description), and its defaults.yml config schema
      * (iaas_ansible_roles.config) - hand-authored alongside the capability itself so a customer
-     * looking at GET /iaas/ansible-roles can see exactly which config keys a role accepts and
-     * what they default to, without reading the toolkit source. defaults.yml is optional (a role
-     * that takes no config simply has none); meta.yml is required - a service role without one is
-     * skipped rather than synced with a blank description, since the sync job would otherwise
-     * silently overwrite a previously-set description with nothing.
+     * looking at GET /iaas/ansible-roles can see exactly which config keys a role accepts, without
+     * reading the toolkit source. Each defaults.yml entry is `key: {default: ..., description:
+     * ...}`; `config` is synced through verbatim in that nested shape (the panel reads
+     * `config[key].default`/`config[key].description` directly) - it's
+     * AnsibleRolesService::resolveForVirtualMachine() that flattens it to plain
+     * `{key: default}` when building what actually reaches a VM's Ansible run, so a raw
+     * description string never leaks into `service_roles.<name>.config.*`. defaults.yml is
+     * optional (a role that takes no config simply has none); meta.yml is required - a service
+     * role without one is skipped rather than synced with a blank description, since the sync job
+     * would otherwise silently overwrite a previously-set description with nothing.
      *
      * This is the source of truth AnsibleRolesService::syncFromToolkit() reconciles the
      * iaas_ansible_roles catalog against, so the catalog never drifts ahead of what a config ISO
      * can actually apply.
      *
-     * @return array<string, array{hash: string, description: string, config: array<string, mixed>}>
+     * @return array<string, array{hash: string, description: string, config: array<string, array{default: mixed, description: string}>}>
      */
     public static function discoverServiceRoleNames(): array
     {
