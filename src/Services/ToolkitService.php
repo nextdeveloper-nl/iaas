@@ -461,13 +461,26 @@ class ToolkitService
      * own address instead, same as every other repo/compute-member callback
      * in this codebase (finalize-backup, finalize-commit, /public/iaas/metrics,
      * /public/iaas/ipmi - see ComputeMemberXenService/Commit.php), all built
-     * off config('leo.internal_endpoint') with no GitHub-reachability
-     * fallback. Requires stageForDocker() to have staged the files at build
-     * time (see production-build.yml).
+     * off config('leo.internal_endpoint').
+     *
+     * Deliberately under /public/ - that prefix is what NextDeveloper\IAM's
+     * global Authenticate middleware exempts from auth (see
+     * Authenticate::handle()), and it's routed through a real controller
+     * (App\Http\Controllers\IAAS\ToolkitController, see routes/api.php) that
+     * calls ensureStaged() itself rather than assuming the file is already
+     * sitting on whatever app-server process happens to receive this
+     * request. An earlier version served a bare static path (public/toolkit/
+     * {version}/{filename}) with no route at all - that broke as soon as a
+     * version got staged (ensureStaged()) on a different process/container
+     * than the one this request landed on: nginx's try_files found nothing
+     * locally, fell through to Laravel, and the *global* Authenticate
+     * middleware (which runs before routing, unlike the "api" group's copy)
+     * 401'd it instead of a clean 404, since an unmatched /toolkit/... URI
+     * doesn't start with /public.
      */
     private static function releaseAssetUrl(string $version, string $filename): string
     {
-        return rtrim(config('leo.internal_endpoint'), '/') . "/toolkit/{$version}/{$filename}";
+        return rtrim(config('leo.internal_endpoint'), '/') . "/public/toolkit/{$version}/{$filename}";
     }
 
     /**
@@ -488,10 +501,12 @@ class ToolkitService
      * ISO-repo hosts that have no internet access (see releaseAssetUrl()).
      * Idempotent - skips the download if both files are already staged, so
      * unlike the original build-time-only stageForDocker(), it's also safe to
-     * call per-request (see ensureRemoteToolkitCache() in
-     * VirtualMachinesXenService) - that's what lets a "latest" pin (see
-     * resolveLatestVersion()) actually reach central hosts without waiting
-     * for the next Docker image rebuild.
+     * call per-request - see assetPath(), which is what actually makes a
+     * "latest" pin (see resolveLatestVersion()) reach central hosts without
+     * waiting for the next Docker image rebuild: whichever app-server process
+     * ends up handling a given asset request stages it into its own local
+     * public/toolkit/{version}/ on demand, rather than assuming some other
+     * process already did.
      */
     public static function ensureStaged(string $version): string
     {
@@ -525,6 +540,30 @@ class ToolkitService
         }
 
         return $destDir;
+    }
+
+    /**
+     * Resolves + validates the on-disk path for a requested toolkit asset,
+     * staging the release on demand (via ensureStaged()) if this app-server
+     * process hasn't already. Entry point for
+     * App\Http\Controllers\IAAS\ToolkitController@serve, the handler behind
+     * releaseAssetUrl()'s /public/toolkit/{version}/{filename} route.
+     *
+     * $filename is checked against the fixed two-file set a release actually
+     * ships (checksums.sha256, toolkit-{version}.tar.gz) rather than trusted
+     * as a path fragment, since it comes straight from the URL.
+     *
+     * @throws RuntimeException if $filename isn't one of the release's two servable assets
+     */
+    public static function assetPath(string $version, string $filename): string
+    {
+        $servable = ['checksums.sha256', "toolkit-{$version}.tar.gz"];
+
+        if (!in_array($filename, $servable, true)) {
+            throw new RuntimeException("ToolkitService: [{$filename}] is not a servable asset for toolkit release [{$version}]");
+        }
+
+        return self::ensureStaged($version) . '/' . $filename;
     }
 
     /**
