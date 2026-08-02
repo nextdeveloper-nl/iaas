@@ -86,14 +86,15 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
      * actually exist in the pinned toolkit release: creates a catalog entry for any capability
      * folder that doesn't have one yet (seeded with its scanned config schema - see
      * ToolkitService::discoverServiceRoleNames()), reactivates one that was previously
-     * deactivated, adds any newly-discovered config key to an existing entry without touching
-     * keys already there, and deactivates (never deletes - VMs may still reference it in
-     * features.service_roles) any catalog entry whose capability folder no longer exists in the
-     * pinned release.
+     * deactivated, overwrites an existing entry's config with whatever the pinned release's
+     * defaults.yml currently says (config isn't meant to be hand-edited between syncs - it's a
+     * scanned mirror of the toolkit, not a per-role override store), and deactivates (never
+     * deletes - VMs may still reference it in features.service_roles) any catalog entry whose
+     * capability folder no longer exists in the pinned release.
      *
      * Meant to be run after every toolkit version bump - see the iaas:sync-service-roles command.
      *
-     * @return array{created: string[], reactivated: string[], deactivated: string[]}
+     * @return array{created: string[], updated: string[], reactivated: string[], deactivated: string[]}
      */
     public static function syncFromToolkit(): array
     {
@@ -107,12 +108,13 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
         //  deactivation pass on an empty discovery (e.g. toolkit release not cached yet) instead
         //  of deactivating the entire catalog by accident.
         if (empty($discovered)) {
-            return ['created' => [], 'reactivated' => [], 'deactivated' => []];
+            return ['created' => [], 'updated' => [], 'reactivated' => [], 'deactivated' => []];
         }
 
         $discoveredNames = array_keys($discovered);
 
         $created = [];
+        $updated = [];
         $reactivated = [];
         $deactivated = [];
 
@@ -140,6 +142,7 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
             }
 
             $updates = [];
+            $contentChanged = false;
 
             if (!$role->is_active) {
                 $updates['is_active'] = true;
@@ -148,21 +151,24 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
 
             if ($role->hash !== $meta['hash']) {
                 $updates['hash'] = $meta['hash'];
+                $contentChanged = true;
             }
 
             if ($role->description !== $meta['description']) {
                 $updates['description'] = $meta['description'];
+                $contentChanged = true;
             }
 
-            //  Add any newly-discovered config key (e.g. the toolkit added a new
-            //  capability variable), but never touch a key that's already present -
-            //  it may be a customization made through the AnsibleRoles API since the
-            //  last sync, and existing keys always win over the freshly-scanned default.
-            $existingConfig = is_array($role->config) ? $role->config : [];
-            $mergedConfig = array_merge($meta['config'], $existingConfig);
+            //  Config always mirrors the pinned toolkit's defaults.yml verbatim, so a default
+            //  value changed in a new release reaches existing roles the same way a hash/
+            //  description change does - it's a scanned schema, not a per-role override store.
+            if ($role->config != $meta['config']) {
+                $updates['config'] = $meta['config'];
+                $contentChanged = true;
+            }
 
-            if ($mergedConfig != $existingConfig) {
-                $updates['config'] = $mergedConfig;
+            if ($contentChanged) {
+                $updated[] = $name;
             }
 
             if (!empty($updates)) {
@@ -183,6 +189,7 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
 
         return [
             'created' => $created,
+            'updated' => $updated,
             'reactivated' => $reactivated,
             'deactivated' => $deactivated,
         ];

@@ -28,6 +28,7 @@ class SyncServiceRolesCatalog extends Command
         $result = AnsibleRolesService::syncFromToolkit();
 
         $this->info('Created: ' . (empty($result['created']) ? '-' : implode(', ', $result['created'])));
+        $this->info('Updated: ' . (empty($result['updated']) ? '-' : implode(', ', $result['updated'])));
         $this->info('Reactivated: ' . (empty($result['reactivated']) ? '-' : implode(', ', $result['reactivated'])));
         $this->info('Deactivated: ' . (empty($result['deactivated']) ? '-' : implode(', ', $result['deactivated'])));
     }
