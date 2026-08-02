@@ -6,6 +6,7 @@ use NextDeveloper\IAAS\Database\Models\AnsibleRoles;
 use NextDeveloper\IAAS\Database\Models\AnsibleServers;
 use NextDeveloper\IAAS\Exceptions\UnknownServiceRoleException;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractAnsibleRolesService;
+use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -118,7 +119,12 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
         $reactivated = [];
         $deactivated = [];
 
+        //  Both withoutGlobalScope() calls here strip LimitScope alongside AuthorizationScope -
+        //  LimitScope (see config('iaas.scopes.global')) silently caps every query at
+        //  $model->perPage (20) rows, so without it any discovered/stale set past the 20th row
+        //  would look "not found" and get recreated/left active instead of updated/deactivated.
         $existingRoles = AnsibleRoles::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
             ->whereIn('name', $discoveredNames)
             ->get()
             ->keyBy('name');
@@ -177,6 +183,7 @@ class AnsibleRolesService extends AbstractAnsibleRolesService
         }
 
         $staleRoles = AnsibleRoles::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
             ->where('is_active', true)
             ->whereNotIn('name', $discoveredNames)
             ->get();
