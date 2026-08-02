@@ -126,7 +126,6 @@ class IAASServiceProvider extends AbstractServiceProvider {
                 \NextDeveloper\IAAS\Console\Commands\MigrateVirtualMachine::class,
                 \NextDeveloper\IAAS\Console\Commands\MigrateLocalVirtualMachine::class,
                 \NextDeveloper\IAAS\Console\Commands\UpdateConfigurationIso::class,
-                \NextDeveloper\IAAS\Console\Commands\StageToolkitForDocker::class,
                 \NextDeveloper\IAAS\Console\Commands\SyncServiceRolesCatalog::class,
                 \NextDeveloper\IAAS\Console\Commands\DetectIpCollisions::class,
                 \NextDeveloper\IAAS\Console\Commands\FixMigratedLocalVirtualMachine::class,

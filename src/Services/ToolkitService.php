@@ -489,24 +489,11 @@ class ToolkitService
     }
 
     /**
-     * Downloads the pinned release's checksums.sha256 + tarball into
-     * public/toolkit/{version}/ so this app server's own Docker image can
-     * serve them to central ISO-repo hosts that have no internet access (see
-     * releaseAssetUrl()). Meant to be run once at image build time, not
-     * per-request - see the iaas:stage-toolkit-for-docker command.
-     */
-    public static function stageForDocker(): string
-    {
-        return self::ensureStaged(self::pinnedVersion());
-    }
-
-    /**
      * Downloads the given release's checksums.sha256 + tarball into
      * public/toolkit/{version}/ so this app server can serve them to central
      * ISO-repo hosts that have no internet access (see releaseAssetUrl()).
-     * Idempotent - skips the download if both files are already staged, so
-     * unlike the original build-time-only stageForDocker(), it's also safe to
-     * call per-request - see assetPath(), which is what actually makes a
+     * Idempotent - skips the download if both files are already staged. Safe
+     * to call per-request - see assetPath(), which is what actually makes a
      * "latest" pin (see resolveLatestVersion()) reach central hosts without
      * waiting for the next Docker image rebuild: whichever app-server process
      * ends up handling a given asset request stages it into its own local
