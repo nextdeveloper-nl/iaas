@@ -3,10 +3,20 @@
 namespace NextDeveloper\IAAS\Actions\Networks;
 
 use NextDeveloper\Commons\Actions\AbstractAction;
-use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Database\Models\Gateways;
+use NextDeveloper\IAAS\Database\Models\Networks;
+use NextDeveloper\IAAS\Services\NetworksService;
 
 /**
- * This action converts the virtual machine into a template
+ * Previously an unimplemented trigger_error() stub that also took the wrong model type
+ * (VirtualMachines instead of Networks) - meaning deleting a Network with a gateway left
+ * its firewall VM and Gateways row permanently orphaned. Fixed to tear down the gateway
+ * first, then the network record itself.
+ *
+ * Note: this does not yet remove the network's VLAN config from physical switch members
+ * (see Actions/Networks/Create.php's DellS6100::addNetworkToSwitch) - no removal
+ * counterpart exists anywhere in this codebase today, so that remains a separate,
+ * pre-existing gap outside this fix's scope.
  */
 class Delete extends AbstractAction
 {
@@ -16,20 +26,27 @@ class Delete extends AbstractAction
         'delete-failed:NextDeveloper\IAAS\Networks'
     ];
 
-    public function __construct(VirtualMachines $vm)
+    public function __construct(Networks $network, $params = null, $previousAction = null)
     {
-        trigger_error('This action is not yet implemented', E_USER_ERROR);
+        $this->model = $network;
 
-        $this->model = $vm;
+        parent::__construct($params, $previousAction);
     }
 
     public function handle()
     {
-        $this->setProgress(0, 'Initiate virtual machine started');
+        $this->setProgress(0, 'Deleting network');
 
-        $this->model->status = 'initiated';
-        $this->model->save();
+        if ($this->model->iaas_gateway_id) {
+            $gateway = Gateways::find($this->model->iaas_gateway_id);
 
-        $this->setProgress(100, 'Virtual machine initiated');
+            if ($gateway) {
+                dispatch(new \NextDeveloper\IAAS\Actions\Gateways\Delete($gateway));
+            }
+        }
+
+        NetworksService::delete($this->model->uuid);
+
+        $this->setProgress(100, 'Network deleted');
     }
 }

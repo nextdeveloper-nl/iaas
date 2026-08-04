@@ -17,7 +17,7 @@ class ActiveAlarmsPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function objectType($value)
     {
         return $this->builder->where('object_type', 'ilike', '%' . $value . '%');
@@ -28,7 +28,7 @@ class ActiveAlarmsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->objectType($value);
     }
-        
+
     public function checkType($value)
     {
         return $this->builder->where('check_type', 'ilike', '%' . $value . '%');
@@ -39,7 +39,7 @@ class ActiveAlarmsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->checkType($value);
     }
-        
+
     public function checkStatus($value)
     {
         return $this->builder->where('check_status', 'ilike', '%' . $value . '%');
@@ -50,13 +50,13 @@ class ActiveAlarmsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->checkStatus($value);
     }
-        
+
     public function severity($value)
     {
         return $this->builder->where('severity', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function errorMessage($value)
     {
         return $this->builder->where('error_message', 'ilike', '%' . $value . '%');
@@ -67,7 +67,7 @@ class ActiveAlarmsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->errorMessage($value);
     }
-        
+
     public function errorCode($value)
     {
         return $this->builder->where('error_code', 'ilike', '%' . $value . '%');
@@ -78,7 +78,7 @@ class ActiveAlarmsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->errorCode($value);
     }
-    
+
     public function responseTimeMs($value)
     {
         $operator = substr($value, 0, 1);
@@ -97,7 +97,7 @@ class ActiveAlarmsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->responseTimeMs($value);
     }
-    
+
     public function checkedAtStart($date)
     {
         return $this->builder->where('checked_at', '>=', $date);

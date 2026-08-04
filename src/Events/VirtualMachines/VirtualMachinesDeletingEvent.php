@@ -24,7 +24,7 @@ class VirtualMachinesDeletingEvent
      */
     protected $timestamp = null;
 
-    public function __construct(VirtualMachines $model = null)
+    public function __construct(?VirtualMachines $model = null)
     {
         $this->_model = $model;
     }

@@ -12,6 +12,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -55,39 +56,21 @@ class Sync extends AbstractAction
 
         Events::fire('syncing:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $params = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if(!array_key_exists('power-state', $params)) {
-            //  The VM must not be available to be honest. So we should make a health check here.
+        if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
+            //  The hypervisor did not return a usable power-state, so this VM's state
+            //  cannot be trusted right now. HealthCheck (which used to investigate this
+            //  further) has been retired - flag it for manual investigation instead of
+            //  dispatching a no-op job.
             $this->model->update([
                 'status'    =>  'checking-health'
             ]);
 
-            $job = new HealthCheck($this->model, null, $this);
-            $id = $job->getActionId();
+            $this->setFinishedWithError('Could not determine the virtual machine\'s state after this operation. It has been marked for manual investigation.');
 
-            dispatch($job)->onQueue('iaas');
-
-            $this->setProgress(100, 'Checking the health of the VM. ' .
-                'We suspect something is happening to it.');
-
-            return $id;
-        }
-
-        if(!$params) {
-            $this->setProgress(100, 'Virtual machine failed to sync');
-            Events::fire('sync-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
-
-        $this->model->update([
-            'status'    =>  $params['power-state'],
-            'cpu'       =>  $params['VCPUs-max'],
-            'ram'       =>  $params['memory-static-max'] / 1024 / 1024 / 1024,
-            'is_snapshot'   =>  $params['is-a-snapshot'] === 'true',
-            'domain_type'   =>  $params['hvm'] === 'true' ? 'HVM' : 'PV',
-            'hypervisor_data'   =>  $params
-        ]);
 
         $this->syncXenVifs();
 
@@ -98,6 +81,9 @@ class Sync extends AbstractAction
 
     public function syncXenVifs()
     {
+        //  Not routed through VirtualMachineManager: NetworkCapableInterface doesn't cover
+        //  list/param-get today, only create/destroy/sync/ip-filter - see
+        //  docs/hypervisor-driver-architecture.md.
         $vifs = VirtualMachinesXenService::getVifs($this->model);
 
         $computeMember = VirtualMachinesService::getComputeMember($this->model);

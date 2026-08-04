@@ -31,7 +31,7 @@ class VirtualDiskImageStatsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('size', $operator, $value);
     }
 
-    
+
     public function physicalUtilisation($value)
     {
         $operator = substr($value, 0, 1);
@@ -50,7 +50,7 @@ class VirtualDiskImageStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->physicalUtilisation($value);
     }
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -131,7 +131,7 @@ class VirtualDiskImageStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualDiskImage($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

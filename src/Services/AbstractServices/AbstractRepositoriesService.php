@@ -23,7 +23,7 @@ use NextDeveloper\IAM\Helpers\UserHelper;
  */
 class AbstractRepositoriesService
 {
-    public static function get(RepositoriesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?RepositoriesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

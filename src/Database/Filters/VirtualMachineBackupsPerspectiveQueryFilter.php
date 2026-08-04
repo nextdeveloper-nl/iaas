@@ -17,31 +17,31 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
         return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function path($value)
     {
         return $this->builder->where('path', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function filename($value)
     {
         return $this->builder->where('filename', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function backupType($value)
     {
         return $this->builder->where('backup_type', 'ilike', '%' . $value . '%');
@@ -52,31 +52,31 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->backupType($value);
     }
-        
+
     public function status($value)
     {
         return $this->builder->where('status', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function hash($value)
     {
         return $this->builder->where('hash', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function os($value)
     {
         return $this->builder->where('os', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function distro($value)
     {
         return $this->builder->where('distro', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function cpuType($value)
     {
         return $this->builder->where('cpu_type', 'ilike', '%' . $value . '%');
@@ -87,7 +87,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->cpuType($value);
     }
-        
+
     public function backupJobType($value)
     {
         return $this->builder->where('backup_job_type', 'ilike', '%' . $value . '%');
@@ -98,7 +98,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->backupJobType($value);
     }
-        
+
     public function retentionPolicyName($value)
     {
         return $this->builder->where('retention_policy_name', 'ilike', '%' . $value . '%');
@@ -109,13 +109,13 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->retentionPolicyName($value);
     }
-        
+
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function virtualMachineName($value)
     {
         return $this->builder->where('virtual_machine_name', 'ilike', '%' . $value . '%');
@@ -126,7 +126,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->virtualMachineName($value);
     }
-    
+
     public function cpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -140,7 +140,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
-    
+
     public function ram($value)
     {
         $operator = substr($value, 0, 1);
@@ -154,7 +154,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
-    
+
     public function progress($value)
     {
         $operator = substr($value, 0, 1);
@@ -168,7 +168,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('progress', $operator, $value);
     }
 
-    
+
     public function size($value)
     {
         $operator = substr($value, 0, 1);
@@ -182,7 +182,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('size', $operator, $value);
     }
 
-    
+
     public function keepForDays($value)
     {
         $operator = substr($value, 0, 1);
@@ -201,7 +201,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->keepForDays($value);
     }
-    
+
     public function keepLastNBackups($value)
     {
         $operator = substr($value, 0, 1);
@@ -220,7 +220,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->keepLastNBackups($value);
     }
-    
+
     public function isLatest($value)
     {
         return $this->builder->where('is_latest', $value);
@@ -231,7 +231,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isLatest($value);
     }
-     
+
     public function backupStartsStart($date)
     {
         return $this->builder->where('backup_starts', '>=', $date);
@@ -356,7 +356,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -366,7 +366,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -376,7 +376,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iaasRepositoryImageId($value)
     {
             $iaasRepositoryImage = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('uuid', $value)->first();
@@ -391,7 +391,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasRepositoryImage($value);
     }
-    
+
     public function iaasRepositoryId($value)
     {
             $iaasRepository = \NextDeveloper\IAAS\Database\Models\Repositories::where('uuid', $value)->first();
@@ -406,7 +406,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasRepository($value);
     }
-    
+
     public function iaasBackupJobId($value)
     {
             $iaasBackupJob = \NextDeveloper\IAAS\Database\Models\BackupJobs::where('uuid', $value)->first();
@@ -421,7 +421,7 @@ class VirtualMachineBackupsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasBackupJob($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

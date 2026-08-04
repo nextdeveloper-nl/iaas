@@ -60,7 +60,7 @@ class AbstractVirtualMachineBackupsPerspectiveTransformer extends AbstractTransf
                                                             $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
                                                             $iaasRepositoryId = \NextDeveloper\IAAS\Database\Models\Repositories::where('id', $model->iaas_repository_id)->first();
                                                             $iaasBackupJobId = \NextDeveloper\IAAS\Database\Models\BackupJobs::where('id', $model->iaas_backup_job_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

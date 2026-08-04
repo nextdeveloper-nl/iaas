@@ -6,7 +6,14 @@ use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 
 /**
- * This action copies the virtual disk image
+ * This action copies the virtual disk image.
+ *
+ * Not implemented: there is no underlying disk-copy operation anywhere in
+ * Services/Hypervisors/XenServer (VirtualDiskImageXenService has create/attach/detach/
+ * destroy/resize but no `xe vdi-copy` wrapper) for this to delegate to, so
+ * DiskCapableInterface has no copyDisk() method either - implementing this for real means
+ * adding and verifying a new xe command path against a live XenServer host, which is out
+ * of scope for this pass. See docs/hypervisor-driver-architecture.md.
  */
 class Copy extends AbstractAction
 {

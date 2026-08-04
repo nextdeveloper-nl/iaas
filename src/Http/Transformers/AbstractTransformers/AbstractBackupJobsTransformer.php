@@ -58,7 +58,7 @@ class AbstractBackupJobsTransformer extends AbstractTransformer
                                                             $iaasBackupRetentionPolicyId = \NextDeveloper\IAAS\Database\Models\BackupRetentionPolicies::where('id', $model->iaas_backup_retention_policy_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

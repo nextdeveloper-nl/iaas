@@ -23,6 +23,9 @@ class GatewaysUpdateRequest extends AbstractFormRequest
         'api_token' => 'nullable|string',
         'api_url' => 'nullable|string',
         'gateway_type' => 'string',
+        'hostname' => 'nullable|string',
+        'domain_type' => 'nullable|string',
+        'common_domain_id' => 'nullable|exists:common_domains,uuid|uuid',
         ];
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE

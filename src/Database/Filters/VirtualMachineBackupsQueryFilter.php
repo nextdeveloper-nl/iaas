@@ -17,49 +17,49 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function description($value)
     {
         return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function path($value)
     {
         return $this->builder->where('path', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function filename($value)
     {
         return $this->builder->where('filename', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function username($value)
     {
         return $this->builder->where('username', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function password($value)
     {
         return $this->builder->where('password', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function hash($value)
     {
         return $this->builder->where('hash', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function backupType($value)
     {
         return $this->builder->where('backup_type', 'ilike', '%' . $value . '%');
@@ -70,13 +70,13 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     {
         return $this->backupType($value);
     }
-        
+
     public function status($value)
     {
         return $this->builder->where('status', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function size($value)
     {
         $operator = substr($value, 0, 1);
@@ -90,7 +90,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('size', $operator, $value);
     }
 
-    
+
     public function ram($value)
     {
         $operator = substr($value, 0, 1);
@@ -104,7 +104,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
-    
+
     public function cpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -118,7 +118,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
-    
+
     public function progress($value)
     {
         $operator = substr($value, 0, 1);
@@ -132,7 +132,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('progress', $operator, $value);
     }
 
-    
+
     public function backupStartsStart($date)
     {
         return $this->builder->where('backup_starts', '>=', $date);
@@ -257,7 +257,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -267,7 +267,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -277,7 +277,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iaasRepositoryImageId($value)
     {
             $iaasRepositoryImage = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('uuid', $value)->first();
@@ -292,7 +292,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasRepositoryImage($value);
     }
-    
+
     public function iaasBackupJobId($value)
     {
             $iaasBackupJob = \NextDeveloper\IAAS\Database\Models\BackupJobs::where('uuid', $value)->first();
@@ -307,7 +307,7 @@ class VirtualMachineBackupsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasBackupJob($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

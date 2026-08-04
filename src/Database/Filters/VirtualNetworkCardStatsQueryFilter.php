@@ -36,7 +36,7 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->usedTx($value);
     }
-    
+
     public function usedRx($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->usedRx($value);
     }
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -136,7 +136,7 @@ class VirtualNetworkCardStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualNetworkCard($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

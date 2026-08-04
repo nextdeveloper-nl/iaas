@@ -55,7 +55,7 @@ class AbstractComputeMemberMetricsTransformer extends AbstractTransformer
     public function transform(ComputeMemberMetrics $model)
     {
                                                 $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

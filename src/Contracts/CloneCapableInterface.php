@@ -1,6 +1,6 @@
 <?php
 
-namespace Nextdeveloper\IAAS\Contracts;
+namespace NextDeveloper\IAAS\Contracts;
 
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 

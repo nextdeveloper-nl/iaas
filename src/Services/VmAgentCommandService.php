@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services;
 
+use NextDeveloper\Events\Database\Filters\AgentCommandsQueryFilter;
 use NextDeveloper\Events\Services\AgentCommandsService;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
@@ -24,19 +25,25 @@ class VmAgentCommandService
         array           $params = [],
         int             $timeoutS = 300
     ): string {
-        $available = ($vm->available_operations ?? [])['agent'] ?? [];
-
-        if (!in_array($operation, $available, true)) {
-            throw new \InvalidArgumentException(
-                "Operation '{$operation}' is not available for this VM agent. Available: " . implode(', ', $available)
-            );
-        }
-
-        return AgentCommandsService::dispatch('vm', $vm->uuid, $operation, $params, $timeoutS);
+        return $vm->sendAgentCommand($operation, $params, $timeoutS);
     }
 
     public static function getAvailableOperations(VirtualMachines $vm): array
     {
         return $vm->available_operations ?? [];
+    }
+
+    /**
+     * List previously dispatched agent commands for this VM (and their status/result),
+     * scoping the shared event_agent_commands table down to this VM's own commands.
+     * Any other filter (status, operation, date ranges, ...) from $params still applies
+     * on top - only agent_type/agent_uuid are forced.
+     */
+    public static function getCommands(VirtualMachines $vm, AgentCommandsQueryFilter $filter, array $params = [])
+    {
+        $filter->updateValue('agentType', 'vm');
+        $filter->updateValue('agentUuid', $vm->uuid);
+
+        return AgentCommandsService::get($filter, $params);
     }
 }

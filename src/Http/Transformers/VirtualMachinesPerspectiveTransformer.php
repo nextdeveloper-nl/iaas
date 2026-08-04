@@ -18,7 +18,7 @@ use NextDeveloper\IAM\Helpers\UserHelper;
  */
 class VirtualMachinesPerspectiveTransformer extends AbstractVirtualMachinesPerspectiveTransformer
 {
-    public function __construct(ParamBag $paramBag = null)
+    public function __construct(?ParamBag $paramBag = null)
     {
         $this->addInclude('virtualNetworkCards');
         $this->addInclude('virtualDiskImages');

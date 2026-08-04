@@ -24,7 +24,7 @@ class ComputePoolsUpdatedEvent
      */
     protected $timestamp = null;
 
-    public function __construct(ComputePools $model = null)
+    public function __construct(?ComputePools $model = null)
     {
         $this->_model = $model;
     }

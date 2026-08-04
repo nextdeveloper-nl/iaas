@@ -16,7 +16,7 @@ use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMac
  */
 class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
 {
-    public function __construct(ParamBag $paramBag = null)
+    public function __construct(?ParamBag $paramBag = null)
     {
         $this->addInclude('virtualNetworkCards');
 
@@ -42,6 +42,10 @@ class VirtualMachinesTransformer extends AbstractVirtualMachinesTransformer
         $vm = VirtualMachines::where('id', $transformed['snapshot_of_virtual_machine'])->first();
 
         if($vm) $transformed['snapshot_of_virtual_machine'] = $vm->uuid;
+
+        //  Surface the VM's selected service roles as their own key instead of making
+        //  API consumers dig through the generic features blob (see features.service_roles).
+        $transformed['service_roles'] = $model->features['service_roles'] ?? [];
 
         unset($transformed['hypervisor_uuid']);
         unset($transformed['hypervisor_data']);

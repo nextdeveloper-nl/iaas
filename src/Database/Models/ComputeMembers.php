@@ -63,6 +63,9 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $free_ram
  * @property string $events_token
  * @property boolean $is_event_service_running
+ * @property $available_operations
+ * @property \Carbon\Carbon $agent_latest_ping
+ * @property string $agent_api_key
  */
 class ComputeMembers extends Model
 {
@@ -119,6 +122,9 @@ class ComputeMembers extends Model
             'free_ram',
             'events_token',
             'is_event_service_running',
+            'available_operations',
+            'agent_latest_ping',
+            'agent_api_key',
     ];
 
     /**
@@ -178,6 +184,9 @@ class ComputeMembers extends Model
     'free_ram' => 'integer',
     'events_token' => 'string',
     'is_event_service_running' => 'boolean',
+    'available_operations' => 'array',
+    'agent_latest_ping' => 'datetime',
+    'agent_api_key' => 'string',
     ];
 
     /**
@@ -191,6 +200,7 @@ class ComputeMembers extends Model
     'created_at',
     'updated_at',
     'deleted_at',
+    'agent_latest_ping',
     ];
 
     /**
@@ -252,7 +262,12 @@ class ComputeMembers extends Model
 
     public function computePools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class);
+        //  Explicit FK required: Laravel's naming convention would guess
+        //  'compute_pools_id', but the real column is 'iaas_compute_pool_id' - without
+        //  this, the relation silently returns null for every row instead of erroring,
+        //  which made VirtualMachineManager::getAdapterForComputeMember() (and therefore
+        //  every HostSyncInterface call site) always fall through to its fallback path.
+        return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\ComputePools::class, 'iaas_compute_pool_id');
     }
     
     public function computeMemberNetworkInterfaces() : \Illuminate\Database\Eloquent\Relations\HasMany
@@ -282,6 +297,27 @@ class ComputeMembers extends Model
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
+    use \NextDeveloper\Events\Database\Traits\HasAgentCommands;
+
+    public function getAgentType(): string
+    {
+        return 'compute';
+    }
+
+    protected function assertAgentOperationAllowed(string $operation): void
+    {
+        // available_operations['agent'] holds the agent's raw capability objects
+        // ({operation, description, params}), not plain operation-name strings -
+        // pull out the 'operation' column before checking against it.
+        $available    = ($this->available_operations ?? [])['agent'] ?? [];
+        $operationIds = array_column($available, 'operation');
+
+        if (!in_array($operation, $operationIds, true)) {
+            throw new \InvalidArgumentException(
+                "Operation '{$operation}' is not available for this compute member agent. Available: " . implode(', ', $operationIds)
+            );
+        }
+    }
 
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
     {

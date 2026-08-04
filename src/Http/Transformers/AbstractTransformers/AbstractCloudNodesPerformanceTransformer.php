@@ -54,7 +54,7 @@ class AbstractCloudNodesPerformanceTransformer extends AbstractTransformer
      */
     public function transform(CloudNodesPerformance $model)
     {
-            
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

@@ -6,6 +6,8 @@ use NextDeveloper\Commons\AbstractServiceProvider;
 use NextDeveloper\IAAS\Http\Middlewares\CheckEligibility;
 use NextDeveloper\IAAS\Http\Middlewares\CheckIaasAccount;
 use NextDeveloper\IAAS\Http\Middlewares\CheckSuspension;
+use NextDeveloper\IAAS\Services\Hypervisors\GatewayDriverManager;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 
 /**
  * Class IAASServiceProvider
@@ -26,6 +28,8 @@ class IAASServiceProvider extends AbstractServiceProvider {
     public function boot() {
         $this->publishes([
             __DIR__.'/../config/iaas.php' => config_path('iaas.php'),
+            __DIR__.'/../config/virtualization.php' => config_path('virtualization.php'),
+            __DIR__.'/../config/gateway_drivers.php' => config_path('gateway_drivers.php'),
         ], 'config');
 
         $this->loadViewsFrom($this->dir.'/../resources/views', 'IAAS');
@@ -46,7 +50,12 @@ class IAASServiceProvider extends AbstractServiceProvider {
         $this->registerCommands();
 
         $this->mergeConfigFrom(__DIR__.'/../config/iaas.php', 'iaas');
+        $this->mergeConfigFrom(__DIR__.'/../config/virtualization.php', 'virtualization');
+        $this->mergeConfigFrom(__DIR__.'/../config/gateway_drivers.php', 'gateway_drivers');
         $this->customMergeConfigFrom(__DIR__.'/../config/relation.php', 'relation');
+
+        $this->registerHypervisorDrivers();
+        $this->registerGatewayDrivers();
     }
 
     /**
@@ -107,7 +116,6 @@ class IAASServiceProvider extends AbstractServiceProvider {
     protected function registerCommands() {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \NextDeveloper\IAAS\Console\Commands\StartHealthCheck::class,
                 \NextDeveloper\IAAS\Console\Commands\RemoveLostServers::class,
                 \NextDeveloper\IAAS\Console\Commands\RemoveDraftServers::class,
                 \NextDeveloper\IAAS\Console\Commands\SyncCloudNode::class,
@@ -117,8 +125,10 @@ class IAASServiceProvider extends AbstractServiceProvider {
                 \NextDeveloper\IAAS\Console\Commands\SyncStorageVolume::class,
                 \NextDeveloper\IAAS\Console\Commands\MigrateVirtualMachine::class,
                 \NextDeveloper\IAAS\Console\Commands\MigrateLocalVirtualMachine::class,
-                \NextDeveloper\IAAS\Console\Commands\ListenVmAgentEvents::class,
                 \NextDeveloper\IAAS\Console\Commands\UpdateConfigurationIso::class,
+                \NextDeveloper\IAAS\Console\Commands\SyncServiceRolesCatalog::class,
+                \NextDeveloper\IAAS\Console\Commands\DetectIpCollisions::class,
+                \NextDeveloper\IAAS\Console\Commands\FixMigratedLocalVirtualMachine::class,
             ]);
         }
     }
@@ -141,4 +151,43 @@ class IAASServiceProvider extends AbstractServiceProvider {
         return $isSuccessfull;
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    /**
+     * Binds VirtualMachineManager as a singleton and registers every driver listed in
+     * config/virtualization.php against it, so every caller resolving the manager gets
+     * the same, fully-registered registry. Also aliases it as the 'vm.manager' facade
+     * accessor for NextDeveloper\IAAS\Facades\VM.
+     */
+    private function registerHypervisorDrivers() {
+        $this->app->singleton(VirtualMachineManager::class, function () {
+            $manager = new VirtualMachineManager();
+
+            foreach (config('virtualization.platforms', []) as $platform => $platformConfig) {
+                $manager->registerAdapter($platform, $platformConfig['driver']);
+            }
+
+            return $manager;
+        });
+
+        $this->app->alias(VirtualMachineManager::class, 'vm.manager');
+    }
+
+    /**
+     * Binds GatewayDriverManager as a singleton and registers every driver listed in
+     * config/gateway_drivers.php against it - structural mirror of
+     * registerHypervisorDrivers() above, see docs/hypervisor-driver-architecture.md.
+     */
+    private function registerGatewayDrivers() {
+        $this->app->singleton(GatewayDriverManager::class, function () {
+            $manager = new GatewayDriverManager();
+
+            foreach (config('gateway_drivers.platforms', []) as $platform => $platformConfig) {
+                $manager->registerAdapter($platform, $platformConfig['driver']);
+            }
+
+            return $manager;
+        });
+
+        $this->app->alias(GatewayDriverManager::class, 'gateway.manager');
+    }
 }

@@ -12,6 +12,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 
@@ -89,37 +90,36 @@ class Start extends AbstractAction
             }
         }
 
+        //  Kept as a direct call (not routed through VirtualMachineManager): the raw `xe`
+        //  error string is inspected below for a specific failure mode ("no matching VMs")
+        //  that has no generalized equivalent in the driver interface yet - see
+        //  docs/hypervisor-driver-architecture.md. Everything after this stays migrated.
         $result = VirtualMachinesXenService::start($this->model);
 
         if($result['error'] != '') {
             if($result['error'] == 'Error: No matching VMs found') {
                 StateHelper::setState($this->model, 'cannot-find-vm', 'true', StateHelper::STATE_ERROR);
 
-                dispatch(new HealthCheck($this->model, null, $this));
-
-                $this->setFinishedWithError('This VM needs a health check. That is why I am finishing this action here.');
-                //  We need to finish this action
+                $this->setFinishedWithError('This VM could not be found on the hypervisor. It has been marked for manual investigation.');
                 return;
             }
         }
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
+        $vmParams = $this->model->hypervisor_data;
 
         if(!array_key_exists('power-state', $vmParams)) {
-            //  The VM must not be available to be honest. So we should make a health check here.
+            //  The hypervisor did not return a usable power-state, so this VM's state
+            //  cannot be trusted right now. HealthCheck (which used to investigate this
+            //  further) has been retired - flag it for manual investigation instead of
+            //  dispatching a no-op job.
             $this->model->update([
                 'status'    =>  'checking-health'
             ]);
 
-            $job = new HealthCheck($this->model, null, $this);
-            $id = $job->getActionId();
+            $this->setFinishedWithError('Could not determine the virtual machine\'s state after this operation. It has been marked for manual investigation.');
 
-            dispatch($job)->onQueue('iaas');
-
-            $this->setProgress(100, 'Checking the health of the VM. ' .
-                'We suspect something is happening to it.');
-
-            return $id;
+            return;
         }
 
         if(config('leo.debug.iaas.compute_members'))

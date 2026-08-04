@@ -36,7 +36,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->vmsProtected($value);
     }
-    
+
     public function vmsProtectedDelta($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->vmsProtectedDelta($value);
     }
-    
+
     public function rpoBreachedVms($value)
     {
         $operator = substr($value, 0, 1);
@@ -74,7 +74,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->rpoBreachedVms($value);
     }
-    
+
     public function slaBreachedJobs($value)
     {
         $operator = substr($value, 0, 1);
@@ -93,7 +93,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->slaBreachedJobs($value);
     }
-    
+
     public function jobsDisabled($value)
     {
         $operator = substr($value, 0, 1);
@@ -112,7 +112,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->jobsDisabled($value);
     }
-    
+
     public function jobsFailed24h($value)
     {
         $operator = substr($value, 0, 1);
@@ -131,7 +131,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->jobsFailed24h($value);
     }
-    
+
     public function jobsFailed30d($value)
     {
         $operator = substr($value, 0, 1);
@@ -150,7 +150,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->jobsFailed30d($value);
     }
-    
+
     public function storageUsedBytes($value)
     {
         $operator = substr($value, 0, 1);
@@ -169,7 +169,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->storageUsedBytes($value);
     }
-    
+
     public function protectionsDone24h($value)
     {
         $operator = substr($value, 0, 1);
@@ -188,7 +188,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->protectionsDone24h($value);
     }
-    
+
     public function protectionsDone30d($value)
     {
         $operator = substr($value, 0, 1);
@@ -207,7 +207,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->protectionsDone30d($value);
     }
-    
+
     public function protectionsDoneDelta($value)
     {
         $operator = substr($value, 0, 1);
@@ -226,7 +226,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->protectionsDoneDelta($value);
     }
-    
+
     public function jobsWithReplication($value)
     {
         $operator = substr($value, 0, 1);
@@ -245,7 +245,7 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->jobsWithReplication($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -255,6 +255,6 @@ class VmBackupPerAccountStatsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 }

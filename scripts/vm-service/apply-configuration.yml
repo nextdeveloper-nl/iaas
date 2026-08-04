@@ -45,6 +45,11 @@
       when:
         - ansible_facts.distribution == "Debian"
 
+    - name: Enlarge disk
+      include_tasks: disk-resize-alma.yml
+      when:
+        - ansible_facts.distribution == "AlmaLinux"
+
     - name: Extract environment variables
       set_fact:
         env_vars: "{{ metadata.env_vars | default({}) }}"

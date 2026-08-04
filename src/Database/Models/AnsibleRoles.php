@@ -21,6 +21,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property integer $id
  * @property string $uuid
  * @property string $name
+ * @property string $description
  * @property integer $version
  * @property integer $release_number
  * @property $config
@@ -53,6 +54,7 @@ class AnsibleRoles extends Model
 
     protected $fillable = [
             'name',
+            'description',
             'version',
             'release_number',
             'config',
@@ -88,6 +90,7 @@ class AnsibleRoles extends Model
     protected $casts = [
     'id' => 'integer',
     'name' => 'string',
+    'description' => 'string',
     'version' => 'integer',
     'release_number' => 'integer',
     'config' => 'array',
@@ -164,17 +167,17 @@ class AnsibleRoles extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Accounts::class);
     }
-    
+
     public function ansibleRoles() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\AnsibleRoles::class);
     }
-    
+
     public function users() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAM\Database\Models\Users::class);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

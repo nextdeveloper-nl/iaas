@@ -17,7 +17,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function replicationType($value)
     {
         return $this->builder->where('replication_type', 'ilike', '%' . $value . '%');
@@ -28,7 +28,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
     {
         return $this->replicationType($value);
     }
-        
+
     public function lastReplicationStatus($value)
     {
         return $this->builder->where('last_replication_status', 'ilike', '%' . $value . '%');
@@ -39,7 +39,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
     {
         return $this->lastReplicationStatus($value);
     }
-    
+
     public function priority($value)
     {
         $operator = substr($value, 0, 1);
@@ -53,7 +53,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
         return $this->builder->where('priority', $operator, $value);
     }
 
-    
+
     public function bandwidthLimitMbps($value)
     {
         $operator = substr($value, 0, 1);
@@ -72,7 +72,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
     {
         return $this->bandwidthLimitMbps($value);
     }
-    
+
     public function lastReplicationSizeBytes($value)
     {
         $operator = substr($value, 0, 1);
@@ -91,7 +91,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
     {
         return $this->lastReplicationSizeBytes($value);
     }
-    
+
     public function lastReplicationDurationSecs($value)
     {
         $operator = substr($value, 0, 1);
@@ -110,7 +110,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
     {
         return $this->lastReplicationDurationSecs($value);
     }
-    
+
     public function isEnabled($value)
     {
         return $this->builder->where('is_enabled', $value);
@@ -121,7 +121,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
     {
         return $this->isEnabled($value);
     }
-     
+
     public function lastReplicatedAtStart($date)
     {
         return $this->builder->where('last_replicated_at', '>=', $date);
@@ -224,7 +224,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasBackupJob($value);
     }
-    
+
     public function iaasRepositoryId($value)
     {
             $iaasRepository = \NextDeveloper\IAAS\Database\Models\Repositories::where('uuid', $value)->first();
@@ -239,7 +239,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasRepository($value);
     }
-    
+
     public function iaasBackupRetentionPolicyId($value)
     {
             $iaasBackupRetentionPolicy = \NextDeveloper\IAAS\Database\Models\BackupRetentionPolicies::where('uuid', $value)->first();
@@ -254,7 +254,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasBackupRetentionPolicy($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -264,7 +264,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -274,7 +274,7 @@ class BackupJobReplicationsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

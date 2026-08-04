@@ -1,0 +1,30 @@
+-- PostgreSQL
+
+CREATE TABLE iaas_datacenters (
+    id                  bigint NOT NULL DEFAULT nextval('iaas_datacenters_id_seq'::regclass),
+    uuid                uuid DEFAULT gen_random_uuid(),
+    name                text NOT NULL,
+    slug                text,
+    is_public           boolean NOT NULL DEFAULT false,
+    is_active           boolean NOT NULL DEFAULT false,
+    maintenance_mode    boolean NOT NULL DEFAULT false,
+    geo_latitude        text DEFAULT '0'::text,
+    geo_longitude       text DEFAULT '0'::text,
+    tier_level          smallint,
+    total_capacity      json,
+    guaranteed_uptime   numeric(3,0),
+    is_carrier_neutral  boolean,
+    power_source        text,
+    ups                 text,
+    cooling             text,
+    common_city_id      bigint,
+    iam_user_id         bigint,
+    iam_account_id      bigint,
+    common_country_id   bigint,
+    tags                text[] NOT NULL DEFAULT '{}'::text[],
+    created_at          timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at          timestamp with time zone,
+    description         text,
+    CONSTRAINT iaas_datacenters_pkey PRIMARY KEY (id)
+);

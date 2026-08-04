@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\IAAS\Actions\DhcpServers\UpdateConfiguration;
 use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
+use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Detach;
 use NextDeveloper\IAAS\Database\Models\DhcpServers;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
@@ -153,4 +154,16 @@ class VirtualNetworkCardsService extends AbstractVirtualNetworkCardsService
 
         return $ipAddress;
     }
+
+    public static function delete($id)
+    {
+        $vif = VirtualNetworkCards::where('uuid', $id)->first();
+
+        if ($vif) {
+            (new Detach($vif))->handle();
+        }
+
+        return parent::delete($id);
+    }
+
 }

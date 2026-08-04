@@ -54,7 +54,7 @@ class AbstractHealthChecksTransformer extends AbstractTransformer
      */
     public function transform(HealthChecks $model)
     {
-            
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

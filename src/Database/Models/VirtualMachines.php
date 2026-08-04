@@ -67,6 +67,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property $tokens
  * @property string $agent_api_key
  * @property \Carbon\Carbon $agent_latest_ping
+ * @property boolean $is_pending_update
  */
 class VirtualMachines extends Model
 {
@@ -128,6 +129,7 @@ class VirtualMachines extends Model
             'tokens',
             'agent_api_key',
             'agent_latest_ping',
+            'is_pending_update',
     ];
 
     /**
@@ -195,6 +197,7 @@ class VirtualMachines extends Model
     'tokens' => 'array',
     'agent_api_key' => 'string',
     'agent_latest_ping' => 'datetime',
+    'is_pending_update' => 'boolean',
     ];
 
     /**
@@ -279,40 +282,63 @@ class VirtualMachines extends Model
     
     public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DhcpServers::class, 'iaas_virtual_machine_id');
     }
 
     public function gateways() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\Gateways::class, 'iaas_virtual_machine_id');
     }
 
     public function sshPublicKeyVirtualMachines() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\SshPublicKeyVirtualMachines::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\SshPublicKeyVirtualMachines::class, 'iaas_virtual_machine_id');
     }
 
     public function virtualNetworkCards() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualNetworkCards::class, 'iaas_virtual_machine_id');
     }
 
     public function virtualMachineEnvVars() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVars::class, 'iaas_virtual_machine_id');
     }
 
     public function virtualMachineEnvVarGroups() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVarGroups::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineEnvVarGroups::class, 'iaas_virtual_machine_id');
     }
 
     public function virtualMachineMetrics() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class);
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\VirtualMachineMetrics::class, 'iaas_virtual_machine_id');
     }
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
+
+    use \NextDeveloper\Events\Database\Traits\HasAgentCommands;
+
+    public function getAgentType(): string
+    {
+        return 'vm';
+    }
+
+    protected function assertAgentOperationAllowed(string $operation): void
+    {
+        // available_operations['agent'] holds the agent's raw capability objects
+        // ({operation, description, params}), not plain operation-name strings -
+        // pull out the 'operation' column before checking against it.
+        $available    = ($this->available_operations ?? [])['agent'] ?? [];
+        $operationIds = array_column($available, 'operation');
+
+        if (!in_array($operation, $operationIds, true)) {
+            throw new \InvalidArgumentException(
+                "Operation '{$operation}' is not available for this VM agent. Available: " . implode(', ', $operationIds)
+            );
+        }
+    }
+
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
@@ -324,7 +350,7 @@ class VirtualMachines extends Model
 
     public function updateState($state)
     {
-        $this->update(['state' => $state]);
+        $this->update(['status' => $state]);
 
         return $this->fresh();
     }

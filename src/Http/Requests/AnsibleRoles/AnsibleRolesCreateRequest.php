@@ -14,6 +14,7 @@ class AnsibleRolesCreateRequest extends AbstractFormRequest
     {
         return [
             'name' => 'nullable|string',
+        'description' => 'nullable|string',
         'version' => 'nullable|integer',
         'release_number' => 'integer',
         'config' => 'required',

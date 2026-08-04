@@ -50,15 +50,14 @@ class CollectGarbageNetworks implements ShouldQueue
                     ->where('id', $computeMemberNetwork->iaas_compute_member_id)
                     ->first();
 
-                switch ($computeMember->hypervisor_model) {
-                    case 'XenServer 8.2':
-                    case 'XenServer 8.1':
-                    case 'XenServer 8.0':
-                    case 'XenServer 7.2':
-                    case 'XenServer 7.1':
-                    case 'XenServer 7.0':
-                    case 'XenServer 6.5':
-                    case 'XenServer 6.2':
+                //  Dispatch on ComputePools.virtualization, not the per-host free-text
+                //  hypervisor_model (which previously had to enumerate every known XenServer
+                //  minor version string) - see docs/hypervisor-driver-architecture.md.
+                switch ($computeMember->computePools?->virtualization) {
+                    case 'xenserver-8.2':
+                    case 'xenserver-8.2-ssh':
+                    case 'xcp-ng-8.2':
+                    case 'xcp-ng-8.2-ssh':
                         ComputeMemberXenService::deleteNetwork($computeMember, $computeMemberNetwork);
                         break;
                 }

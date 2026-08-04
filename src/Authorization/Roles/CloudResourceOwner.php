@@ -43,7 +43,7 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             $builder->orWhere('is_public', true);
     }
 
-    public function checkPrivileges(Users $users = null)
+    public function checkPrivileges(?Users $users = null)
     {
         //return UserHelper::hasRole(self::NAME, $users);
     }

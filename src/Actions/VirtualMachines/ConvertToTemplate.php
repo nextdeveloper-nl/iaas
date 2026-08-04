@@ -10,9 +10,11 @@ use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Contracts\ExportCapableInterface;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Exceptions\CannotContinueException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -81,26 +83,23 @@ class ConvertToTemplate extends AbstractAction
             return;
         }
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if(!array_key_exists('power-state', $vmParams)) {
-            //  The VM must not be available to be honest. So we should make a health check here.
+        if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
+            //  The hypervisor did not return a usable power-state, so this VM's state
+            //  cannot be trusted right now. HealthCheck (which used to investigate this
+            //  further) has been retired - flag it for manual investigation instead of
+            //  dispatching a no-op job.
             $this->model->update([
                 'status'    =>  'checking-health'
             ]);
 
-            $job = new HealthCheck($this->model, null, $this);
-            $id = $job->getActionId();
+            $this->setFinishedWithError('Could not determine the virtual machine\'s state after this operation. It has been marked for manual investigation.');
 
-            dispatch($job)->onQueue('iaas');
-
-            $this->setProgress(100, 'Checking the health of the VM. ' .
-                'We suspect something is happening to it.');
-
-            return $id;
+            return;
         }
 
-        if($vmParams['power-state'] != 'halted') {
+        if($this->model->status != 'halted') {
             $this->setFinishedWithError('We cannot convert the virtual machine to template. It is not halted.');
             Events::fire('conversion-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
@@ -114,7 +113,11 @@ class ConvertToTemplate extends AbstractAction
 
         $this->setProgress(40, 'Mounting the repository.');
 
-        $isMounted = ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
+        $provisioningDriver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+        $isMounted = $provisioningDriver instanceof ProvisioningCapableInterface
+            ? $provisioningDriver->mountRepository($computeMember, $this->repository)
+            : ComputeMemberXenService::mountVmRepository($computeMember, $this->repository);
 
         if(!$isMounted) {
             $this->setFinishedWithError('We cannot mount the given repository, that is why we cannot' .
@@ -125,9 +128,12 @@ class ConvertToTemplate extends AbstractAction
 
         $this->setProgress(60, 'Exporting the virtual machine. This will take a while. Please wait.');
 
-        $templateName = VirtualMachinesXenService::export($this->model, $this->repository);
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+        $templateName = $driver instanceof ExportCapableInterface
+            ? $driver->exportToRepository($this->model, $this->repository)
+            : null;
 
-        if(!Str::isUuid($templateName)) {
+        if(!$templateName || !Str::isUuid($templateName)) {
             $this->setFinishedWithError('We cannot export the virtual machine to the given repository.');
             Events::fire('conversion-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
@@ -158,7 +164,11 @@ class ConvertToTemplate extends AbstractAction
 
         $this->setProgress(90, 'Unmounting the repository.');
 
-        ComputeMemberXenService::unmountVmRepository($computeMember, $this->repository);
+        if ($provisioningDriver instanceof ProvisioningCapableInterface) {
+            $provisioningDriver->unmountRepository($computeMember, $this->repository);
+        } else {
+            ComputeMemberXenService::unmountVmRepository($computeMember, $this->repository);
+        }
 
         $this->setProgress(100, 'Virtual machine exported');
     }

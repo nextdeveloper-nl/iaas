@@ -185,4 +185,52 @@ class VirtualDiskImageXenService extends AbstractXenService
 
         return $vdi;
     }
+
+    public static function detach($vdi) : VirtualDiskImages
+    {
+        $vdi->refresh();
+
+        if (!$vdi->vbd_hypervisor_uuid) {
+            //  There is no virtual block device on the hypervisor, so there is nothing to detach.
+            return $vdi;
+        }
+
+        $vm = VirtualDiskImagesService::getVirtualMachine($vdi);
+        $computeMember = VirtualDiskImagesService::getComputeMember($vdi);
+
+        Log::info('[VirtualDiskImageService@detach] We are trying to detach the disk uuid: ' . $vdi->uuid
+            . ' from the virtual machine uuid: ' . $vm->uuid);
+
+        if ($vm->status == 'running') {
+            $command = 'xe vbd-unplug uuid=' . $vdi->vbd_hypervisor_uuid;
+
+            $result = $computeMember->performSSHCommand($command);
+
+            if ($result['error']) {
+                Log::error(__METHOD__ . ' | There is an error when unplugging the VBD for VDI: '
+                    . $result['error']);
+
+                //  Not returning here, the VBD can still be destroyed even if unplug failed (eg. it was
+                //  already unplugged on the hypervisor side).
+            }
+        }
+
+        $command = 'xe vbd-destroy uuid=' . $vdi->vbd_hypervisor_uuid;
+
+        $result = $computeMember->performSSHCommand($command);
+
+        if ($result['error']) {
+            Log::error(__METHOD__ . ' | We have an error destroying the virtual block device: '
+                . $result['error']);
+
+            return $vdi;
+        }
+
+        $vdi->updateQuietly([
+            'vbd_hypervisor_uuid'   =>  null,
+            'vbd_hypervisor_data'   =>  null
+        ]);
+
+        return $vdi;
+    }
 }

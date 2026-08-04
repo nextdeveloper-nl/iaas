@@ -36,7 +36,7 @@ class StorageMemberStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->usedDisk($value);
     }
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -117,7 +117,7 @@ class StorageMemberStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasStorageMember($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

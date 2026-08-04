@@ -24,7 +24,7 @@ class CloudNodesRetrievedEvent
      */
     protected $timestamp = null;
 
-    public function __construct(CloudNodes $model = null)
+    public function __construct(?CloudNodes $model = null)
     {
         $this->_model = $model;
     }

@@ -5,12 +5,14 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\DiskCapableInterface;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -77,7 +79,11 @@ class MountCd extends AbstractAction
             ->where('id', $this->model->iaas_compute_member_id)
             ->first();
 
-        $isMounted = ComputeMemberXenService::mountIsoRepository($computeMember, $repo);
+        $provisioningDriver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+        $isMounted = $provisioningDriver instanceof ProvisioningCapableInterface
+            ? $provisioningDriver->mountIsoRepository($computeMember, $repo)
+            : ComputeMemberXenService::mountIsoRepository($computeMember, $repo);
 
         if(!$isMounted) {
             Events::fire('mounting-cd-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
@@ -88,7 +94,8 @@ class MountCd extends AbstractAction
 
         $this->setProgress(60, 'Mounting CD');
 
-        $result = VirtualMachinesXenService::mountCD($this->model, $this->repoImage);
+        $driver = app(VirtualMachineManager::class)->getAdapter($this->model);
+        $result = $driver instanceof DiskCapableInterface ? $driver->mountCd($this->model, $this->repoImage) : false;
 
         if(!$result) {
             Events::fire('mounting-cd-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);

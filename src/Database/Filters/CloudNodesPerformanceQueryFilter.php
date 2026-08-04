@@ -17,13 +17,13 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function datacenterName($value)
     {
         return $this->builder->where('datacenter_name', 'ilike', '%' . $value . '%');
@@ -34,7 +34,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->datacenterName($value);
     }
-        
+
     public function computeVcpuHealth($value)
     {
         return $this->builder->where('compute_vcpu_health', 'ilike', '%' . $value . '%');
@@ -45,7 +45,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->computeVcpuHealth($value);
     }
-        
+
     public function memoryHealth($value)
     {
         return $this->builder->where('memory_health', 'ilike', '%' . $value . '%');
@@ -56,7 +56,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->memoryHealth($value);
     }
-        
+
     public function storageHealth($value)
     {
         return $this->builder->where('storage_health', 'ilike', '%' . $value . '%');
@@ -67,7 +67,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->storageHealth($value);
     }
-        
+
     public function networkHealth($value)
     {
         return $this->builder->where('network_health', 'ilike', '%' . $value . '%');
@@ -78,7 +78,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->networkHealth($value);
     }
-    
+
     public function vmCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -97,7 +97,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->vmCount($value);
     }
-    
+
     public function computeVcpuTotal($value)
     {
         $operator = substr($value, 0, 1);
@@ -116,7 +116,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->computeVcpuTotal($value);
     }
-    
+
     public function computeVcpuUsed($value)
     {
         $operator = substr($value, 0, 1);
@@ -135,7 +135,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->computeVcpuUsed($value);
     }
-    
+
     public function computeAlarmCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -154,7 +154,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->computeAlarmCount($value);
     }
-    
+
     public function storageTotalGb($value)
     {
         $operator = substr($value, 0, 1);
@@ -173,7 +173,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->storageTotalGb($value);
     }
-    
+
     public function storageUsedGb($value)
     {
         $operator = substr($value, 0, 1);
@@ -192,7 +192,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->storageUsedGb($value);
     }
-    
+
     public function storageAlarmCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -211,7 +211,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->storageAlarmCount($value);
     }
-    
+
     public function networkAlarmCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -230,7 +230,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->networkAlarmCount($value);
     }
-    
+
     public function isActive($value)
     {
         return $this->builder->where('is_active', $value);
@@ -241,7 +241,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->isActive($value);
     }
-     
+
     public function isAlive($value)
     {
         return $this->builder->where('is_alive', $value);
@@ -252,7 +252,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->isAlive($value);
     }
-     
+
     public function isInMaintenance($value)
     {
         return $this->builder->where('is_in_maintenance', $value);
@@ -263,7 +263,7 @@ class CloudNodesPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->isInMaintenance($value);
     }
-     
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

@@ -17,19 +17,19 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function network($value)
     {
         return $this->builder->where('network', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function virtualMachine($value)
     {
         return $this->builder->where('virtual_machine', 'ilike', '%' . $value . '%');
@@ -40,13 +40,13 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->virtualMachine($value);
     }
-        
+
     public function status($value)
     {
         return $this->builder->where('status', 'ilike', '%' . $value . '%');
     }
 
-    
+
     public function bandwidthLimit($value)
     {
         $operator = substr($value, 0, 1);
@@ -65,7 +65,7 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->bandwidthLimit($value);
     }
-    
+
     public function deviceNumber($value)
     {
         $operator = substr($value, 0, 1);
@@ -84,7 +84,7 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->deviceNumber($value);
     }
-    
+
     public function isDraft($value)
     {
         return $this->builder->where('is_draft', $value);
@@ -95,7 +95,7 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isDraft($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -176,7 +176,7 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetwork($value);
     }
-    
+
     public function iaasVirtualMachineId($value)
     {
             $iaasVirtualMachine = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('uuid', $value)->first();
@@ -191,7 +191,7 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -201,7 +201,7 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -211,7 +211,7 @@ class VirtualNetworkCardsPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

@@ -18,7 +18,7 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
  */
 class CustomerResourcesPerspectiveService
 {
-    public static function get(CustomerResourcesPerspectiveQueryFilter $filter = null, array $params = []): Collection|LengthAwarePaginator
+    public static function get(?CustomerResourcesPerspectiveQueryFilter $filter = null, array $params = []): Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

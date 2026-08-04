@@ -23,7 +23,7 @@ use NextDeveloper\IAM\Helpers\UserHelper;
  */
 class AbstractGatewaysService
 {
-    public static function get(GatewaysQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?GatewaysQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 
@@ -183,6 +183,12 @@ class AbstractGatewaysService
                 $data['iaas_virtual_machine_id']
             );
         }
+        if (array_key_exists('common_domain_id', $data)) {
+            $data['common_domain_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\Commons\Database\Models\Domains',
+                $data['common_domain_id']
+            );
+        }
         if (array_key_exists('iam_account_id', $data)) {
             $data['iam_account_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAM\Database\Models\Accounts',
@@ -253,6 +259,12 @@ class AbstractGatewaysService
             $data['iaas_virtual_machine_id'] = DatabaseHelper::uuidToId(
                 '\NextDeveloper\IAAS\Database\Models\VirtualMachines',
                 $data['iaas_virtual_machine_id']
+            );
+        }
+        if (array_key_exists('common_domain_id', $data)) {
+            $data['common_domain_id'] = DatabaseHelper::uuidToId(
+                '\NextDeveloper\Commons\Database\Models\Domains',
+                $data['common_domain_id']
             );
         }
         if (array_key_exists('iam_account_id', $data)) {

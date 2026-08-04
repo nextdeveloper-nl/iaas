@@ -24,7 +24,7 @@ class ComputeMembersDeletedEvent
      */
     protected $timestamp = null;
 
-    public function __construct(ComputeMembers $model = null)
+    public function __construct(?ComputeMembers $model = null)
     {
         $this->_model = $model;
     }

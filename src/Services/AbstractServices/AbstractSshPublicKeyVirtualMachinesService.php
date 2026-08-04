@@ -25,7 +25,7 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
  */
 class AbstractSshPublicKeyVirtualMachinesService
 {
-    public static function get(SshPublicKeyVirtualMachinesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?SshPublicKeyVirtualMachinesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 
@@ -196,7 +196,7 @@ class AbstractSshPublicKeyVirtualMachinesService
                 $data['iaas_virtual_machine_id']
             );
         }
-                        
+
         try {
             $model = SshPublicKeyVirtualMachines::create($data);
         } catch(\Exception $e) {
@@ -254,7 +254,7 @@ class AbstractSshPublicKeyVirtualMachinesService
                 $data['iaas_virtual_machine_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();

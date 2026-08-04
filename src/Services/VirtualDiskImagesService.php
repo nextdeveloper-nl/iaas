@@ -4,7 +4,9 @@ namespace NextDeveloper\IAAS\Services;
 
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\StateHelper;
+use NextDeveloper\IAAS\Actions\VirtualDiskImages\Destroy;
 use NextDeveloper\IAAS\Actions\VirtualDiskImages\Resize;
+use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\StorageMembers;
@@ -106,7 +108,20 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
             $data['device_number'] = $vdis->count();
         }
 
-        return parent::create($data);
+        $vdi = parent::create($data);
+
+        //  If the VM already went live (not draft anymore), a new disk needs an explicit commit to get
+        //  created/attached on the hypervisor - Commit::setupXenDisks() is what actually does that, and it
+        //  only runs for VMs that are draft or pending update.
+        if (!$vm->is_draft) {
+            $vm = VirtualMachinesService::update($vm->uuid, [
+                'is_pending_update' => true,
+            ]);
+
+            dispatch(new Commit($vm));
+        }
+
+        return $vdi;
     }
 
     public static function update($id, array $data)
@@ -122,18 +137,31 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
         $shouldResizeDisk = false;
 
         if($vdi->size != $requestedDiskSize) {
+            $computePool = self::getComputePool($vdi);
+
+            //  Resize is only blocked for "one" type pools when the disk itself lives on local storage.
+            //  If the disk is on a non-local storage pool (eg. SSD/SAS/NVMe storage pools), resizing is allowed
+            //  regardless of the compute pool type.
+            if($computePool->pool_type == 'one' && self::isOnLocalStorage($vdi)) {
+                throw new CannotUpdateResourcesException('We cannot update the disk size for this server, ' .
+                    'because its compute pool does not support disk resizing.');
+            }
+
             $availableDiskSizes = ResourceCalculationHelper::getAvailableDiskSizes(
-                self::getComputePool($vdi)
+                $computePool
             );
 
-            if(!in_array($requestedDiskSize, $availableDiskSizes)) {
-                if(VirtualMachinesService::isRunning(
-                    self::getVirtualMachine($vdi)
-                )) {
-                    throw new CannotUpdateResourcesException('We cannot update the disk size, because the ' .
-                        'server is running at the moment. Please shutdown your server and try again.');
-                }
-            }
+            //  Some hypervisors let disk to be resized while the VM is running, but some do not.
+            //  So we will let the user do the resize, but if the hypervisor does not support it,
+            //  we will throw an exception and ask the user to shutdown the server first.
+            // if(!in_array($requestedDiskSize, $availableDiskSizes)) {
+            //     if(VirtualMachinesService::isRunning(
+            //         self::getVirtualMachine($vdi)
+            //     )) {
+            //         throw new CannotUpdateResourcesException('We cannot update the disk size, because the ' .
+            //             'server is running at the moment. Please shutdown your server and try again.');
+            //     }
+            // }
 
             $shouldResizeDisk = true;
         }
@@ -146,6 +174,26 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
             dispatch(new Resize($vdi));
 
         return $vdi;
+    }
+
+    public static function delete($id)
+    {
+        $vdi = null;
+
+        if(Str::isUuid($id))
+            $vdi = VirtualDiskImages::where('uuid', $id)->first();
+        else
+            $vdi = VirtualDiskImages::where('id', $id)->first();
+
+        $model = parent::delete($id);
+
+        //  The DB row is gone now, but the disk may still exist on the hypervisor. Destroy::handle()
+        //  takes care of detaching (if needed) and destroying the VDI on the hypervisor side.
+        if($vdi) {
+            dispatch(new Destroy($vdi));
+        }
+
+        return $model;
     }
 
     public static function getStorageVolume(VirtualDiskImages $vdi): ?StorageVolumes

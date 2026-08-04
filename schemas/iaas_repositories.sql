@@ -1,0 +1,36 @@
+-- PostgreSQL
+
+CREATE TABLE iaas_repositories (
+    id                             bigint NOT NULL DEFAULT nextval('iaas_repositories_id_seq'::regclass),
+    uuid                           uuid DEFAULT gen_random_uuid(),
+    name                           text,
+    description                    text,
+    ssh_username                   text NOT NULL,
+    ssh_password                   text NOT NULL,
+    ip_addr                        inet NOT NULL,
+    is_active                      boolean DEFAULT true,
+    is_public                      boolean DEFAULT false,
+    last_hash                      text, -- [ro]
+    is_vm_repo                     boolean DEFAULT true,
+    is_iso_repo                    boolean DEFAULT true,
+    is_docker_registry             boolean DEFAULT false,
+    iso_path                       text,
+    vm_path                        text,
+    docker_registry_port           integer DEFAULT 0,
+    iam_account_id                 bigint NOT NULL,
+    iam_user_id                    bigint NOT NULL,
+    created_at                     timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                     timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at                     timestamp with time zone,
+    local_ip_addr                  inet,
+    is_behind_firewall             boolean NOT NULL DEFAULT false,
+    is_management_agent_available  boolean NOT NULL DEFAULT false,
+    ssh_port                       integer NOT NULL DEFAULT 22,
+    is_backup_repository           boolean DEFAULT false,
+    price_pergb                    numeric(10,4),
+    common_currency_id             bigint,
+    iaas_cloud_node_id             bigint,
+    registry_username              text,
+    registry_password              text,
+    CONSTRAINT iaas_repositories_pkey PRIMARY KEY (id)
+);

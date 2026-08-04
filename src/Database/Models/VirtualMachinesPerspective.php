@@ -68,6 +68,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon $deleted_at
+ * @property boolean $is_pending_update
  */
 class VirtualMachinesPerspective extends Model
 {
@@ -99,8 +100,10 @@ class VirtualMachinesPerspective extends Model
             'last_metadata_request',
             'iaas_cloud_node_id',
             'cloud_node',
+            'cloud_node_uuid',
             'common_domain_id',
             'domain',
+            'domain_uuid',
             'disk_count',
             'network_card_count',
             'has_warnings',
@@ -114,6 +117,7 @@ class VirtualMachinesPerspective extends Model
             'is_snapshot_available',
             'iaas_compute_member_id',
             'compute_member_name',
+            'compute_member_uuid',
             'tags',
             'is_template',
             'is_draft',
@@ -125,11 +129,15 @@ class VirtualMachinesPerspective extends Model
             'post_boot_script',
             'agent_latest_ping',
             'maintainer',
+            'account_uuid',
             'responsible',
+            'user_uuid',
             'iaas_compute_pool_id',
+            'compute_pool_uuid',
             'snapshot_of_virtual_machine',
             'iam_account_id',
             'iam_user_id',
+            'is_pending_update',
     ];
 
     /**
@@ -167,8 +175,10 @@ class VirtualMachinesPerspective extends Model
     'last_metadata_request' => 'datetime',
     'iaas_cloud_node_id' => 'integer',
     'cloud_node' => 'string',
+    'cloud_node_uuid' => 'string',
     'common_domain_id' => 'integer',
     'domain' => 'string',
+    'domain_uuid' => 'string',
     'disk_count' => 'integer',
     'network_card_count' => 'integer',
     'has_warnings' => 'integer',
@@ -181,6 +191,7 @@ class VirtualMachinesPerspective extends Model
     'is_snapshot_available' => 'boolean',
     'iaas_compute_member_id' => 'integer',
     'compute_member_name' => 'string',
+    'compute_member_uuid' => 'string',
     'tags' => \NextDeveloper\Commons\Database\Casts\TextArray::class,
     'is_template' => 'boolean',
     'is_draft' => 'boolean',
@@ -192,12 +203,16 @@ class VirtualMachinesPerspective extends Model
     'post_boot_script' => 'string',
     'agent_latest_ping' => 'datetime',
     'maintainer' => 'string',
+    'account_uuid' => 'string',
     'responsible' => 'string',
+    'user_uuid' => 'string',
     'iaas_compute_pool_id' => 'integer',
+    'compute_pool_uuid' => 'string',
     'snapshot_of_virtual_machine' => 'integer',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
+    'is_pending_update' => 'boolean',
     ];
 
     /**

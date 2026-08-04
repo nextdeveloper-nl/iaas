@@ -17,13 +17,13 @@ class VirtualMachineCpuAlertsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function severity($value)
     {
         return $this->builder->where('severity', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function alertReason($value)
     {
         return $this->builder->where('alert_reason', 'ilike', '%' . $value . '%');
@@ -34,7 +34,7 @@ class VirtualMachineCpuAlertsQueryFilter extends AbstractQueryFilter
     {
         return $this->alertReason($value);
     }
-    
+
     public function checkDurationMs($value)
     {
         $operator = substr($value, 0, 1);
@@ -53,7 +53,7 @@ class VirtualMachineCpuAlertsQueryFilter extends AbstractQueryFilter
     {
         return $this->checkDurationMs($value);
     }
-    
+
     public function alertTimeStart($date)
     {
         return $this->builder->where('alert_time', '>=', $date);
@@ -156,7 +156,7 @@ class VirtualMachineCpuAlertsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

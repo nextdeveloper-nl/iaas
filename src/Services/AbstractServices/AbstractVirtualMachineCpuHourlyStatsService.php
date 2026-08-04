@@ -25,7 +25,7 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
  */
 class AbstractVirtualMachineCpuHourlyStatsService
 {
-    public static function get(VirtualMachineCpuHourlyStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?VirtualMachineCpuHourlyStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 
@@ -190,7 +190,7 @@ class AbstractVirtualMachineCpuHourlyStatsService
                 $data['iaas_virtual_machine_id']
             );
         }
-                        
+
         try {
             $model = VirtualMachineCpuHourlyStats::create($data);
         } catch(\Exception $e) {
@@ -242,7 +242,7 @@ class AbstractVirtualMachineCpuHourlyStatsService
                 $data['iaas_virtual_machine_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();

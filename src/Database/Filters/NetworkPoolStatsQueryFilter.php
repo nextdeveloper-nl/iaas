@@ -36,7 +36,7 @@ class NetworkPoolStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->usedVlan($value);
     }
-    
+
     public function usedVxlan($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class NetworkPoolStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->usedVxlan($value);
     }
-    
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -136,7 +136,7 @@ class NetworkPoolStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasNetworkPool($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

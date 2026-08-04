@@ -20,7 +20,7 @@ class VmBackupHeatmapStatsService extends AbstractVmBackupHeatmapStatsService
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
-    public static function get(VmBackupHeatmapStatsQueryFilter $filter = null, array $params = []): Collection|LengthAwarePaginator
+    public static function get(?VmBackupHeatmapStatsQueryFilter $filter = null, array $params = []): Collection|LengthAwarePaginator
     {
         return VmBackupHeatmapStats::orderBy('backup_date', 'asc')->get();
     }

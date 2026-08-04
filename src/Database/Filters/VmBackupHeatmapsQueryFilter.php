@@ -17,7 +17,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function jobName($value)
     {
         return $this->builder->where('job_name', 'ilike', '%' . $value . '%');
@@ -28,7 +28,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->jobName($value);
     }
-        
+
     public function jobType($value)
     {
         return $this->builder->where('job_type', 'ilike', '%' . $value . '%');
@@ -39,7 +39,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->jobType($value);
     }
-        
+
     public function virtualMachineName($value)
     {
         return $this->builder->where('virtual_machine_name', 'ilike', '%' . $value . '%');
@@ -50,13 +50,13 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->virtualMachineName($value);
     }
-        
+
     public function hostname($value)
     {
         return $this->builder->where('hostname', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function dayOfWeek($value)
     {
         return $this->builder->where('day_of_week', 'ilike', '%' . $value . '%');
@@ -67,7 +67,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->dayOfWeek($value);
     }
-        
+
     public function dayStatus($value)
     {
         return $this->builder->where('day_status', 'ilike', '%' . $value . '%');
@@ -78,7 +78,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->dayStatus($value);
     }
-    
+
     public function expectedRpoHours($value)
     {
         $operator = substr($value, 0, 1);
@@ -97,7 +97,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->expectedRpoHours($value);
     }
-    
+
     public function dayOffset($value)
     {
         $operator = substr($value, 0, 1);
@@ -116,7 +116,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->dayOffset($value);
     }
-    
+
     public function totalRuns($value)
     {
         $operator = substr($value, 0, 1);
@@ -135,7 +135,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->totalRuns($value);
     }
-    
+
     public function successRuns($value)
     {
         $operator = substr($value, 0, 1);
@@ -154,7 +154,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->successRuns($value);
     }
-    
+
     public function failedRuns($value)
     {
         $operator = substr($value, 0, 1);
@@ -173,7 +173,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->failedRuns($value);
     }
-    
+
     public function daySizeBytes($value)
     {
         $operator = substr($value, 0, 1);
@@ -192,7 +192,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->daySizeBytes($value);
     }
-    
+
     public function avgDurationSecs($value)
     {
         $operator = substr($value, 0, 1);
@@ -211,7 +211,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->avgDurationSecs($value);
     }
-    
+
     public function isEnabled($value)
     {
         return $this->builder->where('is_enabled', $value);
@@ -222,7 +222,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->isEnabled($value);
     }
-     
+
     public function isRpoBreach($value)
     {
         return $this->builder->where('is_rpo_breach', $value);
@@ -233,7 +233,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->isRpoBreach($value);
     }
-     
+
     public function backupDateStart($date)
     {
         return $this->builder->where('backup_date', '>=', $date);
@@ -270,7 +270,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasBackupJob($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -280,7 +280,7 @@ class VmBackupHeatmapsQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

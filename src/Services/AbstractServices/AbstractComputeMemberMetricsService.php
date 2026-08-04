@@ -22,7 +22,7 @@ use NextDeveloper\IAAS\Database\Models\ComputeMemberMetrics;
  */
 class AbstractComputeMemberMetricsService
 {
-    public static function get(ComputeMemberMetricsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?ComputeMemberMetricsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

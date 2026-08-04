@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -19,6 +20,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -66,7 +68,13 @@ class ScanVirtualMachines extends AbstractAction
             }
         }
 
-        $this->scanXenVirtualMachines();
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($this->model);
+
+        if ($driver instanceof HostSyncInterface) {
+            $driver->syncVirtualMachines($this->model);
+        } else {
+            $this->scanXenVirtualMachines();
+        }
 
         $this->setProgress(100, 'Compute member scanned and synced');
     }

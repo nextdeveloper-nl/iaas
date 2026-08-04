@@ -156,4 +156,16 @@ class GatewaysController extends AbstractController
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
+    /**
+     * Returns the gateway's reachability/API-auth status via its driver's healthCheck().
+     *
+     * @param  $ref
+     * @return mixed|null
+     */
+    public function health($ref)
+    {
+        $status = GatewaysService::getHealth($ref);
+
+        return ResponsableFactory::makeResponse($this, $status->toArray());
+    }
 }

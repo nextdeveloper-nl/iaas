@@ -54,7 +54,7 @@ class AbstractHealthChecksPerformanceTransformer extends AbstractTransformer
      */
     public function transform(HealthChecksPerformance $model)
     {
-            
+
         return $this->buildPayload(
             [
             'id'  =>  $model->id,

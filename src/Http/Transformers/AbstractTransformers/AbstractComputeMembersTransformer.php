@@ -57,7 +57,7 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
                                                 $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
                                                             $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
@@ -102,6 +102,8 @@ class AbstractComputeMembersTransformer extends AbstractTransformer
             'free_ram'  =>  $model->free_ram,
             'events_token'  =>  $model->events_token,
             'is_event_service_running'  =>  $model->is_event_service_running,
+            'available_operations'  =>  $model->available_operations,
+            'agent_latest_ping'  =>  $model->agent_latest_ping,
             ]
         );
     }

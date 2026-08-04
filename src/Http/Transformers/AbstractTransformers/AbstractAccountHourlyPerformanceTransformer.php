@@ -55,7 +55,7 @@ class AbstractAccountHourlyPerformanceTransformer extends AbstractTransformer
     public function transform(AccountHourlyPerformance $model)
     {
                                                 $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->id,

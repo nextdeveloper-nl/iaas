@@ -25,7 +25,7 @@ use NextDeveloper\Commons\Exceptions\NotAllowedException;
  */
 class AbstractComputeMemberTasksService
 {
-    public static function get(ComputeMemberTasksQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?ComputeMemberTasksQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 
@@ -196,7 +196,7 @@ class AbstractComputeMemberTasksService
                 $data['iaas_compute_member_id']
             );
         }
-                        
+
         try {
             $model = ComputeMemberTasks::create($data);
         } catch(\Exception $e) {
@@ -254,7 +254,7 @@ class AbstractComputeMemberTasksService
                 $data['iaas_compute_member_id']
             );
         }
-    
+
         try {
             $isUpdated = $model->update($data);
             $model = $model->fresh();

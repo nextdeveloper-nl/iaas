@@ -17,7 +17,7 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function scheduleType($value)
     {
         return $this->builder->where('schedule_type', 'ilike', '%' . $value . '%');
@@ -28,7 +28,7 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
     {
         return $this->scheduleType($value);
     }
-    
+
     public function dayOfMonth($value)
     {
         $operator = substr($value, 0, 1);
@@ -47,7 +47,7 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
     {
         return $this->dayOfMonth($value);
     }
-    
+
     public function dayOfWeek($value)
     {
         $operator = substr($value, 0, 1);
@@ -66,7 +66,7 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
     {
         return $this->dayOfWeek($value);
     }
-    
+
     public function timeOfDayStart($date)
     {
         return $this->builder->where('time_of_day', '>=', $date);
@@ -169,7 +169,7 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasBackupJob($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -179,7 +179,7 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -189,7 +189,7 @@ class BackupSchedulesQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

@@ -24,7 +24,7 @@ class NetworkPoolsCreatedEvent
      */
     protected $timestamp = null;
 
-    public function __construct(NetworkPools $model = null)
+    public function __construct(?NetworkPools $model = null)
     {
         $this->_model = $model;
     }

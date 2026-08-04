@@ -36,7 +36,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->activeClouds($value);
     }
-    
+
     public function activeCloudsDelta($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->activeCloudsDelta($value);
     }
-    
+
     public function computeVcpus($value)
     {
         $operator = substr($value, 0, 1);
@@ -74,7 +74,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->computeVcpus($value);
     }
-    
+
     public function computeVcpusDelta($value)
     {
         $operator = substr($value, 0, 1);
@@ -93,7 +93,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->computeVcpusDelta($value);
     }
-    
+
     public function activeTenants($value)
     {
         $operator = substr($value, 0, 1);
@@ -112,7 +112,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->activeTenants($value);
     }
-    
+
     public function activeTenantsDelta($value)
     {
         $operator = substr($value, 0, 1);
@@ -131,7 +131,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->activeTenantsDelta($value);
     }
-    
+
     public function alarmCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -150,7 +150,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->alarmCount($value);
     }
-    
+
     public function alarmCountDelta($value)
     {
         $operator = substr($value, 0, 1);
@@ -169,7 +169,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->alarmCountDelta($value);
     }
-    
+
     public function alarmCriticalCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -188,7 +188,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->alarmCriticalCount($value);
     }
-    
+
     public function alarmHighCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -207,7 +207,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->alarmHighCount($value);
     }
-    
+
     public function alarmLowCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -226,7 +226,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->alarmLowCount($value);
     }
-    
+
     public function alarmComputeMembersCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -245,7 +245,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->alarmComputeMembersCount($value);
     }
-    
+
     public function alarmStorageMembersCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -264,7 +264,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->alarmStorageMembersCount($value);
     }
-    
+
     public function alarmNetworkMembersCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -283,7 +283,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->alarmNetworkMembersCount($value);
     }
-    
+
     public function alarmVirtualMachinesCount($value)
     {
         $operator = substr($value, 0, 1);
@@ -302,7 +302,7 @@ class KpiPerformanceQueryFilter extends AbstractQueryFilter
     {
         return $this->alarmVirtualMachinesCount($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

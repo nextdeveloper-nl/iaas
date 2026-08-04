@@ -8,16 +8,18 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachineMigrations;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Services\HypervisorsV2\EvacuationService;
-use NextDeveloper\IAAS\Services\HypervisorsV2\XenServer_8_2\LocalDiskMigrationService;
+use NextDeveloper\IAAS\Services\Hypervisors\EvacuationService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\LocalDiskMigrationService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
  * Step-by-step local-disk VM migration command.
  *
- * Migrates VMs whose disks reside on local (EXT) SRs by rsyncing VHD files
- * directly between hypervisors over SSH — no NFS storage member required.
+ * Migrates VMs whose disks reside on local (EXT/LVM) SRs by streaming
+ * `xe vm-export | ssh ... xe vm-import` directly between hypervisors —
+ * xe handles the disk copy and VM reconstruction itself, no NFS storage
+ * member or manual VHD/VM rebuild required.
  *
  * Usage examples:
  *
@@ -53,7 +55,7 @@ class MigrateLocalVirtualMachine extends Command
         {--force-delete-snapshots : Allow deletion of VM snapshots during coalesce-vhd step}
         {--dry-run : For copy-vhd and recreate-vm: resolve and print all commands without executing them}';
 
-    protected $description = 'Run local-disk VM migration steps one by one (direct hypervisor-to-hypervisor rsync over SSH)';
+    protected $description = 'Run local-disk VM migration steps one by one (xe vm-export | ssh xe vm-import stream)';
 
     public function handle(): int
     {
@@ -246,7 +248,7 @@ class MigrateLocalVirtualMachine extends Command
 
         $service = new LocalDiskMigrationService();
 
-        $this->info('[Step 5] ' . ($this->option('dry-run') ? 'Resolving' : 'Copying') . ' VHD files (direct rsync over SSH)...');
+        $this->info('[Step 5] ' . ($this->option('dry-run') ? 'Resolving' : 'Streaming') . ' VM export/import (xe vm-export | ssh xe vm-import)...');
         $service->copyVhdFiles($migration);
 
         $fresh   = $migration->fresh();
@@ -278,10 +280,10 @@ class MigrateLocalVirtualMachine extends Command
         $migration = $this->resolveMigration();
         $service   = new LocalDiskMigrationService();
 
-        $this->info('[Step 6] Rescanning target SR and detecting copied VDIs...');
+        $this->info('[Step 6] Matching imported disks to source metadata by device number...');
         $vdiUuidMap = $service->rescanTargetSr($migration);
 
-        $this->info('SR scan complete. VDI map:');
+        $this->info('Disk matching complete. VDI map:');
         foreach ($vdiUuidMap as $source => $target) {
             $this->line("  {$source} → {$target}");
         }
@@ -310,7 +312,7 @@ class MigrateLocalVirtualMachine extends Command
         $vdiUuidMap = $options['vdi_uuid_map'] ?? [];
         $service    = new LocalDiskMigrationService();
 
-        $this->info('[Step 7] ' . ($this->option('dry-run') ? 'Resolving' : 'Recreating') . ' VM record on target host...');
+        $this->info('[Step 7] ' . ($this->option('dry-run') ? 'Resolving' : 'Reconciling') . ' network interfaces on target VM...');
         $service->recreateVmOnTarget($migration, $vdiUuidMap);
 
         $fresh   = $migration->fresh();
@@ -331,7 +333,7 @@ class MigrateLocalVirtualMachine extends Command
             return;
         }
 
-        $this->info('VM recreated on target: ' . ($options['target_vm_uuid'] ?? 'unknown'));
+        $this->info('Network interfaces reconciled on target: ' . ($options['target_vm_uuid'] ?? 'unknown'));
         $this->printMigrationSummary($fresh);
         $this->nextStepHint('validate', $migration->uuid);
     }
@@ -583,9 +585,9 @@ class MigrateLocalVirtualMachine extends Command
             ['collect-metadata', 'Collect VM, disk, and NIC metadata from source'],
             ['coalesce-vhd',     'Check snapshots, trigger SR scan, wait for flat VHD'],
             ['shutdown',         'Gracefully shut down the source VM'],
-            ['copy-vhd',         'Copy VHD files directly from source to target hypervisor via rsync over SSH'],
-            ['rescan-sr',        'Scan target SR and confirm VDI detection'],
-            ['recreate-vm',      'Recreate VM record, VBDs, and VIFs on target'],
+            ['copy-vhd',         'Stream xe vm-export | ssh xe vm-import from source to target hypervisor'],
+            ['rescan-sr',        'Match imported disks to source metadata by VBD device number'],
+            ['recreate-vm',      'Destroy imported VIFs and recreate them on the correct target network'],
             ['validate',         'Verify recreated VM has correct vCPUs, memory, disks, NICs'],
             ['sync-db',          'Update VirtualMachines, VirtualDiskImages, VirtualNetworkCards in DB'],
             ['start-vm',         'Start VM on target and wait for running state'],

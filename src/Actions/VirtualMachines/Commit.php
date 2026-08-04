@@ -5,16 +5,16 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Helpers\MetaHelper;
-use NextDeveloper\Commons\Helpers\StateHelper;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
-use NextDeveloper\IAAS\Actions\VirtualNetworkCards\Attach;
-use NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces;
+use NextDeveloper\IAAS\Contracts\HostSyncInterface;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
+use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
+use NextDeveloper\IAAS\Contracts\VirtualMachineAdapterInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
-use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StoragePools;
@@ -25,19 +25,23 @@ use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\ComputeMembers\UtilizeComputeMembers;
 use NextDeveloper\IAAS\ProvisioningAlgorithms\StorageVolumes\UtilizeStorageVolumes;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
-use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\IpAddressesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
-use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
- * This action converts a draft virtual machine to a live virtual machine. This action should be triggered when the
- * virtual machine is in draft state and needs to go live. If the virtual machine state is not draft this action will
- * cancel itself.
+ * Converts a draft (or pending-update) virtual machine into a live one on its assigned
+ * hypervisor. Triggered whenever a VM needs to go from "configured in the database" to
+ * "actually exists on a compute member" - this covers both the very first deploy (import)
+ * and re-committing a change to an already-live VM (e.g. adding a disk).
+ *
+ * All hypervisor-touching work goes through VirtualMachineManager's driver interfaces
+ * (see docs/hypervisor-driver-architecture.md) - this class itself contains no
+ * hypervisor-specific code, only the provisioning sequence and the DB/algorithm logic
+ * (compute member selection, storage volume selection, IP assignment) that has nothing
+ * to do with which hypervisor a VM lands on.
  */
 class Commit extends AbstractAction
 {
@@ -46,12 +50,6 @@ class Commit extends AbstractAction
         'committed:NextDeveloper\IAAS\VirtualMachines',
         'commit-failed:NextDeveloper\IAAS\VirtualMachines'
     ];
-
-    private $diskConfiguration;
-
-    private $networkConfiguration;
-
-    private $computePool;
 
     public $timeout = 3600;
 
@@ -65,6 +63,9 @@ class Commit extends AbstractAction
 
         $this->queue = 'iaas';
 
+        //  Lazy deploy is the default: on the very first commit of a VM, this lets the
+        //  import run without blocking on the hypervisor (see importVirtualMachine()) -
+        //  the action returns immediately and is resumed later once the import finishes.
         if($params) {
             if(!array_key_exists('is_lazy_deploy', $params)) {
                 $params['is_lazy_deploy'] = true;
@@ -85,6 +86,8 @@ class Commit extends AbstractAction
                 $this->setProgress(0, 'Lazy deploying virtual machine...');
             }
         }
+
+        //  ----- Guard clauses: refuse to commit a VM that's lost, deleted, or locked -----
 
         if($this->model->is_lost) {
             $this->setFinished('Unfortunately this vm is lost, that is why we cannot continue.');
@@ -107,14 +110,16 @@ class Commit extends AbstractAction
         //$vm = VirtualMachinesService::fixUsername($vm);
         $vm = VirtualMachinesService::fixHostname($vm);
 
+        //  Cloud-init needs to reflect the current DB config even before the VM exists on
+        //  the hypervisor, since importFromImage() attaches it as part of the import.
         (new GenerateCloudInitImage($vm))->handle();
 
-        if (!$vm->is_draft && $vm->status != 'pending-update') {
+        if (!$vm->is_draft && !$vm->is_pending_update) {
             $this->setProgress(100, 'Virtual machine is not in draft or pending update state');
             return;
         }
 
-        if($vm->status == 'pending-update') {
+        if($vm->is_pending_update) {
             $vm->updateQuietly([
                 'status'    =>  'updating'
             ]);
@@ -124,26 +129,26 @@ class Commit extends AbstractAction
             ]);
         }
 
-        $this->computePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', $vm->iaas_compute_pool_id)
-            ->first();
+        //  ----- Stage 1: import (first commit only - re-commits already have a hypervisor_uuid) -----
 
-        //  Here we will import the virtual machine
         if (!$vm->hypervisor_uuid) {
             $this->setProgress(10, 'Importing virtual machine to the related compute member');
             $this->importVirtualMachine(10);
 
             if($this->params['is_lazy_deploy']) {
-                //  Since this deployment model is a lazy deploy at this point the deployment should stop.
+                //  Lazy deploy: the import is running asynchronously on the hypervisor side.
+                //  Stop here - VirtualMachinesService::finalizeCommit() re-dispatches this
+                //  action once the hypervisor reports the import is done, and execution
+                //  resumes from the point below.
                 $this->setFinished('Lazy deploying virtual machine.');
                 Log::info(__METHOD__ . ' Lazy deploying virtual machine with data: ' . print_r($vm, true));
                 return;
             }
         }
 
-        /**
-         * ############### FIRST PART OF IMPORT FINISHES
-         */
+        //  ----- Stage 2: everything below runs once hypervisor_uuid is set - either
+        //  immediately above (non-lazy import), on a re-commit, or on the resumed run
+        //  triggered by finalizeCommit() after a lazy import completes. -----
 
         $vm = $this->model->fresh();
 
@@ -156,14 +161,21 @@ class Commit extends AbstractAction
 
         $this->setProgress(19, 'Unmounting repository from compute member');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][19] | Unmounting repository from compute member');
-        $result = ComputeMemberXenService::unmountVmRepository($computeMember, $repo);
 
-        ComputeMemberXenService::setVmXenstoreData('api', config('app.url'), $vm, $computeMember);
-        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
+        $provisioningDriver = $this->requireCapability(
+            app(VirtualMachineManager::class)->getAdapter($vm),
+            ProvisioningCapableInterface::class
+        );
 
-        /**
-         * ############### SECOND PART OF IMPORT STARTS
-         */
+        //  The repo is only needed for the import itself - unmount it now that it's done.
+        $provisioningDriver->unmountRepository($computeMember, $repo);
+        //  Exposes the API endpoint URL to the guest via its metadata channel, so in-guest
+        //  tooling (e.g. the VM agent) knows where to call back to.
+        $provisioningDriver->injectGuestMetadata($vm, 'api', config('app.url'));
+        //  Hypervisor-side display name should match our internal uuid, not whatever
+        //  default name the import gave it.
+        $provisioningDriver->renameVirtualMachine($vm);
+
         $vm->update([
             'state' =>  'configuring'
         ]);
@@ -175,22 +187,40 @@ class Commit extends AbstractAction
 
         Log::info(__METHOD__ . ' Lazy deploying, STEP 3, virtual machine with data: ' . print_r($vm, true));
 
-        ComputeMemberXenService::updateMemberInformation($computeMember);
+        //  ----- Stage 3: sync the compute member's own host-level info -----
 
-        //  We need to update CPU and RAM
+        $hostDriver = $this->requireCapability(
+            app(VirtualMachineManager::class)->getAdapterForComputeMember($computeMember),
+            HostSyncInterface::class
+        );
+
+        $hostDriver->syncMember($computeMember);
+
+        //  ----- Stage 4: reconcile CPU/RAM, disks, and networking against DB config -----
+
         $this->setProgress(20, 'Setting CPU and RAM');
         $this->setCpuRam();
 
-        $this->setupDisks(40);
+        $this->setProgress(40, 'Syncing disk configuration');
+        $this->setupDisks();
 
-        $this->setupNetworking(70);
+        $this->setProgress(70, 'Syncing network configuration');
+        $this->setupNetworking();
 
-        $this->setupIp(80);
+        $this->setupIp();
 
+        //  Cloud-init may need updating again now that networking/disks are finalized.
         (new GenerateCloudInitImage($this->model))->handle();
 
+        //  ----- Stage 5: report the real power state -----
+
+        //  We ask the hypervisor for the real power state instead of assuming 'halted', because committing a
+        //  pending update (e.g. adding a disk) can happen while the VM is still running.
+        $vmParams = app(VirtualMachineManager::class)->getHypervisorData($vm);
+
         $vm->update([
-            'status' => 'halted',
+            'status' => $vmParams['power-state'] ?? 'halted',
+            'is_pending_update' => false,
         ]);
 
         //  Buranın değişmesi lazım, zira bunun boot_after_commit olması lazım.
@@ -203,17 +233,40 @@ class Commit extends AbstractAction
         $this->setProgress(100, 'Virtual machine initiated');
     }
 
-    private function setCpuRam()
+    /**
+     * Resolves a driver capability or throws clearly if the VM's hypervisor driver
+     * doesn't implement it. VM provisioning has no legacy fallback path, so a missing
+     * capability should fail loudly here rather than silently doing nothing (which is
+     * what a dead switch/case dispatch would otherwise do for an unrecognized platform).
+     */
+    private function requireCapability(?VirtualMachineAdapterInterface $driver, string $interface): object
     {
-        switch ($this->computePool->virtualization) {
-            case 'xenserver-8.2':
-                VirtualMachinesXenService::setCPUCore($this->model, $this->model->cpu);
-                VirtualMachinesXenService::setRam($this->model, $this->model->ram);
-                break;
+        if (!$driver instanceof $interface) {
+            throw new \RuntimeException("The hypervisor driver for this VM does not implement {$interface}, which VM provisioning requires.");
         }
+
+        return $driver;
     }
 
-    private function setupIp($step)
+    /**
+     * Sets the VM's CPU core count and RAM on the hypervisor to match the DB config.
+     */
+    private function setCpuRam(): void
+    {
+        $driver = $this->requireCapability(
+            app(VirtualMachineManager::class)->getAdapter($this->model),
+            ResizeCapableInterface::class
+        );
+
+        $driver->resize($this->model, $this->model->cpu, $this->model->ram);
+    }
+
+    /**
+     * Auto-assigns an IP to any network card whose network has a DHCP server and doesn't
+     * already have one, per its `auto_add_ip_v4` setting. Pure DB/algorithm work - not a
+     * hypervisor call.
+     */
+    private function setupIp()
     {
         $vifs = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_virtual_machine_id', $this->model->id)
@@ -257,98 +310,41 @@ class Commit extends AbstractAction
         }
     }
 
-    private function setupNetworking($step)
+    /**
+     * Reconciles the VM's network card configuration against the hypervisor's live VIF
+     * list (creates/syncs/destroys as needed) - see
+     * ProvisioningCapableInterface::reconcileNetworkConfiguration().
+     */
+    private function setupNetworking(): void
     {
-        switch ($this->computePool->virtualization) {
-            case 'xenserver-8.2':
-                $this->setupXenNetworking($step);
-                break;
-        }
+        $driver = $this->requireCapability(
+            app(VirtualMachineManager::class)->getAdapter($this->model),
+            ProvisioningCapableInterface::class
+        );
+
+        $driver->reconcileNetworkConfiguration($this->model);
     }
 
     /**
-     * In this function we will be setting up the network card
-     *
-     * @param $step
-     * @return void
+     * Reconciles the VM's disk/CD configuration against the hypervisor's live disk list
+     * (creates/syncs/destroys as needed) - see
+     * ProvisioningCapableInterface::reconcileDiskConfiguration().
      */
-    private function setupXenNetworking($step)
+    private function setupDisks(): void
     {
-        $vm = $this->model;
+        $driver = $this->requireCapability(
+            app(VirtualMachineManager::class)->getAdapter($this->model),
+            ProvisioningCapableInterface::class
+        );
 
-        $netConfig = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
-
-        //  Checking if the virtual machine actually has a VIF. If has we are syncing those vifs.
-        $vifs = VirtualMachinesXenService::getVifs($vm);
-
-        $syncedVifs = [];
-
-        foreach ($vifs as $vif) {
-            if(!count($vif))
-                continue;
-
-            foreach ($netConfig as $config) {
-                if($config->device_number == $vif['device']) {
-                    $this->syncXenVif($vif, $config);
-
-                    $syncedVifs[] = $vif['uuid'];
-                }
-            }
-        }
-
-        foreach ($vifs as $vif) {
-            if(!count($vif))
-                continue;
-
-            if(!in_array($vif['uuid'], $syncedVifs)) {
-                VirtualMachinesXenService::destroyVif($vm, $vif['uuid']);
-            }
-        }
-
-        $netConfig = VirtualNetworkCards::where('iaas_virtual_machine_id', $vm->id)->get();
-
-        foreach ($netConfig as $config) {
-            //  Here we check if the VIF not exists. If not exists hypervisor_uuid is null
-            if($config->hypervisor_uuid == null) {
-                (new Attach($config))->handle();
-            }
-        }
+        $driver->reconcileDiskConfiguration($this->model);
     }
 
-    private function syncXenVif($vif, $config) {
-        $params = VirtualMachinesXenService::getVifParams($this->model, $vif['uuid']);
-
-        $vif = $params[0];
-
-        $cmni = ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
-            ->where('network_uuid', $vif['network-uuid'])
-            ->first();
-
-        $network = Networks::withoutGlobalScope(AuthorizationScope::class)
-            ->where('vlan', $cmni->vlan)
-            ->first();
-
-        $config->update([
-            'hypervisor_uuid'   => $vif['uuid'],
-            'hypervisor_data'   => $vif,
-            'mac_addr'          => $vif['MAC'],
-            'iaas_network_id'   =>  $network ? $network->id : null,
-            'bandwitdh_limit'   =>  -1,
-            'is_draft'          =>  false
-        ]);
-    }
-
-    private function setupDisks($step)
-    {
-        $computePool = ComputePools::where('id', $this->model->iaas_compute_pool_id)->first();
-
-        switch ($computePool->virtualization) {
-            case 'xenserver-8.2':
-                $this->setupXenDisks($step);
-                break;
-        }
-    }
-
+    /**
+     * First-commit-only: picks a compute member and storage volume for the VM (pure
+     * DB/algorithm work - has nothing to do with which hypervisor is involved), then hands
+     * off to the driver to actually import the VM from its repository image.
+     */
     private function importVirtualMachine($step)
     {
         //  We know that this virtual machine is in draft state and it does not have a record in hypervisor
@@ -454,47 +450,32 @@ class Commit extends AbstractAction
             'iaas_repository_image_id' => $machineImage->id
         ]);
 
-        switch ($computePool->virtualization) {
-            case 'xenserver-8.2':
-                $uuid = $this->importXenServer($vm, $computeMember, $repositoryServer, $storageVolume, $machineImage, $step);
-                break;
-        }
+        //  The driver decides internally how to avoid blocking on a long-running import
+        //  (e.g. backgrounding it and reporting completion asynchronously) when
+        //  is_lazy_deploy is true - see ProvisioningCapableInterface::importFromImage().
+        $driver = $this->requireCapability(
+            app(VirtualMachineManager::class)->getAdapter($vm),
+            ProvisioningCapableInterface::class
+        );
+
+        $driver->importFromImage(
+            $vm,
+            $computeMember,
+            $repositoryServer,
+            $storageVolume,
+            $machineImage,
+            $this->params['is_lazy_deploy']
+        );
 
         $this->setProgress($step + 9, 'Virtual machine imported');
     }
 
-    private function importXenServer($vm, $computeMember, $repo, $volume, $image, $step = 0)
-    {
-        $this->setProgress($step + 4, 'Mounting repository to compute member');
-        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 4 . '] | Mounting repository to compute member');
-        ComputeMemberXenService::mountVmRepository($computeMember, $repo);
-
-        $this->setProgress($step + 5, 'Importing virtual machine image');
-        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 5 . '] | Importing virtual machine image');
-
-        $uuid = '';
-
-        if($this->params['is_lazy_deploy']) {
-            $uuid = ComputeMemberXenService::importVirtualMachine(
-                computeMember: $computeMember,
-                volume: $volume,
-                image: $image,
-                vm: $vm,
-                isLazyDeploy: $this->params['is_lazy_deploy'],
-                vmUuid: $vm->uuid
-            );
-        } else {
-            $uuid = ComputeMemberXenService::importVirtualMachine(
-                computeMember: $computeMember,
-                volume: $volume,
-                image: $image,
-                vm: $vm,
-            );
-        }
-
-        return $uuid;
-    }
-
+    /**
+     * After import, fetches the VM's parameters from the hypervisor by its native
+     * reference and records them (hypervisor_uuid/hypervisor_data/state), marking the VM
+     * as no longer draft. Fires the "imported" events other parts of the system listen for
+     * (e.g. to know a VM/compute member just came online).
+     */
     private function postImportConfiguration($vm, $step)
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);
@@ -516,7 +497,13 @@ class Commit extends AbstractAction
 
         $this->setProgress($step + 6, 'Updating virtual machine parameters');
         Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 6 . '] | Updating virtual machine parameters');
-        $vmParams = VirtualMachinesXenService::getVmParametersByUuid($computeMember, $uuid);
+
+        $driver = $this->requireCapability(
+            app(VirtualMachineManager::class)->getAdapter($vm),
+            ProvisioningCapableInterface::class
+        );
+
+        $vmParams = $driver->getVmParametersByRef($computeMember, $uuid);
 
         $vm->update([
             'hypervisor_uuid' => $vmParams['uuid'],
@@ -528,133 +515,5 @@ class Commit extends AbstractAction
 
         Events::listen('imported:NextDeveloper\IAAS\VirtualMachines', $vm);
         Events::listen('imported-virtual-machine:NextDeveloper\IAAS\ComputeMembers', $computeMember);
-    }
-
-    private function setupXenDisks($step = 0)
-    {
-        $vm = $this->model;
-        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', $vm->iaas_compute_member_id)
-            ->first();
-
-        ComputeMemberXenService::renameVirtualMachine($computeMember, $vm);
-
-        $diskConfig = VirtualDiskImages::where('iaas_virtual_machine_id', $vm->id)->orderBy('id', 'asc')->get();
-
-        $this->setProgress($step + 3, 'Got the disk configuration of the virtual machine.');
-        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 1 . '] | Got the disk configuration of the virtual machine.');
-
-        //  Check if imported VM has a disk already
-        $disks = VirtualMachinesXenService::getVmDisks($vm);
-
-        $this->setProgress($step + 4, 'Syncing the disks we have.');
-        Log::info(__METHOD__ . ' [' . $this->getActionId() . '][' . $step + 3 . '] | Syncing the disks we have.');
-
-        $syncedDisks = [];
-
-        foreach ($disks as $disk) {
-            $connectionParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
-
-            foreach ($diskConfig as $config) {
-                //  If the userdevice and device_number are equal, we will sync this disk.
-                if ($connectionParams['userdevice'] == $config['device_number']) {
-                    $this->setProgress($step + 5, 'Syncing the disks we have.');
-                    $this->syncDisk($config, $disk);
-                    $syncedDisks[] = $disk['uuid'];
-                }
-            }
-        }
-
-        $unsyncedDisks = [];
-
-        $this->setProgress($step + 5, 'Finding the disks/cdroms we dont want on VM.');
-
-        foreach ($disks as $disk) {
-            if (!in_array($disk['uuid'], $syncedDisks)) {
-                $unsyncedDisks[] = $disk;
-            }
-        }
-
-        $this->setProgress($step + 6, 'Removing unwanted disks/cdroms.');
-
-        foreach ($unsyncedDisks as $disk) {
-            if($disk['vdi-uuid'] === '<not in database>') {
-                VirtualDiskImageXenService::destroyCdrom($vm->uuid, $computeMember);
-            } else {
-                VirtualDiskImageXenService::destroyDisk($disk['vdi-uuid'], $computeMember);
-            }
-        }
-
-        //  After we finish syncing the disks, we will check if we have any disk configuration that is not synced.
-
-        Log::info(__METHOD__ . ' | Checking if we have draft disks that we need to handle');
-        $this->setProgress($step + 1, 'Looking if we have new disks that we need to create or attach.');
-
-        $diskConfig = VirtualDiskImages::where('iaas_virtual_machine_id', $vm->id)->orderBy('id', 'asc')->get();
-
-        //  Now we need to create the disks that are in draft state
-        foreach ($diskConfig as $disk) {
-            //  If we have a draft disk this means that we have a disk that we need to create
-            if($disk->is_draft) {
-                $disk = VirtualDiskImageXenService::create($disk);
-                $disk = VirtualDiskImageXenService::attach($disk);
-
-                $disk->updateQuietly([
-                    'is_draft'  =>  false
-                ]);
-            }
-        }
-
-        $this->setProgress($step + 9, 'Disk sync finished.');
-    }
-
-    private function syncDisk($config, $disk) {
-        $vm = $this->model;
-        $computeMember = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
-            ->where('id', $vm->iaas_compute_member_id)
-            ->first();
-
-        $expectedDiskSize = $config->size;
-
-        //  We are making the resize first because we need to get the disk parameters after the resize.
-        //  And from there we will understand if the disk is resized or not.
-
-        $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
-
-        //  If this is not a CDROM
-        if($vbdParams['type'] != 'CD') {
-            VirtualDiskImageXenService::resize($disk['vdi-uuid'], $computeMember, $config->size);
-            $vbdParams = VirtualDiskImageXenService::getDiskConnectionInformation($disk['uuid'], $computeMember);
-        }
-
-        $diskParams = VirtualDiskImageXenService::getDiskImageParametersByUuid($disk['vdi-uuid'], $computeMember);
-
-        $diskVolume = ComputeMemberStorageVolumes::withoutGlobalScope(AuthorizationScope::class)
-            ->where('hypervisor_uuid', $diskParams['sr-uuid'])
-            ->first();
-
-        if($vbdParams['type'] != 'CD') {
-            //  This means that this is not a CDROM. If this is a cdrom we don't need to check the size.
-            if($config->size != $diskParams['virtual-size']) {
-                StateHelper::setState($config, 'disk_cannot_resized', 'Disk cannot resized. Current size is: ' . $diskParams['virtual-size'], 'warn');
-            }
-        }
-
-        $data = [
-            'name' => $vbdParams['type'] !== 'CD' ? $config->name : 'CDROM',
-            'size' => $vbdParams['type'] !== 'CD' ? $diskParams['virtual-size'] : 0,
-            'physical_utilisation' => $vbdParams['type'] !== 'CD' ? $diskParams['physical-utilisation'] : 0,
-            'iaas_storage_volume_id' => $vbdParams['type'] === 'CD' ? null :  $diskVolume->iaas_storage_volume_id,
-            'iaas_virtual_machine_id' => $vm->id,
-            'device_number' => $vbdParams['userdevice'],
-            'is_cdrom' => $vbdParams['type'] === 'CD',
-            'hypervisor_uuid' => $vbdParams['vdi-uuid'],
-            'hypervisor_data' => $disk,
-            'iam_account_id' => $vm->iam_account_id,
-            'iam_user_id' => $vm->iam_user_id,
-            'is_draft' => false,
-        ];
-
-        $config->update($data);
     }
 }

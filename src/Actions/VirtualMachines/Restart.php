@@ -5,9 +5,11 @@ namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\Fix;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
@@ -52,34 +54,33 @@ class Restart extends AbstractAction
 
         (new Fix($this->model))->handle();
 
-        VirtualMachinesXenService::updateConfigurationIso($this->model);
+        $configIsoDriver = app(VirtualMachineManager::class)->getAdapter($this->model);
+
+        if($configIsoDriver instanceof ConfigurationIsoCapableInterface) {
+            $configIsoDriver->regenerateConfigurationIso($this->model);
+        } else {
+            VirtualMachinesXenService::updateConfigurationIso($this->model);
+        }
 
         Events::fire('restarting:NextDeveloper\IAAS\VirtualMachines', $this->model);
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
+        $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if($vmParams['power-state'] != 'running') {
+        if($this->model->status != 'running') {
             CommentsService::createSystemComment('We cannot restart the virtual machine.', $this->model);
             $this->setProgress(100, 'We cannot restart the virtual machine. It is not running.');
             Events::fire('restart-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
 
-        $result = VirtualMachinesXenService::restart($this->model);
+        $this->model = app(VirtualMachineManager::class)->restart($this->model);
 
-        $vmParams = VirtualMachinesXenService::getVmParameters($this->model);
-
-        if($vmParams['power-state'] == 'running') {
+        if($this->model->status == 'running') {
             CommentsService::createSystemComment('Virtual machine restarted', $this->model);
             $this->setProgress(100, 'We restarted the virtual machine. It is now running.');
             Events::fire('restarted:NextDeveloper\IAAS\VirtualMachines', $this->model);
             return;
         }
-
-        $this->model->update([
-            'status'            =>  $vmParams['power-state'],
-            'hypervisor_data'   =>  $vmParams
-        ]);
 
         Events::fire('restarted:NextDeveloper\IAAS\VirtualMachines', $this->model);
 

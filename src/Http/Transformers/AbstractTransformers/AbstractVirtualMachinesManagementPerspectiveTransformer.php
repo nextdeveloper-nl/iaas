@@ -59,7 +59,7 @@ class AbstractVirtualMachinesManagementPerspectiveTransformer extends AbstractTr
                                                             $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
                                                             $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
                                                             $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

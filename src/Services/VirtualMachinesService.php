@@ -6,19 +6,24 @@ use App\Helpers\Http\ResponseHelper;
 use DateTime;
 use DateTimeZone;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
+use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Delete;
-use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
+use NextDeveloper\IAAS\Contracts\ConsoleCapableInterface;
+use NextDeveloper\IAAS\Actions\DhcpServers\UpdateConfiguration as UpdateDhcpConfiguration;
 use NextDeveloper\IAAS\Database\Filters\VirtualMachinesQueryFilter;
+use NextDeveloper\IAAS\Database\Models\Accounts as IaasAccounts;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
@@ -36,8 +41,10 @@ use GuzzleHttp\Client;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\ResourceLimiters\SimpleLimiter;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesService;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualNetworkCardsXenService;
 use NextDeveloper\IAM\Database\Models\Accounts;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
@@ -54,8 +61,34 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-    public static function get(VirtualMachinesQueryFilter $filter = null, array $params = []): Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
+
+    //  How long after a VM transitions to 'halted' we still treat an agent ping as a stale,
+    //  in-flight last gasp rather than proof the shutdown didn't take. See haltedAtCacheKey().
+    public const HALT_PING_GRACE_SECONDS = 120;
+
+    public static function haltedAtCacheKey(string $uuid): string
     {
+        return "iaas:vm:halted-at:{$uuid}";
+    }
+
+    public static function get(?VirtualMachinesQueryFilter $filter = null, array $params = []): Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        // If filtering by a specific IAM account, verify that account has an iaas_accounts
+        // record. Without one the account is not provisioned for IAAS and should see no VMs.
+        $iamAccountIdParam = request()->get('iamAccountId');
+
+        if ($iamAccountIdParam) {
+            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $iamAccountIdParam)->first();
+
+            $hasIaasAccount = $iamAccount && IaasAccounts::withoutGlobalScopes()
+                ->where('iam_account_id', $iamAccount->id)
+                ->exists();
+
+            if (!$hasIaasAccount) {
+                return new Collection();
+            }
+        }
+
         return parent::get($filter, $params);
     }
 
@@ -278,6 +311,16 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         //  Generate a unique API key for the VM agent on every new VM creation
         $data['agent_api_key'] = Str::random(64);
 
+        if (array_key_exists('service_roles', $data)) {
+            $existingFeatures = is_array($data['features'] ?? null) ? $data['features'] : [];
+
+            $data['features'] = array_merge($existingFeatures, [
+                'service_roles' => AnsibleRolesService::resolveForVirtualMachine($data['service_roles']),
+            ]);
+
+            unset($data['service_roles']);
+        }
+
         return parent::create($data);
     }
 
@@ -341,22 +384,46 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         else
             $vm = VirtualMachines::where('id', $id)->first();
 
+        return self::getRawPassword($vm);
+    }
+
+    /**
+     * $vm->password is stored encrypted (see the observer that encrypts it on
+     * save) - this decrypts it for anything that needs the actual plaintext
+     * (cloud-init user-data, pc-meta-data.json, ...). Falls back to the raw
+     * stored value (and encrypts it in place) for VMs whose password predates
+     * encryption being introduced.
+     */
+    public static function getRawPassword(VirtualMachines $vm): ?string
+    {
         try {
-            $password = decrypt($vm->password);
+            $decrypted = decrypt($vm->password);
+
+            if ($decrypted === null) {
+                return $vm->password;
+            }
+
+            return $decrypted;
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
             if ($e->getMessage() == 'The payload is invalid.') {
                 Log::error(__METHOD__ . ' | We got the payload is invalid error. Maybe the password is not ' .
-                    'encrpyted for the customer. That is why I am returning the raw password');
+                    'encrypted for the customer. That is why I am returning the raw password');
 
-                $vm->update([
-                    'password' => $vm->password
-                ]);
+                // Encrypt the plain-text password and save it as admin to bypass the
+                // observer's permission check (the caller only has read access here).
+                $rawPassword = $vm->password;
 
-                return $vm->password;
+                UserHelper::runAsAdmin(function () use ($vm, $rawPassword) {
+                    $vm->update([
+                        'password' => encrypt($rawPassword)
+                    ]);
+                });
+
+                return $rawPassword;
             }
-        }
 
-        return $password;
+            throw $e;
+        }
     }
 
     public static function getPasswordById($id)
@@ -378,10 +445,34 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                 'decision to run a manual health check for this VM.');
         }
 
+        //  A heartbeat from the agent living inside the VM is direct proof the OS is up and networked,
+        //  which can only happen once the VM is actually running - draft/deploying have no agent yet,
+        //  so this also resolves stale 'checking-health' or 'lost' states without needing to
+        //  special-case any other status value.
+        //
+        //  Except 'halted': the agent's last ping is sometimes still in flight when we record the
+        //  shutdown, which used to flip the VM straight back to 'running' right after the user
+        //  closed it. VirtualMachinesObserver marks a short grace window (HALT_PING_GRACE_SECONDS)
+        //  whenever status transitions into 'halted'; pings inside that window are treated as that
+        //  stale last gasp and ignored. A ping arriving after the window means the shutdown didn't
+        //  actually take and the VM is genuinely still running, so we trust it and self-correct.
+        if (array_key_exists('agent_latest_ping', $data)) {
+            $withinHaltGrace = $vm->status === 'halted'
+                && Cache::has(self::haltedAtCacheKey($vm->uuid));
+
+            if (!$withinHaltGrace) {
+                $data['status'] = 'running';
+            }
+        }
+
         //  Sometimes ram can be null and we want to change something else with the virtual machinne
         //  like backup routine
         if (array_key_exists('ram', $data)) {
-            if ($vm->ram != $data['ram']) {
+            //  $vm->ram is stored in MB, but $data['ram'] arrives in GB - compare like units or this
+            //  always looks like a change and re-runs the resize checks on every PATCH that includes ram.
+            $requestedRamMb = ResourceCalculationHelper::getRamInMb($data['ram']);
+
+            if ($vm->ram != $requestedRamMb) {
                 if ($vm->hypervisor_uuid) {
                     if ($vm->status != 'halted')
                         throw new CannotUpdateResourcesException('Unfortunately we cannot update the resources ' .
@@ -412,7 +503,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
                     //  Also if we should update the disk this means that the pool is ONE
                     if ($shouldUpdateDisk) {
                         //  Since this is Leo One type or pool, we cannot allow to reduce resources.
-                        if (ResourceCalculationHelper::getRamInMb($data['ram']) < $vm->ram) {
+                        if ($requestedRamMb < $vm->ram) {
                             throw new CannotUpdateResourcesException('We cannot update resources of this server,' .
                                 ' because the server is in Leo ONE pool where cpu, ram and disk resources are aligned with a ' .
                                 'certain ratio. The problem here is that we cannot reduce the size of the disk, therefore ' .
@@ -481,8 +572,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             VirtualDiskImagesService::update($vdi->id, [
                 'size' => ResourceCalculationHelper::getDiskSizeAgainstRam($cp, $data['ram'])
             ]);
-        } else {
-            $data['status'] = 'pending-update';
         }
 
         if (!$triggerRamUpdate) {
@@ -490,8 +579,10 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             unset($data['ram']);
         } else {
             $data['cpu'] = ResourceCalculationHelper::getCpuPerRam($data['ram'], $cp);
-            $data['ram'] = ResourceCalculationHelper::getRamInMb($data['ram']);
-            $data['status'] = 'pending-update';
+            $data['ram'] = $requestedRamMb;
+            //  Leave status alone so it keeps reflecting the VM's actual power state (halted/running)
+            //  while the resize is queued. is_pending_update is the dedicated "needs a commit" signal.
+            $data['is_pending_update'] = true;
         }
 
         if (array_key_exists('backup_repository_id', $data)) {
@@ -504,17 +595,56 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             }
         }
 
+        if (array_key_exists('service_roles', $data)) {
+            $existingFeatures = is_array($vm->features) ? $vm->features : [];
+
+            $data['features'] = array_merge($existingFeatures, [
+                'service_roles' => AnsibleRolesService::resolveForVirtualMachine($data['service_roles']),
+            ]);
+
+            unset($data['service_roles']);
+        }
+
         $updatedVm = parent::update($id, $data);
 
         if (
             ($vm->post_boot_script != $updatedVm->post_boot_script) ||
             ($vm->password != $updatedVm->password) ||
-            ($vm->hostname != $updatedVm->hostname)
+            ($vm->hostname != $updatedVm->hostname) ||
+            (($vm->features['service_roles'] ?? null) != ($updatedVm->features['service_roles'] ?? null))
         ) {
             dispatch(new GenerateCloudInitImage($vm));
         }
 
+        //  Gate on the local flag set earlier in THIS call, not on the persisted status column.
+        //  Status stays 'pending-update'/'updating' across unrelated writes (pings, capabilities, etc.)
+        //  made while Commit is still queued/running, so checking status here would re-dispatch
+        //  Commit on every one of those writes and recreate the queue flood we fixed in v1.11.69.
+        if ($triggerRamUpdate) {
+            dispatch(new Commit($updatedVm));
+        }
+
         return $updatedVm;
+    }
+
+    /**
+     * Persists the version reported by a VM's agent (via the 'agent.version' NATS
+     * command) into the `features` JSON column under the 'agent_version' key, merging
+     * so that other keys already stored there (service_roles, scan-lock, ...) are left
+     * untouched. Called from HandleVmAgentEventJob::onCommandResult() once the async
+     * 'agent.version' command completes.
+     */
+    public static function recordAgentVersion(VirtualMachines $vm, string $version): VirtualMachines
+    {
+        $features = is_array($vm->features) ? $vm->features : [];
+
+        if (($features['agent_version'] ?? null) === $version) {
+            return $vm;
+        }
+
+        $features['agent_version'] = $version;
+
+        return self::update($vm->uuid, ['features' => $features]);
     }
 
     /**
@@ -587,10 +717,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
 
     public static function isRunning(VirtualMachines $vm, $force = false): bool
     {
-        if ($force) {
-            (new HealthCheck($vm))->handle();
-        }
-
         return $vm->status == 'running';
     }
 
@@ -633,11 +759,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             return base64_encode($output);
         };
 
-        if ($vm->console_data == null) {
-            //  If we dont have the console data we are updating the VM
-            (new HealthCheck($vm))->handle();
-        }
-
         $vm = $vm->fresh();
         $computeMember = self::getComputeMember($vm);
 
@@ -655,7 +776,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             return [];
 
         if (!array_key_exists('uuid', $vm->console_data)) {
-            dispatch(new HealthCheck($vm));
             return [];
         }
 
@@ -704,6 +824,25 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     }
 
     /**
+     * Driver-dispatched entry point for VirtualMachinesConsoleController's session-ref
+     * console flow. getConsoleDataWithSessionRef() below stays the XenServer-specific
+     * implementation (same role as an *XenService:: method elsewhere) - dispatching
+     * inside that method itself would recurse infinitely, since
+     * XenServer82SshDriver::getConsoleUrl() implements ConsoleCapableInterface by
+     * calling getConsoleDataWithSessionRef() internally.
+     */
+    public static function getConsoleSession(VirtualMachines $vm): array
+    {
+        $driver = app(VirtualMachineManager::class)->getAdapter($vm);
+
+        if ($driver instanceof ConsoleCapableInterface) {
+            return $driver->getConsoleUrl($vm)->extra;
+        }
+
+        return self::getConsoleDataWithSessionRef($vm);
+    }
+
+    /**
      * Returns console connection data using a fresh XenAPI session token.
      *
      * Unlike getConsoleData(), this method obtains a live session_ref from the
@@ -720,10 +859,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     {
         if ($vm->status == 'halted' || $vm->status == 'draft') {
             return ['console' => 'Not available while the server is shutdown.'];
-        }
-
-        if ($vm->console_data == null) {
-            (new HealthCheck($vm))->handle();
         }
 
         $vm = $vm->fresh();
@@ -743,7 +878,6 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
 
         if (!array_key_exists('uuid', $vm->console_data)) {
-            dispatch(new HealthCheck($vm));
             return [];
         }
 
@@ -899,6 +1033,22 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
     public static function delete($id)
     {
         $vm = VirtualMachines::findByUuid($id);
+
+        if (!$vm) {
+            throw new NotAllowedException(
+                'We cannot find the virtual machine you are trying to delete. Maybe you dont ' .
+                'have the permission to delete this object?'
+            );
+        }
+
+        //  Deleting a VM is a destructive, irreversible action - explicitly check ownership here
+        //  instead of relying solely on AuthorizationScope filtering the lookup above.
+        if ($vm->iam_account_id != UserHelper::currentAccount()->id) {
+            throw new NotAllowedException(
+                'You dont have the permission to delete this virtual machine.'
+            );
+        }
+
         dispatch(new Delete($vm));
     }
 
@@ -950,7 +1100,7 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         ];
     }
 
-    public static function getMetadata(VirtualMachines $vm = null): array
+    public static function getMetadata(?VirtualMachines $vm = null): array
     {
         if (!$vm) {
             return [
@@ -1052,5 +1202,230 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         UserHelper::runAsAdmin(function () use ($vm, $tokens) {
             $vm->update(['tokens' => $tokens]);
         });
+    }
+
+    /**
+     * When a VM with local disk is migrated by hand (xe vm-export/vm-import between hosts,
+     * outside of leo:migrate-local-vm), the operator sets the imported VM's name-label to the
+     * original VM's uuid to dodge a name-label collision with the still-registered old VM.
+     * ScanVirtualMachines then creates a fresh orphan record for it (matched by the new
+     * hypervisor_uuid, not by uuid), since it has no way to know it's the same server.
+     *
+     * This finds those (orphan, target) pairs: an orphan VM whose name is itself a uuid, and a
+     * different VM whose uuid equals that name.
+     *
+     * Uses withoutGlobalScopes() (not just AuthorizationScope) because VirtualMachines also
+     * registers Commons\LimitScope, which silently caps unscoped queries at $perPage (20) rows -
+     * same reason ScanVirtualMachines::scanXenVirtualMachines() and DetectIpCollisions strip it.
+     * Without this, a production table with more than 20 VMs would never reach the orphan row.
+     *
+     * @return \Illuminate\Support\Collection<int, array{orphan: VirtualMachines, target: VirtualMachines}>
+     */
+    public static function findMigratedLocalDiskVmCandidates(): \Illuminate\Support\Collection
+    {
+        $orphans = VirtualMachines::withoutGlobalScopes()
+            ->get()
+            ->filter(fn ($vm) => Str::isUuid($vm->name));
+
+        $pairs = collect();
+
+        foreach ($orphans as $orphan) {
+            $target = VirtualMachines::withoutGlobalScopes()
+                ->where('uuid', $orphan->name)
+                ->where('id', '!=', $orphan->id)
+                ->first();
+
+            if ($target) {
+                $pairs->push(['orphan' => $orphan, 'target' => $target]);
+            }
+        }
+
+        return $pairs;
+    }
+
+    /**
+     * Repoints $target (the original VM record - keeps its uuid/id, name, password, ownership,
+     * etc. so every other subsystem keyed to it - disks, network cards, DNS, billing - keeps
+     * working) onto the hypervisor object that $orphan was auto-created for, then merges
+     * $orphan's disks/network cards onto $target's and removes the now-redundant $orphan record.
+     *
+     * The old VM object on the source host is intentionally left untouched - it's up to the
+     * operator to remove it by hand once the migration is confirmed good.
+     *
+     * @param VirtualMachines $orphan the auto-created record pointing at the newly imported VM
+     * @param VirtualMachines $target the original VM record, to be repointed
+     * @return VirtualMachines the refreshed target record
+     */
+    public static function mergeMigratedLocalDiskVm(VirtualMachines $orphan, VirtualMachines $target): VirtualMachines
+    {
+        UserHelper::runAsAdmin(function () use ($orphan, $target) {
+            //  Hand the hypervisor-derived fields that ScanVirtualMachines normally maintains
+            //  over to the target - this is the same field set ScanVirtualMachines would have
+            //  updated had it matched this hypervisor VM to $target by hypervisor_uuid.
+            $target->updateQuietly([
+                'domain_type'            => $orphan->domain_type,
+                'cpu'                    => $orphan->cpu,
+                'ram'                    => $orphan->ram,
+                'status'                 => $orphan->status,
+                'available_operations'   => $orphan->available_operations,
+                'current_operations'     => $orphan->current_operations,
+                'blocked_operations'     => $orphan->blocked_operations,
+                'hypervisor_uuid'        => $orphan->hypervisor_uuid,
+                'hypervisor_data'        => $orphan->hypervisor_data,
+                'is_draft'               => false,
+                'is_lost'                => false,
+                'iaas_compute_member_id' => $orphan->iaas_compute_member_id,
+                'iaas_cloud_node_id'     => $orphan->iaas_cloud_node_id,
+                'iaas_compute_pool_id'   => $orphan->iaas_compute_pool_id,
+            ]);
+
+            self::mergeMigratedDisks($orphan, $target);
+            self::mergeMigratedNetworkCards($orphan, $target);
+
+            $orphan->fresh()->deleteQuietly();
+        });
+
+        Log::info('[VirtualMachinesService::mergeMigratedLocalDiskVm] Repointed ' . $target->uuid .
+            ' onto the hypervisor object formerly tracked as orphan ' . $orphan->uuid .
+            ' (hypervisor_uuid ' . $orphan->hypervisor_uuid . ')');
+
+        return $target->fresh();
+    }
+
+    /**
+     * Merges $orphan's disk records onto $target's: where $target already has a disk at the same
+     * device_number (the common case - same server, same disk layout), the target disk row is
+     * updated with the orphan's (freshly imported) hypervisor identity and the orphan's row is
+     * discarded. Otherwise the orphan's disk is simply repointed onto $target.
+     */
+    private static function mergeMigratedDisks(VirtualMachines $orphan, VirtualMachines $target): void
+    {
+        $orphanDisks = VirtualDiskImages::withoutGlobalScopes()
+            ->where('iaas_virtual_machine_id', $orphan->id)
+            ->get();
+
+        foreach ($orphanDisks as $orphanDisk) {
+            $targetDisk = VirtualDiskImages::withoutGlobalScopes()
+                ->where('iaas_virtual_machine_id', $target->id)
+                ->where('device_number', $orphanDisk->device_number)
+                ->first();
+
+            if ($targetDisk) {
+                $targetDisk->updateQuietly([
+                    'size'                   => $orphanDisk->size,
+                    'physical_utilisation'   => $orphanDisk->physical_utilisation,
+                    'iaas_storage_volume_id' => $orphanDisk->iaas_storage_volume_id,
+                    'is_cdrom'               => $orphanDisk->is_cdrom,
+                    'hypervisor_uuid'        => $orphanDisk->hypervisor_uuid,
+                    'hypervisor_data'        => $orphanDisk->hypervisor_data,
+                    'vbd_hypervisor_uuid'    => $orphanDisk->vbd_hypervisor_uuid,
+                    'vbd_hypervisor_data'    => $orphanDisk->vbd_hypervisor_data,
+                ]);
+
+                $orphanDisk->forceDelete();
+            } else {
+                $orphanDisk->updateQuietly([
+                    'iaas_virtual_machine_id' => $target->id,
+                    'iam_account_id'          => $target->iam_account_id,
+                    'iam_user_id'             => $target->iam_user_id,
+                    'name'                    => $orphanDisk->is_cdrom ? 'CDROM' : 'Disk of: ' . $target->name,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Merges $orphan's network card records onto $target's, matched by device_number - same
+     * approach as mergeMigratedDisks(). Since the newly imported VIF gets a fresh hypervisor
+     * object (and usually a new mac_addr), any ip already bound to the surviving VIF row (via
+     * IpAddresses.iaas_virtual_network_card_id, which is untouched here since we update rows in
+     * place rather than cloning them) needs its ipv4-allowed/locking-mode re-applied against the
+     * *new* hypervisor object, and the network's DHCP config regenerated so its fixed-address
+     * stanza points at the new mac. Mirrors the steps
+     * LocalDiskMigrationService::syncDatabaseRecords() takes after cloning a VIF.
+     */
+    private static function mergeMigratedNetworkCards(VirtualMachines $orphan, VirtualMachines $target): void
+    {
+        $orphanVifs = VirtualNetworkCards::withoutGlobalScopes()
+            ->where('iaas_virtual_machine_id', $orphan->id)
+            ->get();
+
+        $dhcpServersSeen = [];
+
+        foreach ($orphanVifs as $orphanVif) {
+            $targetVif = VirtualNetworkCards::withoutGlobalScopes()
+                ->where('iaas_virtual_machine_id', $target->id)
+                ->where('device_number', $orphanVif->device_number)
+                ->first();
+
+            if ($targetVif) {
+                $hypervisorObjectChanged = $targetVif->hypervisor_uuid !== $orphanVif->hypervisor_uuid;
+
+                $targetVif->updateQuietly([
+                    'mac_addr'        => $orphanVif->mac_addr,
+                    'iaas_network_id' => $orphanVif->iaas_network_id,
+                    'hypervisor_uuid' => $orphanVif->hypervisor_uuid,
+                    'hypervisor_data' => $orphanVif->hypervisor_data,
+                    'status'          => $orphanVif->status,
+                ]);
+
+                $orphanVif->forceDelete();
+
+                $vif = $targetVif->fresh();
+            } else {
+                $hypervisorObjectChanged = true;
+
+                $orphanVif->updateQuietly([
+                    'iaas_virtual_machine_id' => $target->id,
+                    'iam_account_id'          => $target->iam_account_id,
+                    'iam_user_id'             => $target->iam_user_id,
+                ]);
+
+                $vif = $orphanVif->fresh();
+            }
+
+            if (!$hypervisorObjectChanged) {
+                continue;
+            }
+
+            $ipAddresses = IpAddresses::withoutGlobalScopes()
+                ->where('iaas_virtual_network_card_id', $vif->id)
+                ->whereNull('deleted_at')
+                ->get();
+
+            if ($ipAddresses->isEmpty()) {
+                continue;
+            }
+
+            try {
+                VirtualNetworkCardsXenService::setIpv4Allowed($vif);
+                VirtualNetworkCardsXenService::setLockingState($vif, VirtualNetworkCardsXenService::LOCKED);
+
+                Log::info('[VirtualMachinesService::mergeMigratedNetworkCards] Applied ipv4-allowed + ' .
+                    'locking-mode=locked on VIF id=' . $vif->id . ' for ' . $ipAddresses->count() . ' ip(s).');
+            } catch (\Exception $e) {
+                Log::error('[VirtualMachinesService::mergeMigratedNetworkCards] Failed to re-apply ' .
+                    'ipv4-allowed/locking-mode on VIF id=' . $vif->id . ': ' . $e->getMessage() .
+                    ' - the ip(s) may not pass traffic on the new host until this is fixed manually.');
+            }
+
+            if ($vif->iaas_network_id && !isset($dhcpServersSeen[$vif->iaas_network_id])) {
+                $dhcpServersSeen[$vif->iaas_network_id] = true;
+
+                $network = Networks::withoutGlobalScopes()
+                    ->where('id', $vif->iaas_network_id)
+                    ->first();
+
+                $dhcpServer = $network?->dhcpServers;
+
+                if ($dhcpServer) {
+                    dispatch(new UpdateDhcpConfiguration($dhcpServer));
+
+                    Log::info('[VirtualMachinesService::mergeMigratedNetworkCards] Dispatched DHCP ' .
+                        'UpdateConfiguration for network_id=' . $vif->iaas_network_id .
+                        ', dhcp_server_id=' . $dhcpServer->id);
+                }
+            }
+        }
     }
 }

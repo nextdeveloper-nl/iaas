@@ -22,7 +22,7 @@ use NextDeveloper\IAAS\Database\Models\NetworkStats;
  */
 class AbstractNetworkStatsService
 {
-    public static function get(NetworkStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?NetworkStatsQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 

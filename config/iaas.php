@@ -35,6 +35,17 @@ return [
         'available' =>  env('IAAS_CLOUD_INIT_AVAILABLE', false),
     ],
 
+    //  Pinned release of https://github.com/plusclouds/toolkit that ToolkitService
+    //  reads capability scripts / agent installers from when building config ISOs.
+    //  Bump deliberately after validating a new release against a staging VM matrix.
+    //  Set to "latest" instead of a tag to always track GitHub's newest release
+    //  (resolved/cached in ToolkitService::resolveLatestVersion()) - only do this if
+    //  you accept that a new toolkit release can start affecting VM builds without a
+    //  deliberate version bump / validation step.
+    'toolkit'   =>  [
+        'version'   =>  env('TOOLKIT_VERSION', 'v1.3.0'),
+    ],
+
     'console'   =>  [
         //  Due to security there items should not have default values
         'key'   =>  env('IAAS_CONSOLE_KEY' ),

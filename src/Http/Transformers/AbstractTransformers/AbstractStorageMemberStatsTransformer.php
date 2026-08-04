@@ -55,7 +55,7 @@ class AbstractStorageMemberStatsTransformer extends AbstractTransformer
     public function transform(StorageMemberStats $model)
     {
                                                 $iaasStorageMemberId = \NextDeveloper\IAAS\Database\Models\StorageMembers::where('id', $model->iaas_storage_member_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,

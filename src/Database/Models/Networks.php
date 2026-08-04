@@ -48,6 +48,7 @@ use NextDeveloper\Commons\Database\Traits\HasObject;
  * @property \Carbon\Carbon $deleted_at
  * @property $cidr
  * @property integer $iaas_datacenter_id
+ * @property string $gateway_ip_addr
  */
 class Networks extends Model
 {
@@ -90,6 +91,7 @@ class Networks extends Model
             'iam_user_id',
             'cidr',
             'iaas_datacenter_id',
+            'gateway_ip_addr',
     ];
 
     /**
@@ -133,6 +135,7 @@ class Networks extends Model
     'updated_at' => 'datetime',
     'deleted_at' => 'datetime',
     'iaas_datacenter_id' => 'integer',
+    'gateway_ip_addr' => 'string',
     ];
 
     /**
@@ -197,27 +200,27 @@ class Networks extends Model
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\CloudNodes::class);
     }
-    
+
     public function dhcpServers() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\DhcpServers::class);
     }
-    
+
     public function domains() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\Commons\Database\Models\Domains::class);
     }
-    
+
     public function gateways() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\Gateways::class);
     }
-    
+
     public function networkPools() : \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\NextDeveloper\IAAS\Database\Models\NetworkPools::class);
     }
-    
+
     public function ipAddresses() : \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\NextDeveloper\IAAS\Database\Models\IpAddresses::class);

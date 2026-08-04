@@ -20,7 +20,9 @@ class SyncRepositoryService
      */
     public static function getIsoImages(Repositories $repo) : array
     {
-        $command = 'find ' . $repo->iso_path;
+        //  Filter server-side so we never load a directory listing that's larger than the
+        //  ".iso" files we actually keep below (see syncRepoImages() for the same reasoning).
+        $command = 'find ' . $repo->iso_path . ' -maxdepth 1 -type f -name "*.iso"';
         $images = self::performCommand($command, $repo);
         $images = $images['output'];
 
@@ -70,14 +72,31 @@ class SyncRepositoryService
             Log::info('[SyncService@syncRepoImages] Starting to sync the images for the' .
                 ' repository: ' . $repo->name);
 
-        $command = 'find ' . $repo->vm_path;
+        //  vm_path also holds backup archives (see RunBackupJob / InitiateMultilevelBackupJob),
+        //  which can vastly outnumber actual machine images. "exp-" prefixed exports are
+        //  outdated and no longer synced here; only current ".pvm" images matter. Filtering
+        //  server-side keeps the find output (and the single string/array we load it into)
+        //  from ballooning to the point of exhausting memory.
+        $command = 'find ' . $repo->vm_path . ' -maxdepth 1 -type f -name "*.pvm"';
         $images = self::performCommand($command, $repo);
         $images = $images['output'];
 
         $imageFiles = array_filter(explode("\n", trim($images)));
 
+        unset($images);
+
+        $processed = 0;
+
         foreach ($imageFiles as $file) {
             self::addOrUpdate($file, $repo);
+
+            //  This runs inside a long-lived queue daemon (queue:work --daemon) that never
+            //  restarts between jobs, and a repository can hold thousands of image files, each
+            //  producing Eloquent models and SSH command output. Force a GC sweep periodically
+            //  so the worker doesn't accumulate memory across syncs until it hits its memory_limit.
+            if (++$processed % 200 === 0) {
+                gc_collect_cycles();
+            }
         }
 
         $newHash = md5(time());
@@ -139,12 +158,13 @@ class SyncRepositoryService
 
             if($image) {
                 $file = $repoServer->vm_path . '/' . $image->filename;
-                $result = $repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file);
-                $hash = md5($result['output']);
+                $hash = md5(self::performCommand('stat -c \'%b%n%y%z\' ' . $file, $repoServer)['output']);
 
                 $image->update([
                     'hash'  =>  $hash
                 ]);
+
+                unset($hash);
             }
         } else {
             /**
@@ -154,12 +174,6 @@ class SyncRepositoryService
                 $exploded = explode('/', $file);
 
                 $image = RepositoryImages::where('path', $file)->where('iaas_repository_id', $repoServer->id)->first();
-
-                $command = 'stat -c \'%b%n%y%z\' ' . $file;
-                $result = self::performCommand($command, $repoServer);
-                $result = $result['output'];
-
-                $hash = md5($result);
 
                 $filename = $exploded[(count($exploded) - 1)];
 
@@ -176,16 +190,11 @@ class SyncRepositoryService
                     $vmName = str_replace('-', ' ', $vmName);
                     $vmVersion = str_replace('-', '.', $vmVersion);
 
-                    $command = 'stat -c \'%b%n%y%z\' ' . $file;
-                    $result = self::performCommand($command, $repoServer);
-                    $result = $result['output'];
-
-                    $hash = md5($result);
-
-                    $command = 'du -shb ' . $file;
-                    $size = self::performCommand($command, $repoServer);
-                    $size = $size['output'];
-                    $size = trim(str_replace($file, '', $size));
+                    //  Stat hash + disk usage in a single remote command instead of two: this
+                    //  runs once per file in the repository (potentially thousands per sync),
+                    //  and every performCommand() call opens its own SSH/agent connection, so
+                    //  halving the round trips here matters at scale.
+                    [$hash, $size] = self::statAndSize($file, $repoServer);
 
                     //  Böyle bir imaj yok ise kayıt et
                     if (!$image) {
@@ -219,6 +228,8 @@ class SyncRepositoryService
                             'release_version'   =>  self::getReleaseVersion($image)
                         ]);
                     }
+
+                    unset($hash, $size);
                 } else {
                     $image = RepositoryImages::withoutGlobalScope(AuthorizationScope::class)
                         ->where('filename', $filename)
@@ -226,13 +237,8 @@ class SyncRepositoryService
 
                     if ($image) {
                         $file = $repoServer->vm_path . '/' . $image->filename;
-                        $result = $repoServer->performSSHCommand('stat -c \'%b%n%y%z\' ' . $file);
-                        $hash = md5($result['output']);
 
-                        $command = 'du -shb ' . $file;
-                        $size = self::performCommand($command, $repoServer);
-                        $size = $size['output'];
-                        $size = trim(str_replace($file, '', $size));
+                        [$hash, $size] = self::statAndSize($file, $repoServer);
 
                         $image->update([
                             'hash' => $hash,
@@ -240,6 +246,8 @@ class SyncRepositoryService
                             'supported_virtualizations' =>  ImageSupportService::getSupportedModels($imageType),
                             'release_version'   => self::getReleaseVersion($image)
                         ]);
+
+                        unset($hash, $size);
                     } else {
                         if(config('leo.debug.iaas.repo'))
                             logger()->warning('[VirtualMachineImageService@addOrUpdate] WARNING: There is an
@@ -252,7 +260,32 @@ class SyncRepositoryService
         return $image;
     }
 
-    public static function getReleaseVersion(RepositoryImages $image = null)
+    /**
+     * Fetches the stat hash and disk usage (in bytes) for a file with a single remote
+     * command instead of two. addOrUpdate() runs once per file in a repository (a sync can
+     * cover thousands of files) and every performCommand() call opens its own SSH/agent
+     * connection, so halving the round trips here is what keeps long syncs from exhausting
+     * the queue worker's memory over time.
+     *
+     * @return array{0: string, 1: string} [$hash, $sizeInBytes]
+     */
+    private static function statAndSize($file, Repositories $repoServer) : array
+    {
+        $delimiter = '__STAT_SIZE_SPLIT__';
+
+        $command = 'stat -c \'%b%n%y%z\' ' . $file . '; echo ' . $delimiter . '; du -shb ' . $file;
+
+        $output = self::performCommand($command, $repoServer)['output'];
+
+        [$statOutput, $sizeOutput] = array_pad(explode($delimiter, $output, 2), 2, '');
+
+        $hash = md5(trim($statOutput));
+        $size = trim(str_replace($file, '', trim($sizeOutput)));
+
+        return [$hash, $size];
+    }
+
+    public static function getReleaseVersion(?RepositoryImages $image = null)
     {
         if(!$image)
             return 1;

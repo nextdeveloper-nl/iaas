@@ -19,7 +19,7 @@ class IaasHelper
         return self::getAccount(UserHelper::currentAccount());
     }
 
-    public static function getLimits(Accounts $accounts = null)
+    public static function getLimits(?Accounts $accounts = null)
     {
         if(!$accounts)
             $accounts = self::currentAccount();

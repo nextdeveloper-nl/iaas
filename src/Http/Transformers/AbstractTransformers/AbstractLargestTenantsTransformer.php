@@ -56,7 +56,7 @@ class AbstractLargestTenantsTransformer extends AbstractTransformer
     {
                                                 $iaasAccountId = \NextDeveloper\IAAS\Database\Models\Accounts::where('id', $model->iaas_account_id)->first();
                                                             $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->id,

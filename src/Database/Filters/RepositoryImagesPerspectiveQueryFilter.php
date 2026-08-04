@@ -17,13 +17,13 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
      * @var Builder
      */
     protected $builder;
-    
+
     public function name($value)
     {
         return $this->builder->where('name', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function imageName($value)
     {
         return $this->builder->where('image_name', 'ilike', '%' . $value . '%');
@@ -34,13 +34,13 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->imageName($value);
     }
-        
+
     public function description($value)
     {
         return $this->builder->where('description', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function postBootScript($value)
     {
         return $this->builder->where('post_boot_script', 'ilike', '%' . $value . '%');
@@ -51,25 +51,25 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->postBootScript($value);
     }
-        
+
     public function os($value)
     {
         return $this->builder->where('os', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function distro($value)
     {
         return $this->builder->where('distro', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function version($value)
     {
         return $this->builder->where('version', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function cpuType($value)
     {
         return $this->builder->where('cpu_type', 'ilike', '%' . $value . '%');
@@ -80,13 +80,13 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->cpuType($value);
     }
-        
+
     public function extra($value)
     {
         return $this->builder->where('extra', 'ilike', '%' . $value . '%');
     }
 
-        
+
     public function releaseVersion($value)
     {
         return $this->builder->where('release_version', 'ilike', '%' . $value . '%');
@@ -97,7 +97,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->releaseVersion($value);
     }
-        
+
     public function repositoryName($value)
     {
         return $this->builder->where('repository_name', 'ilike', '%' . $value . '%');
@@ -108,7 +108,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->repositoryName($value);
     }
-    
+
     public function cpu($value)
     {
         $operator = substr($value, 0, 1);
@@ -122,7 +122,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('cpu', $operator, $value);
     }
 
-    
+
     public function ram($value)
     {
         $operator = substr($value, 0, 1);
@@ -136,7 +136,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('ram', $operator, $value);
     }
 
-    
+
     public function size($value)
     {
         $operator = substr($value, 0, 1);
@@ -150,7 +150,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         return $this->builder->where('size', $operator, $value);
     }
 
-    
+
     public function isLatest($value)
     {
         return $this->builder->where('is_latest', $value);
@@ -161,7 +161,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isLatest($value);
     }
-     
+
     public function isIso($value)
     {
         return $this->builder->where('is_iso', $value);
@@ -172,7 +172,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isIso($value);
     }
-     
+
     public function isPublic($value)
     {
         return $this->builder->where('is_public', $value);
@@ -183,7 +183,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isPublic($value);
     }
-     
+
     public function isVirtualMachineImage($value)
     {
         return $this->builder->where('is_virtual_machine_image', $value);
@@ -194,7 +194,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isVirtualMachineImage($value);
     }
-     
+
     public function isDockerImage($value)
     {
         return $this->builder->where('is_docker_image', $value);
@@ -205,7 +205,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isDockerImage($value);
     }
-     
+
     public function isBackupRepository($value)
     {
         return $this->builder->where('is_backup_repository', $value);
@@ -216,7 +216,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isBackupRepository($value);
     }
-     
+
     public function isBackup($value)
     {
         return $this->builder->where('is_backup', $value);
@@ -227,7 +227,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->isBackup($value);
     }
-     
+
     public function createdAtStart($date)
     {
         return $this->builder->where('created_at', '>=', $date);
@@ -308,7 +308,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     public function iaasRepositoryId($value)
     {
             $iaasRepository = \NextDeveloper\IAAS\Database\Models\Repositories::where('uuid', $value)->first();
@@ -323,7 +323,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasRepository($value);
     }
-    
+
     public function iamAccountId($value)
     {
             $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
@@ -333,7 +333,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     public function iamUserId($value)
     {
             $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
@@ -343,7 +343,7 @@ class RepositoryImagesPerspectiveQueryFilter extends AbstractQueryFilter
         }
     }
 
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

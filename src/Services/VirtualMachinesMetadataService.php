@@ -9,11 +9,13 @@ use Illuminate\Support\Str;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Exceptions\NotFoundException;
 use NextDeveloper\IAAS\Actions\VirtualMachines\Commit;
-use NextDeveloper\IAAS\Actions\VirtualMachines\HealthCheck;
+use NextDeveloper\IAAS\Database\Models\AnsibleRoles;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
+use NextDeveloper\IAAS\Database\Models\DhcpServers;
 use NextDeveloper\IAAS\Database\Models\EnvVarGroupVars;
+use NextDeveloper\IAAS\Database\Models\Gateways;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Database\Models\Networks;
 use NextDeveloper\IAAS\Database\Models\SshPublicKeyVirtualMachines;
@@ -59,7 +61,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
 
         foreach ($vdis as $vdi) {
             $diskConfiguration[] = [
-                'disk_type'     => $vdi->disk_type,
+                'disk_type'     => $vdi->is_cdrom ? 'cdrom' : 'user',
                 'device_number' => $vdi->device_number,
                 'total_disk'    => $vdi->size,
             ];
@@ -68,47 +70,54 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         $vifConfiguration = [];
 
         foreach ($vifs as $vif) {
+            $network = self::buildNetworkData($vif->iaas_network_id);
+
             $data = [
                 'device_number' => $vif->device_number,
                 'mac_addr'      => $vif->mac_addr,
-//                'network'       => [
-//                    'ip_addr'           => $vif->ip_addr,
-//                    'ip_range_start'    => $vif->ip_range_start,
-//                    'ip_range_end'      => $vif->ip_range_end,
-//                    'gateway'           => $vif->gateway,
-//                    'subnet'            => $vif->subnet,
-//                    'netmask'           => $vif->netmask,
-//                    'network'           => $vif->network,
-//                    'dhcp_server'       => $vif->dhcp_server,
-//                    'dns_nameservers'   => $vif->dns_nameservers,
-//                    'mtu'               => $vif->mtu,
-//                ],
+                'network_name'  => $network['name'] ?? null,
+                'network'       => $network,
             ];
 
-            if($vif->ipList) {
-                $data['ipList'] = [
-                    'data' => $vif->ipList->map(function ($ip) {
-                        return [
-                            'id'            => $ip->id,
-                            'ip_addr'      => $ip->ip_addr,
-                            'version'      => $ip->version,
-                            'is_reachable' => $ip->is_reachable
-                        ];
-                    }),
-                ];
-            }
+            $ips = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_network_card_id', $vif->id)
+                ->get();
+
+            $data['ip_list'] = [
+                'data' => $ips->map(function ($ip) {
+                    return [
+                        'id'          => $ip->id,
+                        'ip_addr'     => $ip->ip_addr,
+                        'is_reserved' => $ip->is_reserved,
+                    ];
+                }),
+            ];
 
             $vifConfiguration[] = $data;
         }
 
         $computePool = VirtualMachinesService::getComputePool($vm);
+        $computeMember = VirtualMachinesService::getComputeMember($vm);
+
+        //  hypervisor_type/hypervisor_version aren't real columns; ComputeMembers only
+        //  stores a combined "<Type> <version>" string (e.g. "XenServer 8.2.5")
+        $hypervisorType = null;
+        $hypervisorVersion = null;
+
+        if ($computeMember?->hypervisor_model) {
+            [$hypervisorType, $hypervisorVersion] = array_pad(
+                explode(' ', $computeMember->hypervisor_model, 2),
+                2,
+                null
+            );
+        }
 
         $computePoolArray = [
             'id' => $computePool->uuid,
             'name' => $computePool->name,
             'pool_type' => $computePool->pool_type,
-            'hypervisor_type' => $computePool->hypervisor_type,
-            'hypervisor_version' => $computePool->hypervisor_version,
+            'hypervisor_type' => $hypervisorType,
+            'hypervisor_version' => $hypervisorVersion,
         ];
 
         $cloudNode = VirtualMachinesService::getCloudPool($vm);
@@ -126,22 +135,191 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         return [
             'hostname' => $vm->hostname,
             'username' => $vm->username,
-            'password' => $vm->password,
-            'virtual_machine_id' => $vm->id_ref,
+            'password' => VirtualMachinesService::getRawPassword($vm),
+            'virtual_machine_id' => $vm->uuid,
             'virtual_disks' => $diskConfiguration,
             'virtual_network_cards' => $vifConfiguration,
-            'service_roles' => [
-                //  Here will be roles of the server
-                'zabbix_server' => [
-                    'is_zabbix_enabled' => true,
-                    'zabbix_server_ip'  => '185.255.172.221'
-                ],
-            ],
+            'service_roles' => self::collectServiceRoles($vm),
             'compute_pool' => $computePoolArray,
             'cloud_node' => $cloudPoolArray,
             'ssh_keys' => self::collectSshKeys($vm),
             'env_vars' => self::collectEnvVars($vm),
             'tokens'   => $vm->tokens ?? [],
+            'agent'    => self::buildAgentConfiguration($vm),
+        ];
+    }
+
+    /**
+     * Single source of truth for the PlusClouds agent's own config (agent.yaml on the
+     * config ISO). NATS endpoints are pulled from the same config the platform's own
+     * NatsService uses, so the agent can never drift from what the platform connects to.
+     */
+    private static function buildAgentConfiguration(VirtualMachines $vm) : array
+    {
+        $allowedOperations = [
+            'agent.allowed_operations',
+            'services.list',
+            'services.get',
+            'services.start',
+            'services.stop',
+            'services.restart',
+            'services.reload',
+            'services.enable',
+            'services.disable',
+            'system.info',
+            'system.metrics',
+            'system.cpu',
+            'system.memory',
+            'system.disk',
+            'system.network',
+            'system.update',
+            'telemetry.set_interval',
+            'disk.resize',
+            'cron.list',
+            'agent.version',
+        ];
+
+        //  pfsense.* operations are only meaningful for pfSense CE gateway VMs - other
+        //  VMs' agents don't have a pfSense install to operate on.
+        if (self::isPfSenseCe($vm)) {
+            $allowedOperations = array_merge($allowedOperations, [
+                'pfsense.set_password',
+                'pfsense.firewall.list',
+                'pfsense.firewall.create',
+                'pfsense.firewall.delete',
+                'pfsense.nat.list',
+                'pfsense.nat.create',
+                'pfsense.nat.delete',
+            ]);
+        }
+
+        return [
+            'nats' => [
+                'connection_type' => 'websocket',
+                'url'             => 'nats://' . config('events.nats.server_host') . ':' . config('events.nats.server_port'),
+                'websocket_url'   => 'wss://' . config('events.nats.host') . ':' . config('events.nats.port'),
+                'agent_uuid'      => $vm->uuid,
+                'api_key'         => $vm->agent_api_key,
+                'max_reconnects'  => -1,
+                'reconnect_wait'  => '5s',
+            ],
+            'agent' => [
+                'heartbeat_interval' => '30s',
+                'telemetry_interval' => '30s',
+                'allowed_operations' => $allowedOperations,
+                'allowed_commands' => [
+                    '/usr/bin/journalctl',
+                    '/usr/bin/df',
+                    '/usr/bin/free',
+                ],
+            ],
+            'iso' => [
+                'mount_path' => '/media/plusclouds-config',
+            ],
+            'log' => [
+                'level'  => 'debug',
+                'format' => 'console',
+                'file'   => '/var/log/plusclouds/agent.log',
+            ],
+            'autoheal' => [
+                'enabled'       => true,
+                'restart_delay' => '10s',
+            ],
+        ];
+    }
+
+    /**
+     * Matches the VM's RepositoryImages.distro against config('leo.iaas.firewalls.pfsense.distro')
+     * (default 'pfsense ce'), the same os/distro/version triple the gateway provisioning
+     * flow uses to pick the pfSense CE image (see config/leo.php, docs/gateways/testing-guide.md).
+     */
+    private static function isPfSenseCe(VirtualMachines $vm) : bool
+    {
+        $repositoryImage = VirtualMachinesService::getRepositoryImage($vm);
+
+        if (!$repositoryImage || !$repositoryImage->distro) {
+            return false;
+        }
+
+        $pfSenseDistro = config('leo.iaas.firewalls.pfsense.distro', 'pfsense ce');
+
+        return Str::lower(trim($repositoryImage->distro)) === Str::lower(trim($pfSenseDistro));
+    }
+
+    public static function getAgentYaml(VirtualMachines $vm) : string
+    {
+        $yaml = yaml_emit(self::buildAgentConfiguration($vm), YAML_UTF8_ENCODING, YAML_LN_BREAK);
+
+        $yaml = preg_replace('/^---\s*\n/', '', $yaml);
+        $yaml = preg_replace('/\n\.\.\.\s*$/', '', $yaml);
+
+        $header = "# PlusClouds Agent v2 Configuration\n" .
+            "#\n" .
+            "# This file is the primary source of identity for the agent. In production it\n" .
+            "# is written by the platform during VM provisioning (via the ISO config drive)\n" .
+            "# and the ISO is unmounted before the agent starts. All values here can also be\n" .
+            "# overridden by environment variables (prefix: PLUSCLOUDS_AGENT_).\n\n";
+
+        return $header . $yaml;
+    }
+
+    private static function buildNetworkData(?int $networkId) : array
+    {
+        if (!$networkId) {
+            return [];
+        }
+
+        $network = Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->where('id', $networkId)
+            ->first();
+
+        if (!$network) {
+            return [];
+        }
+
+        $subnet = null;
+        $netmask = null;
+        $networkAddr = null;
+
+        if ($network->cidr) {
+            [$networkAddr, $prefix] = explode('/', $network->cidr, 2);
+            $prefix = (int) $prefix;
+            $netmask = long2ip(-1 << (32 - $prefix));
+            $subnet = (string) $prefix;
+        }
+
+        $gatewayIp = $network->gateway_ip_addr;
+
+        if (!$gatewayIp && $network->iaas_gateway_id) {
+            $gateway = Gateways::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $network->iaas_gateway_id)
+                ->first();
+
+            $gatewayIp = $gateway?->ip_addr;
+        }
+
+        $dhcpServerIp = null;
+
+        if ($network->iaas_dhcp_server_id) {
+            $dhcpServer = DhcpServers::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $network->iaas_dhcp_server_id)
+                ->first();
+
+            $dhcpServerIp = $dhcpServer?->ip_addr;
+        }
+
+        return [
+            'name'             => $network->name,
+            'ip_addr'          => $network->ip_addr,
+            'ip_range_start'   => $network->ip_addr_range_start,
+            'ip_range_end'     => $network->ip_addr_range_end,
+            'gateway'          => $gatewayIp,
+            'subnet'           => $subnet,
+            'netmask'          => $netmask,
+            'network'          => $networkAddr,
+            'dhcp_server'      => $dhcpServerIp,
+            'dns_nameservers'  => $network->dns_nameservers,
+            'mtu'              => $network->mtu,
         ];
     }
 
@@ -241,7 +419,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
     {
         //  For encryption of the password
         $salt = substr(str_replace('+', '.', base64_encode(random_bytes(16))), 0, 16);
-        $hash = crypt($vm->password, '$6$' . $salt . '$');
+        $hash = crypt(VirtualMachinesService::getRawPassword($vm), '$6$' . $salt . '$');
 
         $user = [
             'name'        => $vm->username,
@@ -366,5 +544,40 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         }
 
         return $envVars;
+    }
+
+    /**
+     * Reads the VM's selected service roles from features.service_roles and re-validates each one
+     * against the iaas_ansible_roles catalog, dropping any role that has since been deactivated
+     * (rather than failing metadata generation, since this runs on every config ISO rebuild).
+     */
+    private static function collectServiceRoles(VirtualMachines $vm): array
+    {
+        $serviceRoles = $vm->features['service_roles'] ?? [];
+
+        if (!is_array($serviceRoles) || empty($serviceRoles)) {
+            return [];
+        }
+
+        $roleNames = array_keys($serviceRoles);
+
+        $activeRoleNames = AnsibleRoles::withoutGlobalScope(AuthorizationScope::class)
+            ->whereIn('name', $roleNames)
+            ->where('is_active', true)
+            ->pluck('name')
+            ->all();
+
+        $collected = [];
+
+        foreach ($serviceRoles as $name => $role) {
+            if (!in_array($name, $activeRoleNames, true)) {
+                Log::warning("[VirtualMachinesMetadataService@collectServiceRoles] Dropping service role [{$name}] for VM [{$vm->uuid}] - no longer an active iaas_ansible_roles entry.");
+                continue;
+            }
+
+            $collected[$name] = $role;
+        }
+
+        return $collected;
     }
 }

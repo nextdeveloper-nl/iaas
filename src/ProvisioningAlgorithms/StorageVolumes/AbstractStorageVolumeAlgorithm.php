@@ -36,7 +36,7 @@ abstract class AbstractStorageVolumeAlgorithm
      *
      * @param ComputePools|null $computePool
      */
-    public function __construct(StoragePools $storagePools = null)
+    public function __construct(?StoragePools $storagePools = null)
     {
         $this->storagePools = $storagePools;
     }

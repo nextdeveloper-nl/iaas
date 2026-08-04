@@ -16,10 +16,13 @@ use NextDeveloper\Communication\Helpers\Communicate;
 use NextDeveloper\IAAS\Actions\ComputeMembers\ScanVirtualMachines;
 use NextDeveloper\IAAS\Actions\ComputeMembers\UpdateResources;
 use NextDeveloper\IAAS\Actions\ComputeMembers\UpdateStorageVolumes;
+use NextDeveloper\IAAS\Contracts\EventTranslatorCapableInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberTasks;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -49,25 +52,33 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             return;
         }
 
-        UserHelper::setAdminAsCurrentUser();
+        // runAsAdmin() (not setAdminAsCurrentUser()) because the elevated identity's
+        // "current account" is whichever account is flagged active for the system user,
+        // which is mutable shared state - without the role-check bypass runAsAdmin()
+        // also sets, ComputeMemberTasks::create()/update() below can intermittently
+        // fail with NotAllowedException whenever that flag points at an account where
+        // the system user doesn't hold system-admin.
+        $results = UserHelper::runAsAdmin(function () use ($event, $results) {
+            switch ($event['class']) {
+                case 'vm':
+                    $results = array_merge($this->computeVmEvents($event, $results), $results);
+                    break;
+                case 'message':
+                    $results = array_merge($this->computeMessageEvents($event, $results), $results);
+                    break;
+                case 'sr':
+                    $results = array_merge($this->computeSrEvents($event, $results), $results);
+                    break;
+                case 'task':
+                    $results = array_merge($this->computeTaskEvents($event, $results), $results);
+                    break;
+                case 'leo':
+                    $results = array_merge($this->computeLeoEvents($event, $results), $results);
+                    break;
+            }
 
-        switch ($event['class']) {
-            case 'vm':
-                $results = array_merge($this->computeVmEvents($event, $results), $results);
-                break;
-            case 'message':
-                $results = array_merge($this->computeMessageEvents($event, $results), $results);
-                break;
-            case 'sr':
-                $results = array_merge($this->computeSrEvents($event, $results), $results);
-                break;
-            case 'task':
-                $results = array_merge($this->computeTaskEvents($event, $results), $results);
-                break;
-            case 'leo':
-                $results = array_merge($this->computeLeoEvents($event, $results), $results);
-                break;
-        }
+            return $results;
+        });
 
         $this->event->results = $results;
         $this->event->is_executed = true;
@@ -191,8 +202,19 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
 
     private function computeVmEvents($event, $results = []) : array
     {
+        //  XenAPI 'del' events (and some malformed events) can arrive with a
+        //  snapshot that has no 'uuid' since the VM record no longer exists -
+        //  bail out instead of letting the undefined array key crash the job.
+        $hypervisorUuid = $event['snapshot']['uuid'] ?? null;
+
+        if(!$hypervisorUuid) {
+            Log::info(__METHOD__ . ': Event snapshot has no uuid for operation ' . ($event['operation'] ?? 'unknown') . ', skipping event ID ' . $this->event->id);
+            $this->event->forceDelete();
+            return $results;
+        }
+
         $this->vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
-            ->where('hypervisor_uuid', $event['snapshot']['uuid'])
+            ->where('hypervisor_uuid', $hypervisorUuid)
             ->withTrashed()
             ->first();
 
@@ -205,6 +227,10 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             //  This causes problems while creating new VM and or taking snapshot. We should think about something else on this.
             //  Maybe in the future we can implement a locking mechanism for this. like scan_lock = true or false
             //  self::dispatch(new ScanVirtualMachines($computeMember));
+
+            Log::info(__METHOD__ . ': No VM found for hypervisor_uuid ' . $hypervisorUuid . ', skipping event ID ' . $this->event->id);
+
+            return $results;
         }
 
         if(!$this->vm->iam_user_id) {
@@ -324,18 +350,36 @@ class ComputeComputeMemberEventsJob implements ShouldQueue
             ->withTrashed()
             ->first();
 
-        $powerState = strtolower($event['snapshot']['power_state']);
-        $ram = intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024; // Convert from bytes to MB
-        $cpu = $event['snapshot']['VCPUs_max'];
-        $domainType = $event['snapshot']['domain_type'];
+        //  Translate XenAPI's raw event vocabulary (power_state, memory_dynamic_min in
+        //  bytes, VCPUs_max, domain_type, current_operations) into the normalized shape -
+        //  this is the one place that vocabulary is read; everything below only ever
+        //  looks at $normalized. See docs/hypervisor-driver-architecture.md §5.
+        $computePool = VirtualMachinesService::getComputePool($vm);
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputePool($computePool);
 
-        $currentOperation = $event['snapshot']['current_operations'];
+        if ($driver instanceof EventTranslatorCapableInterface) {
+            $normalized = $driver->translate($event);
 
-        if($currentOperation) {
-            switch($currentOperation[array_keys($currentOperation)[0]]) {
-                case 'clean_reboot':
-                    $powerState = 'rebooting';
-                    break;
+            $powerState = $normalized->changes['power_state'] ?? strtolower($event['snapshot']['power_state']);
+            $ram = $normalized->changes['ram_mb'] ?? (intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024);
+            $cpu = $normalized->changes['cpu'] ?? $event['snapshot']['VCPUs_max'];
+            $domainType = $normalized->changes['domain_type'] ?? $event['snapshot']['domain_type'];
+        } else {
+            //  Fallback for a driver that hasn't implemented event translation yet -
+            //  same raw-field reads this method always did.
+            $powerState = strtolower($event['snapshot']['power_state']);
+            $ram = intval($event['snapshot']['memory_dynamic_min']) / 1024 / 1024; // Convert from bytes to MB
+            $cpu = $event['snapshot']['VCPUs_max'];
+            $domainType = $event['snapshot']['domain_type'];
+
+            $currentOperation = $event['snapshot']['current_operations'];
+
+            if($currentOperation) {
+                switch($currentOperation[array_keys($currentOperation)[0]]) {
+                    case 'clean_reboot':
+                        $powerState = 'rebooting';
+                        break;
+                }
             }
         }
 

@@ -8,6 +8,7 @@ use NextDeveloper\IAAS\Database\Filters\VirtualMachinesPerspectiveQueryFilter;
 use NextDeveloper\IAAS\Database\Models\VirtualMachinesPerspective;
 use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualMachinesPerspectiveService;
 use NextDeveloper\IAM\Database\Models\Accounts;
+use NextDeveloper\IAAS\Database\Models\Accounts as IaasAccounts;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -22,7 +23,7 @@ class VirtualMachinesPerspectiveService extends AbstractVirtualMachinesPerspecti
 {
 
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
-    public static function get(VirtualMachinesPerspectiveQueryFilter $filter = null, array $params = []): \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public static function get(?VirtualMachinesPerspectiveQueryFilter $filter = null, array $params = []): \Illuminate\Database\Eloquent\Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         if(array_key_exists('snapshot_of_virtual_machine', $filter->filters())) {
             $vm = VirtualMachinesPerspective::withoutGlobalScopes()
@@ -32,7 +33,11 @@ class VirtualMachinesPerspectiveService extends AbstractVirtualMachinesPerspecti
             $filter->updateValue('snapshot_of_virtual_machine', $vm->id);
         }
 
-        if(UserHelper::hasRole('datacenter-admin') || UserHelper::hasRole('cloud-node-admin')) {
+        if(
+            UserHelper::hasRole('datacenter-admin') ||
+            UserHelper::hasRole('cloud-node-admin') ||
+            UserHelper::hasRole('cloud-sales-admin')
+        ) {
             $model = VirtualMachinesPerspective::filter($filter);
 
             if(array_key_exists('iamAccountId', $filter->filters())) {

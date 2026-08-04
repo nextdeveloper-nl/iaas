@@ -3,8 +3,10 @@
 namespace NextDeveloper\IAAS\Database\Observers;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
@@ -84,6 +86,20 @@ class VirtualMachinesObserver
             !UserHelper::can('update', $model),
             new NotAllowedException('You are not allowed to update this record')
         );
+
+        //  Mark when this VM transitioned into 'halted' so a stale agent ping arriving right
+        //  after (last gasp in flight when the shutdown was recorded) doesn't flip it back to
+        //  'running' - see VirtualMachinesService::update() and HALT_PING_GRACE_SECONDS.
+        if ($model->isDirty('status')
+            && $model->status === 'halted'
+            && $model->getOriginal('status') !== 'halted'
+        ) {
+            Cache::put(
+                VirtualMachinesService::haltedAtCacheKey($model->uuid),
+                true,
+                now()->addSeconds(VirtualMachinesService::HALT_PING_GRACE_SECONDS)
+            );
+        }
 
         Events::fire('updating:NextDeveloper\IAAS\VirtualMachines', $model);
     }

@@ -36,7 +36,7 @@ class VmDailyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->maxVcpus($value);
     }
-    
+
     public function maxRamGb($value)
     {
         $operator = substr($value, 0, 1);
@@ -55,7 +55,7 @@ class VmDailyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->maxRamGb($value);
     }
-    
+
     public function statDateStart($date)
     {
         return $this->builder->where('stat_date', '>=', $date);
@@ -92,7 +92,7 @@ class VmDailyStatsQueryFilter extends AbstractQueryFilter
     {
         return $this->iaasVirtualMachine($value);
     }
-    
+
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
 

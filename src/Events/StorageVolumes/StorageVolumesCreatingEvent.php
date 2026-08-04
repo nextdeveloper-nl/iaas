@@ -24,7 +24,7 @@ class StorageVolumesCreatingEvent
      */
     protected $timestamp = null;
 
-    public function __construct(StorageVolumes $model = null)
+    public function __construct(?StorageVolumes $model = null)
     {
         $this->_model = $model;
     }

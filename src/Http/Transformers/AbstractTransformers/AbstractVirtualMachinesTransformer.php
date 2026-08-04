@@ -63,13 +63,14 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
                                                             $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
                                                             $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
                                                             $backupRepositoryId = \NextDeveloper\IAAS\Database\Models\Repositories::where('id', $model->backup_repository_id)->first();
-                        
+
         return $this->buildPayload(
             [
             'id'  =>  $model->uuid,
             'name'  =>  $model->name,
             'username'  =>  $model->username,
-            'password'  =>  $model->password,
+            // password intentionally omitted - it's stored encrypted and the raw ciphertext
+            // was leaking through this endpoint (issue #995); use GET /leo/iaas/virtual-machines/decrypt-password/{id}
             'hostname'  =>  $model->hostname,
             'description'  =>  $model->description,
             'os'  =>  $model->os,
@@ -78,7 +79,9 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'domain_type'  =>  $model->domain_type,
             'status'  =>  $model->status,
             'cpu'  =>  $model->cpu,
-            'ram'  =>  $model->ram,
+            // ram is stored in MB but create/update accept GB (see VirtualMachinesService::create/update) -
+            // convert back to GB here so reads match writes (issue #994)
+            'ram'  =>  $model->ram / 1024,
             'is_winrm_enabled'  =>  $model->is_winrm_enabled,
             'available_operations'  =>  $model->available_operations,
             'current_operations'  =>  $model->current_operations,
@@ -113,6 +116,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'post_boot_script'  =>  $model->post_boot_script,
             'tokens'  =>  $model->tokens,
             'agent_latest_ping'  =>  $model->agent_latest_ping,
+            'is_pending_update'  =>  $model->is_pending_update,
             ]
         );
     }

@@ -23,7 +23,7 @@ use NextDeveloper\IAM\Helpers\UserHelper;
  */
 class AbstractNetworkMemberDevicesService
 {
-    public static function get(NetworkMemberDevicesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
+    public static function get(?NetworkMemberDevicesQueryFilter $filter = null, array $params = []) : Collection|LengthAwarePaginator
     {
         $enablePaginate = array_key_exists('paginate', $params);
 
