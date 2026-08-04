@@ -565,20 +565,30 @@ class VirtualMachinesPerspectiveQueryFilter extends AbstractQueryFilter
 
     public function iamAccountId($value)
     {
-            $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::where('uuid', $value)->first();
+        //  We are resolving the account without the authorization scope, otherwise the account of another
+        //  tenant cannot be resolved and the filter would silently return every visible virtual machine.
+        $iamAccount = \NextDeveloper\IAM\Database\Models\Accounts::withoutGlobalScopes()
+            ->where('uuid', $value)
+            ->first();
 
         if($iamAccount) {
             return $this->builder->where('iam_account_id', '=', $iamAccount->id);
         }
+
+        return $this->builder->whereRaw('1 = 0');
     }
 
     public function iamUserId($value)
     {
-            $iamUser = \NextDeveloper\IAM\Database\Models\Users::where('uuid', $value)->first();
+        $iamUser = \NextDeveloper\IAM\Database\Models\Users::withoutGlobalScopes()
+            ->where('uuid', $value)
+            ->first();
 
         if($iamUser) {
             return $this->builder->where('iam_user_id', '=', $iamUser->id);
         }
+
+        return $this->builder->whereRaw('1 = 0');
     }
 
 
