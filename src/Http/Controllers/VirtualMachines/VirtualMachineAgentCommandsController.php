@@ -89,7 +89,7 @@ class VirtualMachineAgentCommandsController extends AbstractController
 
     /**
      * Send a command to the VM agent and block until the agent replies.
-     * Returns 200 with the agent's result, or 504 on timeout.
+     * Always returns 200; on timeout, `timeout` is true and `result` is null.
      */
     public function send(Request $request, $vmId, $operation)
     {
@@ -111,15 +111,19 @@ class VirtualMachineAgentCommandsController extends AbstractController
                 timeoutSeconds: $timeout
             );
         } catch (AgentTimeoutException $e) {
-            return $this->setStatusCode(504)->withError(
-                $e->getMessage(),
-                'ERROR-AGENT-TIMEOUT'
-            );
+            return $this->setStatusCode(200)->withArray([
+                'operation' => $operation,
+                'result'    => null,
+                'timeout'   => true,
+                'code'      => 'ERROR-AGENT-TIMEOUT',
+                'message'   => $e->getMessage(),
+            ]);
         }
 
         return $this->withArray([
             'operation' => $operation,
             'result'    => $result,
+            'timeout'   => false,
         ]);
     }
 }
