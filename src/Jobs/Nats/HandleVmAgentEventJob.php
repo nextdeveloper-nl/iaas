@@ -19,6 +19,16 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
  */
 class HandleVmAgentEventJob extends AbstractAgentEventJob
 {
+    // Dedicated queue — heartbeat+telemetry arrives every ~30s per VM across the
+    // whole fleet and must not share a worker with unrelated platform traffic on
+    // the default queue (same fix already applied to S3/backup agent events -
+    // see HandleS3AgentEventJob - after that traffic starved the shared 'default'
+    // workers and jobs sat past retry_after without ever running). This was the
+    // actual cause of the agent_latest_ping investigation: jobs were being
+    // dispatched fine but never dequeued, so handle() never ran and nothing
+    // ever got logged.
+    public $queue = 'vm-agent-events';
+
     // Thresholds — percentages above which a warning is raised
     private const THRESHOLD_CPU_PCT     = 90.0;
     private const THRESHOLD_MEMORY_PCT  = 90.0;

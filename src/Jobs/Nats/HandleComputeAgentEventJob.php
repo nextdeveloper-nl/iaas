@@ -23,6 +23,11 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
  */
 class HandleComputeAgentEventJob extends AbstractAgentEventJob
 {
+    // Same dedicated queue as HandleVmAgentEventJob - see its comment. Compute
+    // members are far lower volume than VMs (a handful of hypervisor hosts vs.
+    // the whole VM fleet), so sharing the queue is fine.
+    public $queue = 'vm-agent-events';
+
     // Thresholds - percentages above which a warning is raised
     private const THRESHOLD_CPU_PCT     = 90.0;
     private const THRESHOLD_RAM_PCT     = 90.0;
