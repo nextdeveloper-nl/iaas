@@ -67,7 +67,22 @@ class HandleVmAgentEventJob extends AbstractAgentEventJob
         $timestamp = $payload['timestamp'] ?? null;
         $pingTime  = $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp) : now();
 
+        // Explicit before/after trace around the actual write - the outer
+        // AbstractAgentEventJob::handle() only logs on a thrown exception, so
+        // without this line a heartbeat that resolves fine but silently fails
+        // to persist (or succeeds) leaves no evidence either way.
+        Log::info('[HandleVmAgentEventJob] updating agent_latest_ping', [
+            'vm_id'        => $model->id,
+            'vm_uuid'      => $model->uuid,
+            'previous_ping'=> optional($model->agent_latest_ping)->toIso8601String(),
+            'new_ping'     => $pingTime->toIso8601String(),
+        ]);
+
         VirtualMachinesService::update($model->uuid, ['agent_latest_ping' => $pingTime]);
+
+        Log::info('[HandleVmAgentEventJob] agent_latest_ping update call completed', [
+            'vm_uuid' => $model->uuid,
+        ]);
 
         // If the agent capabilities are not yet known, request them
         $agentOps = ($model->available_operations ?? [])['agent'] ?? [];
