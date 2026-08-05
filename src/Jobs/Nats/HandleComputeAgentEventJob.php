@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Jobs\Nats;
 
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Services\CommentsService;
@@ -33,6 +34,28 @@ class HandleComputeAgentEventJob extends AbstractAgentEventJob
             ->withoutGlobalScope(LimitScope::class)
             ->where('uuid', $agentUuid)
             ->first();
+    }
+
+    // See HandleVmAgentEventJob::diagnoseUnknownAgent() - same soft-delete
+    // vs. truly-unknown distinction, for the compute-host agent.
+    protected function diagnoseUnknownAgent(string $agentUuid): array
+    {
+        $trashed = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
+            ->withoutGlobalScope(SoftDeletingScope::class)
+            ->where('uuid', $agentUuid)
+            ->first();
+
+        if (!$trashed) {
+            return ['reason' => 'no_compute_member_with_this_uuid'];
+        }
+
+        return [
+            'reason'         => 'compute_member_is_soft_deleted',
+            'cm_id'          => $trashed->id,
+            'cm_name'        => $trashed->name ?? null,
+            'deleted_at'     => optional($trashed->deleted_at)->toIso8601String(),
+        ];
     }
 
     protected function updateHeartbeat($model, array $payload): void

@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Jobs\Nats;
 
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Services\CommentsService;
@@ -30,6 +31,35 @@ class HandleVmAgentEventJob extends AbstractAgentEventJob
             ->withoutGlobalScope(LimitScope::class)
             ->where('uuid', $agentUuid)
             ->first();
+    }
+
+    // Distinguishes, for the 'unknown agent_uuid' log line, between a VM
+    // that's soft-deleted (agent kept running past teardown - expected, not
+    // a bug) and a UUID that matches no VM at all (agent identity mismatch,
+    // e.g. a clone that never picked up its own config-drive - see the
+    // agent_latest_ping investigation this was added for).
+    protected function diagnoseUnknownAgent(string $agentUuid): array
+    {
+        $trashed = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
+            ->withoutGlobalScope(SoftDeletingScope::class)
+            ->where('uuid', $agentUuid)
+            ->first();
+
+        if (!$trashed) {
+            return [
+                'reason' => 'no_vm_with_this_uuid',
+                'agent_uuid' => $agentUuid
+            ];
+        }
+
+        return [
+            'reason'          => 'vm_is_soft_deleted',
+            'vm_id'           => $trashed->id,
+            'vm_name'         => $trashed->name,
+            'deleted_at'      => optional($trashed->deleted_at)->toIso8601String(),
+            'iam_account_id'  => $trashed->iam_account_id,
+        ];
     }
 
     protected function updateHeartbeat($model, array $payload): void
