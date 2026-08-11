@@ -5,6 +5,7 @@ namespace NextDeveloper\IAAS\Database\Observers;
 use Illuminate\Database\Eloquent\Model;
 use NextDeveloper\Commons\Exceptions\NotAllowedException;
 use NextDeveloper\Events\Services\Events;
+use NextDeveloper\IAAS\Services\ComputeMembersService;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
@@ -96,6 +97,10 @@ class ComputeMembersObserver
     public function updated(Model $model)
     {
         Events::fire('updated:NextDeveloper\IAAS\ComputeMembers', $model);
+
+        if ($model->wasChanged('is_alive')) {
+            ComputeMembersService::handleLivenessChange($model);
+        }
     }
 
 

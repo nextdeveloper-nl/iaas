@@ -1666,7 +1666,7 @@ physical interfaces and vlans of compute member');
 
             $connectionProblemCount++;
 
-            Events::fire('connection-problem', $computeMember);
+            Events::fire('connection-problem:NextDeveloper\IAAS\ComputeMembers', $computeMember);
 
             StateHelper::setState(
                 $computeMember,
@@ -1687,12 +1687,12 @@ physical interfaces and vlans of compute member');
                     $computeMember->name . ' with error: ' . $e->getMessage()
                 );
 
+                //  ComputeMembersObserver reacts to the is_alive transition below (fires the
+                //  correctly-namespaced compute-member-died event and marks this host's VMs lost).
                 $computeMember->updateAsAdministrator([
                     'is_alive' => false,
                     'has_error' => true
                 ]);
-
-                Events::fire('compute-member-died', $computeMember);
             }
 
             return null;

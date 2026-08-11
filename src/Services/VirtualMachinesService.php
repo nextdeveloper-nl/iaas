@@ -1428,4 +1428,18 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             }
         }
     }
+
+    /**
+     * Marks (or unmarks) a VM as lost - the existing is_lost guards across VM actions
+     * (Delete, Restart, Snapshot, Commit, ...) already refuse to operate on a lost VM,
+     * so this is used to protect VMs whose compute member has become unreachable.
+     */
+    public static function markLost(VirtualMachines $vm, bool $isLost = true): void
+    {
+        if ($vm->is_lost === $isLost) {
+            return;
+        }
+
+        $vm->updateAsAdministrator(['is_lost' => $isLost]);
+    }
 }

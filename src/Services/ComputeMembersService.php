@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Services;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\CloudNodes;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberEvents;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
@@ -232,6 +233,35 @@ class ComputeMembersService extends AbstractComputeMembersService
         }
 
         return ComputeMemberXenService::checkIpmiService($computeMember, $reDeploy);
+    }
+
+    /**
+     * Reacts to an is_alive transition on a compute member: alerts admins and marks the
+     * VMs on that host as lost/not-lost, so the existing is_lost guards across VM actions
+     * (Delete, Restart, Snapshot, Commit, ...) automatically protect them while the host
+     * is unreachable.
+     */
+    public static function handleLivenessChange(ComputeMembers $computeMember): void
+    {
+        //  Maintenance is an operator-initiated, expected state - don't alarm/flag for it.
+        if ($computeMember->is_in_maintenance) {
+            return;
+        }
+
+        if ($computeMember->is_alive) {
+            Events::fire('compute-member-revived:NextDeveloper\IAAS\ComputeMembers', $computeMember);
+            self::markVirtualMachinesLost($computeMember, false);
+        } else {
+            Events::fire('compute-member-died:NextDeveloper\IAAS\ComputeMembers', $computeMember);
+            self::markVirtualMachinesLost($computeMember, true);
+        }
+    }
+
+    private static function markVirtualMachinesLost(ComputeMembers $computeMember, bool $isLost): void
+    {
+        foreach ($computeMember->virtualMachines as $vm) {
+            VirtualMachinesService::markLost($vm, $isLost);
+        }
     }
 
 }

@@ -28,6 +28,7 @@ class UtilizeComputeMembers extends AbstractComputeMemberAlgorithm
          */
         $computeMembers = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
             ->where('iaas_compute_pool_id', $this->computePool->id)
+            ->where('is_alive', true)
             ->orderBy('free_ram', 'desc')
             ->get();
 
