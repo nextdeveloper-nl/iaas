@@ -328,6 +328,20 @@ class ComputeMembers extends Model
         );
     }
 
+    /**
+     * Reused as the generic "how this driver authenticates" secret store for
+     * external-provider drivers (e.g. DigitalOcean/Ilkbyte API tokens), not just NATS
+     * agent credentials - same encrypted-at-rest convention as ssh_password above.
+     */
+    protected function agentApiKey(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: function ($value) {
+                return $value === null ? null : encrypt($value);
+            },
+        );
+    }
+
 
 
 

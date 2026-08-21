@@ -76,11 +76,19 @@ class Initiate extends AbstractAction
 
         //  Not routed through VirtualMachineManager: connection-info sync and network-member
         //  mirroring have no capability interface yet - see docs/hypervisor-driver-architecture.md.
-        $this->setProgress(80, 'Updating network information');
-        ComputeMemberXenService::updateConnectionInformation($this->model);
+        //  Only applies to SSH-reachable Xen-family hosts, not external-provider compute
+        //  members (e.g. digitalocean-api) - same precedent as Actions/ComputeMembers/Scan.php.
+        $isXenFamily = in_array($this->model->computePools?->virtualization, [
+            'xenserver-8.2', 'xenserver-8.2-ssh', 'xcp-ng-8.2', 'xcp-ng-8.2-ssh',
+        ], true);
 
-        $this->setProgress(90, 'Creating network member');
-        NetworkMemberXenService::createNetworkMemberFromComputeMember($this->model);
+        if ($isXenFamily) {
+            $this->setProgress(80, 'Updating network information');
+            ComputeMemberXenService::updateConnectionInformation($this->model);
+
+            $this->setProgress(90, 'Creating network member');
+            NetworkMemberXenService::createNetworkMemberFromComputeMember($this->model);
+        }
 
         $this->setFinished('Compute member initiated');
     }

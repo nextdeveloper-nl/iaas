@@ -58,13 +58,23 @@ class ScanVirtualMachines extends AbstractAction
             }
         }
 
-        $runningTasks = ComputeMemberXenService::getRunningTasks($this->model);
+        //  Dispatch on ComputePools.virtualization, same precedent as
+        //  Jobs/GarbageCollectors/CollectGarbageNetworks.php - getRunningTasks() has no
+        //  capability-interface equivalent yet and only applies to SSH-reachable Xen-family
+        //  hosts, not external-provider compute members (e.g. digitalocean-api).
+        $isXenFamily = in_array($this->model->computePools?->virtualization, [
+            'xenserver-8.2', 'xenserver-8.2-ssh', 'xcp-ng-8.2', 'xcp-ng-8.2-ssh',
+        ], true);
 
-        foreach ($runningTasks as $task) {
-            if(Str::contains($task['name-label'], 'import', true)) {
-                $this->setFinished('There is an import process for this compute member, therefore I cannot ' .
-                    'scan. If I continue to scan I will create wrong data in database.');
-                return;
+        if ($isXenFamily) {
+            $runningTasks = ComputeMemberXenService::getRunningTasks($this->model);
+
+            foreach ($runningTasks as $task) {
+                if(Str::contains($task['name-label'], 'import', true)) {
+                    $this->setFinished('There is an import process for this compute member, therefore I cannot ' .
+                        'scan. If I continue to scan I will create wrong data in database.');
+                    return;
+                }
             }
         }
 

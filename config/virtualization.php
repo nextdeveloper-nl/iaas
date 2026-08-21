@@ -1,5 +1,6 @@
 <?php
 
+use NextDeveloper\IAAS\Services\Hypervisors\DigitalOcean\DigitalOceanDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\XenServer82SshDriver;
 
 /**
@@ -30,6 +31,18 @@ return [
         'xcp-ng-8.2-ssh' => [
             'driver' => XenServer82SshDriver::class,
             'product' => 'xcp-ng',
+        ],
+
+        //  External-provider driver - no physical host, talks to DigitalOcean's real API.
+        //  See docs/multi-cloud-aggregator.md (or the aggregator plan) for the synthetic
+        //  ComputeMembers/StorageVolumes seeding this relies on. compute_member_uuid is
+        //  only used by DigitalOceanDriver::listAll(), which has no VM/ComputeMembers in
+        //  hand to resolve credentials from otherwise - point it at the seeded synthetic
+        //  compute member for whichever region this config block represents.
+        'digitalocean-api' => [
+            'driver' => DigitalOceanDriver::class,
+            'api_base_url' => 'https://api.digitalocean.com/v2',
+            'compute_member_uuid' => env('IAAS_DIGITALOCEAN_COMPUTE_MEMBER_UUID'),
         ],
     ],
 ];

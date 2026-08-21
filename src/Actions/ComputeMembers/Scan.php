@@ -38,15 +38,24 @@ class Scan extends AbstractAction
     {
         $this->setProgress(0, 'Initiate compute member started');
 
-        //  Not routed through VirtualMachineManager: task-listing and vlan cleanup have
-        //  no capability interface yet - see docs/hypervisor-driver-architecture.md.
-        $runningTasks = ComputeMemberXenService::getRunningTasks($this->model);
+        //  Dispatch on ComputePools.virtualization, same precedent as
+        //  Jobs/GarbageCollectors/CollectGarbageNetworks.php and Actions/StorageVolumes/Scan.php -
+        //  these XenService calls have no capability-interface equivalent yet (see
+        //  docs/hypervisor-driver-architecture.md) and only make sense for SSH-reachable
+        //  Xen-family hosts, not external-provider compute members (e.g. digitalocean-api).
+        $isXenFamily = in_array($this->model->computePools?->virtualization, [
+            'xenserver-8.2', 'xenserver-8.2-ssh', 'xcp-ng-8.2', 'xcp-ng-8.2-ssh',
+        ], true);
 
-        foreach ($runningTasks as $task) {
-            if(Str::contains($task['name-label'], 'import', true)) {
-                $this->setFinished('There is an import process for this compute member, therefore I cannot ' .
-                    'scan. If I continue to scan I will create wrong data in database.');
-                return;
+        if ($isXenFamily) {
+            $runningTasks = ComputeMemberXenService::getRunningTasks($this->model);
+
+            foreach ($runningTasks as $task) {
+                if(Str::contains($task['name-label'], 'import', true)) {
+                    $this->setFinished('There is an import process for this compute member, therefore I cannot ' .
+                        'scan. If I continue to scan I will create wrong data in database.');
+                    return;
+                }
             }
         }
 
@@ -58,7 +67,7 @@ class Scan extends AbstractAction
             $this->setProgress(10, 'Updating compute member information');
         }
 
-        if($this->shouldRunCheckpoint(15)) {
+        if($this->shouldRunCheckpoint(15) && $isXenFamily) {
             ComputeMemberXenService::removeDeletedVlans($this->model);
             $this->setProgress(15, 'Removing vlans which are deleted from compute member');
         }
@@ -68,7 +77,7 @@ class Scan extends AbstractAction
             $this->setProgress(20, 'Updating compute member network interface information');
         }
 
-        if($this->shouldRunCheckpoint(30)) {
+        if($this->shouldRunCheckpoint(30) && $isXenFamily) {
             ComputeMemberXenService::updateMissingVlans($this->model);
             $this->setProgress(30, 'Updating compute member storage repository information');
         }
@@ -95,12 +104,13 @@ class Scan extends AbstractAction
 
         //  Not routed through VirtualMachineManager: connection-info sync and network-member
         //  mirroring have no capability interface yet - see docs/hypervisor-driver-architecture.md.
-        if($this->shouldRunCheckpoint(80)) {
+        //  Gated on $isXenFamily, same as the other legacy calls above.
+        if($this->shouldRunCheckpoint(80) && $isXenFamily) {
             ComputeMemberXenService::updateConnectionInformation($this->model);
             $this->setProgress(80, 'Updating network information');
         }
 
-        if($this->shouldRunCheckpoint(90)) {
+        if($this->shouldRunCheckpoint(90) && $isXenFamily) {
             NetworkMemberXenService::createNetworkMemberFromComputeMember($this->model);
             $this->setProgress(90, 'Creating network member');
         }
