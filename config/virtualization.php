@@ -1,6 +1,7 @@
 <?php
 
 use NextDeveloper\IAAS\Services\Hypervisors\DigitalOcean\DigitalOceanDriver;
+use NextDeveloper\IAAS\Services\Hypervisors\Ilkbyte\IlkbyteDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\XenServer82SshDriver;
 
 /**
@@ -43,6 +44,16 @@ return [
             'driver' => DigitalOceanDriver::class,
             'api_base_url' => 'https://api.digitalocean.com/v2',
             'compute_member_uuid' => env('IAAS_DIGITALOCEAN_COMPUTE_MEMBER_UUID'),
+        ],
+
+        //  Real API integration against https://apidocs.ilkbyte.com (v2) - auth is
+        //  query-param based (access+secret), packed as JSON into the same
+        //  ComputeMembers.agent_api_key column DigitalOceanDriver uses for its bearer
+        //  token. See IlkbyteDriver's class docblock for what's confirmed from their
+        //  docs vs. genuinely unresearched.
+        'ilkbyte-api' => [
+            'driver' => IlkbyteDriver::class,
+            'api_base_url' => 'https://api.ilkbyte.com',
         ],
     ],
 ];
