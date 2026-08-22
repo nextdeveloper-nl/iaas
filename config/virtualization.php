@@ -1,6 +1,7 @@
 <?php
 
 use NextDeveloper\IAAS\Services\Hypervisors\DigitalOcean\DigitalOceanDriver;
+use NextDeveloper\IAAS\Services\Hypervisors\Hetzner\HetznerDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\Ilkbyte\IlkbyteDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\Vultr\VultrDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\XenServer82SshDriver;
@@ -65,6 +66,16 @@ return [
             'driver' => VultrDriver::class,
             'api_base_url' => 'https://api.vultr.com/v2',
             'compute_member_uuid' => env('IAAS_VULTR_COMPUTE_MEMBER_UUID'),
+        ],
+
+        //  Real API integration against api.hetzner.cloud/v1 - confirmed from a mirrored
+        //  OpenAPI spec since docs.hetzner.cloud is a JS SPA that 403s/blanks out on
+        //  automated fetches. See HetznerDriver's class docblock for what's confirmed vs.
+        //  unresearched.
+        'hetzner-api' => [
+            'driver' => HetznerDriver::class,
+            'api_base_url' => 'https://api.hetzner.cloud/v1',
+            'compute_member_uuid' => env('IAAS_HETZNER_COMPUTE_MEMBER_UUID'),
         ],
     ],
 ];
