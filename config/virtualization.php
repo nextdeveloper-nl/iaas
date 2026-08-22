@@ -3,6 +3,7 @@
 use NextDeveloper\IAAS\Services\Hypervisors\DigitalOcean\DigitalOceanDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\Hetzner\HetznerDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\Ilkbyte\IlkbyteDriver;
+use NextDeveloper\IAAS\Services\Hypervisors\Linode\LinodeDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\Vultr\VultrDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\XenServer82SshDriver;
 
@@ -76,6 +77,15 @@ return [
             'driver' => HetznerDriver::class,
             'api_base_url' => 'https://api.hetzner.cloud/v1',
             'compute_member_uuid' => env('IAAS_HETZNER_COMPUTE_MEMBER_UUID'),
+        ],
+
+        //  Real API integration against api.linode.com/v4 (Akamai) - confirmed from
+        //  techdocs.akamai.com/linode-api's own reference pages. See LinodeDriver's class
+        //  docblock for what's confirmed vs. inferred/unresearched.
+        'linode-api' => [
+            'driver' => LinodeDriver::class,
+            'api_base_url' => 'https://api.linode.com/v4',
+            'compute_member_uuid' => env('IAAS_LINODE_COMPUTE_MEMBER_UUID'),
         ],
     ],
 ];
