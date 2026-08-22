@@ -2,6 +2,7 @@
 
 use NextDeveloper\IAAS\Services\Hypervisors\DigitalOcean\DigitalOceanDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\Ilkbyte\IlkbyteDriver;
+use NextDeveloper\IAAS\Services\Hypervisors\Vultr\VultrDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\XenServer82SshDriver;
 
 /**
@@ -54,6 +55,16 @@ return [
         'ilkbyte-api' => [
             'driver' => IlkbyteDriver::class,
             'api_base_url' => 'https://api.ilkbyte.com',
+        ],
+
+        //  Real API integration against api.vultr.com/v2 - confirmed from
+        //  github.com/vultr/govultr's instance.go since vultr.com's docs pages 403 to
+        //  automated fetches. See VultrDriver's class docblock for what's confirmed vs.
+        //  unresearched.
+        'vultr-api' => [
+            'driver' => VultrDriver::class,
+            'api_base_url' => 'https://api.vultr.com/v2',
+            'compute_member_uuid' => env('IAAS_VULTR_COMPUTE_MEMBER_UUID'),
         ],
     ],
 ];
