@@ -148,13 +148,27 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             $from = ($page - 1) * $perPage;
             $size = $perPage;
         } else {
-            //  No pagination requested - the DB path returns every matching row via
-            //  $model->get(), unbounded. ES has no true unbounded fetch without
-            //  scroll/search_after, so this is capped at the default
-            //  index.max_result_window (10k) - a known limit, see
-            //  docs/elasticsearch/plan.md section 5.
-            $from = 0;
-            $size = 10000;
+            //  No 'paginate' param does NOT mean "unbounded" - LimitScope (a second
+            //  global scope, applied unconditionally, independent of 'paginate') caps
+            //  every DB query at $model->perPage (20) rows unless the request passes
+            //  ?rowCount=N or ?rowCount=all. Mirrored here from request() directly,
+            //  matching LimitScope's own read source rather than $params, since this
+            //  can be called from non-HTTP contexts where $params wouldn't have it.
+            $rowCount = request()->get('rowCount');
+
+            if ($rowCount === 'all') {
+                //  ES has no true unbounded fetch without scroll/search_after, so this
+                //  is capped at the default index.max_result_window (10k) - a known
+                //  limit, see docs/elasticsearch/plan.md section 5.
+                $from = 0;
+                $size = 10000;
+            } elseif ($rowCount !== null) {
+                $from = 0;
+                $size = (int) $rowCount;
+            } else {
+                $from = 0;
+                $size = (new VirtualMachines())->getPerPage();
+            }
         }
 
         $body = [
@@ -200,6 +214,21 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         $source['uuid'] = $source['id'];
         $source['id'] = $source['_internal_id'];
         unset($source['_internal_id']);
+
+        //  Same story for the 9 FK columns: the ES document stores them under their
+        //  real column name as the related object's UUID (needed by the query
+        //  translator/authorization resolver for filtering), but resolveForeignKeyFields()
+        //  (shared with the DB-path transformer, see AbstractVirtualMachinesTransformer)
+        //  expects the model's actual attribute to be the internal bigint id -
+        //  restore that from the "_"-prefixed companion field, same pattern as id above.
+        foreach ([
+            'iaas_cloud_node_id', 'iaas_compute_member_id', 'iam_account_id', 'iam_user_id',
+            'template_id', 'common_domain_id', 'iaas_repository_image_id',
+            'iaas_compute_pool_id', 'backup_repository_id',
+        ] as $fkField) {
+            $source[$fkField] = $source['_' . $fkField] ?? null;
+            unset($source['_' . $fkField]);
+        }
 
         //  These are stored in ES as native JSON (the client encodes/decodes
         //  automatically), but the model's array cast expects to receive a raw JSON

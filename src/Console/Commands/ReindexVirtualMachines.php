@@ -4,8 +4,10 @@ namespace NextDeveloper\IAAS\Console\Commands;
 
 use Elastic\Elasticsearch\Client;
 use Illuminate\Console\Command;
+use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Elasticsearch\VirtualMachinesIndexMapping;
+use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
 /**
  * Backfills/reindexes all VirtualMachines rows into Elasticsearch. Run manually
@@ -41,7 +43,14 @@ class ReindexVirtualMachines extends Command
 
         $total = 0;
 
-        VirtualMachines::withoutGlobalScopes()
+        //  Bypasses tenant/limit scoping (this is an admin backfill, not tied to any
+        //  one tenant) but deliberately NOT withoutGlobalScopes() - that would also
+        //  strip Laravel's automatic SoftDeletingScope and index soft-deleted rows,
+        //  which the normal list endpoint (and every other query in this codebase)
+        //  excludes by default. Found the hard way: an earlier withoutGlobalScopes()
+        //  version indexed 1701 trashed VMs alongside the 243 real ones.
+        VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
+            ->withoutGlobalScope(LimitScope::class)
             ->orderBy('id')
             ->chunkById($chunkSize, function ($vms) use ($client, $physicalIndex, &$total) {
                 $body = [];

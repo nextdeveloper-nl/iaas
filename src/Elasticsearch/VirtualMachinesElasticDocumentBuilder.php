@@ -88,6 +88,23 @@ class VirtualMachinesElasticDocumentBuilder
             'iaas_repository_image_id' => static::uuidOf(RepositoryImages::class, $model->iaas_repository_image_id),
             'iaas_compute_pool_id' => static::uuidOf(ComputePools::class, $model->iaas_compute_pool_id),
             'backup_repository_id' => static::uuidOf(Repositories::class, $model->backup_repository_id),
+
+            //  Raw internal ids (companions to the UUID fields above), used only by
+            //  VirtualMachinesService::hydrateFromElasticSource() to restore the FK
+            //  columns' real values on the rehydrated model - resolveForeignKeyFields()
+            //  (shared with the DB-path transformer) does `Model::where('id', $model->
+            //  iam_account_id)`, which needs the internal bigint, not the UUID stored
+            //  above under the same column name for search purposes. Never read for
+            //  filtering or exposed to API consumers.
+            '_iaas_cloud_node_id' => $model->iaas_cloud_node_id,
+            '_iaas_compute_member_id' => $model->iaas_compute_member_id,
+            '_iam_account_id' => $model->iam_account_id,
+            '_iam_user_id' => $model->iam_user_id,
+            '_template_id' => $model->template_id,
+            '_common_domain_id' => $model->common_domain_id,
+            '_iaas_repository_image_id' => $model->iaas_repository_image_id,
+            '_iaas_compute_pool_id' => $model->iaas_compute_pool_id,
+            '_backup_repository_id' => $model->backup_repository_id,
         ];
     }
 

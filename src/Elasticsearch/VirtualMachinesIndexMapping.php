@@ -85,6 +85,19 @@ class VirtualMachinesIndexMapping
                 'backup_repository_id' => ['type' => 'keyword'],
                 'hypervisor_uuid' => ['type' => 'keyword'],
 
+                //  Internal-id companions to the FK UUID fields above - see
+                //  VirtualMachinesElasticDocumentBuilder for why these exist. Not
+                //  meant to be searched, just stored for rehydration.
+                '_iaas_cloud_node_id' => ['type' => 'long'],
+                '_iaas_compute_member_id' => ['type' => 'long'],
+                '_iam_account_id' => ['type' => 'long'],
+                '_iam_user_id' => ['type' => 'long'],
+                '_template_id' => ['type' => 'long'],
+                '_common_domain_id' => ['type' => 'long'],
+                '_iaas_repository_image_id' => ['type' => 'long'],
+                '_iaas_compute_pool_id' => ['type' => 'long'],
+                '_backup_repository_id' => ['type' => 'long'],
+
                 'last_metadata_request' => ['type' => 'date'],
                 'agent_latest_ping' => ['type' => 'date'],
                 'created_at' => ['type' => 'date'],

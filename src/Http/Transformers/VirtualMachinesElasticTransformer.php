@@ -3,27 +3,34 @@
 namespace NextDeveloper\IAAS\Http\Transformers;
 
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
-use NextDeveloper\IAAS\Http\Transformers\AbstractTransformers\AbstractVirtualMachinesTransformer;
 
 /**
  * Used instead of VirtualMachinesTransformer when VirtualMachinesService::get() served
  * the list from Elasticsearch (see VirtualMachinesController::index() and
- * VirtualMachinesService::isElasticReadEnabled()). Extends the normal transformer so
- * the inherited availableIncludes/include*() methods still work unchanged (they query
- * Postgres live, on demand, only when a client explicitly requests an include) -
- * overrides only transform().
+ * VirtualMachinesService::isElasticReadEnabled()). Extends the real concrete
+ * transformer (not just AbstractVirtualMachinesTransformer) so its __construct()
+ * (adds the virtualNetworkCards include) and includeVirtualNetworkCards() override are
+ * inherited unchanged - overrides only transform().
+ *
+ * VirtualMachinesTransformer::transform() does more than the abstract base: it
+ * resolves snapshot_of_virtual_machine to a UUID (a 10th live FK lookup, same
+ * per-viewer AuthorizationScope caveat as the other 9 - see
+ * docs/elasticsearch/plan.md section 4), derives service_roles from features, and
+ * strips hypervisor_uuid/hypervisor_data/console_data from the response. All of that
+ * is mirrored here rather than calling parent::transform(), since the parent's version
+ * starts from the same live-lookup-heavy base transform() this class deliberately
+ * avoids for the plain fields.
  *
  * The plain fields come straight from the ES-hydrated model (no extra Postgres
- * lookups - the actual perf win beyond just the list query itself). The ~9 FK->UUID
- * fields still run the same live, per-viewer resolveForeignKeyFields() lookup the DB
- * path uses, deliberately - see docs/elasticsearch/plan.md section 4/6 for why those
- * can't be pre-baked into the index.
+ * lookups - the actual perf win beyond just the list query itself). The FK->UUID
+ * fields (the original 9 plus snapshot_of_virtual_machine) still run the same live,
+ * per-viewer lookups the DB path uses, deliberately.
  */
-class VirtualMachinesElasticTransformer extends AbstractVirtualMachinesTransformer
+class VirtualMachinesElasticTransformer extends VirtualMachinesTransformer
 {
     public function transform(VirtualMachines $model)
     {
-        return $this->buildPayload(array_merge(
+        $transformed = array_merge(
             [
                 'id' => $model->uuid,
                 'name' => $model->name,
@@ -42,14 +49,11 @@ class VirtualMachinesElasticTransformer extends AbstractVirtualMachinesTransform
                 'available_operations' => $model->available_operations,
                 'current_operations' => $model->current_operations,
                 'blocked_operations' => $model->blocked_operations,
-                'console_data' => $model->console_data,
                 'is_snapshot' => $model->is_snapshot,
                 'is_lost' => $model->is_lost,
                 'is_locked' => $model->is_locked,
                 'last_metadata_request' => $model->last_metadata_request,
                 'features' => $model->features,
-                'hypervisor_uuid' => $model->hypervisor_uuid,
-                'hypervisor_data' => $model->hypervisor_data,
                 'tags' => $model->tags,
                 'created_at' => $model->created_at,
                 'updated_at' => $model->updated_at,
@@ -59,13 +63,22 @@ class VirtualMachinesElasticTransformer extends AbstractVirtualMachinesTransform
                 'is_template' => $model->is_template,
                 'auto_backup_interval' => $model->auto_backup_interval,
                 'auto_backup_time' => $model->auto_backup_time,
-                'snapshot_of_virtual_machine' => $model->snapshot_of_virtual_machine,
                 'post_boot_script' => $model->post_boot_script,
                 'tokens' => $model->tokens,
                 'agent_latest_ping' => $model->agent_latest_ping,
                 'is_pending_update' => $model->is_pending_update,
             ],
             $this->resolveForeignKeyFields($model)
-        ));
+        );
+
+        //  Mirrors VirtualMachinesTransformer::transform()'s snapshot_of_virtual_machine
+        //  resolution - same live, per-viewer AuthorizationScope lookup as the other FK
+        //  fields, not pre-baked into the ES document for the same reason.
+        $snapshotSource = VirtualMachines::where('id', $model->snapshot_of_virtual_machine)->first();
+        $transformed['snapshot_of_virtual_machine'] = $snapshotSource ? $snapshotSource->uuid : null;
+
+        $transformed['service_roles'] = $model->features['service_roles'] ?? [];
+
+        return $this->buildPayload($transformed);
     }
 }
