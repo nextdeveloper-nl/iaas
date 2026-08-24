@@ -33,6 +33,34 @@ use NextDeveloper\Commons\Elasticsearch\Filters\AbstractElasticQueryTranslator;
  */
 class VirtualMachinesElasticQueryTranslator extends AbstractElasticQueryTranslator
 {
+    /**
+     * Fields mapped as text+keyword (see VirtualMachinesIndexMapping) aren't sortable
+     * directly - ES rejects sorting on a plain `text` field without fielddata enabled.
+     * Sorting has to go through the .keyword sub-field instead.
+     */
+    private const TEXT_FIELDS = [
+        'name', 'username', 'hostname', 'description', 'os', 'distro', 'version',
+        'lock_password', 'auto_backup_interval', 'auto_backup_time', 'post_boot_script',
+    ];
+
+    public function order($value): void
+    {
+        foreach (explode(',', $value) as $item) {
+            if (str_contains($item, '|')) {
+                [$column, $direction] = explode('|', $item);
+            } else {
+                $column = $item;
+                $direction = 'asc';
+            }
+
+            if (in_array($column, self::TEXT_FIELDS, true)) {
+                $column .= '.keyword';
+            }
+
+            $this->sortClauses[] = [$column => strtolower($direction)];
+        }
+    }
+
     public function tags($value): void
     {
         $this->terms('tags', array_map('trim', explode(',', $value)));
