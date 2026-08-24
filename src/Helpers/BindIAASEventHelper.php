@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Helpers;
 
+use NextDeveloper\Commons\Elasticsearch\Jobs\SyncModelToElasticsearchJob;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Jobs\VirtualMachines\CommentVMActionEvent;
 
@@ -14,6 +15,27 @@ class BindIAASEventHelper
     public static function registerCommentAction(): void
     {
         self::registerEvents(CommentVMActionEvent::getSupportedEvents(), CommentVMActionEvent::class);
+    }
+
+    /**
+     * Registers SyncModelToElasticsearchJob against VirtualMachines' lifecycle events -
+     * the existing Observer already fires these via Events::fire(), so this is the only
+     * wiring needed to keep the ES index in sync, no Observer changes required. Called
+     * from IAASServiceProvider::boot(), guarded by config('elasticsearch.enabled').
+     *
+     * Event names below are hardcoded to match exactly what VirtualMachinesObserver
+     * fires (NextDeveloper\IAAS\VirtualMachines, with "Database\Models" stripped) -
+     * NOT \NextDeveloper\IAAS\Database\Models\VirtualMachines::class, which resolves
+     * to a different string and would silently never match.
+     */
+    public static function registerElasticsearchSync(): void
+    {
+        self::registerEvents([
+            'created:NextDeveloper\IAAS\VirtualMachines',
+            'updated:NextDeveloper\IAAS\VirtualMachines',
+            'deleted:NextDeveloper\IAAS\VirtualMachines',
+            'restored:NextDeveloper\IAAS\VirtualMachines',
+        ], SyncModelToElasticsearchJob::class);
     }
 
     /**
