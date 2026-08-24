@@ -33,7 +33,16 @@ class VirtualMachinesController extends AbstractController
     {
         $data = VirtualMachinesService::get($filter, $request->all());
 
-        return ResponsableFactory::makeResponse($this, $data);
+        //  ResponsableFactory would otherwise auto-resolve VirtualMachinesTransformer
+        //  by naming convention - correct for the DB path, but ES-hydrated rows are
+        //  still real VirtualMachines instances (see VirtualMachinesService::
+        //  hydrateFromElasticSource()), so it needs to be told explicitly to use the
+        //  ES-aware transformer instead when the list came from Elasticsearch.
+        $transformer = VirtualMachinesService::isElasticReadEnabled()
+            ? \NextDeveloper\IAAS\Http\Transformers\VirtualMachinesElasticTransformer::class
+            : null;
+
+        return ResponsableFactory::makeResponse($this, $data, $transformer);
     }
 
     /**

@@ -89,7 +89,138 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
             }
         }
 
+        if (self::isElasticReadEnabled()) {
+            try {
+                return self::getFromElastic($filter, $params);
+            } catch (\Throwable $e) {
+                Log::error('[VirtualMachinesService::get] Elasticsearch read failed, falling back to DB', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         return parent::get($filter, $params);
+    }
+
+    public static function isElasticReadEnabled(): bool
+    {
+        return (bool) config('iaas.elasticsearch.virtual_machines.read_enabled', false);
+    }
+
+    /**
+     * ES-backed counterpart of AbstractVirtualMachinesService::get() - same pagination
+     * contract (no 'paginate' key in $params means "return everything", matching the
+     * DB path's unbounded $model->get()), same filter param names (via
+     * VirtualMachinesElasticQueryTranslator), same tenant scoping (via
+     * ElasticAuthorizationScopeResolver) - so the Controller and ResponsableFactory
+     * need no changes to consume either path.
+     */
+    private static function getFromElastic(?VirtualMachinesQueryFilter $filter, array $params): Collection|\Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $translator = new \NextDeveloper\IAAS\Elasticsearch\VirtualMachinesElasticQueryTranslator(request());
+        $translated = $translator->translate();
+
+        $authFilter = (new \NextDeveloper\IAM\Database\Scopes\ElasticAuthorizationScopeResolver())
+            ->resolve(new VirtualMachines());
+
+        $query = $translated['query'];
+
+        if ($authFilter !== null) {
+            if (isset($query['bool'])) {
+                $query['bool']['filter'][] = $authFilter;
+            } else {
+                //  $query was match_all (no filter params given) - wrap it so the
+                //  mandatory auth filter still applies.
+                $query = ['bool' => ['must' => [$query], 'filter' => [$authFilter]]];
+            }
+        }
+
+        $enablePaginate = array_key_exists('paginate', $params);
+        $perPage = config('commons.pagination.per_page') ?: 20;
+
+        if (array_key_exists('per_page', $params)) {
+            $perPage = intval($params['per_page']) ?: 20;
+        }
+
+        $page = array_key_exists('page', $params) ? (int) $params['page'] : 1;
+
+        if ($enablePaginate) {
+            $from = ($page - 1) * $perPage;
+            $size = $perPage;
+        } else {
+            //  No pagination requested - the DB path returns every matching row via
+            //  $model->get(), unbounded. ES has no true unbounded fetch without
+            //  scroll/search_after, so this is capped at the default
+            //  index.max_result_window (10k) - a known limit, see
+            //  docs/elasticsearch/plan.md section 5.
+            $from = 0;
+            $size = 10000;
+        }
+
+        $body = [
+            'query' => $query,
+            'from' => $from,
+            'size' => $size,
+            'track_total_hits' => true,
+        ];
+
+        if (!empty($translated['sort'])) {
+            $body['sort'] = $translated['sort'];
+        }
+
+        $client = app(\Elastic\Elasticsearch\Client::class);
+        $index = config('elasticsearch.index_prefix', 'leo') . '_iaas_virtual_machines';
+
+        $response = $client->search(['index' => $index, 'body' => $body]);
+
+        $items = collect($response['hits']['hits'] ?? [])
+            ->map(fn ($hit) => self::hydrateFromElasticSource($hit['_source']));
+
+        $collection = new Collection($items->all());
+
+        if ($enablePaginate) {
+            $total = $response['hits']['total']['value'] ?? $collection->count();
+
+            return new \Illuminate\Pagination\LengthAwarePaginator($collection, $total, $perPage, $page);
+        }
+
+        return $collection;
+    }
+
+    /**
+     * Rehydrates a real VirtualMachines instance from an ES _source array, remapping
+     * the couple of fields that don't round-trip through newFromBuilder() as-is - see
+     * VirtualMachinesElasticDocumentBuilder for what's actually stored.
+     */
+    private static function hydrateFromElasticSource(array $source): VirtualMachines
+    {
+        //  The ES document's 'id' field is the VM's public uuid; Eloquent's own 'id'
+        //  attribute needs the internal bigint instead, stored separately as
+        //  _internal_id specifically so this rehydration can restore it.
+        $source['uuid'] = $source['id'];
+        $source['id'] = $source['_internal_id'];
+        unset($source['_internal_id']);
+
+        //  These are stored in ES as native JSON (the client encodes/decodes
+        //  automatically), but the model's array cast expects to receive a raw JSON
+        //  *string* to decode on access, matching what the Postgres driver hands it -
+        //  re-encode before hydrating so the cast round-trips correctly.
+        foreach (['available_operations', 'current_operations', 'blocked_operations', 'console_data', 'features', 'hypervisor_data', 'tokens'] as $jsonField) {
+            if (array_key_exists($jsonField, $source) && $source[$jsonField] !== null) {
+                $source[$jsonField] = json_encode($source[$jsonField]);
+            }
+        }
+
+        //  Same story for tags, but the raw format TextArray::get() expects is a
+        //  Postgres array-literal string, not JSON.
+        if (array_key_exists('tags', $source) && is_array($source['tags'])) {
+            $source['tags'] = '{' . implode(',', array_map(
+                fn ($v) => '"' . str_replace('"', '\\"', (string) $v) . '"',
+                $source['tags']
+            )) . '}';
+        }
+
+        return (new VirtualMachines())->newFromBuilder($source);
     }
 
     public static function getOwnerAccount(VirtualMachines $vm): ?Accounts

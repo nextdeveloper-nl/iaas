@@ -86,4 +86,12 @@ return [
         'deleting'      => [],
         'deleted'       => [],
     ],
+    'elasticsearch' => [
+        'virtual_machines' => [
+            //  Per-environment cutover toggle for the index()/list read path - see
+            //  docs/elasticsearch/plan.md. Index version lives here too (per-package,
+            //  since it's a per-model rollout decision, not a global ES setting).
+            'read_enabled' => env('ELASTICSEARCH_READ_VIRTUAL_MACHINES', false),
+        ],
+    ],
 ];
