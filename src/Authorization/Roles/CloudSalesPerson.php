@@ -4,14 +4,17 @@ namespace NextDeveloper\IAAS\Authorization\Roles;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
+use NextDeveloper\IAM\Authorization\Roles\RoleToElasticFilterInterface;
+use NextDeveloper\IAM\Database\Models\Accounts as IamAccounts;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
-class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
+class CloudSalesPerson extends AbstractRole implements IAuthorizationRole, RoleToElasticFilterInterface
 {
     public const NAME = 'cloud-sales-person';
 
@@ -66,6 +69,47 @@ class CloudSalesPerson extends AbstractRole implements IAuthorizationRole
     public function checkDeletePolicy(Model $model, Users $user): bool
     {
         return (new CloudResourceOwner())->checkDeletePolicy($model, $user);
+    }
+
+    /**
+     * ES counterpart of apply() - mirrors it field-for-field, including the same
+     * "which iam_account_ids does this salesperson manage" resolution via
+     * crm_accounts/crm_account_managers (a parameterized query builder call here,
+     * not the raw whereRaw()+string-interpolated SQL apply() uses). Resolved live,
+     * once per request - deliberately not cached or baked into the VM document, since
+     * crm_account_managers assignments change independently of any VM write.
+     */
+    public function toElasticFilter(Model $modelInstance): ?array
+    {
+        if (
+            (UserHelper::hasRole('sales-admin') || UserHelper::hasRole('sales-manager-admin'))
+            && ($modelInstance->getTable() === 'iaas_accounts' || $modelInstance->getTable() === 'iaas_accounts_perspective')
+        ) {
+            return null;
+        }
+
+        $isAccountsTable = $modelInstance->getTable() === 'iaas_accounts';
+        $hasAccountIdColumn = DatabaseHelper::isColumnExists($modelInstance->getTable(), 'iam_account_id');
+
+        if (!$isAccountsTable && !$hasAccountIdColumn) {
+            return null;
+        }
+
+        return ['terms' => ['iam_account_id' => $this->resolveManagedAccountUuids()]];
+    }
+
+    private function resolveManagedAccountUuids(): array
+    {
+        $managedIamAccountIds = DB::table('crm_accounts as ca')
+            ->join('crm_account_managers as cam', 'cam.crm_account_id', '=', 'ca.id')
+            ->where('cam.iam_account_id', UserHelper::currentAccount()->id)
+            ->pluck('ca.iam_account_id');
+
+        return IamAccounts::withoutGlobalScopes()
+            ->whereIn('id', $managedIamAccountIds)
+            ->pluck('uuid')
+            ->values()
+            ->all();
     }
 
     public function getModule()

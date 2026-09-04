@@ -10,10 +10,11 @@ use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAAS\Authorization\Rules\ServiceAvailability\TurkishMustHaveNIN;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
+use NextDeveloper\IAM\Authorization\Roles\RoleToElasticFilterInterface;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
-class IaasSuccessManager extends AbstractRole implements IAuthorizationRole
+class IaasSuccessManager extends AbstractRole implements IAuthorizationRole, RoleToElasticFilterInterface
 {
     public const NAME = 'cloud-resource-owner';
 
@@ -41,6 +42,29 @@ class IaasSuccessManager extends AbstractRole implements IAuthorizationRole
 
         if($isPublicExists)
             $builder->orWhere('is_public', true);
+    }
+
+    /**
+     * ES counterpart of apply() - mirrors it field-for-field. See apply() for the DB
+     * version this must stay in sync with.
+     */
+    public function toElasticFilter(Model $modelInstance): ?array
+    {
+        $isPublicExists = DatabaseHelper::isColumnExists($modelInstance->getTable(), 'is_public');
+
+        if (!$isPublicExists) {
+            return ['term' => ['iam_account_id' => UserHelper::currentAccount()->uuid]];
+        }
+
+        return [
+            'bool' => [
+                'should' => [
+                    ['term' => ['iam_account_id' => UserHelper::currentAccount()->uuid]],
+                    ['term' => ['is_public' => true]],
+                ],
+                'minimum_should_match' => 1,
+            ],
+        ];
     }
 
     public function checkPrivileges(?Users $users = null)

@@ -3,6 +3,7 @@
 namespace NextDeveloper\IAAS;
 
 use NextDeveloper\Commons\AbstractServiceProvider;
+use NextDeveloper\IAAS\Helpers\BindIAASEventHelper;
 use NextDeveloper\IAAS\Http\Middlewares\CheckEligibility;
 use NextDeveloper\IAAS\Http\Middlewares\CheckIaasAccount;
 use NextDeveloper\IAAS\Http\Middlewares\CheckSuspension;
@@ -38,6 +39,10 @@ class IAASServiceProvider extends AbstractServiceProvider {
         $this->bootChannelRoutes();
         $this->bootModelBindings();
         $this->bootLogger();
+
+        if (config('elasticsearch.enabled')) {
+            BindIAASEventHelper::registerElasticsearchSync();
+        }
     }
 
     /**
@@ -129,6 +134,8 @@ class IAASServiceProvider extends AbstractServiceProvider {
                 \NextDeveloper\IAAS\Console\Commands\SyncServiceRolesCatalog::class,
                 \NextDeveloper\IAAS\Console\Commands\DetectIpCollisions::class,
                 \NextDeveloper\IAAS\Console\Commands\FixMigratedLocalVirtualMachine::class,
+                \NextDeveloper\IAAS\Console\Commands\ReindexVirtualMachines::class,
+                \NextDeveloper\IAAS\Console\Commands\DiffVirtualMachinesElastic::class,
             ]);
         }
     }

@@ -206,6 +206,42 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
     }
     // EDIT AFTER HERE - WARNING: ABOVE THIS LINE MAY BE REGENERATED AND YOU MAY LOSE CODE
 
+    /**
+     * The FK->UUID resolution block from transform() above, extracted so
+     * VirtualMachinesElasticTransformer can reuse the exact same live, per-viewer
+     * lookups (these run through each *related* model's own AuthorizationScope, which
+     * is why they can't be pre-baked into the ES document - see
+     * docs/elasticsearch/plan.md section 4). transform() itself keeps its own inline
+     * copy since it's in the generated region above this marker; this will drift if a
+     * FK field is ever added/removed there without updating this method too.
+     *
+     * @return array<string, string|null>
+     */
+    protected function resolveForeignKeyFields(VirtualMachines $model): array
+    {
+        $iaasCloudNodeId = \NextDeveloper\IAAS\Database\Models\CloudNodes::where('id', $model->iaas_cloud_node_id)->first();
+        $iaasComputeMemberId = \NextDeveloper\IAAS\Database\Models\ComputeMembers::where('id', $model->iaas_compute_member_id)->first();
+        $iamAccountId = \NextDeveloper\IAM\Database\Models\Accounts::where('id', $model->iam_account_id)->first();
+        $iamUserId = \NextDeveloper\IAM\Database\Models\Users::where('id', $model->iam_user_id)->first();
+        $templateId = \NextDeveloper\IAAS\Database\Models\VirtualMachines::where('id', $model->template_id)->first();
+        $commonDomainId = \NextDeveloper\Commons\Database\Models\Domains::where('id', $model->common_domain_id)->first();
+        $iaasRepositoryImageId = \NextDeveloper\IAAS\Database\Models\RepositoryImages::where('id', $model->iaas_repository_image_id)->first();
+        $iaasComputePoolId = \NextDeveloper\IAAS\Database\Models\ComputePools::where('id', $model->iaas_compute_pool_id)->first();
+        $backupRepositoryId = \NextDeveloper\IAAS\Database\Models\Repositories::where('id', $model->backup_repository_id)->first();
+
+        return [
+            'iaas_cloud_node_id' => $iaasCloudNodeId ? $iaasCloudNodeId->uuid : null,
+            'iaas_compute_member_id' => $iaasComputeMemberId ? $iaasComputeMemberId->uuid : null,
+            'iam_account_id' => $iamAccountId ? $iamAccountId->uuid : null,
+            'iam_user_id' => $iamUserId ? $iamUserId->uuid : null,
+            'template_id' => $templateId ? $templateId->uuid : null,
+            'common_domain_id' => $commonDomainId ? $commonDomainId->uuid : null,
+            'iaas_repository_image_id' => $iaasRepositoryImageId ? $iaasRepositoryImageId->uuid : null,
+            'iaas_compute_pool_id' => $iaasComputePoolId ? $iaasComputePoolId->uuid : null,
+            'backup_repository_id' => $backupRepositoryId ? $backupRepositoryId->uuid : null,
+        ];
+    }
+
 
 
 

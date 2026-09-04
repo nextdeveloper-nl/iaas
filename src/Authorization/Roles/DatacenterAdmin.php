@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
+use NextDeveloper\IAM\Authorization\Roles\RoleToElasticFilterInterface;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
-class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
+class DatacenterAdmin extends AbstractRole implements IAuthorizationRole, RoleToElasticFilterInterface
 {
     public const NAME = 'datacenter-admin';
 
@@ -32,6 +33,16 @@ class DatacenterAdmin extends AbstractRole implements IAuthorizationRole
     public function apply(Builder $builder, Model $model)
     {
 
+    }
+
+    /**
+     * ES counterpart of apply() - which, as written, applies no restriction for any
+     * table regardless of its own condition (nothing follows the return inside the if,
+     * so this role is unconditionally unrestricted). Mirrored exactly, not "fixed".
+     */
+    public function toElasticFilter(Model $modelInstance): ?array
+    {
+        return null;
     }
 
     public function getModule()

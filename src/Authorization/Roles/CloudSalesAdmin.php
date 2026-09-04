@@ -8,10 +8,11 @@ use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
+use NextDeveloper\IAM\Authorization\Roles\RoleToElasticFilterInterface;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
-class CloudSalesAdmin extends AbstractRole implements IAuthorizationRole
+class CloudSalesAdmin extends AbstractRole implements IAuthorizationRole, RoleToElasticFilterInterface
 {
     public const NAME = 'cloud-sales-admin';
 
@@ -48,6 +49,16 @@ class CloudSalesAdmin extends AbstractRole implements IAuthorizationRole
     public function checkDeletePolicy(Model $model, Users $user): bool
     {
         return (new CloudResourceOwner())->checkDeletePolicy($model, $user);
+    }
+
+    /**
+     * ES counterpart of apply() - which, as written, applies no restriction for any
+     * table regardless of its own condition (nothing follows the if/return, so this
+     * role is unconditionally unrestricted). Mirrored exactly, not "fixed".
+     */
+    public function toElasticFilter(Model $modelInstance): ?array
+    {
+        return null;
     }
 
     public function getModule()

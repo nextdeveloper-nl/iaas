@@ -319,6 +319,16 @@ class VirtualMachines extends Model
 
     use \NextDeveloper\Events\Database\Traits\HasAgentCommands;
 
+    public function toElasticDocument(): array
+    {
+        return \NextDeveloper\IAAS\Elasticsearch\VirtualMachinesElasticDocumentBuilder::build($this);
+    }
+
+    public function getElasticIndexName(): string
+    {
+        return config('elasticsearch.index_prefix', 'leo') . '_iaas_virtual_machines';
+    }
+
     public function getAgentType(): string
     {
         return 'vm';

@@ -8,10 +8,11 @@ use Illuminate\Support\Str;
 use NextDeveloper\Commons\Helpers\DatabaseHelper;
 use NextDeveloper\IAM\Authorization\Roles\AbstractRole;
 use NextDeveloper\IAM\Authorization\Roles\IAuthorizationRole;
+use NextDeveloper\IAM\Authorization\Roles\RoleToElasticFilterInterface;
 use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
-class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
+class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole, RoleToElasticFilterInterface
 {
     public const NAME = 'cloud-node-admin';
 
@@ -34,6 +35,16 @@ class CloudNodeAdmin extends AbstractRole implements IAuthorizationRole
     {
         if($model->getTable() === 'iaas_customer_resources_perspective')
             return;
+    }
+
+    /**
+     * ES counterpart of apply() - which, as written, applies no restriction for any
+     * table regardless of its own condition (nothing follows the if/return, so this
+     * role is unconditionally unrestricted). Mirrored exactly, not "fixed".
+     */
+    public function toElasticFilter(Model $modelInstance): ?array
+    {
+        return null;
     }
 
     public function checkPrivileges(?Users $users = null)
