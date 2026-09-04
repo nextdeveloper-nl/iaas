@@ -68,12 +68,12 @@ class VirtualMachinesElasticQueryTranslator extends AbstractElasticQueryTranslat
 
     public function name($value): void
     {
-        $this->matchPhrase('name', $value);
+        $this->substringMatch('name', $value);
     }
 
     public function username($value): void
     {
-        $this->matchPhrase('username', $value);
+        $this->substringMatch('username', $value);
     }
 
     //  password intentionally has no ES field/filter - it's not indexed (encrypted
@@ -83,32 +83,32 @@ class VirtualMachinesElasticQueryTranslator extends AbstractElasticQueryTranslat
 
     public function hostname($value): void
     {
-        $this->matchPhrase('hostname', $value);
+        $this->substringMatch('hostname', $value);
     }
 
     public function description($value): void
     {
-        $this->matchPhrase('description', $value);
+        $this->substringMatch('description', $value);
     }
 
     public function os($value): void
     {
-        $this->matchPhrase('os', $value);
+        $this->substringMatch('os', $value);
     }
 
     public function distro($value): void
     {
-        $this->matchPhrase('distro', $value);
+        $this->substringMatch('distro', $value);
     }
 
     public function version($value): void
     {
-        $this->matchPhrase('version', $value);
+        $this->substringMatch('version', $value);
     }
 
     public function domainType($value): void
     {
-        $this->matchPhrase('domain_type', $value);
+        $this->term('domain_type', $value);
     }
 
     public function domain_type($value): void
@@ -118,12 +118,12 @@ class VirtualMachinesElasticQueryTranslator extends AbstractElasticQueryTranslat
 
     public function status($value): void
     {
-        $this->matchPhrase('status', $value);
+        $this->term('status', $value);
     }
 
     public function lockPassword($value): void
     {
-        $this->matchPhrase('lock_password', $value);
+        $this->substringMatch('lock_password', $value);
     }
 
     public function lock_password($value): void
@@ -133,7 +133,7 @@ class VirtualMachinesElasticQueryTranslator extends AbstractElasticQueryTranslat
 
     public function autoBackupInterval($value): void
     {
-        $this->matchPhrase('auto_backup_interval', $value);
+        $this->substringMatch('auto_backup_interval', $value);
     }
 
     public function auto_backup_interval($value): void
@@ -143,7 +143,7 @@ class VirtualMachinesElasticQueryTranslator extends AbstractElasticQueryTranslat
 
     public function autoBackupTime($value): void
     {
-        $this->matchPhrase('auto_backup_time', $value);
+        $this->substringMatch('auto_backup_time', $value);
     }
 
     public function auto_backup_time($value): void
@@ -153,7 +153,7 @@ class VirtualMachinesElasticQueryTranslator extends AbstractElasticQueryTranslat
 
     public function postBootScript($value): void
     {
-        $this->matchPhrase('post_boot_script', $value);
+        $this->substringMatch('post_boot_script', $value);
     }
 
     public function post_boot_script($value): void
