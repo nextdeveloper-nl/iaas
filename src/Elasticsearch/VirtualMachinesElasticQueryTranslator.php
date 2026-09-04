@@ -61,6 +61,18 @@ class VirtualMachinesElasticQueryTranslator extends AbstractElasticQueryTranslat
         }
     }
 
+    /**
+     * _internal_id (the Postgres pkey) as a deterministic tiebreaker - see
+     * AbstractElasticQueryTranslator::defaultSortField(). Applied whether or not the
+     * request specified a sort, so an unsorted query's LIMIT-truncated page and a
+     * sort on a non-unique column (duplicate name/cpu values) both settle on the same
+     * rows both paths would settle on, instead of undefined per-shard tie order.
+     */
+    protected function defaultSortField(): ?string
+    {
+        return '_internal_id';
+    }
+
     public function tags($value): void
     {
         $this->terms('tags', array_map('trim', explode(',', $value)));
