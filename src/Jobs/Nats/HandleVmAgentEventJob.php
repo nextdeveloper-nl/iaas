@@ -7,7 +7,9 @@ use NextDeveloper\Commons\Database\GlobalScopes\LimitScope;
 use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Database\Models\AgentCommands;
 use NextDeveloper\Events\Jobs\AbstractAgentEventJob;
+use NextDeveloper\IAAS\Database\Models\DockerContainers;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\DockerContainersService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 
@@ -72,21 +74,117 @@ class HandleVmAgentEventJob extends AbstractAgentEventJob
 
     protected function onCommandResult($model, ?AgentCommands $command, array $payload): void
     {
-        if (!$model || !$command || $command->operation !== 'agent.version') {
+        if (!$model || !$command) {
             return;
         }
 
-        $version = $command->result['version'] ?? $payload['output']['version'] ?? null;
+        if ($command->operation === 'agent.version') {
+            $version = $command->result['version'] ?? $payload['output']['version'] ?? null;
 
-        if (!$version) {
-            Log::warning('[HandleVmAgentEventJob] agent.version result had no version', [
-                'agent_uuid' => $model->uuid,
-                'payload'    => $payload,
+            if (!$version) {
+                Log::warning('[HandleVmAgentEventJob] agent.version result had no version', [
+                    'agent_uuid' => $model->uuid,
+                    'payload'    => $payload,
+                ]);
+                return;
+            }
+
+            VirtualMachinesService::recordAgentVersion($model, $version);
+            return;
+        }
+
+        if (str_starts_with($command->operation, 'docker.')) {
+            $this->onDockerCommandResult($command, $payload);
+        }
+    }
+
+    /**
+     * Closes out the DockerContainers row this command was for, once the
+     * agent's async result arrives. docker.list/docker.inspect/docker.logs/
+     * docker.stats are dispatched synchronously (sendAgentCommandSync) by the
+     * controller/read paths and never go through here - only the mutating,
+     * async-dispatched (sendAgentCommand) operations from
+     * Actions\DockerContainers\{Create,Start,Stop,Restart,Remove} land here.
+     */
+    private function onDockerCommandResult(AgentCommands $command, array $payload): void
+    {
+        $succeeded = ($payload['status'] ?? null) === 'completed';
+        $output    = $payload['output'] ?? $command->result ?? [];
+        $error     = $payload['message'] ?? $command->error ?? 'The agent reported a failure with no message.';
+
+        $container = $this->resolveDockerContainer($command);
+
+        if (!$container) {
+            Log::warning('[HandleVmAgentEventJob] docker command result for an unresolvable container', [
+                'operation'  => $command->operation,
+                'command_id' => $command->uuid,
+                'params'     => $command->params,
             ]);
             return;
         }
 
-        VirtualMachinesService::recordAgentVersion($model, $version);
+        if (!$succeeded) {
+            DockerContainersService::update($container->uuid, [
+                'status'      => 'error',
+                'agent_error' => $error,
+            ]);
+            return;
+        }
+
+        match ($command->operation) {
+            'docker.create' => DockerContainersService::update($container->uuid, [
+                'container_id'       => $output['id'] ?? $container->container_id,
+                'status'             => $output['state'] ?? 'running',
+                'agent_error'        => null,
+                'last_agent_sync_at' => now(),
+            ]),
+            'docker.start', 'docker.restart' => DockerContainersService::update($container->uuid, [
+                'status'             => 'running',
+                'agent_error'        => null,
+                'last_agent_sync_at' => now(),
+            ]),
+            'docker.stop' => DockerContainersService::update($container->uuid, [
+                'status'             => 'stopped',
+                'agent_error'        => null,
+                'last_agent_sync_at' => now(),
+            ]),
+            'docker.remove' => DockerContainersService::update($container->uuid, [
+                'status'             => 'removed',
+                'agent_error'        => null,
+                'last_agent_sync_at' => now(),
+            ]),
+            default => null,
+        };
+    }
+
+    /**
+     * docker.create is correlated via the 'client_ref' param (the
+     * DockerContainers row's own uuid, set by Actions\DockerContainers\Create) -
+     * the container has no container_id yet at dispatch time, so container_id
+     * can't be used. Every other docker.* action already knows container_id,
+     * so it's matched directly (scoped to this command's own agent_uuid, i.e.
+     * this VM, since Docker's own IDs are effectively globally unique but
+     * scoping costs nothing here).
+     */
+    private function resolveDockerContainer(AgentCommands $command): ?DockerContainers
+    {
+        $params = $command->params ?? [];
+
+        if ($command->operation === 'docker.create') {
+            $clientRef = $params['client_ref'] ?? null;
+
+            return $clientRef ? DockerContainers::where('uuid', $clientRef)->first() : null;
+        }
+
+        $containerId = $params['container_id'] ?? null;
+
+        if (!$containerId) {
+            return null;
+        }
+
+        return DockerContainers::whereHas('virtualMachine', function ($query) use ($command) {
+            $query->where('uuid', $command->agent_uuid);
+        })->where('container_id', $containerId)->first();
     }
 
     protected function handleDomainEvent(string $type, $model, array $payload): void

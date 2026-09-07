@@ -143,6 +143,11 @@ class CloudResourceOwner extends AbstractRole implements IAuthorizationRole
             'iaas_gateways:update',
             'iaas_gateways:delete',
 
+            'iaas_docker_containers:read',
+            'iaas_docker_containers:create',
+            'iaas_docker_containers:update',
+            'iaas_docker_containers:delete',
+
             'iaas_backup_retention_policies:read',
             'iaas_backup_retention_policies:create',
             'iaas_backup_retention_policies:update',

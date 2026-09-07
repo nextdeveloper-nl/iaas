@@ -831,6 +831,30 @@ Route::prefix('iaas')->group(
             }
         );
 
+        Route::prefix('docker-containers')->group(
+            function () {
+                Route::get('/', 'DockerContainers\DockerContainersController@index');
+                Route::get('/actions', 'DockerContainers\DockerContainersController@getActions');
+
+                Route::get('{iaas_docker_containers}/tags', 'DockerContainers\DockerContainersController@tags');
+                Route::post('{iaas_docker_containers}/tags', 'DockerContainers\DockerContainersController@saveTags');
+                Route::get('{iaas_docker_containers}/addresses', 'DockerContainers\DockerContainersController@addresses');
+                Route::post('{iaas_docker_containers}/addresses', 'DockerContainers\DockerContainersController@saveAddresses');
+
+                Route::get('{iaas_docker_containers}/logs', 'DockerContainers\DockerContainersController@logs');
+                Route::get('{iaas_docker_containers}/stats', 'DockerContainers\DockerContainersController@stats');
+
+                Route::get('/{iaas_docker_containers}/{subObjects}', 'DockerContainers\DockerContainersController@relatedObjects');
+                Route::get('/{iaas_docker_containers}', 'DockerContainers\DockerContainersController@show');
+
+                Route::post('/', 'DockerContainers\DockerContainersController@store');
+                Route::post('/{iaas_docker_containers}/do/{action}', 'DockerContainers\DockerContainersController@doAction');
+
+                Route::patch('/{iaas_docker_containers}', 'DockerContainers\DockerContainersController@update');
+                Route::delete('/{iaas_docker_containers}', 'DockerContainers\DockerContainersController@destroy');
+            }
+        );
+
         Route::prefix('licences')->group(
             function () {
                 Route::get('/', 'Licences\LicencesController@index');

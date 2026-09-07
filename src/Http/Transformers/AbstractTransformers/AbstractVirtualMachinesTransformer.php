@@ -84,6 +84,7 @@ class AbstractVirtualMachinesTransformer extends AbstractTransformer
             'ram'  =>  $model->ram / 1024,
             'is_winrm_enabled'  =>  $model->is_winrm_enabled,
             'available_operations'  =>  $model->available_operations,
+            'is_docker_host'  =>  $model->is_docker_host,
             'current_operations'  =>  $model->current_operations,
             'blocked_operations'  =>  $model->blocked_operations,
             'console_data'  =>  $model->console_data,

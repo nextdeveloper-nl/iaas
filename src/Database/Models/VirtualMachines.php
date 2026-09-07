@@ -339,6 +339,31 @@ class VirtualMachines extends Model
         }
     }
 
+    public function dockerContainers() : \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\NextDeveloper\IAAS\Database\Models\DockerContainers::class, 'iaas_virtual_machine_id');
+    }
+
+    /**
+     * A VM is usable as a docker host purely by virtue of its agent having
+     * self-reported at least one docker.* operation in available_operations -
+     * no separate stored flag. See docker.agent's publisher.go, which only
+     * advertises docker.* capabilities when a live ping to the local Docker
+     * Engine socket succeeds.
+     */
+    public function getIsDockerHostAttribute(): bool
+    {
+        $ops = array_column(($this->available_operations ?? [])['agent'] ?? [], 'operation');
+
+        foreach ($ops as $op) {
+            if (str_starts_with($op, 'docker.')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected function sshPassword(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(

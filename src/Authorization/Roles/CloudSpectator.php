@@ -91,6 +91,7 @@ class CloudSpectator extends AbstractRole implements IAuthorizationRole
             'iaas_ip_addresses:read',
             'iaas_repository_images:read',
             'iaas_gateways:read',
+            'iaas_docker_containers:read',
             'iaas_backup_retention_policies:read',
             'iaas_backup_schedules:read',
             'iaas_backup_jobs:read',
