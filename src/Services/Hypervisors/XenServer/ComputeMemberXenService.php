@@ -298,11 +298,23 @@ physical interfaces and vlans of compute member');
 
         $command = 'xe pif-list';
         $result = self::performCommand($command, $computeMember);
+
+        if(!$result) {
+            Log::error(__METHOD__ . ' | Could not get PIF list for compute member: ' . $computeMember->name);
+            return $computeMember;
+        }
+
         $interfaces = self::parseListResult($result['output']);
 
         foreach ($interfaces as $interface) {
             $command = 'xe pif-param-list uuid=' . $interface['uuid'];
             $result = self::performCommand($command, $computeMember);
+
+            if(!$result) {
+                Log::error(__METHOD__ . ' | Could not get PIF param list for uuid: ' . $interface['uuid'] . ' on compute member: ' . $computeMember->name);
+                continue;
+            }
+
             $interfaceDetail = self::parseResult($result['output']);
 
             $data = [
