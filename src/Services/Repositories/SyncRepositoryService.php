@@ -45,7 +45,9 @@ class SyncRepositoryService
         return $tempImages;
     }
 
-    public static function syncRepoImage(RepositoryImages $images, RepositoryImages $image) : RepositoryImages
+    // Fixed: the second (duplicate) parameter was required but callers pass only the image, which
+    // threw ArgumentCountError and left the size empty.
+    public static function syncRepoImage(RepositoryImages $image) : RepositoryImages
     {
         if(config('leo.debug.iaas.repo'))
             Log::info('[SyncService@syncRepoImages] Starting to sync the images for the' .
@@ -57,10 +59,12 @@ class SyncRepositoryService
         $result = self::performCommand($command, $repo);
         $size = $result['output'];
 
-        $sizeInGb = ceil($size / 1000 / 1000);
+        // iaas_repository_images.size is stored in MiB (1024*1024 bytes) so the usage emitter can
+        // divide by 1024 to get GiB. It used to be ceil(bytes/1e6), which is neither MB-exact nor GiB.
+        $sizeInMib = (int) ceil(((int) trim($size)) / 1024 / 1024);
 
         $image->updateQuietly([
-            'size'  =>  $sizeInGb
+            'size'  =>  $sizeInMib
         ]);
 
         return $image;
