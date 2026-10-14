@@ -586,6 +586,30 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         }
     }
 
+    /**
+     * Overrides the abstract doAction. The abstract version dereferences the AvailableActions row
+     * and the VM without null checks, so an unregistered/retired action (e.g. health-check) or an
+     * unknown VM surfaced as an HTTP 500. We now answer with a proper NotFoundException instead.
+     */
+    public static function doAction($objectId, $action, ...$params)
+    {
+        $object = VirtualMachines::where('uuid', $objectId)->first();
+
+        if (!$object) {
+            throw new NotFoundException('Cannot find the virtual machine you are trying to run the action on.');
+        }
+
+        $availableAction = \NextDeveloper\Commons\Database\Models\AvailableActions::where('name', $action)
+            ->where('input', 'NextDeveloper\IAAS\VirtualMachines')
+            ->first();
+
+        if (!$availableAction || !class_exists($availableAction->class)) {
+            throw new NotFoundException('Action "' . $action . '" is not available for virtual machines.');
+        }
+
+        return parent::doAction($objectId, $action, ...$params);
+    }
+
     public static function getPasswordById($id)
     {
         return self::getRawPasswordById($id);

@@ -64,20 +64,9 @@ class ForceRestart extends AbstractAction
 
         $this->model = app(VirtualMachineManager::class)->sync($this->model);
 
-        if(!$this->model->hypervisor_data || !array_key_exists('power-state', $this->model->hypervisor_data)) {
-            //  The hypervisor did not return a usable power-state, so this VM's state
-            //  cannot be trusted right now. HealthCheck (which used to investigate this
-            //  further) has been retired - flag it for manual investigation instead of
-            //  dispatching a no-op job.
-            $this->model->update([
-                'status'    =>  'checking-health'
-            ]);
-
-            $this->setFinishedWithError('Could not determine the virtual machine\'s state after this operation. It has been marked for manual investigation.');
-
-            return;
-        }
-
+        //  Removed the power-state / 'checking-health' branch here: health check is retired, so
+        //  force restart no longer flips the VM into 'checking-health'. The status check below
+        //  (after sync) is the only guard.
         if($this->model->status != 'running') {
             CommentsService::createSystemComment('We cannot hard restart the virtual machine.', $this->model);
             $this->setFinishedWithError('We cannot hard restart the virtual machine. It is not running.');
