@@ -33,7 +33,7 @@ class IaasHelper
         return $accounts->fresh()->limits;
     }
 
-    public static function notifyCloudMaintainer($subject = '', $notification = '', $object)
+    public static function notifyCloudMaintainer($subject = '', $notification = '', $object = null)
     {
         if(!$object) {
             Log::error('Cannot make notification because object is empty');
