@@ -162,7 +162,10 @@ class AddAgentComputeMember extends Command
         }
 
         // Only keep the capability list if it has the expected {operation, ...} shape.
-        $available = array_values(array_filter($operations, fn($item) => is_array($item) && isset($item['operation'])));
+        // Real reply shape (checked against a live agent): {operations: [{operation, description,
+        // params}, ...], exec_commands: [...]}. Fall back to a bare list for older agents.
+        $list      = $operations['operations'] ?? $operations;
+        $available = array_values(array_filter($list, fn($item) => is_array($item) && isset($item['operation'])));
 
         $this->info('Agent answered. Allowed operations: ' . count($available) . ', hosts reported: ' . count($hosts) . '.');
 

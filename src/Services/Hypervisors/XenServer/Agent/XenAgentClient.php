@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent;
 
+use GuzzleHttp\Exception\TransferException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -183,6 +184,17 @@ class XenAgentClient
 
             throw new XenAgentException(
                 'Cannot reach the agent of compute member ' . $this->computeMember->name . ': ' . $e->getMessage(),
+                $operation,
+                null,
+                [],
+                $e
+            );
+        } catch (TransferException $e) {
+            // Other transport failures (TLS verification, pinned key mismatch, bad certificate)
+            // reach the host but are a configuration problem, not a dead host. They are reported
+            // without counting toward the connection-problem threshold that marks a host dead.
+            throw new XenAgentException(
+                'Agent request to compute member ' . $this->computeMember->name . ' failed: ' . $e->getMessage(),
                 $operation,
                 null,
                 [],
