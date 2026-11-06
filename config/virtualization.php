@@ -32,4 +32,26 @@ return [
             'product' => 'xcp-ng',
         ],
     ],
+
+    /**
+     * Defaults for the xenserver HTTPS agent client (Services/Hypervisors/XenServer/Agent).
+     * Per-host overrides (port, api_key, pinned_public_key) live in
+     * compute_members.management_data.http_agent - see AgentEndpoint. Nothing here changes the
+     * SSH driver; no platform above points at the agent driver yet.
+     */
+    'agent' => [
+        'port'            => (int) env('XEN_AGENT_PORT', 8443),
+        'connect_timeout' => (int) env('XEN_AGENT_CONNECT_TIMEOUT', 10),
+        'timeout'         => (int) env('XEN_AGENT_TIMEOUT', 60),
+        'async' => [
+            'poll_interval' => (int) env('XEN_AGENT_POLL_INTERVAL', 3),
+            'max_wait'      => (int) env('XEN_AGENT_ASYNC_MAX_WAIT', 3600),
+        ],
+        'tls' => [
+            // true = normal CA verification, or a path to a CA bundle. Hosts that serve the
+            // agent's self-signed cert should set management_data.http_agent.pinned_public_key
+            // instead of turning verification off here.
+            'verify' => env('XEN_AGENT_TLS_VERIFY', true),
+        ],
+    ],
 ];
