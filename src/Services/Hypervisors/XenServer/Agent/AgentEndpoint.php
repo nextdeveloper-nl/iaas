@@ -12,9 +12,12 @@ use NextDeveloper\IAAS\Database\Models\ComputeMembers;
  *   management_data.http_agent = {
  *       enabled: bool,               // required, host gate of the agent driver
  *       port?: int,                  // default config('virtualization.agent.port')
- *       api_key?: string,            // default compute_members.agent_api_key
  *       pinned_public_key?: string   // curl "sha256//<base64>" pin for the agent's self-signed cert
  *   }
+ *
+ * management_data is exposed by the API transformer, so it holds no secrets: the bearer token
+ * comes from compute_members.agent_api_key, which the transformer does not return. The pin is a
+ * public-key hash, not a secret.
  *
  * is_management_agent_available is intentionally NOT used. Several legacy *XenService classes
  * read it and route to the empty Agentable::performAgentCommand() stub, so turning it on would
@@ -58,7 +61,9 @@ class AgentEndpoint
             throw new XenAgentException('Compute member ' . $computeMember->name . ' has no ip_addr.');
         }
 
-        $token = $hostConfig['api_key'] ?? $computeMember->agent_api_key;
+        // The token is read ONLY from the agent_api_key column. management_data is returned by
+        // AbstractComputeMembersTransformer, so a secret kept in it would leak through the API.
+        $token = $computeMember->agent_api_key;
 
         if (empty($token)) {
             throw new XenAgentException('Compute member ' . $computeMember->name . ' has no agent api key.');
