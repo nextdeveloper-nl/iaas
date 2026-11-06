@@ -1,5 +1,6 @@
 <?php
 
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\XenServer82AgentDriver;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\XenServer82SshDriver;
 
 /**
@@ -29,6 +30,16 @@ return [
         ],
         'xcp-ng-8.2-ssh' => [
             'driver' => XenServer82SshDriver::class,
+            'product' => 'xcp-ng',
+        ],
+        //  HTTPS agent transport (opt-in per pool by setting ComputePools.virtualization to one
+        //  of these, and per host via management_data.http_agent.enabled). No existing row uses
+        //  these values, so SSH behavior is unchanged.
+        'xenserver-8.2-agent' => [
+            'driver' => XenServer82AgentDriver::class,
+        ],
+        'xcp-ng-8.2-agent' => [
+            'driver' => XenServer82AgentDriver::class,
             'product' => 'xcp-ng',
         ],
     ],
