@@ -3,28 +3,28 @@
 namespace NextDeveloper\IAAS\Console\Commands;
 
 use Illuminate\Console\Command;
-use NextDeveloper\IAAS\Database\Models\CloudNodes;
+use Illuminate\Support\Str;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
-use NextDeveloper\IAAS\Database\Models\Datacenters;
 use NextDeveloper\IAAS\Services\ComputeMembersService;
-use NextDeveloper\IAAS\Services\ComputePoolsService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentClient;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentException;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
 /**
- * Registers a compute member that is managed through the xenserver HTTPS agent instead of SSH.
+ * Adds a compute member that is managed through the xenserver HTTPS agent to an existing
+ * compute pool.
  *
- * It takes the member's IP and the agent bearer token, checks that the agent answers (and reads
- * the operations the host allows) BEFORE anything is written, then creates the member through
- * ComputeMembersService with management_data.http_agent.enabled=true.
+ * It takes the member's IP, the agent bearer token and the pool UUID, checks that the agent
+ * answers (and reads the operations the host allows) BEFORE anything is written, then creates
+ * the member through ComputeMembersService with management_data.http_agent.enabled=true.
+ * It never creates or changes a pool.
  *
- * It never changes an existing pool's virtualization (that would move every member of the pool
- * to the agent driver). Give it a pool that already uses an "-agent" platform key with --pool, or
- * let it create a separate, inactive test pool with --like-pool=<uuid> (datacenter and cloud
- * node are copied from that pool).
+ * TLS: the agent serves a self-signed certificate, so the connection is pinned to the agent's
+ * public key. Without --pin the command reads the key from the host and asks you to confirm it
+ * (like the first SSH connection to a host). The pin is a public-key hash, not a secret, so it
+ * lives in management_data, which the API returns.
  *
  * is_management_agent_available is deliberately left alone: legacy services route it to an
  * empty stub, see AgentEndpoint.
@@ -37,17 +37,16 @@ class AddAgentComputeMember extends Command
     protected $signature = 'iaas:add-agent-compute-member
                             {ip : IP address of the hypervisor host (no mask)}
                             {token : Agent bearer token (http.api_key on the host, at least 32 characters)}
+                            {--pool= : UUID of the compute pool the member is added to}
                             {--name= : Compute member name (default: agent-<ip>)}
-                            {--pool= : UUID of an existing compute pool whose virtualization is an "-agent" key}
-                            {--like-pool= : UUID of a pool to copy datacenter/cloud node from; creates a new inactive agent test pool}
                             {--port= : Agent HTTPS port (default from config virtualization.agent.port)}
-                            {--pin= : Pinned public key of the agent certificate, "sha256//<base64>" (needed for the self-signed cert)}
+                            {--pin= : Pinned public key of the agent certificate, "sha256//<base64>" (default: read from the host and ask)}
                             {--dry-run : Only check the agent and print what would be created}';
 
     /**
      * @var string
      */
-    protected $description = 'Adds a compute member that is managed by the xenserver HTTPS agent (ip + token)';
+    protected $description = 'Adds a compute member that is managed by the xenserver HTTPS agent (ip + token) to a pool';
 
     public function handle(): int
     {
@@ -72,23 +71,18 @@ class AddAgentComputeMember extends Command
             return self::FAILURE;
         }
 
-        if (!$this->option('pool') && !$this->option('like-pool')) {
-            $this->error('Give --pool=<uuid> (a pool that already uses an "-agent" platform) or ' .
-                '--like-pool=<uuid> to create a separate test pool.');
+        if (!Str::isUuid((string) $this->option('pool'))) {
+            $this->error('--pool=<uuid> is required: the UUID of the compute pool to add the member to.');
 
             return self::FAILURE;
         }
 
-        foreach (['pool', 'like-pool'] as $option) {
-            if ($this->option($option) && !\Illuminate\Support\Str::isUuid((string) $this->option($option))) {
-                $this->error('--' . $option . ' must be a pool UUID.');
+        $pool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
+            ->where('uuid', $this->option('pool'))
+            ->first();
 
-                return self::FAILURE;
-            }
-        }
-
-        if ($this->option('pool') && $this->option('like-pool')) {
-            $this->error('Use either --pool or --like-pool, not both.');
+        if (!$pool) {
+            $this->error('Cannot find the compute pool ' . $this->option('pool') . '.');
 
             return self::FAILURE;
         }
@@ -103,30 +97,26 @@ class AddAgentComputeMember extends Command
             return self::FAILURE;
         }
 
-        $pool = $this->option('pool') ? $this->findAgentPool((string) $this->option('pool')) : null;
+        // With SSH_DRY_RUN=true the client sends nothing and returns ['dry_run' => true], which
+        // would make the check below "pass" without ever reaching the host.
+        if (config('leo.debug.ssh.dry_run')) {
+            $this->error('SSH_DRY_RUN is true, so no request would be sent to the agent. ' .
+                'Set SSH_DRY_RUN=false for this run and try again.');
 
-        if ($this->option('pool') && !$pool) {
             return self::FAILURE;
         }
 
-        $sourcePool = null;
+        $port = $this->option('port') ? (int) $this->option('port') : (int) config('virtualization.agent.port', 8443);
+        $pin  = $this->option('pin') ?: $this->fetchPin($ip, $port);
 
-        if ($this->option('like-pool')) {
-            $sourcePool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
-                ->where('uuid', $this->option('like-pool'))
-                ->first();
-
-            if (!$sourcePool) {
-                $this->error('Cannot find the pool given with --like-pool.');
-
-                return self::FAILURE;
-            }
+        if (!$pin) {
+            return self::FAILURE;
         }
 
         $httpAgent = array_filter([
             'enabled'           => true,
-            'port'              => $this->option('port') ? (int) $this->option('port') : null,
-            'pinned_public_key' => $this->option('pin') ?: null,
+            'port'              => $this->option('port') ? $port : null,
+            'pinned_public_key' => $pin,
         ], fn($value) => $value !== null);
 
         $name = $this->option('name') ?: 'agent-' . $ip;
@@ -139,15 +129,6 @@ class AddAgentComputeMember extends Command
             'management_data' => ['http_agent' => $httpAgent],
         ]);
 
-        // With SSH_DRY_RUN=true the client sends nothing and returns ['dry_run' => true], which
-        // would make this check "pass" without ever reaching the host.
-        if (config('leo.debug.ssh.dry_run')) {
-            $this->error('SSH_DRY_RUN is true, so no request would be sent to the agent. ' .
-                'Set SSH_DRY_RUN=false for this run and try again.');
-
-            return self::FAILURE;
-        }
-
         $this->line('Checking the agent at ' . $ip . ' ...');
 
         try {
@@ -155,13 +136,11 @@ class AddAgentComputeMember extends Command
             $hosts      = $this->agentClient($probe)->call('xenserver.host.list');
         } catch (XenAgentException $e) {
             $this->error('The agent check failed, nothing was created: ' . $e->getMessage());
-            $this->line('Hint: for the self-signed certificate pass --pin="sha256//<base64>" ' .
-                '(or set virtualization.agent.tls.verify), and check the token and port.');
+            $this->line('Hint: check the token, the port and the certificate pin.');
 
             return self::FAILURE;
         }
 
-        // Only keep the capability list if it has the expected {operation, ...} shape.
         // Real reply shape (checked against a live agent): {operations: [{operation, description,
         // params}, ...], exec_commands: [...]}. Fall back to a bare list for older agents.
         $list      = $operations['operations'] ?? $operations;
@@ -169,16 +148,17 @@ class AddAgentComputeMember extends Command
 
         $this->info('Agent answered. Allowed operations: ' . count($available) . ', hosts reported: ' . count($hosts) . '.');
 
-        if ($this->option('dry-run')) {
-            $this->line('Dry run: would create member "' . $name . '" (' . $ip . ') in ' .
-                ($pool ? 'pool ' . $pool->name : 'a new inactive agent pool copied from ' . $sourcePool->name) . '.');
-
-            return self::SUCCESS;
+        // The driver is chosen per POOL (ComputePools.virtualization). This command does not
+        // change it, so tell the operator which transport the pool's actions will really use.
+        if (!str_ends_with((string) $pool->virtualization, '-agent')) {
+            $this->warn('Pool "' . $pool->name . '" uses virtualization "' . $pool->virtualization . '", so actions ' .
+                'that resolve the driver from the pool will use that driver for this member, not the agent.');
         }
 
-        if ($sourcePool) {
-            $pool = $this->createTestPool($sourcePool, $ip);
-            $this->info('Created agent test pool: ' . $pool->name . ' (' . $pool->uuid . '), inactive.');
+        if ($this->option('dry-run')) {
+            $this->line('Dry run: would add member "' . $name . '" (' . $ip . ') to pool ' . $pool->name . '.');
+
+            return self::SUCCESS;
         }
 
         $member = ComputeMembersService::create(array_filter([
@@ -197,55 +177,61 @@ class AddAgentComputeMember extends Command
     }
 
     /**
-     * Finds the pool and makes sure it already uses an agent platform. Refusing is the safe
-     * answer: changing virtualization on a pool would move all of its existing members too.
+     * Reads the agent's public key over a TLS handshake that skips verification (the cert is
+     * self-signed), prints the pin and asks the operator to accept it - trust on first use, the
+     * same model as the first SSH connection to a host. Nothing is sent over the connection.
+     * Returns "sha256//<base64>" (the SubjectPublicKeyInfo hash curl pins on) or null.
      */
-    private function findAgentPool(string $uuid): ?ComputePools
+    private function fetchPin(string $ip, int $port): ?string
     {
-        $pool = ComputePools::withoutGlobalScope(AuthorizationScope::class)
-            ->where('uuid', $uuid)
-            ->first();
+        $context = stream_context_create(['ssl' => [
+            'capture_peer_cert' => true,
+            'verify_peer'       => false,
+            'verify_peer_name'  => false,
+        ]]);
 
-        if (!$pool) {
-            $this->error('Cannot find the compute pool ' . $uuid . '.');
+        $stream = @stream_socket_client(
+            'ssl://' . (str_contains($ip, ':') ? '[' . $ip . ']' : $ip) . ':' . $port,
+            $errno,
+            $error,
+            10,
+            STREAM_CLIENT_CONNECT,
+            $context
+        );
+
+        if (!$stream) {
+            $this->error('Cannot connect to ' . $ip . ':' . $port . ' to read the certificate: ' . $error);
 
             return null;
         }
 
-        if (!str_ends_with((string) $pool->virtualization, '-agent')) {
-            $this->error('Pool "' . $pool->name . '" uses virtualization "' . $pool->virtualization . '", not an ' .
-                '"-agent" platform. I will not change it, that would move every member of the pool to the agent ' .
-                'driver. Use --like-pool=' . $uuid . ' to create a separate test pool instead.');
+        $certificate = stream_context_get_params($stream)['options']['ssl']['peer_certificate'] ?? null;
+        fclose($stream);
+
+        $details = $certificate ? openssl_pkey_get_details(openssl_pkey_get_public($certificate)) : null;
+
+        if (!$details || empty($details['key'])) {
+            $this->error('Could not read the public key from the certificate of ' . $ip . '.');
 
             return null;
         }
 
-        return $pool;
-    }
+        // The PEM "PUBLIC KEY" body is the DER-encoded SubjectPublicKeyInfo.
+        $der = base64_decode(preg_replace('/-----[A-Z ]+-----|\s/', '', $details['key']));
+        $pin = 'sha256//' . base64_encode(hash('sha256', $der, true));
 
-    /**
-     * Separate, inactive pool on the agent platform. is_active=false keeps the scheduler from
-     * placing customer VMs on it while it is being tested.
-     */
-    private function createTestPool(ComputePools $source, string $ip): ComputePools
-    {
-        $datacenter = $source->iaas_datacenter_id
-            ? Datacenters::withoutGlobalScope(AuthorizationScope::class)->where('id', $source->iaas_datacenter_id)->first()
-            : null;
+        $subject = openssl_x509_parse($certificate)['name'] ?? 'unknown';
 
-        $cloudNode = $source->iaas_cloud_node_id
-            ? CloudNodes::withoutGlobalScope(AuthorizationScope::class)->where('id', $source->iaas_cloud_node_id)->first()
-            : null;
+        $this->line('Agent certificate subject: ' . $subject);
+        $this->line('Agent public key pin: ' . $pin);
 
-        return ComputePoolsService::create(array_filter([
-            'name'                  => 'agent-test-' . $ip,
-            'virtualization'        => 'xenserver-8.2-agent',
-            'iaas_datacenter_id'    => $datacenter?->uuid,
-            'iaas_cloud_node_id'    => $cloudNode?->uuid,
-            'is_active'             => false,
-            'is_default'            => false,
-            'is_public'             => false,
-        ], fn($value) => $value !== null));
+        if (!$this->confirm('Trust this key for ' . $ip . '? (compare it with the agent host if unsure)', false)) {
+            $this->error('Not trusted, nothing was created.');
+
+            return null;
+        }
+
+        return $pin;
     }
 
     /**
