@@ -236,6 +236,12 @@ class XenAgentClient
         }
 
         if (!in_array($operation, array_column($available, 'operation'), true)) {
+            // The stored list is a cache from when the member was added. After an agent upgrade
+            // it lacks the new operations, so re-read it once from the agent before rejecting.
+            $available = $this->refreshCapabilities();
+        }
+
+        if (!in_array($operation, array_column($available, 'operation'), true)) {
             throw new XenAgentException(
                 'Operation ' . $operation . ' is not in the allowed operations of compute member ' .
                 $this->computeMember->name . '.',
@@ -243,6 +249,48 @@ class XenAgentClient
                 'rejected'
             );
         }
+    }
+
+    /**
+     * Re-reads agent.allowed_operations and stores it on the member (only when the member is
+     * saved - the add-member command probes with an unsaved one). Returns the fresh list of
+     * {operation, description, params} items, or the cached list unchanged if it cannot be read.
+     */
+    private function refreshCapabilities(): array
+    {
+        $cached = ($this->computeMember->available_operations ?? [])['agent'] ?? [];
+
+        try {
+            $reply = $this->call('agent.allowed_operations');
+        } catch (XenAgentException $e) {
+            return $cached;
+        }
+
+        $list = $reply['operations'] ?? $reply;
+        $fresh = array_values(array_filter($list, fn($item) => is_array($item) && isset($item['operation'])));
+
+        if (empty($fresh)) {
+            return $cached;
+        }
+
+        $operations          = $this->computeMember->available_operations ?? [];
+        $operations['agent'] = $fresh;
+
+        // The in-memory copy is always updated so this call and the rest of the run see the new
+        // list. Saving it is best effort: it needs a user context (RunAsAdministrator), which a
+        // bare console or probe run does not have, and a failed cache save must not fail the call.
+        $this->computeMember->available_operations = $operations;
+
+        if ($this->computeMember->exists) {
+            try {
+                $this->computeMember->updateAsAdministrator(['available_operations' => $operations]);
+            } catch (\Throwable $e) {
+                Log::warning('[XenAgentClient@refreshCapabilities] Could not save the refreshed operation list of ' .
+                    $this->computeMember->name . ': ' . $e->getMessage());
+            }
+        }
+
+        return $fresh;
     }
 
     protected function recordConnectionOk(): void

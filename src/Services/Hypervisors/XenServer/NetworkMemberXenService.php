@@ -29,7 +29,9 @@ class NetworkMemberXenService
                 'ip_addr'   =>  $computeMember->ip_addr,
                 'local_ip_addr' =>  $computeMember->local_ip_addr,
                 'ssh_username'  =>  $computeMember->ssh_username,
-                'ssh_password'  =>  decrypt($computeMember->ssh_password),
+                //  A compute member managed over the HTTPS agent has no SSH password, and
+                //  decrypt(null) throws. Members that do have one behave exactly as before.
+                'ssh_password'  =>  $computeMember->ssh_password ? decrypt($computeMember->ssh_password) : null,
                 'ssh_port'  =>  $computeMember->ssh_port,
                 'iaas_network_pool_id'  =>  $networkPool->id,
                 'is_management_agent_available'  =>  false,

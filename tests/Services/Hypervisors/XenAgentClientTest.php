@@ -63,6 +63,11 @@ class XenAgentClientTest extends TestCase
         return json_decode(json_encode($request->data()), true);
     }
 
+    private function ok(array $output): array
+    {
+        return $this->reply('completed', $output);
+    }
+
     private function reply(string $status, array $output = [], ?string $message = null): array
     {
         return ['v' => 1, 'type' => 'result', 'payload' => array_filter([
@@ -153,9 +158,11 @@ class XenAgentClientTest extends TestCase
         $this->client($this->member())->call('xenserver.vm.list');
     }
 
-    public function test_operation_missing_from_published_capabilities_fails_before_sending()
+    public function test_operation_still_missing_after_refreshing_capabilities_is_rejected_without_running_it()
     {
-        Http::fake();
+        // The cached list lacks the operation, so the client re-reads agent.allowed_operations once.
+        // The agent's fresh list still lacks it, so the operation itself must never be sent.
+        Http::fake(['*' => Http::response($this->ok(['operations' => [['operation' => 'xenserver.vm.list']]]))]);
 
         $member = $this->member(['available_operations' => ['agent' => [['operation' => 'xenserver.vm.list']]]]);
 
@@ -166,7 +173,36 @@ class XenAgentClientTest extends TestCase
             $this->assertSame('rejected', $e->getAgentStatus());
         }
 
-        Http::assertNothingSent();
+        $sent = [];
+        Http::assertSent(function (Request $request) use (&$sent) {
+            $sent[] = json_decode(json_encode($request->data()), true)['payload']['operation'];
+
+            return true;
+        });
+
+        $this->assertSame(['agent.allowed_operations'], $sent);
+    }
+
+    public function test_stale_capability_cache_is_refreshed_and_the_new_operation_runs()
+    {
+        // Agent was upgraded after the member was added: the cache lacks the new operation.
+        Http::fake(['*' => Http::sequence()
+            ->push($this->ok(['operations' => [
+                ['operation' => 'xenserver.vm.list'],
+                ['operation' => 'xenserver.inventory.snapshot'],
+            ]]))
+            ->push($this->ok(['pool' => ['host_count' => 1]]))]);
+
+        $member = $this->member(['available_operations' => ['agent' => [['operation' => 'xenserver.vm.list']]]]);
+
+        $output = $this->client($member)->call('xenserver.inventory.snapshot');
+
+        $this->assertSame(1, $output['pool']['host_count']);
+        // The refreshed list is kept on the member for the rest of the run.
+        $this->assertContains(
+            'xenserver.inventory.snapshot',
+            array_column($member->available_operations['agent'], 'operation')
+        );
     }
 
     public function test_host_without_enabled_flag_fails_loudly()

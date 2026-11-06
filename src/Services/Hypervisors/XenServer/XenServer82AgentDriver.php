@@ -5,12 +5,15 @@ namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 use NextDeveloper\IAAS\Contracts\CloneCapableInterface;
 use NextDeveloper\IAAS\Contracts\ConsoleCapableInterface;
 use NextDeveloper\IAAS\Contracts\EventTranslatorCapableInterface;
+use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
 use NextDeveloper\IAAS\Contracts\SnapshotCapableInterface;
 use NextDeveloper\IAAS\Contracts\VirtualMachineAdapterInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\AgentResultMapper;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\ComputeMemberAgentSyncService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentClient;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Events\XenServerEventTranslator;
@@ -35,6 +38,8 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
  *    export, backup) still goes through their existing code path until a later phase adds it.
  *
  * Phase 2: VM lifecycle, snapshot, clone, resize, console, event translation.
+ * Phase 4a: host sync (what Initiate runs) - member, interfaces, networks, storage volumes, via
+ * Agent/ComputeMemberAgentSyncService. VM-level and per-volume disk sync are not built yet.
  */
 class XenServer82AgentDriver implements
     VirtualMachineAdapterInterface,
@@ -42,7 +47,8 @@ class XenServer82AgentDriver implements
     CloneCapableInterface,
     ResizeCapableInterface,
     ConsoleCapableInterface,
-    EventTranslatorCapableInterface
+    EventTranslatorCapableInterface,
+    HostSyncInterface
 {
     public function __construct(private readonly array $config = [])
     {
@@ -309,6 +315,57 @@ class XenServer82AgentDriver implements
     public function translate(mixed $rawEvent): NormalizedHypervisorEvent
     {
         return XenServerEventTranslator::translate($rawEvent);
+    }
+
+    // -- HostSyncInterface ---------------------------------------------------------------
+
+    public function detectVersion(ComputeMembers $computeMember): string
+    {
+        $detected = ComputeMemberAgentSyncService::detectVersion($computeMember);
+
+        //  Same product tag as the SSH driver for XCP-ng (config/virtualization.php 'product').
+        if (!empty($this->config['product'])) {
+            return $this->config['product'] . ' (' . $detected . ')';
+        }
+
+        return $detected;
+    }
+
+    public function syncMember(ComputeMembers $computeMember): ComputeMembers
+    {
+        return ComputeMemberAgentSyncService::updateMemberInformation($computeMember);
+    }
+
+    public function syncInterfaces(ComputeMembers $computeMember): ComputeMembers
+    {
+        return ComputeMemberAgentSyncService::updateInterfaceInformation($computeMember);
+    }
+
+    public function syncNetworks(ComputeMembers $computeMember): ComputeMembers
+    {
+        return ComputeMemberAgentSyncService::updateNetworkInformation($computeMember);
+    }
+
+    public function syncStorageVolumes(ComputeMembers $computeMember): ComputeMembers
+    {
+        return ComputeMemberAgentSyncService::updateStorageVolumes($computeMember);
+    }
+
+    public function syncVirtualMachines(ComputeMembers $computeMember): ComputeMembers
+    {
+        //  Not built yet. Failing loudly beats silently reporting a VM-less host.
+        throw new \RuntimeException('syncVirtualMachines() is not implemented in the agent driver yet ' .
+            '(VM records, their disks and network cards).');
+    }
+
+    public function syncStorageVolumeDisks(ComputeMembers $computeMember, StorageVolumes $volume): StorageVolumes
+    {
+        throw new \RuntimeException('syncStorageVolumeDisks() is not implemented in the agent driver yet.');
+    }
+
+    public function isPoolMember(ComputeMembers $computeMember): bool
+    {
+        return ComputeMemberAgentSyncService::isPoolMember($computeMember);
     }
 
     // -- internals ---------------------------------------------------------------------
