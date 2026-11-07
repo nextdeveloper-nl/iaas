@@ -258,6 +258,7 @@ class ComputeMemberAgentSyncService
 
             $pif = $pifUuid
                 ? ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('iaas_compute_member_id', $computeMember->id)
                     ->where('hypervisor_uuid', $pifUuid)
                     ->first()
                 : null;
