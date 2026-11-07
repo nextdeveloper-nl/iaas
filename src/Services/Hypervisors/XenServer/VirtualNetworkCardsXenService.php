@@ -38,6 +38,13 @@ class VirtualNetworkCardsXenService extends AbstractXenService
             self::sync($vif);
         }
 
+        // sync() could not find the VIF on the hypervisor; fail with a clear message instead of an undefined index.
+        if(!$vif->hypervisor_data || !isset($vif->hypervisor_data['uuid'])) {
+            throw new \RuntimeException(
+                'VIF ' . $vif->uuid . ' (device ' . $vif->device_number . ') does not exist on the hypervisor, cannot set allowed IPs.'
+            );
+        }
+
         $command = 'xe vif-param-set uuid=' . $vif->hypervisor_data['uuid'] . ' ipv4-allowed=' . $implodedIps;
 
         if(config('leo.debug.iaas.compute_members'))
@@ -152,6 +159,13 @@ class VirtualNetworkCardsXenService extends AbstractXenService
         }
 
         foreach($existingVifs as $xenVif) {
+            // parseListResult() always appends the trailing chunk, so a VM without VIFs yields [null]
+            // (or [[]]). Skip empty/malformed entries instead of reading 'device' from them, which
+            // raised an "Undefined array key" ErrorException when the VM was not halted or the card was not draft.
+            if(!is_array($xenVif) || !isset($xenVif['device'], $xenVif['uuid'])) {
+                continue;
+            }
+
             if($vif->device_number == $xenVif['device']) {
                 $params = VirtualMachinesXenService::getVifParams($vm, $xenVif['uuid']);
 
