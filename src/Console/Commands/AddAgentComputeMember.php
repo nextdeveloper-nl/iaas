@@ -182,7 +182,7 @@ class AddAgentComputeMember extends Command
      * same model as the first SSH connection to a host. Nothing is sent over the connection.
      * Returns "sha256//<base64>" (the SubjectPublicKeyInfo hash curl pins on) or null.
      */
-    private function fetchPin(string $ip, int $port): ?string
+    protected function fetchPin(string $ip, int $port): ?string
     {
         $context = stream_context_create(['ssl' => [
             'capture_peer_cert' => true,
@@ -238,7 +238,7 @@ class AddAgentComputeMember extends Command
      * Client for the unsaved pre-flight member. Connection accounting is switched off: it writes
      * state rows, and this member does not exist in the database yet.
      */
-    private function agentClient(ComputeMembers $probe): XenAgentClient
+    protected function agentClient(ComputeMembers $probe): XenAgentClient
     {
         return new class($probe) extends XenAgentClient {
             protected function recordConnectionOk(): void
