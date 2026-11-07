@@ -5,6 +5,10 @@ namespace NextDeveloper\IAAS\Tests\Integration;
 use NextDeveloper\IAAS\Actions\ComputeMembers\Initiate;
 use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\StorageVolumes;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
+use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentClient;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\XenServer82AgentDriver;
@@ -85,5 +89,79 @@ class XenAgentInitiateTest extends TestCase
         $member = $this->member->fresh();
 
         $this->assertNotEmpty($member->hypervisor_uuid, 'Initiate did not sync the host (no hypervisor_uuid).');
+    }
+
+    /**
+     * Needs the host sync (Initiate) to have run first: VM disks need the storage volume rows and
+     * VM network cards need the interface and network rows.
+     */
+    public function test_vm_sync_creates_the_vm_disk_and_network_card_records_of_the_host()
+    {
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($this->member);
+
+        $driver->syncVirtualMachines($this->member);
+
+        $vms = (new XenAgentClient($this->member))->call('xenserver.vm.list');
+        $this->assertNotEmpty($vms, 'The host reports no guest VMs to sync.');
+
+        foreach ($vms as $vm) {
+            $dbVm = VirtualMachines::withoutGlobalScopes()->where('hypervisor_uuid', $vm['uuid'])->first();
+
+            $this->assertNotNull($dbVm, 'No VirtualMachines row for ' . $vm['name_label']);
+            $this->assertSame($vm['power_state'], $dbVm->status);
+            $this->assertEquals($this->member->id, $dbVm->iaas_compute_member_id);
+
+            $this->assertGreaterThan(
+                0,
+                VirtualDiskImages::withoutGlobalScopes()->where('iaas_virtual_machine_id', $dbVm->id)->count(),
+                'No disk or CD record for ' . $vm['name_label']
+            );
+
+            // One card record per VIF the agent reports for the VM.
+            $this->assertSame(
+                count((new XenAgentClient($this->member))->call('xenserver.vif.list', ['uuid' => $vm['uuid']])),
+                VirtualNetworkCards::withoutGlobalScopes()->where('iaas_virtual_machine_id', $dbVm->id)->count(),
+                'Network card records of ' . $vm['name_label'] . ' do not match its VIFs on the host.'
+            );
+        }
+
+        // Syncing twice must not duplicate anything.
+        $before = [
+            VirtualMachines::withoutGlobalScopes()->where('iaas_compute_member_id', $this->member->id)->count(),
+            VirtualDiskImages::withoutGlobalScopes()->whereIn('iaas_virtual_machine_id',
+                VirtualMachines::withoutGlobalScopes()->where('iaas_compute_member_id', $this->member->id)->pluck('id'))->count(),
+            VirtualNetworkCards::withoutGlobalScopes()->whereIn('iaas_virtual_machine_id',
+                VirtualMachines::withoutGlobalScopes()->where('iaas_compute_member_id', $this->member->id)->pluck('id'))->count(),
+        ];
+
+        $driver->syncVirtualMachines($this->member);
+
+        $after = [
+            VirtualMachines::withoutGlobalScopes()->where('iaas_compute_member_id', $this->member->id)->count(),
+            VirtualDiskImages::withoutGlobalScopes()->whereIn('iaas_virtual_machine_id',
+                VirtualMachines::withoutGlobalScopes()->where('iaas_compute_member_id', $this->member->id)->pluck('id'))->count(),
+            VirtualNetworkCards::withoutGlobalScopes()->whereIn('iaas_virtual_machine_id',
+                VirtualMachines::withoutGlobalScopes()->where('iaas_compute_member_id', $this->member->id)->pluck('id'))->count(),
+        ];
+
+        $this->assertSame($before, $after, 'A second VM sync changed the record counts (VMs, disks, cards).');
+    }
+
+    /**
+     * Uses the host's local (lvm) SR, which only holds this host's own VM disks. The shared NFS SR
+     * is not used on purpose: it can hold disks of other hosts.
+     */
+    public function test_volume_disk_sync_updates_the_local_storage_volume()
+    {
+        $driver = app(VirtualMachineManager::class)->getAdapterForComputeMember($this->member);
+
+        $lvm = collect((new XenAgentClient($this->member))->call('xenserver.sr.list'))->firstWhere('type', 'lvm');
+        $this->assertNotNull($lvm, 'The host has no local (lvm) SR.');
+
+        $volume = StorageVolumes::withoutGlobalScopes()->where('hypervisor_uuid', $lvm['uuid'])->firstOrFail();
+
+        $volume = $driver->syncStorageVolumeDisks($this->member, $volume);
+
+        $this->assertGreaterThan(0, $volume->total_hdd, 'The volume size was not refreshed.');
     }
 }

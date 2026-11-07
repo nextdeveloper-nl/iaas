@@ -14,6 +14,7 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\AgentResultMapper;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\ComputeMemberAgentSyncService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\VirtualMachineAgentSyncService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentClient;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Events\XenServerEventTranslator;
@@ -39,7 +40,8 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
  *
  * Phase 2: VM lifecycle, snapshot, clone, resize, console, event translation.
  * Phase 4a: host sync (what Initiate runs) - member, interfaces, networks, storage volumes, via
- * Agent/ComputeMemberAgentSyncService. VM-level and per-volume disk sync are not built yet.
+ * Agent/ComputeMemberAgentSyncService. Phase 4b: VM-level sync (VM rows, disks, network cards) and
+ * per-volume disk sync via Agent/VirtualMachineAgentSyncService.
  */
 class XenServer82AgentDriver implements
     VirtualMachineAdapterInterface,
@@ -353,14 +355,12 @@ class XenServer82AgentDriver implements
 
     public function syncVirtualMachines(ComputeMembers $computeMember): ComputeMembers
     {
-        //  Not built yet. Failing loudly beats silently reporting a VM-less host.
-        throw new \RuntimeException('syncVirtualMachines() is not implemented in the agent driver yet ' .
-            '(VM records, their disks and network cards).');
+        return VirtualMachineAgentSyncService::syncVirtualMachines($computeMember);
     }
 
     public function syncStorageVolumeDisks(ComputeMembers $computeMember, StorageVolumes $volume): StorageVolumes
     {
-        throw new \RuntimeException('syncStorageVolumeDisks() is not implemented in the agent driver yet.');
+        return VirtualMachineAgentSyncService::syncStorageVolumeDisks($computeMember, $volume);
     }
 
     public function isPoolMember(ComputeMembers $computeMember): bool

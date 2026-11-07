@@ -201,26 +201,12 @@ class ComputeMemberAgentSyncService
             } else {
                 //  Same as the SSH path: creating the interface row needs admin rights, so the
                 //  current user is swapped for the system user for this one write.
-                $user    = UserHelper::me();
-                $account = UserHelper::currentAccount($user);
-
-                UserHelper::setAdminAsCurrentUser();
-
-                $netInterface = ComputeMemberNetworkInterfaces::create($data);
-
-                UserHelper::setCurrentUserAndAccount($user, $account);
+                $netInterface = self::runAsAdmin(fn() => ComputeMemberNetworkInterfaces::create($data));
             }
 
             //  A tagged PIF also gets its VLAN record stored.
             if ($netInterface->vlan != 0 && $netInterface->vlan != -1) {
-                $user    = UserHelper::me();
-                $account = UserHelper::currentAccount($user);
-
-                UserHelper::setAdminAsCurrentUser();
-
-                self::updateVlanInformation($computeMember, $netInterface->vlan, $inventory['vlans']);
-
-                UserHelper::setCurrentUserAndAccount($user, $account);
+                self::runAsAdmin(fn() => self::updateVlanInformation($computeMember, $netInterface->vlan, $inventory['vlans']));
             }
         }
 
@@ -464,6 +450,26 @@ class ComputeMemberAgentSyncService
         ]);
 
         return $storageVolume->fresh();
+    }
+
+    /**
+     * Runs $callback as the system user and always puts the previous user back, even when the
+     * callback throws (otherwise a failed write would leave the whole process elevated).
+     */
+    private static function runAsAdmin(callable $callback): mixed
+    {
+        $user    = UserHelper::me();
+        $account = $user ? UserHelper::currentAccount($user) : null;
+
+        UserHelper::setAdminAsCurrentUser();
+
+        try {
+            return $callback();
+        } finally {
+            if ($user && $account) {
+                UserHelper::setCurrentUserAndAccount($user, $account);
+            }
+        }
     }
 
     private static function findStorageVolume(string $uuid): ?ComputeMemberStorageVolumes
