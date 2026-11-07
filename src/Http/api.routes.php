@@ -2102,6 +2102,7 @@ Route::prefix('iaas')->group(
             function () {
                 Route::get('/{repo}/containers', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'index']);
                 Route::get('/{repo}/containers/{image}/tags', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'tagsIndex']);
+                Route::get('/{repo}/diagnostics', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'diagnostics']);
 
                 Route::delete('/{repo}/containers/{image}/tags/{tag}', [\NextDeveloper\IAAS\Http\Controllers\RepositoryImages\DockerContainersController::class, 'destroy']);
             }

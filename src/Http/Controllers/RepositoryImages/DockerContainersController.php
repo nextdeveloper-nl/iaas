@@ -33,6 +33,11 @@ class DockerContainersController extends AbstractController
     {
         $repository = Repositories::where('uuid', $repository)->first();
 
+        //  Guard against a bad/unknown repository UUID instead of fataling on $repository->vm_path below
+        if (!$repository) {
+            return ResponseHelper::error('Repository not found');
+        }
+
         return ResponseHelper::data(
             DockerRegistryService::getDockerImages($repository)
         );
@@ -49,8 +54,32 @@ class DockerContainersController extends AbstractController
     {
         $repository = Repositories::where('uuid', $repository)->first();
 
+        if (!$repository) {
+            return ResponseHelper::error('Repository not found');
+        }
+
         return ResponseHelper::data(
             DockerRegistryService::getDockerImageTags($repository, $image)
+        );
+    }
+
+    /**
+     * Runs a step-by-step connectivity/auth diagnostic against the docker registry so that
+     * failures can be pinpointed (DNS, TCP, TLS, auth, catalog) instead of failing opaquely.
+     *
+     * @param $repository
+     * @return array
+     */
+    public function diagnostics($repository)
+    {
+        $repository = Repositories::where('uuid', $repository)->first();
+
+        if (!$repository) {
+            return ResponseHelper::error('Repository not found');
+        }
+
+        return ResponseHelper::data(
+            DockerRegistryService::diagnose($repository)
         );
     }
 
@@ -110,6 +139,10 @@ class DockerContainersController extends AbstractController
     public function destroy($repository, $image, $tag)
     {
         $repository = Repositories::where('uuid', $repository)->first();
+
+        if (!$repository) {
+            return ResponseHelper::error('Repository not found');
+        }
 
         DockerRegistryService::deleteDockerImage($repository, $image, $tag);
 
