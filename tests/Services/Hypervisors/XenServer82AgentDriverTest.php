@@ -106,13 +106,19 @@ class XenServer82AgentDriverTest extends TestCase
         }
     }
 
-    public function test_agent_driver_does_not_claim_capabilities_it_does_not_implement_yet()
+    public function test_agent_driver_declares_only_the_capabilities_it_implements()
     {
         $driver = $this->driver();
 
         $this->assertInstanceOf(VirtualMachineAdapterInterface::class, $driver);
+        $this->assertInstanceOf(ProvisioningCapableInterface::class, $driver);
+
         // Callers check capabilities with instanceof, so an undeclared one keeps the legacy path.
-        $this->assertNotInstanceOf(ProvisioningCapableInterface::class, $driver);
+        // Disk, network card, export, backup and configuration-ISO are not built for the agent yet.
+        $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\DiskCapableInterface::class, $driver);
+        $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\NetworkCapableInterface::class, $driver);
+        $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\BackupCapableInterface::class, $driver);
+        $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface::class, $driver);
     }
 
     public function test_power_operations_map_to_the_right_agent_operations()

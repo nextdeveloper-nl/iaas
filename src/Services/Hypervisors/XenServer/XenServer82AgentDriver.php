@@ -6,15 +6,19 @@ use NextDeveloper\IAAS\Contracts\CloneCapableInterface;
 use NextDeveloper\IAAS\Contracts\ConsoleCapableInterface;
 use NextDeveloper\IAAS\Contracts\EventTranslatorCapableInterface;
 use NextDeveloper\IAAS\Contracts\HostSyncInterface;
+use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
 use NextDeveloper\IAAS\Contracts\SnapshotCapableInterface;
 use NextDeveloper\IAAS\Contracts\VirtualMachineAdapterInterface;
 use NextDeveloper\IAAS\Database\Models\ComputeMembers;
+use NextDeveloper\IAAS\Database\Models\Repositories;
+use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\AgentResultMapper;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\ComputeMemberAgentSyncService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\VirtualMachineAgentSyncService;
+use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\VirtualMachineProvisioningAgentService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentClient;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Events\XenServerEventTranslator;
@@ -42,6 +46,8 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
  * Phase 4a: host sync (what Initiate runs) - member, interfaces, networks, storage volumes, via
  * Agent/ComputeMemberAgentSyncService. Phase 4b: VM-level sync (VM rows, disks, network cards) and
  * per-volume disk sync via Agent/VirtualMachineAgentSyncService.
+ * Phase 3: provisioning (repository mount, import from image, rename, guest metadata, disk and
+ * network card reconcile) via Agent/VirtualMachineProvisioningAgentService.
  */
 class XenServer82AgentDriver implements
     VirtualMachineAdapterInterface,
@@ -50,7 +56,8 @@ class XenServer82AgentDriver implements
     ResizeCapableInterface,
     ConsoleCapableInterface,
     EventTranslatorCapableInterface,
-    HostSyncInterface
+    HostSyncInterface,
+    ProvisioningCapableInterface
 {
     public function __construct(private readonly array $config = [])
     {
@@ -366,6 +373,66 @@ class XenServer82AgentDriver implements
     public function isPoolMember(ComputeMembers $computeMember): bool
     {
         return ComputeMemberAgentSyncService::isPoolMember($computeMember);
+    }
+
+    // -- ProvisioningCapableInterface ------------------------------------------------------
+
+    public function mountRepository(ComputeMembers $computeMember, Repositories $repository): bool
+    {
+        return VirtualMachineProvisioningAgentService::mountRepository($computeMember, $repository);
+    }
+
+    public function unmountRepository(ComputeMembers $computeMember, Repositories $repository): bool
+    {
+        return VirtualMachineProvisioningAgentService::unmountRepository($computeMember, $repository);
+    }
+
+    public function mountIsoRepository(ComputeMembers $computeMember, Repositories $repository): bool
+    {
+        return VirtualMachineProvisioningAgentService::mountIsoRepository($computeMember, $repository);
+    }
+
+    public function importFromImage(
+        VirtualMachines $vm,
+        ComputeMembers $computeMember,
+        Repositories $repository,
+        StorageVolumes $volume,
+        RepositoryImages $image,
+        bool $isLazyDeploy
+    ): string {
+        return VirtualMachineProvisioningAgentService::importFromImage(
+            $vm,
+            $computeMember,
+            $repository,
+            $volume,
+            $image,
+            $isLazyDeploy
+        );
+    }
+
+    public function getVmParametersByRef(ComputeMembers $computeMember, string $ref): array
+    {
+        return VirtualMachineProvisioningAgentService::getVmParametersByRef($computeMember, $ref);
+    }
+
+    public function renameVirtualMachine(VirtualMachines $vm): bool
+    {
+        return VirtualMachineProvisioningAgentService::renameVirtualMachine($vm);
+    }
+
+    public function injectGuestMetadata(VirtualMachines $vm, string $key, string $value): bool
+    {
+        return VirtualMachineProvisioningAgentService::injectGuestMetadata($vm, $key, $value);
+    }
+
+    public function reconcileDiskConfiguration(VirtualMachines $vm): void
+    {
+        VirtualMachineProvisioningAgentService::reconcileDiskConfiguration($vm);
+    }
+
+    public function reconcileNetworkConfiguration(VirtualMachines $vm): void
+    {
+        VirtualMachineProvisioningAgentService::reconcileNetworkConfiguration($vm);
     }
 
     // -- internals ---------------------------------------------------------------------

@@ -230,6 +230,24 @@ class XenAgentVmImportTest extends TestCase
                 'without a pool and an operator assigns it.');
         }
 
+        // UtilizeStorageVolumes (Commit's star-pool branch) only looks at volumes of the member whose
+        // disk_physical_type is 'ssd'. Shared storage is synced with that field empty, so an operator
+        // has to set it. Without it the algorithm finds nothing and crashes on a null volume.
+        $mountedVolumeIds = ComputeMemberStorageVolumes::withoutGlobalScopes()
+            ->where('iaas_compute_member_id', $this->member->id)
+            ->pluck('iaas_storage_volume_id');
+
+        $hasSsdVolume = StorageVolumes::withoutGlobalScopes()
+            ->whereIn('id', $mountedVolumeIds)
+            ->where('disk_physical_type', 'ssd')
+            ->exists();
+
+        if (!$hasSsdVolume) {
+            $this->fail('No storage volume of this member has disk_physical_type = "ssd", which is what ' .
+                'UtilizeStorageVolumes picks for a star pool. The shared NFS volume is synced with an empty ' .
+                'disk_physical_type: set it to "ssd" first (the SSH path behaves the same).');
+        }
+
         return [$pool, $image, $repository, $storagePool];
     }
 
