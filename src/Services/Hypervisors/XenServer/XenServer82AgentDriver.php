@@ -596,10 +596,23 @@ class XenServer82AgentDriver implements
             ->values()
             ->toArray();
 
-        //  vif.set_acl only takes the allow-list together with a locking mode; keep the card's mode.
-        $mode = $vif->hypervisor_data['locking-mode'] ?? 'unlocked';
+        //  Read the mode from the host now, not from the cached row: a stale or empty cache must never
+        //  turn into a weaker mode than the card really has (fail closed instead of defaulting to unlocked).
+        $vif  = VirtualMachineProvisioningAgentService::syncNetworkCard($vif);
+        $mode = $vif->hypervisor_data['locking-mode'] ?? null;
 
-        return VirtualMachineProvisioningAgentService::setVifAcl($vif, $mode === 'network_default' ? 'unlocked' : $mode, $ips);
+        if (!in_array($mode, ['locked', 'unlocked', 'disabled', 'network_default'], true)) {
+            throw new XenAgentException('Cannot apply the IP filter of network card ' . $vif->uuid .
+                ': the host did not report its locking mode.');
+        }
+
+        //  vif.set_acl does not accept network_default, so for that mode the allow-list is written with
+        //  param_set and the mode is left as it is.
+        if ($mode === 'network_default') {
+            return VirtualMachineProvisioningAgentService::setVifParams($vif, ['ipv4-allowed' => implode(',', $ips)]);
+        }
+
+        return VirtualMachineProvisioningAgentService::setVifAcl($vif, $mode, $ips);
     }
 
     public function setIpFilterMode(VirtualNetworkCards $vif, string $mode): bool
@@ -607,15 +620,7 @@ class XenServer82AgentDriver implements
         //  The intent-level mode maps 1:1 onto xapi's locking-mode; "default" means network_default,
         //  which vif.set_acl does not accept, so it is applied as unlocked + param_set below.
         if ($mode === 'network_default' || $mode === 'default') {
-            $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $vif->iaas_virtual_machine_id)->firstOrFail();
-
-            ComputeMemberAgentSyncService::client(\NextDeveloper\IAAS\Services\VirtualMachinesService::getComputeMember($vm))
-                ->call('xenserver.vif.param_set', [
-                    'vif_uuid' => $vif->hypervisor_uuid,
-                    'set'      => ['locking-mode' => 'network_default'],
-                ]);
-
-            return true;
+            return VirtualMachineProvisioningAgentService::setVifParams($vif, ['locking-mode' => 'network_default']);
         }
 
         return VirtualMachineProvisioningAgentService::setVifAcl($vif, $mode);

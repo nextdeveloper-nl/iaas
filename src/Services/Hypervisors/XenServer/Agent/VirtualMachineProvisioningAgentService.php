@@ -738,6 +738,25 @@ class VirtualMachineProvisioningAgentService
         return true;
     }
 
+    /**
+     * Sets allow-listed VIF parameters with param_set (agent key "set") and re-reads the card, so the
+     * row always shows what the host really has afterwards.
+     */
+    public static function setVifParams(VirtualNetworkCards $vif, array $set): bool
+    {
+        $vm            = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $vif->iaas_virtual_machine_id)->firstOrFail();
+        $computeMember = self::computeMember($vm);
+
+        ComputeMemberAgentSyncService::client($computeMember)->call('xenserver.vif.param_set', [
+            'vif_uuid' => $vif->hypervisor_uuid,
+            'set'      => $set,
+        ]);
+
+        self::syncVifConfig($computeMember, $vif->hypervisor_uuid, $vif);
+
+        return true;
+    }
+
     // -- helpers -------------------------------------------------------------------------------------
 
     private static function computeMember(VirtualMachines $vm): ComputeMembers
