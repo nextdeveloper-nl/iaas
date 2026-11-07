@@ -7,6 +7,7 @@ use NextDeveloper\IAAS\Contracts\ConsoleCapableInterface;
 use NextDeveloper\IAAS\Contracts\DiskCapableInterface;
 use NextDeveloper\IAAS\Contracts\EventTranslatorCapableInterface;
 use NextDeveloper\IAAS\Contracts\HostSyncInterface;
+use NextDeveloper\IAAS\Contracts\NetworkCapableInterface;
 use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
 use NextDeveloper\IAAS\Contracts\ResizeCapableInterface;
 use NextDeveloper\IAAS\Contracts\SnapshotCapableInterface;
@@ -17,6 +18,8 @@ use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
+use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\AgentResultMapper;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\ComputeMemberAgentSyncService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\VirtualMachineAgentSyncService;
@@ -61,7 +64,8 @@ class XenServer82AgentDriver implements
     ConsoleCapableInterface,
     EventTranslatorCapableInterface,
     HostSyncInterface,
-    ProvisioningCapableInterface
+    ProvisioningCapableInterface,
+    NetworkCapableInterface
 {
     public function __construct(private readonly array $config = [])
     {
@@ -136,7 +140,16 @@ class XenServer82AgentDriver implements
     {
         //  confirm=true is mandatory for the agent. This is the explicit delete path, the only
         //  place it is sent. As with `xe vm-destroy`, the VM's disks stay on the SR.
-        $this->command($vm, 'xenserver.vm.destroy', ['confirm' => true]);
+        //  Agent v1.3.1 also wants expected_name: the exact name-label the VM has on the host right now.
+        //  It is read live from the host (not from our DB), so the guard really checks that the uuid we
+        //  hold points to the VM we think it does; a mismatch is refused by the agent, nothing is deleted.
+        $nameLabel = $this->getHypervisorData($vm)['name-label'] ?? null;
+
+        if (!is_string($nameLabel) || $nameLabel === '') {
+            throw new XenAgentException('Cannot delete VM ' . $vm->uuid . ': the host did not report its name-label.');
+        }
+
+        $this->command($vm, 'xenserver.vm.destroy', ['confirm' => true, 'expected_name' => $nameLabel]);
 
         return true;
     }
@@ -536,6 +549,83 @@ class XenServer82AgentDriver implements
      * Agent client for the compute member that hosts this VM. Throws XenAgentException (no SSH
      * fallback) when the VM has no compute member.
      */
+    // -- NetworkCapableInterface -----------------------------------------------------------------
+
+    public function createNetworkCard(VirtualMachines $vm, string $networkUuid, int $device): VirtualNetworkCards
+    {
+        //  $networkUuid is the host's network uuid. The card row needs our Networks id, which is the
+        //  network of the member interface with that host network uuid (same VLAN).
+        $interface = \NextDeveloper\IAAS\Database\Models\ComputeMemberNetworkInterfaces::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_compute_member_id', $vm->iaas_compute_member_id)
+            ->where('network_uuid', $networkUuid)
+            ->firstOrFail();
+
+        $network = \NextDeveloper\IAAS\Database\Models\Networks::withoutGlobalScope(AuthorizationScope::class)
+            ->where('vlan', $interface->vlan)
+            ->firstOrFail();
+
+        //  The service creates the row and runs the Attach action, which comes back to
+        //  attachDraftNetworkCard() below.
+        return \NextDeveloper\IAAS\Services\VirtualNetworkCardsService::create([
+            'iaas_virtual_machine_id' => $vm->id,
+            'iaas_network_id'         => $network->id,
+            'device_number'           => $device,
+            'name'                    => 'eth' . $device,
+            'iam_account_id'          => $vm->iam_account_id,
+            'iam_user_id'             => $vm->iam_user_id,
+        ]);
+    }
+
+    public function destroyNetworkCard(VirtualNetworkCards $vif): bool
+    {
+        return VirtualMachineProvisioningAgentService::destroyNetworkCard($vif);
+    }
+
+    public function syncNetworkCard(VirtualNetworkCards $vif): VirtualNetworkCards
+    {
+        return VirtualMachineProvisioningAgentService::syncNetworkCard($vif);
+    }
+
+    public function applyIpFilter(VirtualNetworkCards $vif): bool
+    {
+        //  Same list the SSH path writes: every IP address row of the card, without the /32.
+        $ips = IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+            ->where('iaas_virtual_network_card_id', $vif->id)
+            ->pluck('ip_addr')
+            ->map(fn($ip) => str_replace('/32', '', (string) $ip))
+            ->values()
+            ->toArray();
+
+        //  vif.set_acl only takes the allow-list together with a locking mode; keep the card's mode.
+        $mode = $vif->hypervisor_data['locking-mode'] ?? 'unlocked';
+
+        return VirtualMachineProvisioningAgentService::setVifAcl($vif, $mode === 'network_default' ? 'unlocked' : $mode, $ips);
+    }
+
+    public function setIpFilterMode(VirtualNetworkCards $vif, string $mode): bool
+    {
+        //  The intent-level mode maps 1:1 onto xapi's locking-mode; "default" means network_default,
+        //  which vif.set_acl does not accept, so it is applied as unlocked + param_set below.
+        if ($mode === 'network_default' || $mode === 'default') {
+            $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $vif->iaas_virtual_machine_id)->firstOrFail();
+
+            ComputeMemberAgentSyncService::client(\NextDeveloper\IAAS\Services\VirtualMachinesService::getComputeMember($vm))
+                ->call('xenserver.vif.param_set', [
+                    'vif_uuid' => $vif->hypervisor_uuid,
+                    'set'      => ['locking-mode' => 'network_default'],
+                ]);
+
+            return true;
+        }
+
+        return VirtualMachineProvisioningAgentService::setVifAcl($vif, $mode);
+    }
+
+    public function attachDraftNetworkCard(VirtualNetworkCards $vif): VirtualNetworkCards
+    {
+        return VirtualMachineProvisioningAgentService::attachDraftNetworkCard($vif);
+    }
+
     protected function client(VirtualMachines $vm): XenAgentClient
     {
         $computeMember = VirtualMachinesService::getComputeMember($vm);

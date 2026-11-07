@@ -114,9 +114,9 @@ class XenServer82AgentDriverTest extends TestCase
         $this->assertInstanceOf(ProvisioningCapableInterface::class, $driver);
 
         // Callers check capabilities with instanceof, so an undeclared one keeps the legacy path.
-        // Network card, export, backup and configuration-ISO are not built for the agent yet.
+        // Export, backup and configuration-ISO are not built for the agent yet.
         $this->assertInstanceOf(\NextDeveloper\IAAS\Contracts\DiskCapableInterface::class, $driver);
-        $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\NetworkCapableInterface::class, $driver);
+        $this->assertInstanceOf(\NextDeveloper\IAAS\Contracts\NetworkCapableInterface::class, $driver);
         $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\BackupCapableInterface::class, $driver);
         $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface::class, $driver);
     }
@@ -179,15 +179,31 @@ class XenServer82AgentDriverTest extends TestCase
         $this->assertContains('xenserver.vm.force_shutdown', array_column($this->sentOperations(), 'operation'));
     }
 
-    public function test_delete_sends_confirm_true()
+    public function test_delete_sends_confirm_true_and_the_live_name_label()
     {
-        Http::fake(['*' => Http::response($this->ok())]);
+        Http::fake(['*' => Http::sequence()
+            ->push($this->ok(['params' => ['name-label' => 'live-name-on-host']]))   // live name-label
+            ->push($this->ok())]);                                                    // destroy
 
         $this->assertTrue($this->driver()->delete($this->vm()));
 
-        $payload = $this->sentOperations()[0];
+        $payload = $this->sentOperations()[1];
         $this->assertSame('xenserver.vm.destroy', $payload['operation']);
         $this->assertTrue($payload['params']['confirm']);
+        $this->assertSame('live-name-on-host', $payload['params']['expected_name']);
+    }
+
+    public function test_delete_without_a_reported_name_label_sends_nothing_destructive()
+    {
+        Http::fake(['*' => Http::response($this->ok(['params' => []]))]);
+
+        $this->expectException(\NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentException::class);
+
+        try {
+            $this->driver()->delete($this->vm());
+        } finally {
+            $this->assertNotContains('xenserver.vm.destroy', array_column($this->sentOperations(), 'operation'));
+        }
     }
 
     public function test_resume_uses_unpause_for_paused_vm_and_resume_for_suspended_vm()

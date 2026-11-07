@@ -174,8 +174,9 @@ class XenAgentVmImportTest extends TestCase
 
         $vm = $this->createDraftVm($pool, $image, $storagePool);
 
-        // Default lazy deploy, run synchronously: the import itself would be backgrounded.
-        (new Commit($vm))->handle();
+        // Non-lazy: lazy deploy needs a production test (the import is backgrounded and finished
+        // by FinalizeAgentImport on a queue worker), so here the import runs inside the action.
+        (new Commit($vm, ['is_lazy_deploy' => false]))->handle();
 
         $vm = VirtualMachines::withoutGlobalScopes()->where('uuid', $vm->uuid)->first();
 

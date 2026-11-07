@@ -633,6 +633,111 @@ class VirtualMachineProvisioningAgentService
         $config->updateQuietly(['status' => 'attached:true']);
     }
 
+    /**
+     * Creates the host side of an existing draft card row (device number and network already set) and
+     * updates the row in place. A running VM gets the card hot-plugged; that needs the guest tools,
+     * so a failed plug is logged and the card stays defined (currently-attached=false) instead of
+     * rolling back a card that exists on the host.
+     */
+    public static function attachDraftNetworkCard(VirtualNetworkCards $vif): VirtualNetworkCards
+    {
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $vif->iaas_virtual_machine_id)->firstOrFail();
+
+        $computeMember = self::computeMember($vm);
+
+        self::attachNetworkCard($vm, $computeMember, $vif);
+
+        $vif = $vif->fresh();
+
+        $power = ComputeMemberAgentSyncService::flatten(
+            ComputeMemberAgentSyncService::client($computeMember)->call('xenserver.vm.param_list', ['uuid' => $vm->hypervisor_uuid])
+        )['power-state'] ?? null;
+
+        if ($power === 'running') {
+            try {
+                ComputeMemberAgentSyncService::client($computeMember)->call('xenserver.vif.plug', ['vif_uuid' => $vif->hypervisor_uuid]);
+                self::syncVifConfig($computeMember, $vif->hypervisor_uuid, $vif);
+            } catch (XenAgentException $e) {
+                Log::warning('[VirtualMachineProvisioningAgentService@attachDraftNetworkCard] Card ' . $vif->uuid .
+                    ' is defined but could not be hot-plugged: ' . $e->getMessage());
+            }
+        }
+
+        return $vif->fresh();
+    }
+
+    /**
+     * Removes a card from the host. A card that is plugged into a running VM is unplugged first.
+     * A card that is already gone from the host is not an error (same as a repeated detach).
+     */
+    public static function destroyNetworkCard(VirtualNetworkCards $vif): bool
+    {
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $vif->iaas_virtual_machine_id)->first();
+
+        if (!$vm || !$vif->hypervisor_uuid) {
+            return false;
+        }
+
+        $client = ComputeMemberAgentSyncService::client(self::computeMember($vm));
+
+        try {
+            $currentlyAttached = ($vif->hypervisor_data['currently-attached'] ?? 'false') === 'true';
+
+            if ($currentlyAttached) {
+                $client->call('xenserver.vif.unplug', ['vif_uuid' => $vif->hypervisor_uuid]);
+            }
+        } catch (XenAgentException $e) {
+            Log::warning('[VirtualMachineProvisioningAgentService@destroyNetworkCard] Unplug of ' . $vif->hypervisor_uuid . ' failed: ' . $e->getMessage());
+        }
+
+        try {
+            $client->call('xenserver.vif.remove', ['vif_uuid' => $vif->hypervisor_uuid]);
+        } catch (XenAgentException $e) {
+            if (!str_contains(strtolower($e->getMessage()), 'does not exist') && !str_contains(strtolower($e->getMessage()), 'not found')) {
+                throw $e;
+            }
+
+            Log::warning('[VirtualMachineProvisioningAgentService@destroyNetworkCard] Card ' . $vif->hypervisor_uuid . ' was already gone from the host.');
+        }
+
+        return true;
+    }
+
+    /**
+     * Re-reads the card from the host into its row.
+     */
+    public static function syncNetworkCard(VirtualNetworkCards $vif): VirtualNetworkCards
+    {
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $vif->iaas_virtual_machine_id)->firstOrFail();
+
+        if ($vif->hypervisor_uuid) {
+            self::syncVifConfig(self::computeMember($vm), $vif->hypervisor_uuid, $vif);
+        }
+
+        return $vif->fresh();
+    }
+
+    /**
+     * Writes the card's IP allow-list (the IpAddresses of the card) and the locking mode in one call.
+     * The agent has one operation (vif.set_acl) for both, so the mode is taken from the card as it is.
+     */
+    public static function setVifAcl(VirtualNetworkCards $vif, string $lockingMode, ?array $ipv4Allowed = null): bool
+    {
+        $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)->where('id', $vif->iaas_virtual_machine_id)->firstOrFail();
+
+        $params = ['vif_uuid' => $vif->hypervisor_uuid, 'locking_mode' => $lockingMode];
+
+        if ($ipv4Allowed !== null) {
+            $params['ipv4_allowed'] = $ipv4Allowed;
+        }
+
+        ComputeMemberAgentSyncService::client(self::computeMember($vm))->call('xenserver.vif.set_acl', $params);
+
+        self::syncVifConfig(self::computeMember($vm), $vif->hypervisor_uuid, $vif);
+
+        return true;
+    }
+
     // -- helpers -------------------------------------------------------------------------------------
 
     private static function computeMember(VirtualMachines $vm): ComputeMembers
