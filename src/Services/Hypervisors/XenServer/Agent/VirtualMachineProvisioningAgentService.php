@@ -360,7 +360,7 @@ class VirtualMachineProvisioningAgentService
     /**
      * Creates the disk (VDI) of a draft config row on the storage repository of its storage pool.
      */
-    private static function createDisk(VirtualDiskImages $vdi, ComputeMembers $computeMember, VirtualMachines $vm): VirtualDiskImages
+    public static function createDisk(VirtualDiskImages $vdi, ComputeMembers $computeMember, VirtualMachines $vm): VirtualDiskImages
     {
         $client = ComputeMemberAgentSyncService::client($computeMember);
 
@@ -400,7 +400,7 @@ class VirtualMachineProvisioningAgentService
     /**
      * Attaches the disk to the VM (creates the VBD, plugs it if the VM runs).
      */
-    private static function attachDisk(VirtualDiskImages $vdi, ComputeMembers $computeMember, VirtualMachines $vm): VirtualDiskImages
+    public static function attachDisk(VirtualDiskImages $vdi, ComputeMembers $computeMember, VirtualMachines $vm): VirtualDiskImages
     {
         $client = ComputeMemberAgentSyncService::client($computeMember);
 
@@ -426,6 +426,100 @@ class VirtualMachineProvisioningAgentService
                 $client->call('xenserver.vbd.param_list', ['vbd_uuid' => $vdi->vbd_hypervisor_uuid])
             ),
         ]);
+
+        return $vdi->fresh();
+    }
+
+    /**
+     * Takes the disk off the VM: unplugs it if the VM runs, then destroys the VBD. The VBD may
+     * already be gone (destroying the VM removes it), which is not an error here.
+     */
+    public static function detachDisk(VirtualDiskImages $vdi, ComputeMembers $computeMember, VirtualMachines $vm): VirtualDiskImages
+    {
+        if (!$vdi->vbd_hypervisor_uuid) {
+            return $vdi;
+        }
+
+        $client = ComputeMemberAgentSyncService::client($computeMember);
+
+        try {
+            if ($vm->status == 'running') {
+                $client->call('xenserver.vbd.unplug', ['vbd_uuid' => $vdi->vbd_hypervisor_uuid]);
+            }
+
+            $client->call('xenserver.vbd.destroy', ['vbd_uuid' => $vdi->vbd_hypervisor_uuid]);
+        } catch (XenAgentException $e) {
+            Log::warning('[VirtualMachineProvisioningAgentService@detachDisk] VBD ' . $vdi->vbd_hypervisor_uuid .
+                ' could not be removed (it may be gone already): ' . $e->getMessage());
+        }
+
+        $vdi->updateQuietly(['vbd_hypervisor_uuid' => null, 'vbd_hypervisor_data' => null]);
+
+        return $vdi->fresh();
+    }
+
+    /**
+     * Destroys the disk on the host (after detaching it). The agent refuses to destroy a disk that
+     * is still attached to a VM, so a failed detach shows up here as an error, never as a silent
+     * success that leaves the disk behind.
+     */
+    public static function destroyDisk(VirtualDiskImages $vdi, ComputeMembers $computeMember, VirtualMachines $vm): bool
+    {
+        $vdi = self::detachDisk($vdi, $computeMember, $vm);
+
+        if ($vdi->hypervisor_uuid) {
+            ComputeMemberAgentSyncService::client($computeMember)
+                ->call('xenserver.vdi.destroy', ['vdi_uuid' => $vdi->hypervisor_uuid, 'confirm' => true]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Grows the disk (the agent, like xapi, never shrinks one).
+     */
+    public static function resizeDisk(VirtualDiskImages $vdi, ComputeMembers $computeMember, int $sizeInBytes): VirtualDiskImages
+    {
+        ComputeMemberAgentSyncService::client($computeMember)
+            ->call('xenserver.vdi.resize', ['vdi_uuid' => $vdi->hypervisor_uuid, 'size_bytes' => $sizeInBytes]);
+
+        $vdi->update(['size' => $sizeInBytes]);
+
+        return $vdi->fresh();
+    }
+
+    /**
+     * Refreshes the disk record from the host: size, utilisation, storage volume and its VBD.
+     */
+    public static function syncDiskFromHypervisor(VirtualDiskImages $vdi, ComputeMembers $computeMember): VirtualDiskImages
+    {
+        $client = ComputeMemberAgentSyncService::client($computeMember);
+
+        $diskParams = ComputeMemberAgentSyncService::flatten(
+            $client->call('xenserver.vdi.param_list', ['vdi_uuid' => $vdi->hypervisor_uuid])
+        );
+
+        $vbdParams = $vdi->vbd_hypervisor_uuid
+            ? ComputeMemberAgentSyncService::flatten($client->call('xenserver.vbd.param_list', ['vbd_uuid' => $vdi->vbd_hypervisor_uuid]))
+            : null;
+
+        $volume = \NextDeveloper\IAAS\Services\StorageVolumesService::getVolumeByUuid($diskParams['sr-uuid']);
+
+        if (!$volume) {
+            //  The SR is new to us, run the storage sync once and look again.
+            ComputeMemberAgentSyncService::updateStorageVolumes($computeMember);
+            $volume = \NextDeveloper\IAAS\Services\StorageVolumesService::getVolumeByUuid($diskParams['sr-uuid']);
+        }
+
+        $vdi->updateQuietly(array_filter([
+            'size'                   => $diskParams['virtual-size'],
+            'physical_utilisation'   => $diskParams['physical-utilisation'],
+            'hypervisor_data'        => $diskParams,
+            'is_draft'               => false,
+            'vbd_hypervisor_data'    => $vbdParams,
+            'iaas_storage_volume_id' => $volume?->id,
+            'iaas_storage_pool_id'   => $volume?->iaas_storage_pool_id,
+        ], fn($value) => $value !== null));
 
         return $vdi->fresh();
     }

@@ -114,8 +114,8 @@ class XenServer82AgentDriverTest extends TestCase
         $this->assertInstanceOf(ProvisioningCapableInterface::class, $driver);
 
         // Callers check capabilities with instanceof, so an undeclared one keeps the legacy path.
-        // Disk, network card, export, backup and configuration-ISO are not built for the agent yet.
-        $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\DiskCapableInterface::class, $driver);
+        // Network card, export, backup and configuration-ISO are not built for the agent yet.
+        $this->assertInstanceOf(\NextDeveloper\IAAS\Contracts\DiskCapableInterface::class, $driver);
         $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\NetworkCapableInterface::class, $driver);
         $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\BackupCapableInterface::class, $driver);
         $this->assertNotInstanceOf(\NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface::class, $driver);
@@ -140,7 +140,10 @@ class XenServer82AgentDriverTest extends TestCase
 
         $this->assertSame([
             'xenserver.vm.start',
+            // stop() reads the live power state first (a halted VM is left alone), then shuts down
+            'xenserver.vm.param_list',
             'xenserver.vm.shutdown',
+            'xenserver.vm.param_list',
             'xenserver.vm.force_shutdown',
             'xenserver.vm.reboot',
             'xenserver.vm.force_reboot',
@@ -151,6 +154,29 @@ class XenServer82AgentDriverTest extends TestCase
         foreach ($payloads as $payload) {
             $this->assertSame('xen-vm-1', $payload['params']['uuid']);
         }
+    }
+
+    public function test_stopping_a_halted_vm_is_not_an_error_and_sends_no_shutdown()
+    {
+        // The Delete action always force-stops first. The agent refuses to shut down a halted VM,
+        // so the driver checks the live power state and does nothing for a halted one.
+        Http::fake(['*' => Http::response($this->ok(['params' => ['power-state' => 'halted']]))]);
+
+        $vm = $this->driver()->stop($this->vm(), true);
+
+        $this->assertSame('halted', $vm->status);
+        $this->assertSame(['xenserver.vm.param_list'], array_column($this->sentOperations(), 'operation'));
+    }
+
+    public function test_stopping_a_running_vm_sends_the_shutdown()
+    {
+        Http::fake(['*' => Http::sequence()
+            ->push($this->ok(['params' => ['power-state' => 'running']]))   // live power state
+            ->push($this->ok())]);                                           // force_shutdown
+
+        $this->driver()->stop($this->vm(), true);
+
+        $this->assertContains('xenserver.vm.force_shutdown', array_column($this->sentOperations(), 'operation'));
     }
 
     public function test_delete_sends_confirm_true()

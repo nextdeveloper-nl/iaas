@@ -4,6 +4,7 @@ namespace NextDeveloper\IAAS\Services\Hypervisors\XenServer;
 
 use NextDeveloper\IAAS\Contracts\CloneCapableInterface;
 use NextDeveloper\IAAS\Contracts\ConsoleCapableInterface;
+use NextDeveloper\IAAS\Contracts\DiskCapableInterface;
 use NextDeveloper\IAAS\Contracts\EventTranslatorCapableInterface;
 use NextDeveloper\IAAS\Contracts\HostSyncInterface;
 use NextDeveloper\IAAS\Contracts\ProvisioningCapableInterface;
@@ -14,6 +15,7 @@ use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\Repositories;
 use NextDeveloper\IAAS\Database\Models\RepositoryImages;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
+use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\AgentResultMapper;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\ComputeMemberAgentSyncService;
@@ -22,6 +24,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\VirtualMachineProvis
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentClient;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Agent\XenAgentException;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\Events\XenServerEventTranslator;
+use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\ValueObjects\ConsoleSession;
 use NextDeveloper\IAAS\ValueObjects\NormalizedHypervisorEvent;
@@ -54,6 +57,7 @@ class XenServer82AgentDriver implements
     SnapshotCapableInterface,
     CloneCapableInterface,
     ResizeCapableInterface,
+    DiskCapableInterface,
     ConsoleCapableInterface,
     EventTranslatorCapableInterface,
     HostSyncInterface,
@@ -74,6 +78,13 @@ class XenServer82AgentDriver implements
 
     public function stop(VirtualMachines $vm, bool $force = false): VirtualMachines
     {
+        //  Stopping a VM that is already halted is not an error for callers (the Delete action always
+        //  force-stops first). The SSH path gets that for free because it ignores xe's "VM is halted"
+        //  error text; the agent reports it as a failure, so check the live power state instead.
+        if (($this->getHypervisorData($vm)['power-state'] ?? null) === 'halted') {
+            return $this->sync($vm);
+        }
+
         $this->command($vm, $force ? 'xenserver.vm.force_shutdown' : 'xenserver.vm.shutdown');
 
         //  Same reasoning as the SSH driver: a clean shutdown can return before the guest has
@@ -309,6 +320,82 @@ class XenServer82AgentDriver implements
         $vm->update(['cpu' => $cpu, 'ram' => $ramInMb]);
 
         return $vm->fresh();
+    }
+
+    // -- DiskCapableInterface ---------------------------------------------------------------
+
+    public function createDisk(VirtualDiskImages $vdi): VirtualDiskImages
+    {
+        return VirtualMachineProvisioningAgentService::createDisk(
+            $vdi,
+            VirtualDiskImagesService::getComputeMember($vdi),
+            VirtualDiskImagesService::getVirtualMachine($vdi)
+        );
+    }
+
+    public function attachDisk(VirtualDiskImages $vdi): VirtualDiskImages
+    {
+        return VirtualMachineProvisioningAgentService::attachDisk(
+            $vdi,
+            VirtualDiskImagesService::getComputeMember($vdi),
+            VirtualDiskImagesService::getVirtualMachine($vdi)
+        );
+    }
+
+    public function detachDisk(VirtualDiskImages $vdi): VirtualDiskImages
+    {
+        return VirtualMachineProvisioningAgentService::detachDisk(
+            $vdi,
+            VirtualDiskImagesService::getComputeMember($vdi),
+            VirtualDiskImagesService::getVirtualMachine($vdi)
+        );
+    }
+
+    public function destroyDisk(VirtualDiskImages $vdi): bool
+    {
+        return VirtualMachineProvisioningAgentService::destroyDisk(
+            $vdi,
+            VirtualDiskImagesService::getComputeMember($vdi),
+            VirtualDiskImagesService::getVirtualMachine($vdi)
+        );
+    }
+
+    public function resizeDisk(VirtualDiskImages $vdi, int $sizeInBytes): VirtualDiskImages
+    {
+        return VirtualMachineProvisioningAgentService::resizeDisk(
+            $vdi,
+            VirtualDiskImagesService::getComputeMember($vdi),
+            $sizeInBytes
+        );
+    }
+
+    public function mountCd(VirtualMachines $vm, RepositoryImages $image): bool
+    {
+        //  Not built yet. Mounting depends on the ISO library handling, which stays in IAAS. Failing
+        //  loudly beats a CD that silently never appears.
+        throw new \RuntimeException('mountCd() is not implemented in the agent driver yet.');
+    }
+
+    public function unmountCd(VirtualMachines $vm): bool
+    {
+        $this->command($vm, 'xenserver.vm.cd_eject');
+
+        $cdrom = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            ->where('is_cdrom', true)
+            ->where('iaas_virtual_machine_id', $vm->id)
+            ->first();
+
+        $cdrom?->update(['hypervisor_uuid' => null, 'name' => 'CDROM', 'size' => 0]);
+
+        return true;
+    }
+
+    public function syncDiskFromHypervisor(VirtualDiskImages $vdi): VirtualDiskImages
+    {
+        return VirtualMachineProvisioningAgentService::syncDiskFromHypervisor(
+            $vdi,
+            VirtualDiskImagesService::getComputeMember($vdi)
+        );
     }
 
     // -- ConsoleCapableInterface ---------------------------------------------------------
