@@ -136,6 +136,7 @@ class IAASServiceProvider extends AbstractServiceProvider {
                 \NextDeveloper\IAAS\Console\Commands\FixMigratedLocalVirtualMachine::class,
                 \NextDeveloper\IAAS\Console\Commands\ReindexVirtualMachines::class,
                 \NextDeveloper\IAAS\Console\Commands\DiffVirtualMachinesElastic::class,
+                \NextDeveloper\IAAS\Console\Commands\AddAgentComputeMember::class,
             ]);
         }
     }
