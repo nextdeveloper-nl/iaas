@@ -273,19 +273,27 @@ class XenServer82AgentDriver implements
 
     public function resize(VirtualMachines $vm, int $cpu, int $ramInMb, ?int $corePerSocket = null): VirtualMachines
     {
-        $set = [
-            'VCPUs-max'         => (string) $cpu,
-            'VCPUs-at-startup'  => (string) $cpu,
-        ];
+        //  xapi requires 0 < VCPUs-at-startup <= VCPUs-max at every step, and the agent applies the
+        //  changes one after the other. Lowering the count therefore has to lower at-startup first,
+        //  raising it has to raise max first. Setting max first fails when an imported VM starts with
+        //  more vCPUs than the new value ("VCPU values must satisfy ..."). The SSH path always sets
+        //  max first and has the same flaw. The VM's current value is read live from the agent.
+        $currentMax = (int) ($this->getHypervisorData($vm)['VCPUs-max'] ?? 0);
+
+        $steps = $cpu < $currentMax
+            ? ['VCPUs-at-startup', 'VCPUs-max']
+            : ['VCPUs-max', 'VCPUs-at-startup'];
+
+        foreach ($steps as $key) {
+            $this->command($vm, 'xenserver.vm.param_set', ['set' => [$key => (string) $cpu]]);
+        }
 
         if ($corePerSocket) {
             //  Parity with VirtualMachinesXenService::setCPUCore, which writes the total core
             //  count (not $corePerSocket) into cores-per-socket, i.e. one socket. Kept
             //  identical on purpose so both drivers produce the same topology.
-            $set['platform:cores-per-socket'] = (string) $cpu;
+            $this->command($vm, 'xenserver.vm.param_set', ['set' => ['platform:cores-per-socket' => (string) $cpu]]);
         }
-
-        $this->command($vm, 'xenserver.vm.param_set', ['set' => $set]);
 
         //  Memory (VM must be halted, like the SSH path). All four limits are sent equal: hosts
         //  with dynamic memory control disabled require static_max = dynamic_min = dynamic_max.

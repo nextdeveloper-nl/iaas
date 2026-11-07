@@ -207,27 +207,63 @@ class XenServer82AgentDriverTest extends TestCase
         );
     }
 
-    public function test_resize_sends_cpu_and_equal_memory_limits_in_bytes()
+    /**
+     * Runs resize() against a VM that currently has $currentCpu vCPUs and returns the agent
+     * operations it sent, in order (the unsaved test VM makes the final $vm->fresh() throw, by then
+     * every agent call under test has been sent).
+     */
+    private function resizeOperations(int $currentCpu, int $newCpu, ?int $corePerSocket = null): array
     {
-        Http::fake(['*' => Http::response($this->ok())]);
+        Http::fake(['*' => Http::sequence()
+            ->push($this->ok(['params' => ['VCPUs-max' => (string) $currentCpu]]))   // param_list: current vCPUs
+            ->push($this->ok())->push($this->ok())->push($this->ok())->push($this->ok())]);
 
         try {
-            $this->driver()->resize($this->vm(), 4, 2048, 2);
+            $this->driver()->resize($this->vm(), $newCpu, 2048, $corePerSocket);
         } catch (\TypeError $e) {
-            // The unsaved test VM has no DB row, so $vm->fresh() returns null at the very end.
-            // Everything under test (the two agent calls) has already been sent by then.
+            // See above: the unsaved test VM has no DB row.
         }
 
-        $payloads = $this->sentOperations();
+        $operations = [];
 
-        $this->assertSame('xenserver.vm.param_set', $payloads[0]['operation']);
-        $this->assertSame('4', $payloads[0]['params']['set']['VCPUs-max']);
-        $this->assertSame('4', $payloads[0]['params']['set']['VCPUs-at-startup']);
+        Http::assertSent(function (Request $request) use (&$operations) {
+            $operations[] = json_decode(json_encode($request->data()), true)['payload'];
+
+            return true;
+        });
+
+        return $operations;
+    }
+
+    public function test_resize_lowering_vcpus_sets_at_startup_before_max()
+    {
+        // An imported VM often starts with more vCPUs than the new value. xapi needs
+        // 0 < VCPUs-at-startup <= VCPUs-max at every step, so at-startup has to go down first.
+        $operations = $this->resizeOperations(currentCpu: 4, newCpu: 2);
+
+        $this->assertSame('xenserver.vm.param_list', $operations[0]['operation']);
+        $this->assertSame(['VCPUs-at-startup' => '2'], $operations[1]['params']['set']);
+        $this->assertSame(['VCPUs-max' => '2'], $operations[2]['params']['set']);
+    }
+
+    public function test_resize_raising_vcpus_sets_max_before_at_startup()
+    {
+        $operations = $this->resizeOperations(currentCpu: 2, newCpu: 4);
+
+        $this->assertSame(['VCPUs-max' => '4'], $operations[1]['params']['set']);
+        $this->assertSame(['VCPUs-at-startup' => '4'], $operations[2]['params']['set']);
+    }
+
+    public function test_resize_sends_equal_memory_limits_in_bytes_after_the_cpu_change()
+    {
+        $operations = $this->resizeOperations(currentCpu: 2, newCpu: 2);
 
         $bytes = 2048 * 1024 * 1024;
-        $this->assertSame('xenserver.vm.memory_limits_set', $payloads[1]['operation']);
+        $memory = collect($operations)->firstWhere('operation', 'xenserver.vm.memory_limits_set');
+
+        $this->assertNotNull($memory);
         foreach (['static_min', 'static_max', 'dynamic_min', 'dynamic_max'] as $limit) {
-            $this->assertSame($bytes, $payloads[1]['params'][$limit]);
+            $this->assertSame($bytes, $memory['params'][$limit]);
         }
     }
 
