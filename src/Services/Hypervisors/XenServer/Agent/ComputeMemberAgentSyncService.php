@@ -302,11 +302,19 @@ class ComputeMemberAgentSyncService
 
     // -- storage -------------------------------------------------------------------------
 
-    public static function updateStorageVolumes(ComputeMembers $computeMember): ComputeMembers
+    /**
+     * Syncs the member's storage repositories. $onlySrUuid limits the run to one SR (the driver
+     * and the UpdateStorageVolumes action always pass null and sync them all).
+     */
+    public static function updateStorageVolumes(ComputeMembers $computeMember, ?string $onlySrUuid = null): ComputeMembers
     {
         $inventory = self::inventory($computeMember);
 
         foreach ($inventory['srs'] as $volume) {
+            if ($onlySrUuid !== null && $volume['uuid'] !== $onlySrUuid) {
+                continue;
+            }
+
             $pbd = collect($inventory['pbds'])->first(fn($candidate) => ($candidate['sr-uuid'] ?? null) === $volume['uuid']);
 
             if (in_array($volume['type'], self::LOCAL_SR_TYPES, true)) {
