@@ -34,6 +34,19 @@ class Delete extends AbstractAction
         parent::__construct();
     }
 
+    /**
+     * Whether the VM has something real on a hypervisor that must be stopped and destroyed before its
+     * records are removed. False for a lost VM (the host no longer knows it), a draft that was never
+     * deployed (no compute member) and a VM without a hypervisor uuid. Added so the locked/lost/draft
+     * delete rules are testable without the database.
+     */
+    public static function shouldDestroyOnHypervisor(VirtualMachines $vm): bool
+    {
+        return !$vm->is_lost
+            && $vm->iaas_compute_member_id
+            && $vm->hypervisor_uuid;
+    }
+
     public function handle()
     {
         //  $this->model->id feeds every where('iaas_virtual_machine_id', ...) query below (VDIs, VIFs,
@@ -78,9 +91,9 @@ class Delete extends AbstractAction
             //  and aborts the whole delete before we ever reach $this->model->delete() below. Same
             //  reasoning for is_lost: the hypervisor already doesn't know about this VM, so there's
             //  nothing real to stop/destroy there either.
-            $isDeployed = !$this->model->is_lost
-                && $this->model->iaas_compute_member_id
-                && $this->model->hypervisor_uuid;
+            //  The decision lives in shouldDestroyOnHypervisor() so it can be unit tested without
+            //  running the action (which needs the database).
+            $isDeployed = self::shouldDestroyOnHypervisor($this->model);
 
             if ($isDeployed) {
                 $manager = app(VirtualMachineManager::class);
