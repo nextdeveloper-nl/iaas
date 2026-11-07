@@ -11,6 +11,7 @@ use NextDeveloper\IAAS\Database\Models\ComputeMembers;
 use NextDeveloper\IAAS\Database\Models\ComputeMemberStorageVolumes;
 use NextDeveloper\IAAS\Database\Models\ComputePools;
 use NextDeveloper\IAAS\Database\Models\Networks;
+use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -85,7 +86,7 @@ class VirtualMachineAgentSyncService
         //  The uuid comes from the host. An existing row may only be adopted inside the member's
         //  own pool (a VM that moved between members of one pool keeps its uuid). A row that belongs
         //  to another pool is never overwritten or re-homed by a host's report.
-        if ($dbVm && !self::inPoolOf($computeMember, $dbVm->iaas_compute_pool_id)) {
+        if ($dbVm && !self::vmOwnedBy($computeMember, $dbVm)) {
             Log::error('[VirtualMachineAgentSyncService@syncVirtualMachineRecord] Compute member ' . $computeMember->name .
                 ' reported VM uuid ' . $vmInfo['uuid'] . ' that belongs to another compute pool. Skipped, needs review.');
 
@@ -171,7 +172,7 @@ class VirtualMachineAgentSyncService
                     ->where('hypervisor_uuid', $diskParams['uuid'])
                     ->first();
 
-                if ($dbVdi && !self::vmRowInPoolOf($computeMember, $dbVdi->iaas_virtual_machine_id)) {
+                if ($dbVdi && !self::rowOwnedBy($computeMember, $dbVdi)) {
                     Log::error('[VirtualMachineAgentSyncService@syncVirtualMachineDisks] Disk ' . $diskParams['uuid'] .
                         ' is recorded on a VM of another compute pool. Skipped, needs review.');
                     continue;
@@ -281,7 +282,7 @@ class VirtualMachineAgentSyncService
                 ->where('hypervisor_uuid', $vifUuid)
                 ->first();
 
-            if ($dbVif && !self::vmRowInPoolOf($computeMember, $dbVif->iaas_virtual_machine_id)) {
+            if ($dbVif && !self::rowOwnedBy($computeMember, $dbVif)) {
                 Log::error('[VirtualMachineAgentSyncService@syncVirtualMachineNetworkCards] VIF ' . $vifUuid .
                     ' is recorded on a VM of another compute pool. Skipped, needs review.');
                 continue;
@@ -388,7 +389,7 @@ class VirtualMachineAgentSyncService
                 ->where('hypervisor_uuid', $disk['uuid'])
                 ->first();
 
-            if ($dbDisk && !self::vmRowInPoolOf($computeMember, $dbDisk->iaas_virtual_machine_id)) {
+            if ($dbDisk && !self::rowOwnedBy($computeMember, $dbDisk)) {
                 Log::error('[VirtualMachineAgentSyncService@syncStorageVolumeDisks] Disk ' . $disk['uuid'] .
                     ' is recorded on a VM of another compute pool. Skipped, needs review.');
                 continue;
@@ -572,27 +573,53 @@ class VirtualMachineAgentSyncService
     }
 
     /**
-     * True when a row's compute pool is the member's own pool. A row with no pool yet (draft)
-     * can be adopted.
+     * True when this VM row may be adopted by the member's report: it is in the member's own
+     * compute pool. A row with no pool is only adopted if it already points at this very member;
+     * otherwise any host could claim an unowned draft by reporting its uuid.
      */
-    private static function inPoolOf(ComputeMembers $computeMember, $poolId): bool
+    private static function vmOwnedBy(ComputeMembers $computeMember, VirtualMachines $vm): bool
     {
-        return $poolId === null || (int) $poolId === (int) $computeMember->iaas_compute_pool_id;
+        if ($vm->iaas_compute_pool_id === null) {
+            return $vm->iaas_compute_member_id !== null
+                && (int) $vm->iaas_compute_member_id === (int) $computeMember->id;
+        }
+
+        return (int) $vm->iaas_compute_pool_id === (int) $computeMember->iaas_compute_pool_id;
     }
 
     /**
-     * Same check for a disk or card, through the VM it points to. Rows with no VM (detached
-     * disks) have no owner pool to protect.
+     * Same check for a disk or card row. With a VM, the VM decides. A detached row has no VM to
+     * ask, so it must at least sit in this member's cloud node: through its storage volume's
+     * storage pool (disk) or its network (card). A row with neither has nothing to protect.
      */
-    private static function vmRowInPoolOf(ComputeMembers $computeMember, $vmId): bool
+    private static function rowOwnedBy(ComputeMembers $computeMember, $row): bool
     {
-        if (!$vmId) {
-            return true;
+        if ($row->iaas_virtual_machine_id) {
+            $vm = VirtualMachines::withoutGlobalScopes()->where('id', $row->iaas_virtual_machine_id)->first();
+
+            return !$vm || self::vmOwnedBy($computeMember, $vm);
         }
 
-        $vm = VirtualMachines::withoutGlobalScopes()->where('id', $vmId)->first();
+        $cloudNodeId = ComputePools::withoutGlobalScopes()
+            ->where('id', $computeMember->iaas_compute_pool_id)
+            ->value('iaas_cloud_node_id');
 
-        return !$vm || self::inPoolOf($computeMember, $vm->iaas_compute_pool_id);
+        if (!empty($row->iaas_storage_volume_id)) {
+            $volume = StorageVolumes::withoutGlobalScopes()->where('id', $row->iaas_storage_volume_id)->first();
+            $poolNode = $volume
+                ? StoragePools::withoutGlobalScopes()->where('id', $volume->iaas_storage_pool_id)->value('iaas_cloud_node_id')
+                : null;
+
+            return $poolNode === null || (int) $poolNode === (int) $cloudNodeId;
+        }
+
+        if (!empty($row->iaas_network_id)) {
+            $networkNode = Networks::withoutGlobalScopes()->where('id', $row->iaas_network_id)->value('iaas_cloud_node_id');
+
+            return $networkNode === null || (int) $networkNode === (int) $cloudNodeId;
+        }
+
+        return true;
     }
 
     private static function findComputeMemberVolume(ComputeMembers $computeMember, string $srUuid): ?ComputeMemberStorageVolumes
