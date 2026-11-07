@@ -72,6 +72,12 @@ class XenServer82AgentDriverTest extends TestCase
             {
                 return $vm;
             }
+
+            // The real sync(), for the test that checks what it writes.
+            public function realSync(VirtualMachines $vm): VirtualMachines
+            {
+                return parent::sync($vm);
+            }
         };
     }
 
@@ -204,6 +210,37 @@ class XenServer82AgentDriverTest extends TestCase
         } finally {
             $this->assertNotContains('xenserver.vm.destroy', array_column($this->sentOperations(), 'operation'));
         }
+    }
+
+    public function test_sync_writes_ram_in_mb_as_an_integer()
+    {
+        // 2 GiB static max must become 2048 (MB), not 2 (GB) or a fraction: the column is MB and an integer.
+        Http::fake(['*' => Http::response($this->ok(['params' => [
+            'power-state' => 'halted', 'VCPUs-max' => '2', 'memory-static-max' => '2147483648',
+        ]]))]);
+
+        // An unsaved model that records what sync() would write instead of touching the DB.
+        $vm = new class extends VirtualMachines {
+            public array $written = [];
+
+            public function update(array $attributes = [], array $options = [])
+            {
+                $this->written = $attributes;
+
+                return true;
+            }
+
+            public function fresh($with = [])
+            {
+                return $this;
+            }
+        };
+        $vm->uuid            = 'vm-db-uuid';
+        $vm->hypervisor_uuid = 'xen-vm-1';
+
+        $this->driver()->realSync($vm);
+
+        $this->assertSame(2048, $vm->written['ram']);
     }
 
     public function test_resume_uses_unpause_for_paused_vm_and_resume_for_suspended_vm()

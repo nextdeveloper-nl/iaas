@@ -169,7 +169,9 @@ class XenServer82AgentDriver implements
         $vm->update([
             'status'            =>  $params['power-state'],
             'cpu'               =>  $params['VCPUs-max'] ?? $vm->cpu,
-            'ram'               =>  isset($params['memory-static-max']) ? $params['memory-static-max'] / 1024 / 1024 / 1024 : $vm->ram,
+            //  iaas_virtual_machines.ram is in MB (Resize and the host sync write MB) and an integer column.
+            //  The SSH driver's sync() divides by 1024 once more, which writes GB into it; not copied here.
+            'ram'               =>  isset($params['memory-static-max']) ? (int) round($params['memory-static-max'] / 1024 / 1024) : $vm->ram,
             'is_snapshot'       =>  ($params['is-a-snapshot'] ?? 'false') === 'true',
             'domain_type'       =>  ($params['hvm'] ?? 'false') === 'true' ? 'HVM' : 'PV',
             'hypervisor_data'   =>  $params,
@@ -191,10 +193,27 @@ class XenServer82AgentDriver implements
     {
         $result = $this->command($vm, 'xenserver.vm.snapshot_create', ['label' => $name]);
 
+        //  The agent (up to v1.3.1) creates the snapshot but does not return its uuid in data.uuid. Look it
+        //  up by name-label in the VM's snapshots, newest first, so a repeated label picks the one just made.
+        //  If a later agent returns data.uuid it is used as is.
+        $snapshotUuid = $result['data']['uuid'] ?? null;
+
+        if (empty($snapshotUuid)) {
+            $snapshots = collect($this->command($vm, 'xenserver.vm.snapshot_list'))
+                ->filter(fn($snapshot) => ($snapshot['name_label'] ?? null) === $name)
+                ->sortByDesc('snapshot_time');
+
+            $snapshotUuid = $snapshots->first()['uuid'] ?? null;
+        }
+
+        if (empty($snapshotUuid)) {
+            throw new XenAgentException('Agent operation xenserver.vm.snapshot_create made no snapshot named "' . $name . '".', 'xenserver.vm.snapshot_create');
+        }
+
         return VirtualMachinesService::create([
             'snapshot_of_virtual_machine'   =>  $vm->id,
             'name'                          =>  $name,
-            'hypervisor_uuid'               =>  $this->newUuid($result, 'xenserver.vm.snapshot_create'),
+            'hypervisor_uuid'               =>  $snapshotUuid,
             'is_snapshot'                   =>  true,
             'is_draft'                      =>  false,
             'os'                            =>  $vm->os,
