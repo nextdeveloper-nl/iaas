@@ -107,8 +107,12 @@ class XenAgentVmImportTest extends TestCase
 
         // Commit.php:~395-440 - pick the storage volume ("star" pool: SSD/NVMe pool of the cloud node)
         $this->step('3. Commit: find the best storage volume (UtilizeStorageVolumes)');
-        $storageVolume = (new UtilizeStorageVolumes($storagePool))->calculate($computeMember, 20);
+        // Local mode follows Commit's pool_type "one" branch: the member's own local volume.
+        $storageVolume = $this->localMode()
+            ? $this->localVolume()
+            : (new UtilizeStorageVolumes($storagePool))->calculate($computeMember, 20);
         $this->assertNotNull($storageVolume, 'No storage volume of the storage pool can take a 20 GB disk.');
+        fwrite(STDERR, "        volume: {$storageVolume->name} (#{$storageVolume->id}), free_hdd={$storageVolume->free_hdd}\n");
 
         // Commit.php:450-470 - import. The driver must implement ProvisioningCapableInterface.
         $this->step('4. Commit: mount the repository and import the image (importFromImage, not lazy)');
@@ -190,6 +194,22 @@ class XenAgentVmImportTest extends TestCase
 
     // -- helpers --------------------------------------------------------------------------------
 
+    private function localMode(): bool
+    {
+        return (bool) env('XEN_AGENT_TEST_LOCAL');
+    }
+
+    /** Commit's pool_type "one" branch: the member's volume flagged is_local_storage. */
+    private function localVolume(): ?StorageVolumes
+    {
+        $cmsv = ComputeMemberStorageVolumes::withoutGlobalScopes()
+            ->where('iaas_compute_member_id', $this->member->id)
+            ->where('is_local_storage', true)
+            ->first();
+
+        return $cmsv ? StorageVolumes::withoutGlobalScopes()->where('id', $cmsv->iaas_storage_volume_id)->first() : null;
+    }
+
     private function step(string $label): void
     {
         fwrite(STDERR, "\n[step] " . $label . "\n");
@@ -207,6 +227,20 @@ class XenAgentVmImportTest extends TestCase
         $image = RepositoryImages::withoutGlobalScopes()->where('uuid', env('XEN_AGENT_TEST_IMAGE'))->firstOrFail();
 
         $repository = Repositories::withoutGlobalScopes()->where('id', $image->iaas_repository_id)->firstOrFail();
+
+        // XEN_AGENT_TEST_LOCAL=1: deploy on the member's local SR the way Commit does for a "one" pool
+        // (the member's volume flagged is_local_storage), using the cloud node's local storage pool.
+        if ($this->localMode()) {
+            $localStoragePool = StoragePools::withoutGlobalScopes()
+                ->where('iaas_cloud_node_id', $pool->iaas_cloud_node_id)
+                ->where('storage_pool_type', 'local')
+                ->first();
+
+            $this->assertNotNull($localStoragePool, 'The cloud node has no local storage pool.');
+            $this->assertNotNull($this->localVolume(), 'The member has no volume flagged is_local_storage with a storage volume.');
+
+            return [$pool, $image, $repository, $localStoragePool];
+        }
 
         // A "star" pool makes the customer pick the shared storage pool (SSD/SAS/NVMe) for the root
         // disk, so a shared volume of this member must belong to a storage pool.

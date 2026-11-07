@@ -418,7 +418,20 @@ class VirtualMachineProvisioningAgentService
         }
 
         if ($vm->status == 'running') {
-            $client->call('xenserver.vbd.plug', ['vbd_uuid' => $vdi->vbd_hypervisor_uuid]);
+            try {
+                $client->call('xenserver.vbd.plug', ['vbd_uuid' => $vdi->vbd_hypervisor_uuid]);
+            } catch (XenAgentException $e) {
+                //  Hot-plug needs the guest tools. Without them the disk is defined on the VM (it appears at
+                //  the next boot) but not plugged; that is not a failed attach, same as for network cards.
+                $message = strtolower($e->getMessage());
+
+                if (!str_contains($message, 'guest tools') && !str_contains($message, 'pv drivers')) {
+                    throw $e;
+                }
+
+                Log::warning('[VirtualMachineProvisioningAgentService@attachDisk] Disk ' . $vdi->uuid .
+                    ' is defined but could not be hot-plugged: ' . $e->getMessage());
+            }
         }
 
         $vdi->updateQuietly([
@@ -442,15 +455,30 @@ class VirtualMachineProvisioningAgentService
 
         $client = ComputeMemberAgentSyncService::client($computeMember);
 
-        try {
-            if ($vm->status == 'running') {
+        //  Unplug and destroy are separate steps: a failed unplug ("already unplugged", or a guest without
+        //  tools) must not skip the destroy, or the disk stays attached and cannot be destroyed later.
+        if ($vm->status == 'running') {
+            try {
                 $client->call('xenserver.vbd.unplug', ['vbd_uuid' => $vdi->vbd_hypervisor_uuid]);
+            } catch (XenAgentException $e) {
+                Log::warning('[VirtualMachineProvisioningAgentService@detachDisk] VBD ' . $vdi->vbd_hypervisor_uuid .
+                    ' was not unplugged, destroying it anyway: ' . $e->getMessage());
             }
+        }
 
+        try {
             $client->call('xenserver.vbd.destroy', ['vbd_uuid' => $vdi->vbd_hypervisor_uuid]);
         } catch (XenAgentException $e) {
+            //  Gone already (destroying the VM removes its VBDs) is fine; anything else is a real failure
+            //  and the row keeps its vbd uuid, so the detach can be tried again.
+            $message = strtolower($e->getMessage());
+
+            if (!str_contains($message, 'does not exist') && !str_contains($message, 'not found')) {
+                throw $e;
+            }
+
             Log::warning('[VirtualMachineProvisioningAgentService@detachDisk] VBD ' . $vdi->vbd_hypervisor_uuid .
-                ' could not be removed (it may be gone already): ' . $e->getMessage());
+                ' was already gone from the host: ' . $e->getMessage());
         }
 
         $vdi->updateQuietly(['vbd_hypervisor_uuid' => null, 'vbd_hypervisor_data' => null]);
