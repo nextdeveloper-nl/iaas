@@ -1278,6 +1278,9 @@ class LocalDiskMigrationService implements MigrationInterface
                 'iam_account_id', 'iam_user_id',
             ]),
             [
+                // VirtualMachinesService::create() takes ram in GB and stores MB, but the old VM's ram is already MB:
+                // passing it as-is would multiply by 1024 again (4096 MB became 4194304 MB). Whole GB go in as GB, the rest as 'NNNmb'.
+                'ram'                          => ($vm->ram % 1024 === 0) ? intdiv((int) $vm->ram, 1024) : ((int) $vm->ram . 'mb'),
                 'hypervisor_uuid'             => $targetVmUuid,
                 'iaas_compute_member_id'      => $migration->target_iaas_compute_member_id,
                 'iaas_cloud_node_id'          => $targetCloudNode?->id,
@@ -1295,7 +1298,12 @@ class LocalDiskMigrationService implements MigrationInterface
             ]
         ));
 
-        // A new VM left by an earlier run may carry the old VM's migrated-out markers; remove them.
+        // A new VM left by an earlier run may carry a wrong ram (MB multiplied by 1024) or the old VM's
+        // migrated-out markers; correct both.
+        if ($newVm->ram != $vm->ram) {
+            $newVm->updateQuietly(['ram' => $vm->ram]);
+        }
+
         if ($existingNewVm) {
             $newVmFeatures = is_array($newVm->features)
                 ? $newVm->features
