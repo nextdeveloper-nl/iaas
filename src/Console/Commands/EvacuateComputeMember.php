@@ -207,6 +207,8 @@ class EvacuateComputeMember extends Command
     /** Shell comment, so --commands-only output is still a valid script. */
     private function emitComment(string $message): void
     {
-        $this->line('# ' . $message);
+        // VM names and error messages are user-controlled: a CR/LF (or other control character) in
+        // them would end the comment and inject a command line into the generated script.
+        $this->line('# ' . preg_replace('/[\x00-\x1f\x7f]/', ' ', $message));
     }
 }
