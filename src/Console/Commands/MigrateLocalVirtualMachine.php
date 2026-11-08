@@ -111,10 +111,7 @@ class MigrateLocalVirtualMachine extends Command
     {
         [$vm, $target] = $this->resolveVmAndTarget();
 
-        $options = $this->buildStorageOptions($vm);
-        if ($type = $this->option('storage-type')) {
-            $options['preferred_storage_type'] = $type;
-        }
+        $options = $this->storageOptions($vm);
 
         $this->info('Proposing evacuation plan...');
         $this->newLine();
@@ -128,10 +125,7 @@ class MigrateLocalVirtualMachine extends Command
     {
         [$vm, $target] = $this->resolveVmAndTarget();
 
-        $options = $this->buildStorageOptions($vm);
-        if ($type = $this->option('storage-type')) {
-            $options['preferred_storage_type'] = $type;
-        }
+        $options = $this->storageOptions($vm);
 
         $this->info('Proposing plan...');
         $plan = EvacuationService::proposePlan($vm, $target, $options);
@@ -459,6 +453,21 @@ class MigrateLocalVirtualMachine extends Command
     // ─────────────────────────────────────────────────────────────────────────
     // RESOLVERS
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Storage options for the plan. An explicit --storage-type wins: the per-disk pins from
+     * buildStorageOptions() take priority over preferred_storage_type in EvacuationService, so they
+     * must not be set when the operator picked the target type (otherwise --storage-type=ssd was
+     * silently overridden and the disks still landed on a local SR).
+     */
+    private function storageOptions(VirtualMachines $vm): array
+    {
+        if ($type = $this->option('storage-type')) {
+            return ['preferred_storage_type' => $type];
+        }
+
+        return $this->buildStorageOptions($vm);
+    }
 
     /**
      * Builds disk_storage_type options so EvacuationService maps each local disk
