@@ -40,6 +40,8 @@ use NextDeveloper\IAM\Helpers\UserHelper;
  */
 class MigrateVirtualMachine extends Command
 {
+    use StreamsMigrationLogs;
+
     protected $signature = 'leo:migrate-vm
         {--step= : Step to run: propose, approve, pre-flight, collect-metadata, coalesce-vhd, shutdown, copy-vhd, rescan-sr, recreate-vm, validate, sync-db, start-vm, run}
         {--vm-id= : UUID of the VirtualMachine (required for propose and approve)}
@@ -54,6 +56,9 @@ class MigrateVirtualMachine extends Command
     public function handle(): int
     {
         UserHelper::setAdminAsCurrentUser();
+
+        // Show the service's step-by-step log lines here (-v adds the hypervisor commands + output).
+        $this->streamMigrationLogs();
 
         $step = $this->option('step');
 
