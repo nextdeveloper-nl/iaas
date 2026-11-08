@@ -1416,17 +1416,15 @@ class LocalDiskMigrationService implements MigrationInterface
 
             $vifParams = $vifParamsByDevice[$deviceNumber] ?? null;
 
-            // Resume after a failed run: this NIC (and its IP reassignment) was already done.
-            if (VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+            // Resume after a failed run: reuse the NIC record created earlier instead of skipping it,
+            // so IP reassignment and VIF locking below still run (both are idempotent).
+            $newNic = VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
                 ->where('iaas_virtual_machine_id', $newVm->id)
                 ->where('device_number', $nic->device_number)
                 ->whereNull('deleted_at')
-                ->exists()) {
-                Log::info(__METHOD__ . ' | VirtualNetworkCard id=' . $nicId . ' already cloned, skipping.');
-                continue;
-            }
+                ->first();
 
-            $newNic = VirtualNetworkCardsService::create(array_merge(
+            $newNic = $newNic ?? VirtualNetworkCardsService::create(array_merge(
                 $nic->only([
                     'name', 'bandwidth_limit', 'device_number', 'is_draft', 'status',
                     'iam_account_id', 'iam_user_id',
@@ -1462,7 +1460,13 @@ class LocalDiskMigrationService implements MigrationInterface
             }
 
             // ── Apply IP locking on the new VIF ──────────────────────────────
-            if ($ipAddresses->isNotEmpty() && !empty($vifParams['uuid'])) {
+            // IPs already moved by an earlier run are on the new NIC, so check there, not the old NIC's list.
+            $hasIps = $ipAddresses->isNotEmpty() || IpAddresses::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_network_card_id', $newNic->id)
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if ($hasIps && !empty($vifParams['uuid'])) {
                 $freshNic = $newNic->fresh();
                 VirtualNetworkCardsXenService::setIpv4Allowed($freshNic);
                 VirtualNetworkCardsXenService::setLockingState($freshNic, VirtualNetworkCardsXenService::LOCKED);
