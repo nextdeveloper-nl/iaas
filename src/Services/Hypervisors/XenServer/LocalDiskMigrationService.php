@@ -1261,9 +1261,15 @@ class LocalDiskMigrationService implements MigrationInterface
 
         // Resume after a failed run: the new VM record may already exist (created by an earlier attempt of
         // this step). Reuse it instead of cloning a second VM; its disks/NICs are skipped below if present.
+        // xe vm-import --preserve keeps the VM's UUID, so the SOURCE VM record has the same hypervisor_uuid as
+        // the new one. Matching on hypervisor_uuid alone picked the source VM itself, and the "resume" then
+        // rewrote the source VM's disks. The match must be another VM, on the target host.
         $existingNewVm = VirtualMachines::withoutGlobalScopes()
             ->where('hypervisor_uuid', $targetVmUuid)
+            ->where('id', '!=', $vm->id)
+            ->where('iaas_compute_member_id', $migration->target_iaas_compute_member_id)
             ->whereNull('deleted_at')
+            ->orderByDesc('id')
             ->first();
 
         $newVm = $existingNewVm ?? VirtualMachinesService::create(array_merge(
