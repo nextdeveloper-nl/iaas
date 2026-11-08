@@ -1335,13 +1335,29 @@ class LocalDiskMigrationService implements MigrationInterface
 
             $newVdiUuid = $vdiUuidMap[$disk->hypervisor_uuid] ?? null;
 
-            // Resume after a failed run: this disk was already cloned onto the new VM.
-            if (VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+            // Resume after a failed run: a disk may already sit on the new VM at this device number
+            // (the table is unique on vm + device_number). Match on device_number, not on hypervisor_uuid,
+            // because an earlier attempt may have stored a different VDI uuid. Re-point it at the current
+            // VDI, volume and pool instead of inserting a duplicate.
+            $existingDisk = VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
                 ->where('iaas_virtual_machine_id', $newVm->id)
-                ->where('hypervisor_uuid', $newVdiUuid ?? $disk->hypervisor_uuid)
+                ->where('device_number', $disk->device_number)
                 ->whereNull('deleted_at')
-                ->exists()) {
-                Log::info(__METHOD__ . ' | VirtualDiskImage id=' . $diskId . ' already cloned, skipping.');
+                ->first();
+
+            if ($existingDisk) {
+                $resumeVolume = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                    ->where('id', $targetStorageVolume['id'])
+                    ->first();
+
+                $existingDisk->updateQuietly([
+                    'hypervisor_uuid'        => $newVdiUuid ?? $disk->hypervisor_uuid,
+                    'iaas_storage_volume_id' => $targetStorageVolume['id'],
+                    'iaas_storage_pool_id'   => $resumeVolume?->iaas_storage_pool_id ?? $existingDisk->iaas_storage_pool_id,
+                ]);
+
+                Log::info(__METHOD__ . ' | VirtualDiskImage id=' . $diskId . ' already cloned (new disk id='
+                    . $existingDisk->id . '), updated its VDI/volume and skipping.');
                 continue;
             }
 
