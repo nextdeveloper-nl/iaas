@@ -112,7 +112,9 @@ class Attach extends AbstractAction
             } catch (\Throwable $e) {
                 Log::error('[VirtualNetworkCards@Attach] Failed to attach network card: ' . $e->getMessage());
                 Events::fire('attach-failed:NextDeveloper\IAAS\VirtualNetworkCards', $vif);
-                $this->setFinished('Virtual machine initiated');
+                // Report the failure instead of ending as success, so callers (Commit) and the action log
+                // show the real cause (e.g. no default interface) and not a later "VIF does not exist" error.
+                $this->setFinishedWithError('Failed to attach network card: ' . $e->getMessage());
             }
 
             return;

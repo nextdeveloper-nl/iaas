@@ -247,6 +247,12 @@ class ComputeMemberXenService extends AbstractXenService
 
         foreach ($networks as $network) {
             foreach ($networksOnMember as $networkOnMember) {
+                // parseListResult() always appends the trailing chunk, so the list ends with null/[] when
+                // the host has no (more) VLANs. Skip such entries instead of reading 'tag' from them,
+                // which raised an "Undefined array key" ErrorException and aborted ComputeMembers\Scan.
+                if(!is_array($networkOnMember) || !isset($networkOnMember['tag']))
+                    continue;
+
                 if($networkOnMember['tag'] == 0 || $networkOnMember['tag'] == -1)
                     continue;
 
