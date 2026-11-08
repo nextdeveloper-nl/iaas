@@ -591,7 +591,8 @@ class XenServer82SshDriver implements
                 'domain_type'   =>  $vmInfo['hvm'] == 'false' ? 'pv' : 'hvm',
                 'cpu'           =>  $vmInfo['VCPUs-max'],
                 'ram'           =>  $vmInfo['memory-static-max'] / 1024 / 1024, //  this comes in bytes, converting to MB,
-                'status'        =>  $vmInfo['power-state'],
+                //  A VM kept after a migration stays 'migrated' (see ScanVirtualMachines).
+                'status'        =>  VirtualMachinesService::isMigratedOut($dbVm) ? 'migrated' : $vmInfo['power-state'],
                 //  Merge so that other keys (e.g. 'agent') set by other sources are not overwritten
                 'available_operations'  =>  array_merge(
                     $dbVm->available_operations ?? [],

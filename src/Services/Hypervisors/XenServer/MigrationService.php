@@ -673,6 +673,22 @@ class MigrationService implements MigrationInterface
         // local/cross) per VHD so the correct host executes each rsync.
         $vhdPaths = $options['coalesced_vhd_paths'];
 
+        // ── New VDI UUID per VHD on the target ───────────────────────────────
+        // The VHD is copied under a freshly generated UUID (file-based SRs take the VDI UUID from the
+        // file name), so the new VM's disks never share a UUID with the old VM's disks that stay on
+        // the source. Otherwise deleting the old VM later (xe vdi-destroy by UUID) could hit the
+        // new VM's disks. Generated once and kept in the migration options so a re-run of this
+        // step reuses the same names (rsync --partial resumes instead of orphaning a half copy).
+        $targetVdiUuids = $options['target_vdi_uuids'] ?? [];
+
+        foreach ($vhdPaths as $vhdPath) {
+            $sourceUuid = basename($vhdPath, '.vhd');
+            $targetVdiUuids[$sourceUuid] = $targetVdiUuids[$sourceUuid] ?? (string) \Illuminate\Support\Str::uuid();
+        }
+
+        $options['target_vdi_uuids'] = $targetVdiUuids;
+        $migration->updateQuietly(['options' => json_encode($options)]);
+
         /**
          * Resolve source SM and path for a single coalesced VHD path.
          * Returns ['sm' => StorageMembers, 'is_local' => bool, 'source_path' => string]
@@ -716,7 +732,7 @@ class MigrationService implements MigrationInterface
             $sourcePath = $vhd['source_path'];
 
             if ($isLocal) {
-                $targetPath = $targetNfsServerPath . '/' . $vdiUuid . '.vhd';
+                $targetPath = $targetNfsServerPath . '/' . $targetVdiUuids[$vdiUuid] . '.vhd';
                 if (!isset($setupDone[$sm->id])) {
                     $commands[] = [
                         'host'    => $sm->name,
@@ -730,7 +746,7 @@ class MigrationService implements MigrationInterface
                     throw new \Exception('Target NFS server missing from block_device_data. Cannot proceed with copy.');
                 }
                 $smMountPoint = '/tmp/migration-' . $migration->uuid . '-' . $sm->id;
-                $targetPath   = $smMountPoint . '/' . $vdiUuid . '.vhd';
+                $targetPath   = $smMountPoint . '/' . $targetVdiUuids[$vdiUuid] . '.vhd';
                 if (!isset($setupDone[$sm->id])) {
                     $commands[] = [
                         'host'    => $sm->name,
@@ -747,7 +763,7 @@ class MigrationService implements MigrationInterface
                     $setupDone[$sm->id] = ['is_local' => false, 'mount_point' => $smMountPoint];
                 } else {
                     $smMountPoint = $setupDone[$sm->id]['mount_point'];
-                    $targetPath   = $smMountPoint . '/' . $vdiUuid . '.vhd';
+                    $targetPath   = $smMountPoint . '/' . $targetVdiUuids[$vdiUuid] . '.vhd';
                 }
             }
 
@@ -816,7 +832,7 @@ class MigrationService implements MigrationInterface
                 $sourcePath = $vhd['source_path'];
 
                 if ($isLocal) {
-                    $targetPath = $targetNfsServerPath . '/' . $vdiUuid . '.vhd';
+                    $targetPath = $targetNfsServerPath . '/' . $targetVdiUuids[$vdiUuid] . '.vhd';
                     if (!isset($mounted[$sm->id])) {
                         self::performStorageCommand(
                             self::sudo('mkdir -p ' . escapeshellarg($targetNfsServerPath), $sm),
@@ -846,7 +862,7 @@ class MigrationService implements MigrationInterface
                     } else {
                         $smMountPoint = $mounted[$sm->id]['mount_point'];
                     }
-                    $targetPath = $smMountPoint . '/' . $vdiUuid . '.vhd';
+                    $targetPath = $smMountPoint . '/' . $targetVdiUuids[$vdiUuid] . '.vhd';
                 }
 
                 $progress = 46 + ($index * $progressPerVhd);
@@ -892,7 +908,8 @@ class MigrationService implements MigrationInterface
                 $copiedPaths[] = [
                     'vdi_uuid'    => $vdiUuid,
                     'source_path' => $sourcePath,
-                    'target_path' => $targetNfsServerPath . '/' . $vdiUuid . '.vhd',
+                    'target_path' => $targetNfsServerPath . '/' . $targetVdiUuids[$vdiUuid] . '.vhd',
+                    'target_vdi_uuid' => $targetVdiUuids[$vdiUuid],
                     'size_bytes'  => $sourceSize,
                 ];
             }
@@ -974,18 +991,20 @@ class MigrationService implements MigrationInterface
         Log::info(__METHOD__ . ' | Found ' . count($targetVdisByUuid) . ' VDI(s) in target SR after scan');
 
         // ── Match each copied VHD to its VDI on the target ───────────────────
-        // VHD files preserve their VDI UUID inside the file metadata, so xe sr-scan
-        // registers them with the same UUID as on the source.
+        // xe sr-scan registers each VHD under the UUID in its file name, which copyVhdFiles
+        // generated fresh (target_vdi_uuid), so the map is source UUID -> new UUID.
         $vdiUuidMap  = [];
         $unmatched   = [];
 
         foreach ($options['copied_vhd_paths'] as $copied) {
             $sourceVdiUuid = $copied['vdi_uuid'];
+            // The VHD was copied under a new UUID (see copyVhdFiles); older migrations kept the source UUID.
+            $targetVdiUuid = $copied['target_vdi_uuid'] ?? $sourceVdiUuid;
 
-            if (isset($targetVdisByUuid[$sourceVdiUuid])) {
-                $vdiUuidMap[$sourceVdiUuid] = $sourceVdiUuid;
+            if (isset($targetVdisByUuid[$targetVdiUuid])) {
+                $vdiUuidMap[$sourceVdiUuid] = $targetVdiUuid;
 
-                Log::info(__METHOD__ . ' | Matched VDI: ' . $sourceVdiUuid);
+                Log::info(__METHOD__ . ' | Matched VDI: ' . $sourceVdiUuid . ' -> ' . $targetVdiUuid);
             } else {
                 $unmatched[] = $sourceVdiUuid;
 
@@ -1492,7 +1511,23 @@ class MigrationService implements MigrationInterface
         // ── Flag original VM as migrated ──────────────────────────────────────
         // status = 'migrated' tells the background scanner (and operators) that
         // this record has been superseded by the cloned VM on the target host.
-        $vm->updateQuietly(['status' => 'migrated']);
+        // features.migrated_out_at marks when the old VM stopped being the live one: billing ends
+        // there, exactly when the new VM's own billing starts (its created_at), so there is no
+        // overlap and no gap. The old VM is kept (not deleted) until its owner or an admin deletes it.
+        // NOTE: deliberately not 'migrated_at' — on a cloned VM that key means "arrived here", and a VM
+        // can be migrated more than once (A -> B -> C).
+        $oldFeatures = is_array($vm->features)
+            ? $vm->features
+            : (json_decode($vm->features ?? '{}', true) ?? []);
+
+        $vm->updateQuietly([
+            'status'   => 'migrated',
+            'features' => array_merge($oldFeatures, [
+                'migrated_out_at'                  => ($newVm->created_at ?? now())->toIso8601String(),
+                'migrated_to_virtual_machine_uuid' => $newVm->uuid,
+                'migrated_out_migration_uuid'      => $migration->uuid,
+            ]),
+        ]);
 
         // ── Clone VirtualDiskImages ───────────────────────────────────────────
         $storageMapping = $options['storage_mapping'] ?? [];
@@ -1710,6 +1745,7 @@ class MigrationService implements MigrationInterface
             'source_metadata',
             'coalesced_vhd_paths',
             'copied_vhd_paths',
+            'target_vdi_uuids',
             'vdi_uuid_map',
             'target_vm_uuid',
             'target_vm_id',

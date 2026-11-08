@@ -7,6 +7,7 @@ use NextDeveloper\Commons\Services\CommentsService;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Contracts\ConfigurationIsoCapableInterface;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
 
@@ -43,6 +44,14 @@ class ForceRestart extends AbstractAction
 
         if($this->model->deleted_at != null) {
             $this->setFinished('I cannot complete this process because the VM is already deleted');
+            return;
+        }
+
+        //  The old copy of a migration is kept only until it is deleted. Starting it would run two
+        //  VMs with the same MAC and IP addresses, so every power-on path refuses it.
+        if(VirtualMachinesService::isMigratedOut($this->model)) {
+            CommentsService::createSystemComment('Cannot force restart this virtual machine because it was migrated to another host. Use the migrated virtual machine or delete this one.', $this->model);
+            $this->setFinished('This virtual machine was migrated, therefore I cannot continue.');
             return;
         }
 

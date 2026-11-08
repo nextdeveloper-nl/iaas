@@ -21,6 +21,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\ComputeMemberXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualDiskImageXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualMachinesXenService;
 use NextDeveloper\IAAS\Services\Hypervisors\VirtualMachineManager;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
@@ -132,7 +133,9 @@ class ScanVirtualMachines extends AbstractAction
                     'domain_type'   =>  $vmInfo['hvm'] == 'false' ? 'pv' : 'hvm',
                     'cpu'           =>  $vmInfo['VCPUs-max'],
                     'ram'           =>  $vmInfo['memory-static-max'] / 1024 / 1024, //  this comes in bytes, conterting to MB,
-                    'status'        =>  $vmInfo['power-state'],
+                    // A VM kept after a migration stays 'migrated' (its power state is irrelevant, it must not
+                    // look like a normal halted VM that can be started next to its replacement).
+                    'status'        =>  VirtualMachinesService::isMigratedOut($dbVm) ? 'migrated' : $vmInfo['power-state'],
                     // Merge so that other keys (e.g. 'agent') set by other sources are not overwritten
                     'available_operations'  =>  array_merge(
                         $dbVm->available_operations ?? [],

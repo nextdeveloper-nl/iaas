@@ -16,8 +16,9 @@ use NextDeveloper\IAM\Helpers\UserHelper;
 /**
  * Step-by-step local-disk VM migration command.
  *
- * Migrates VMs whose disks reside on local (EXT/LVM) SRs by streaming
- * `xe vm-export | ssh ... xe vm-import` directly between hypervisors —
+ * Migrates VMs whose disks reside on local (EXT/LVM) SRs by exporting the VM to an
+ * XVA file on a shared NFS directory (`xe vm-export`) and importing it on the
+ * target hypervisor from the same directory (`xe vm-import`) —
  * xe handles the disk copy and VM reconstruction itself, no NFS storage
  * member or manual VHD/VM rebuild required.
  *
@@ -53,9 +54,10 @@ class MigrateLocalVirtualMachine extends Command
         {--migration-id= : UUID of an existing VirtualMachineMigrations record (required for steps 3-12)}
         {--storage-type= : Preferred storage type for propose step (e.g. local, lvm, nfs)}
         {--force-delete-snapshots : Allow deletion of VM snapshots during coalesce-vhd step}
+        {--nfs-share= : NFS share (server:/path) mounted on both hosts to hold the exported XVA file; used by approve, run and copy-vhd (default: IAAS_MIGRATION_NFS_SHARE)}
         {--dry-run : For copy-vhd and recreate-vm: resolve and print all commands without executing them}';
 
-    protected $description = 'Run local-disk VM migration steps one by one (xe vm-export | ssh xe vm-import stream)';
+    protected $description = 'Run local-disk VM migration steps one by one (xe vm-export to shared NFS, xe vm-import from it)';
 
     public function handle(): int
     {
@@ -144,6 +146,9 @@ class MigrateLocalVirtualMachine extends Command
         }
 
         $migration = EvacuationService::approvePlan($plan);
+
+        // Remember the NFS share on the migration so later steps (run, copy-vhd) need no flag.
+        $this->storeNfsShare($migration);
 
         $this->newLine();
         $this->info('Migration record created.');
@@ -245,10 +250,11 @@ class MigrateLocalVirtualMachine extends Command
         }
 
         $migration->updateQuietly(['options' => json_encode($options)]);
+        $this->storeNfsShare($migration);
 
         $service = new LocalDiskMigrationService();
 
-        $this->info('[Step 5] ' . ($this->option('dry-run') ? 'Resolving' : 'Streaming') . ' VM export/import (xe vm-export | ssh xe vm-import)...');
+        $this->info('[Step 5] ' . ($this->option('dry-run') ? 'Resolving' : 'Running') . ' VM export -> shared NFS -> import (xe vm-export, xe vm-import)...');
         $service->copyVhdFiles($migration);
 
         $fresh   = $migration->fresh();
@@ -256,12 +262,11 @@ class MigrateLocalVirtualMachine extends Command
 
         if (!empty($options['dry_run']) && !empty($options['dry_run_commands'])) {
             $this->newLine();
-            $this->line('Commands that <fg=yellow>would</> be executed on <fg=cyan>'
-                . ($options['dry_run_commands'][0]['host'] ?? 'source host') . '</>:');
+            $this->line('Commands that <fg=yellow>would</> be executed (host shown per command):');
             $this->newLine();
 
             foreach ($options['dry_run_commands'] as $i => $cmd) {
-                $this->line(sprintf('<fg=gray>[%d]</> <fg=yellow>%s</>', $i + 1, $cmd['note']));
+                $this->line(sprintf('<fg=gray>[%d]</> <fg=yellow>%s</> <fg=cyan>(on %s)</>', $i + 1, $cmd['note'], $cmd['host'] ?? 'source host'));
                 $this->line('    ' . $cmd['command']);
                 $this->newLine();
             }
@@ -406,6 +411,8 @@ class MigrateLocalVirtualMachine extends Command
             return;
         }
 
+        $this->storeNfsShare($migration);
+
         $service = new LocalDiskMigrationService();
 
         $this->info('Starting full local-disk migration...');
@@ -415,6 +422,30 @@ class MigrateLocalVirtualMachine extends Command
         $this->newLine();
         $this->info('Migration complete. Status: ' . $fresh->status);
         $this->printMigrationSummary($fresh);
+    }
+
+    /**
+     * Persists --nfs-share into the migration options (the service reads options.nfs_share, then
+     * falls back to config iaas.migration.nfs_share / IAAS_MIGRATION_NFS_SHARE). No-op without the flag.
+     */
+    private function storeNfsShare(VirtualMachineMigrations $migration): void
+    {
+        $nfsShare = $this->option('nfs-share');
+
+        if (empty($nfsShare)) {
+            return;
+        }
+
+        if (!str_contains($nfsShare, ':')) {
+            throw new \InvalidArgumentException('--nfs-share must look like <server>:/<path>, got: ' . $nfsShare);
+        }
+
+        $fresh   = $migration->fresh();
+        $options = is_array($fresh->options) ? $fresh->options : (json_decode($fresh->options, true) ?? []);
+
+        $options['nfs_share'] = $nfsShare;
+
+        $migration->updateQuietly(['options' => json_encode($options)]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -585,7 +616,7 @@ class MigrateLocalVirtualMachine extends Command
             ['collect-metadata', 'Collect VM, disk, and NIC metadata from source'],
             ['coalesce-vhd',     'Check snapshots, trigger SR scan, wait for flat VHD'],
             ['shutdown',         'Gracefully shut down the source VM'],
-            ['copy-vhd',         'Stream xe vm-export | ssh xe vm-import from source to target hypervisor'],
+            ['copy-vhd',         'Mount shared NFS on both hosts, xe vm-export to it from source, xe vm-import from it on target'],
             ['rescan-sr',        'Match imported disks to source metadata by VBD device number'],
             ['recreate-vm',      'Destroy imported VIFs and recreate them on the correct target network'],
             ['validate',         'Verify recreated VM has correct vCPUs, memory, disks, NICs'],

@@ -30,8 +30,9 @@ use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
  * Differs from MigrationService (NFS-based) in three areas:
  *  - preFlightChecks: verifies local SR mount paths instead of NFS mounts,
  *    and verifies passwordless SSH from source hypervisor to target hypervisor.
- *  - copyVhdFiles: rsyncs VHDs directly between hypervisors over SSH
- *    (no storage member, no NFS mount intermediary).
+ *  - copyVhdFiles: exports the VM to an XVA file on a shared NFS directory mounted
+ *    on the source hypervisor, then mounts the same directory on the target
+ *    hypervisor and imports from it (no storage member involved).
  *  - rescanTargetSr: same xe sr-scan logic; local SR paths are still under
  *    /var/run/sr-mount/ for EXT-type SRs, so no structural change needed.
  *
@@ -742,17 +743,29 @@ class LocalDiskMigrationService implements MigrationInterface
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // STEP 5 — Stream the whole VM (disks + metadata) straight from source to
-    //           target with `xe vm-export | ssh ... xe vm-import`, instead of
-    //           rsyncing raw VHD files and reconstructing the VM by hand.
+    // STEP 5 — Move the whole VM (disks + metadata) to the target through a
+    //           shared NFS directory instead of a one-shot
+    //           `xe vm-export | ssh xe vm-import` pipe (the pipe did not work
+    //           reliably) or a host-to-host file copy:
+    //             1. mount the NFS share on the source host
+    //             2. xe vm-export  → XVA file on the share
+    //             3. mount the NFS share on the target host
+    //             4. xe vm-import  ← same XVA file, read from the share
+    //             5. delete the XVA file, unmount + remove the mount point on both hosts
+    //           The share is options.nfs_share ("server:/export/path"), falling
+    //           back to config('iaas.migration.nfs_share'). Hypervisors run xe
+    //           as root, so the export must allow root writes (no_root_squash).
     //           xe handles the SR-specific disk format (LVM/EXT) internally,
-    //           so this works uniformly regardless of source/target SR type —
-    //           the file-copy approach below this comment used to fail here
-    //           because it depended on brittle VHD-path/coalesce assumptions
-    //           per SR type. `--preserve` keeps VIF MAC addresses from source;
-    //           network attachment is still fixed up in recreateVmOnTarget()
-    //           since imported VIFs reference source network UUIDs that
-    //           usually don't exist on the target pool.
+    //           so this works uniformly regardless of source/target SR type.
+    //           `--preserve` keeps VIF MAC addresses from source; network
+    //           attachment is still fixed up in recreateVmOnTarget() since
+    //           imported VIFs reference source network UUIDs that usually
+    //           don't exist on the target pool.
+    //
+    //           A finished export is recorded in options.export_done, so
+    //           re-running this step after a failed import only repeats the
+    //           import. Mounts are always released at the end of the step; on
+    //           failure the XVA file stays on the share for the retry.
     // ─────────────────────────────────────────────────────────────────────────
 
     public function copyVhdFiles(VirtualMachineMigrations $migration): void
@@ -767,11 +780,19 @@ class LocalDiskMigrationService implements MigrationInterface
             $migration,
             'copying-vhd',
             45,
-            $isDryRun ? 'Dry-run: resolving export/import command' : 'Streaming VM export/import to target'
+            $isDryRun ? 'Dry-run: resolving mount/export/import commands' : 'Mounting NFS share on source'
         );
 
         if (empty($options['coalesced_vhd_paths'])) {
             throw new \Exception('No coalesced VHD paths found. Run validateAndCoalesceVhd before this step.');
+        }
+
+        $nfsShare = $options['nfs_share'] ?? config('iaas.migration.nfs_share');
+
+        if (empty($nfsShare) || !str_contains($nfsShare, ':')) {
+            throw new \Exception(
+                'No NFS share configured. Pass --nfs-share=<server>:/<path> to copy-vhd or set IAAS_MIGRATION_NFS_SHARE.'
+            );
         }
 
         $source = ComputeMembers::withoutGlobalScope(AuthorizationScope::class)
@@ -790,33 +811,39 @@ class LocalDiskMigrationService implements MigrationInterface
             ->where('id', $migration->target_iaas_storage_volume_id)
             ->firstOrFail();
 
-        $importCmd = 'xe vm-import filename=/dev/stdin'
+        // Same mount point on both hosts; the migration UUID keeps concurrent migrations apart.
+        $mountPoint = '/mnt/migration-' . $migration->uuid;
+        $exportFile = $mountPoint . '/' . $migration->uuid . '.xva';
+
+        $exportCmd = 'xe vm-export uuid=' . escapeshellarg($vm->hypervisor_uuid)
+            . ' filename=' . escapeshellarg($exportFile);
+
+        $importCmd = 'xe vm-import filename=' . escapeshellarg($exportFile)
             . ' sr-uuid=' . escapeshellarg($targetStorageVolume->hypervisor_uuid)
             . ' --preserve';
 
-        [$sshPrefix, $sshPrefixRedacted] = self::crossHostSshPrefix($target);
-
-        $pipeCmd = 'xe vm-export uuid=' . escapeshellarg($vm->hypervisor_uuid) . ' filename=/dev/stdout'
-            . ' | ' . $sshPrefix . ' ' . escapeshellarg($importCmd);
-        $pipeCmdRedacted = 'xe vm-export uuid=' . escapeshellarg($vm->hypervisor_uuid) . ' filename=/dev/stdout'
-            . ' | ' . $sshPrefixRedacted . ' ' . escapeshellarg($importCmd);
-
         if ($isDryRun) {
-            // Redacted form only — the real command embeds the target host's plaintext
-            // ssh_password and must never be logged or persisted to migration options.
-            $options['dry_run_commands'] = [[
-                'host'    => $source->name,
-                'command' => $pipeCmdRedacted,
-                'note'    => 'Stream-export VM "' . $vm->name . '" → import on ' . $target->name
-                    . ' (SR ' . $targetStorageVolume->name . ')',
-            ]];
+            $options['dry_run_commands'] = [
+                ['host' => $source->name, 'command' => self::nfsMountCommand($nfsShare, $mountPoint),
+                    'note' => 'Mount NFS share on source'],
+                ['host' => $source->name, 'command' => $exportCmd,
+                    'note' => 'Export VM "' . $vm->name . '" to the share'],
+                ['host' => $target->name, 'command' => self::nfsMountCommand($nfsShare, $mountPoint),
+                    'note' => 'Mount NFS share on target'],
+                ['host' => $target->name, 'command' => $importCmd,
+                    'note' => 'Import on ' . $target->name . ' (SR ' . $targetStorageVolume->name . ')'],
+                ['host' => $target->name, 'command' => 'rm -f ' . escapeshellarg($exportFile),
+                    'note' => 'Delete the export file from the share'],
+                ['host' => $source->name . ' + ' . $target->name, 'command' => self::nfsUnmountCommand($mountPoint),
+                    'note' => 'Unmount the share and remove the mount point on both hosts'],
+            ];
 
             $migration->updateQuietly([
                 'options'      => json_encode($options),
-                'step_message' => 'Dry-run complete — export/import command listed in options.dry_run_commands',
+                'step_message' => 'Dry-run complete — commands listed in options.dry_run_commands',
             ]);
 
-            Log::info(__METHOD__ . ' | Dry-run: export/import command listed, nothing executed.');
+            Log::info(__METHOD__ . ' | Dry-run: mount/export/import commands listed, nothing executed.');
 
             return;
         }
@@ -824,28 +851,81 @@ class LocalDiskMigrationService implements MigrationInterface
         unset($options['dry_run'], $options['dry_run_commands']);
         $migration->updateQuietly(['options' => json_encode($options)]);
 
-        Log::info(__METHOD__ . ' | Starting export/import stream: ' . $source->name . ' → ' . $target->name
-            . ' (SR ' . $targetStorageVolume->hypervisor_uuid . ')');
+        $mountedOn = [];
 
-        $result = self::performCommand($pipeCmd, $source, $pipeCmdRedacted);
+        try {
+            // ── Export (skipped when a previous run already finished it) ─────
+            if (empty($options['export_done'])) {
+                self::mountNfs($nfsShare, $mountPoint, $source);
+                $mountedOn[] = $source;
 
-        $outputLines = preg_split('/\r\n|\r|\n/', trim($result['output'] ?? ''));
-        $newVmUuid   = trim((string) end($outputLines));
+                $this->updateStep($migration, 'copying-vhd', 48, 'Exporting VM to ' . $nfsShare);
 
-        if (!preg_match('/^[0-9a-f-]{36}$/i', $newVmUuid)) {
-            throw new \Exception(
-                'vm-export/vm-import did not return a valid VM UUID. Output: ' . trim($result['output'] ?? '')
-                . (!empty($result['error']) ? ' | Error: ' . trim($result['error']) : '')
-            );
+                Log::info(__METHOD__ . ' | Exporting VM to ' . $exportFile . ' on ' . $source->name);
+
+                $result = self::performCommand($exportCmd, $source);
+
+                if (self::remoteFileSize($exportFile, $source) === null) {
+                    // Drop the partial file so a retry starts from a clean export.
+                    self::performCommand('rm -f ' . escapeshellarg($exportFile), $source);
+
+                    throw new \Exception(
+                        'vm-export did not produce ' . $exportFile . ' on ' . $source->name
+                        . '. Output: ' . trim($result['output'] ?? '')
+                        . (!empty($result['error']) ? ' | Error: ' . trim($result['error']) : '')
+                        . ' — check free space on the NFS share.'
+                    );
+                }
+
+                $options['export_done'] = true;
+                $migration->updateQuietly(['options' => json_encode($options)]);
+
+                $this->updateStep($migration, 'copying-vhd', 58, 'VM exported to the NFS share');
+            } else {
+                Log::info(__METHOD__ . ' | Export already done, skipping.');
+            }
+
+            // ── Import ───────────────────────────────────────────────────────
+            self::mountNfs($nfsShare, $mountPoint, $target);
+            $mountedOn[] = $target;
+
+            if (self::remoteFileSize($exportFile, $target) === null) {
+                throw new \Exception('Export file ' . $exportFile . ' is not visible on ' . $target->name
+                    . ' — check that both hosts mount the same share (' . $nfsShare . ').');
+            }
+
+            $this->updateStep($migration, 'copying-vhd', 62, 'Importing VM on ' . $target->name);
+
+            Log::info(__METHOD__ . ' | Importing on ' . $target->name . ' (SR ' . $targetStorageVolume->hypervisor_uuid . ')');
+
+            $result = self::performCommand($importCmd, $target);
+
+            $outputLines = preg_split('/\r\n|\r|\n/', trim($result['output'] ?? ''));
+            $newVmUuid   = trim((string) end($outputLines));
+
+            if (!preg_match('/^[0-9a-f-]{36}$/i', $newVmUuid)) {
+                throw new \Exception(
+                    'vm-import did not return a valid VM UUID. Output: ' . trim($result['output'] ?? '')
+                    . (!empty($result['error']) ? ' | Error: ' . trim($result['error']) : '')
+                    . ' — re-run this step to retry the import (the export file is kept on the share).'
+                );
+            }
+
+            Log::info(__METHOD__ . ' | Import complete — new VM UUID on target: ' . $newVmUuid);
+
+            $options['target_vm_uuid'] = $newVmUuid;
+            $migration->updateQuietly(['options' => json_encode($options)]);
+
+            // The XVA is as big as the VM — remove it from the share now that the import succeeded.
+            self::performCommand('rm -f ' . escapeshellarg($exportFile), $target);
+
+            $this->updateStep($migration, 'copying-vhd', 70, 'VM exported and imported as ' . $newVmUuid);
+        } finally {
+            // Always release the mounts, success or failure.
+            foreach ($mountedOn as $host) {
+                self::performCommand(self::nfsUnmountCommand($mountPoint), $host);
+            }
         }
-
-        Log::info(__METHOD__ . ' | Import complete — new VM UUID on target: ' . $newVmUuid);
-
-        $options['target_vm_uuid'] = $newVmUuid;
-
-        $migration->updateQuietly(['options' => json_encode($options)]);
-
-        $this->updateStep($migration, 'copying-vhd', 70, 'VM streamed and imported as ' . $newVmUuid);
 
         Log::info(__METHOD__ . ' | VM export/import complete for migration: ' . $migration->uuid);
     }
@@ -1220,7 +1300,25 @@ class LocalDiskMigrationService implements MigrationInterface
         Log::info(__METHOD__ . ' | Cloned VirtualMachine: new_id=' . $newVm->id . ', hypervisor_uuid=' . $targetVmUuid);
 
         // ── Flag original VM as migrated ──────────────────────────────────────
-        $vm->updateQuietly(['status' => 'migrated']);
+        // status = 'migrated' tells the background scanner (and operators) that
+        // this record has been superseded by the cloned VM on the target host.
+        // features.migrated_out_at marks when the old VM stopped being the live one: billing ends
+        // there, exactly when the new VM's own billing starts (its created_at), so there is no
+        // overlap and no gap. The old VM is kept (not deleted) until its owner or an admin deletes it.
+        // NOTE: deliberately not 'migrated_at' — on a cloned VM that key means "arrived here", and a VM
+        // can be migrated more than once (A -> B -> C).
+        $oldFeatures = is_array($vm->features)
+            ? $vm->features
+            : (json_decode($vm->features ?? '{}', true) ?? []);
+
+        $vm->updateQuietly([
+            'status'   => 'migrated',
+            'features' => array_merge($oldFeatures, [
+                'migrated_out_at'                  => ($newVm->created_at ?? now())->toIso8601String(),
+                'migrated_to_virtual_machine_uuid' => $newVm->uuid,
+                'migrated_out_migration_uuid'      => $migration->uuid,
+            ]),
+        ]);
 
         // ── Clone VirtualDiskImages from storage_mapping ──────────────────────
         $storageMapping = $options['storage_mapping'] ?? [];
@@ -1433,6 +1531,7 @@ class LocalDiskMigrationService implements MigrationInterface
             'rollback_snapshot',
             'dry_run_commands',
             'dry_run_commands_recreate',
+            'export_done',
         ] as $key) {
             unset($options[$key]);
         }
@@ -1682,6 +1781,44 @@ class LocalDiskMigrationService implements MigrationInterface
             . ' ' . escapeshellarg('root@' . $targetIp);
 
         return [$real, $redacted];
+    }
+
+    /** Idempotent: creates the mount point and mounts the share unless it is already mounted. */
+    private static function nfsMountCommand(string $share, string $mountPoint): string
+    {
+        return 'mkdir -p ' . escapeshellarg($mountPoint)
+            . ' && (mountpoint -q ' . escapeshellarg($mountPoint)
+            . ' || mount -t nfs ' . escapeshellarg($share) . ' ' . escapeshellarg($mountPoint) . ')';
+    }
+
+    private static function nfsUnmountCommand(string $mountPoint): string
+    {
+        return '(umount ' . escapeshellarg($mountPoint) . '; rmdir ' . escapeshellarg($mountPoint) . ') 2>/dev/null || true';
+    }
+
+    private static function mountNfs(string $share, string $mountPoint, ComputeMembers $host): void
+    {
+        $result = self::performCommand(self::nfsMountCommand($share, $mountPoint), $host);
+
+        $check = trim(self::performCommand(
+            'mountpoint -q ' . escapeshellarg($mountPoint) . ' && echo ok || echo fail',
+            $host
+        )['output'] ?? '');
+
+        if ($check !== 'ok') {
+            throw new \Exception('Failed to mount NFS share ' . $share . ' at ' . $mountPoint . ' on ' . $host->name
+                . (!empty($result['error']) ? ': ' . trim($result['error']) : ''));
+        }
+
+        Log::info(__METHOD__ . ' | Mounted ' . $share . ' at ' . $mountPoint . ' on ' . $host->name);
+    }
+
+    /** File size in bytes on the host, or null if the file does not exist. */
+    private static function remoteFileSize(string $path, ComputeMembers $host): ?int
+    {
+        $out = trim(self::performCommand('stat -c %s ' . escapeshellarg($path) . ' 2>/dev/null', $host)['output'] ?? '');
+
+        return ctype_digit($out) ? (int) $out : null;
     }
 
     private static function parseVmDiskList(string $output): array

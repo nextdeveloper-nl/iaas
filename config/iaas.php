@@ -94,4 +94,9 @@ return [
             'read_enabled' => env('ELASTICSEARCH_READ_VIRTUAL_MACHINES', false),
         ],
     ],
+    'migration' => [
+        //  NFS share (server:/export/path) that source and target hypervisors both mount
+        //  to hold the XVA file when migrating local-disk VMs (leo:migrate-local-vm copy-vhd).
+        'nfs_share' => env('IAAS_MIGRATION_NFS_SHARE'),
+    ],
 ];

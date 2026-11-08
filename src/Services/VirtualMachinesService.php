@@ -1203,6 +1203,20 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         return $vm->fresh();
     }
 
+    /**
+     * Whether this VM is the old copy of a migration: the migration services keep it (status 'migrated')
+     * until its owner or an admin deletes it, and stamp features.migrated_out_at on it. Checked on the
+     * features key, not on status, because hypervisor scans overwrite status with the power state.
+     */
+    public static function isMigratedOut(VirtualMachines $vm): bool
+    {
+        $features = is_array($vm->features)
+            ? $vm->features
+            : (json_decode($vm->features ?? '{}', true) ?? []);
+
+        return !empty($features['migrated_out_at']);
+    }
+
     public static function fixHostname(VirtualMachines $vm)
     {
         if (!$vm->hostname) {

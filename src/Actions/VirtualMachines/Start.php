@@ -50,6 +50,14 @@ class Start extends AbstractAction
             return;
         }
 
+        //  The old copy of a migration is kept only until it is deleted. Starting it would run two
+        //  VMs with the same MAC and IP addresses, so every power-on path refuses it.
+        if(VirtualMachinesService::isMigratedOut($this->model)) {
+            CommentsService::createSystemComment('Cannot start this virtual machine because it was migrated to another host. Use the migrated virtual machine or delete this one.', $this->model);
+            $this->setFinished('This virtual machine was migrated, therefore I cannot continue.');
+            return;
+        }
+
         if($this->model->is_locked) {
             CommentsService::createSystemComment('Cannot start this the virtual machine because it is locked.', $this->model);
             $this->setFinished('Virtual machine is locked, therefore I cannot continue.');
