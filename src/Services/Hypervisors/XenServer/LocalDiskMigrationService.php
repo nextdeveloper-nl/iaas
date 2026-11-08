@@ -621,10 +621,16 @@ class LocalDiskMigrationService implements MigrationInterface
             }
 
             if (!$coalesced) {
-                throw new \Exception(
-                    'VHD "' . $vhdPath . '" still has a parent chain after ' . ($maxAttempts * 10) . ' seconds. '
-                    . 'Coalesce did not complete in time.'
-                );
+                // The data is moved with xe vm-export / vm-import (XVA), which reads the VDI through
+                // the full parent chain and writes it flat. A chain left by a slow coalesce is
+                // therefore harmless for the copy, so this is a warning and no longer fails the step.
+                $warning = 'VHD "' . $vhdPath . '" still has a parent chain after ' . ($maxAttempts * 10)
+                    . ' seconds (coalesce not finished); continuing, XVA export reads through the chain.';
+
+                Log::warning(__METHOD__ . ' | ' . $warning);
+                $this->updateStep($migration, 'validating-vhd', 30, $warning);
+
+                $options['coalesce_warnings'][] = $warning;
             }
 
             $coalescedDisks[] = $vhdPath;
@@ -635,7 +641,7 @@ class LocalDiskMigrationService implements MigrationInterface
         $migration->updateQuietly(['options' => json_encode($options)]);
 
         $this->updateStep($migration, 'validating-vhd', 35,
-            'VHD validation complete — ' . count($coalescedDisks) . ' flat VHD(s) ready for copy');
+            'VHD validation complete — ' . count($coalescedDisks) . ' VHD(s) ready for copy');
 
         Log::info(__METHOD__ . ' | All VHDs coalesced and verified for migration: ' . $migration->uuid);
     }
