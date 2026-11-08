@@ -198,57 +198,41 @@ class LocalDiskMigrationService implements MigrationInterface
         $options['target_sr_mount_path'] = $targetSrPath;
         $migration->updateQuietly(['options' => json_encode($options)]);
 
-        // ── CHECK 7: sshpass is available on the source host ───────────────────
-        // Hypervisors aren't assumed to have passwordless key trust between
-        // them, so the cross-host hop in copyVhdFiles() authenticates with the
-        // target's own stored ssh_password (the same credential this app uses
-        // to reach it directly) via sshpass. Install it on the fly if missing.
-        $this->updateStep($migration, 'pre-flight-checks', 10, 'Verifying sshpass is available on source host');
+        // ── CHECK 7: shared NFS directory is mountable and writable on both hosts ──
+        // copyVhdFiles() exports to / imports from an NFS share mounted on both hypervisors (no
+        // host-to-host SSH, so no sshpass). Mount it on each host at a throw-away mount point, write
+        // and remove a test file (catches root_squash / read-only exports), then unmount.
+        $this->updateStep($migration, 'pre-flight-checks', 10, 'Verifying shared NFS directory on both hosts');
 
-        $sshpassCheck = trim(self::performCommand(
-            'command -v sshpass >/dev/null 2>&1 && echo ok || echo missing',
-            $source
-        )['output'] ?? '');
+        $nfsShare = $options['nfs_share'] ?? config('iaas.migration.nfs_share');
 
-        if ($sshpassCheck !== 'ok') {
-            self::performCommand(
-                '(yum install -y sshpass || apt-get install -y sshpass) >/dev/null 2>&1',
-                $source
-            );
-
-            $sshpassCheck = trim(self::performCommand(
-                'command -v sshpass >/dev/null 2>&1 && echo ok || echo missing',
-                $source
-            )['output'] ?? '');
-        }
-
-        if ($sshpassCheck !== 'ok') {
+        if (empty($nfsShare) || !str_contains($nfsShare, ':')) {
             throw new \Exception(
-                '"sshpass" is not installed on source host "' . $source->name . '" and could not be installed '
-                . 'automatically. Install it manually (e.g. "yum install -y sshpass") — it\'s required to '
-                . 'authenticate the cross-host export/import stream with the target host\'s password.'
+                'No NFS share configured. Pass --nfs-share=<server>:/<path> or set IAAS_MIGRATION_NFS_SHARE.'
             );
         }
 
-        // ── CHECK 8: Source hypervisor can reach target hypervisor via SSH ─────
-        // Required for the export/import stream in copyVhdFiles.
-        $this->updateStep($migration, 'pre-flight-checks', 11,
-            'Verifying SSH reachability from source to target hypervisor');
+        $checkMountPoint = '/mnt/migration-check-' . $migration->uuid;
+        $checkFile       = $checkMountPoint . '/.write-test-' . $migration->uuid;
 
-        [$sshPrefix, $sshPrefixRedacted] = self::crossHostSshPrefix($target);
+        foreach ([$source, $target] as $host) {
+            try {
+                self::mountNfs($nfsShare, $checkMountPoint, $host);
 
-        $result = self::performCommand(
-            $sshPrefix . ' echo ok 2>&1',
-            $source,
-            $sshPrefixRedacted . ' echo ok 2>&1'
-        );
+                $write = trim(self::performCommand(
+                    'touch ' . escapeshellarg($checkFile) . ' && rm -f ' . escapeshellarg($checkFile) . ' && echo ok || echo fail',
+                    $host
+                )['output'] ?? '');
 
-        if (trim($result['output']) !== 'ok') {
-            throw new \Exception(
-                'Source host "' . $source->name . '" cannot reach target host "' . $target->name . '" ('
-                . explode('/', $target->ip_addr)[0] . ') via SSH using the target\'s stored credentials. '
-                . 'Output: ' . trim($result['output']) . (!empty($result['error']) ? ' | Error: ' . trim($result['error']) : '')
-            );
+                if ($write !== 'ok') {
+                    throw new \Exception(
+                        'NFS share ' . $nfsShare . ' is mounted on "' . $host->name . '" but not writable by root '
+                        . '(check the export options: rw and no_root_squash).'
+                    );
+                }
+            } finally {
+                self::performCommand(self::nfsUnmountCommand($checkMountPoint), $host);
+            }
         }
 
         $this->updateStep($migration, 'pre-flight-checks', 12, 'Pre-flight checks passed');
@@ -1755,32 +1739,6 @@ class LocalDiskMigrationService implements MigrationInterface
             . ($result['error'] ? ' | err: ' . trim($result['error']) : ''));
 
         return $result;
-    }
-
-    /**
-     * Builds an sshpass-wrapped `ssh` prefix authenticating to $target as root using its
-     * own stored ssh_password (the same credential this app already uses to reach it
-     * directly) — hypervisors aren't assumed to have passwordless key trust between them.
-     * Returns [realPrefix, redactedPrefix]; always use the redacted form for anything that
-     * gets logged or persisted (e.g. migration options), since the real one embeds the
-     * plaintext password.
-     *
-     * @return array{0: string, 1: string}
-     */
-    private static function crossHostSshPrefix(ComputeMembers $target): array
-    {
-        $targetIp = explode('/', $target->ip_addr)[0];
-        $password = decrypt($target->ssh_password);
-
-        $sshOpts = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10'
-            . ' -o PreferredAuthentications=password -o PubkeyAuthentication=no';
-
-        $real     = 'SSHPASS=' . escapeshellarg($password) . ' sshpass -e ssh ' . $sshOpts
-            . ' ' . escapeshellarg('root@' . $targetIp);
-        $redacted = 'SSHPASS=' . escapeshellarg('***') . ' sshpass -e ssh ' . $sshOpts
-            . ' ' . escapeshellarg('root@' . $targetIp);
-
-        return [$real, $redacted];
     }
 
     /** Idempotent: creates the mount point and mounts the share unless it is already mounted. */

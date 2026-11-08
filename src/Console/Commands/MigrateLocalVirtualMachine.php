@@ -163,6 +163,9 @@ class MigrateLocalVirtualMachine extends Command
         $migration = $this->resolveMigration();
         $service   = new LocalDiskMigrationService();
 
+        // Pre-flight test-mounts the NFS share, so it needs to know it.
+        $this->storeNfsShare($migration);
+
         $this->info('[Step 1] Running pre-flight checks (local disk)...');
         $service->preFlightChecks($migration);
 
@@ -612,7 +615,7 @@ class MigrateLocalVirtualMachine extends Command
         $this->table(['Step', 'Description'], [
             ['propose',          'Propose an evacuation plan (no DB changes)'],
             ['approve',          'Approve the plan and create a migration record'],
-            ['pre-flight',       'Verify SSH to both hosts, local SR paths, and cross-host SSH reachability'],
+            ['pre-flight',       'Verify SSH to both hosts, local SR paths, and that the shared NFS directory mounts and is writable on both'],
             ['collect-metadata', 'Collect VM, disk, and NIC metadata from source'],
             ['coalesce-vhd',     'Check snapshots, trigger SR scan, wait for flat VHD'],
             ['shutdown',         'Gracefully shut down the source VM'],
