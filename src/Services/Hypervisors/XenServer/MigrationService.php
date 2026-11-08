@@ -1490,6 +1490,12 @@ class MigrationService implements MigrationInterface
             ? $vm->features
             : (json_decode($vm->features ?? '{}', true) ?? []);
 
+        // The old VM is flagged as migrated out (billing cutoff, start blocked). Those markers describe the
+        // OLD VM only: if they were copied the new VM would be billed as ended and refuse to start. This
+        // also matters on a resumed run, where the old VM is already flagged when the clone is built.
+        $migratedOutKeys  = ['migrated_out_at', 'migrated_to_virtual_machine_uuid', 'migrated_out_migration_uuid'];
+        $existingFeatures = array_diff_key($existingFeatures, array_flip($migratedOutKeys));
+
         // Resume after a failed run: the new VM record may already exist (created by an earlier attempt of
         // this step). Reuse it instead of cloning a second VM; its disks/NICs are skipped below if present.
         $existingNewVm = VirtualMachines::withoutGlobalScopes()
@@ -1512,6 +1518,19 @@ class MigrationService implements MigrationInterface
                 'target_compute_member_uuid'   => $targetComputeMember->uuid,
             ]),
         ]));
+
+        // A new VM left by an earlier run may carry the old VM's migrated-out markers; remove them.
+        if ($existingNewVm) {
+            $newVmFeatures = is_array($newVm->features)
+                ? $newVm->features
+                : (json_decode($newVm->features ?? '{}', true) ?? []);
+
+            if (array_intersect_key($newVmFeatures, array_flip($migratedOutKeys))) {
+                $newVm->updateQuietly([
+                    'features' => array_diff_key($newVmFeatures, array_flip($migratedOutKeys)),
+                ]);
+            }
+        }
 
         Log::info(__METHOD__ . ' | Cloned VirtualMachine: new_id=' . $newVm->id
             . ', hypervisor_uuid=' . $newVmUuid);
