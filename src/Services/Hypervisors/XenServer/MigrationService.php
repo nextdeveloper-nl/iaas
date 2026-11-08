@@ -21,6 +21,7 @@ use NextDeveloper\IAAS\Services\Hypervisors\XenServer\AbstractXenService;
 use NextDeveloper\IAAS\Database\Models\IpAddresses;
 use NextDeveloper\IAAS\Services\Hypervisors\XenServer\VirtualNetworkCardsXenService;
 use NextDeveloper\IAAS\Services\IpAddressesService;
+use NextDeveloper\IAAS\Services\AbstractServices\AbstractVirtualDiskImagesService;
 use NextDeveloper\IAAS\Services\VirtualDiskImagesService;
 use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
@@ -1489,7 +1490,14 @@ class MigrationService implements MigrationInterface
             ? $vm->features
             : (json_decode($vm->features ?? '{}', true) ?? []);
 
-        $newVm = VirtualMachinesService::create(array_merge($vmFields, [
+        // Resume after a failed run: the new VM record may already exist (created by an earlier attempt of
+        // this step). Reuse it instead of cloning a second VM; its disks/NICs are skipped below if present.
+        $existingNewVm = VirtualMachines::withoutGlobalScopes()
+            ->where('hypervisor_uuid', $newVmUuid)
+            ->whereNull('deleted_at')
+            ->first();
+
+        $newVm = $existingNewVm ?? VirtualMachinesService::create(array_merge($vmFields, [
             'hypervisor_uuid'              => $newVmUuid,
             'iaas_compute_member_id'       => $migration->target_iaas_compute_member_id,
             'iaas_cloud_node_id'           => $targetCloudNode?->id,
@@ -1552,6 +1560,16 @@ class MigrationService implements MigrationInterface
 
             $newVdiUuid = $vdiUuidMap[$disk->hypervisor_uuid] ?? null;
 
+            // Resume after a failed run: this disk was already cloned onto the new VM.
+            if (VirtualDiskImages::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $newVm->id)
+                ->where('hypervisor_uuid', $newVdiUuid ?? $disk->hypervisor_uuid)
+                ->whereNull('deleted_at')
+                ->exists()) {
+                Log::info(__METHOD__ . ' | VirtualDiskImage id=' . $diskId . ' already cloned, skipping.');
+                continue;
+            }
+
             $diskFields = $disk->only([
                 'name', 'size', 'physical_utilisation', 'is_cdrom', 'is_draft',
                 'device_number',
@@ -1559,7 +1577,17 @@ class MigrationService implements MigrationInterface
                 'iam_account_id', 'iam_user_id',
             ]);
 
-            VirtualDiskImagesService::create(array_merge($diskFields, [
+            // The disk record describes a disk that already exists on the target, so it is created
+            // through the abstract service (plain create). VirtualDiskImagesService::create() is for
+            // deploying new disks: it looks the storage pool up by UUID (fails with the integer ids
+            // used here), overrides device_number and dispatches a Commit for the VM.
+            // The pool is the target volume's pool, not the source disk's.
+            $targetVolumeModel = StorageVolumes::withoutGlobalScope(AuthorizationScope::class)
+                ->where('id', $targetStorageVolume['id'])
+                ->first();
+
+            AbstractVirtualDiskImagesService::create(array_merge($diskFields, [
+                'iaas_storage_pool_id'    => $targetVolumeModel?->iaas_storage_pool_id ?? $disk->iaas_storage_pool_id,
                 'iaas_virtual_machine_id' => $newVm->id,
                 'iaas_storage_volume_id'  => $targetStorageVolume['id'],
                 'hypervisor_uuid'         => $newVdiUuid ?? $disk->hypervisor_uuid,
@@ -1612,6 +1640,16 @@ class MigrationService implements MigrationInterface
             }
 
             $vifParams = $vifParamsByDevice[$deviceNumber] ?? null;
+
+            // Resume after a failed run: this NIC (and its IP reassignment) was already done.
+            if (VirtualNetworkCards::withoutGlobalScope(AuthorizationScope::class)
+                ->where('iaas_virtual_machine_id', $newVm->id)
+                ->where('device_number', $nic->device_number)
+                ->whereNull('deleted_at')
+                ->exists()) {
+                Log::info(__METHOD__ . ' | VirtualNetworkCard id=' . $nicId . ' already cloned, skipping.');
+                continue;
+            }
 
             $nicFields = $nic->only([
                 'name', 'bandwidth_limit', 'device_number', 'is_draft', 'status',
