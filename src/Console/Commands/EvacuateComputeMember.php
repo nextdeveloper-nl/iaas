@@ -8,6 +8,8 @@ use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Services\Hypervisors\EvacuationService;
+use NextDeveloper\IAM\Database\Models\Accounts;
+use NextDeveloper\IAM\Database\Models\Users;
 use NextDeveloper\IAM\Database\Scopes\AuthorizationScope;
 use NextDeveloper\IAM\Helpers\UserHelper;
 
@@ -37,6 +39,9 @@ class EvacuateComputeMember extends Command
         {--target-id= : UUID of the ComputeMember that receives the VMs}
         {--nfs-share= : NFS share (server:/path) both hosts mount for local-disk VM exports (default: IAAS_MIGRATION_NFS_SHARE)}
         {--commands-only : Print only the artisan commands (infeasible VMs are emitted as comments)}';
+
+    /** @var array<string, string> Account / user labels already resolved, keyed by 'a:<id>' or 'u:<id>'. */
+    private array $labelCache = [];
 
     protected $description = 'Generate the commands to migrate all VMs from one compute member to another (shared disks stay shared, local disks stay local)';
 
@@ -80,7 +85,7 @@ class EvacuateComputeMember extends Command
             }
 
             if (!$plan['is_feasible']) {
-                $this->emitComment("NOT FEASIBLE {$vm->name} ({$vm->uuid}): " . implode(' | ', $plan['warnings']));
+                $this->emitComment("NOT FEASIBLE {$vm->name} ({$vm->uuid}) account=" . $this->accountLabel($vm->iam_account_id) . ": " . implode(' | ', $plan['warnings']));
                 continue;
             }
 
@@ -100,7 +105,11 @@ class EvacuateComputeMember extends Command
                 $nfsFlag = ' --nfs-share=' . escapeshellarg($nfsShare);
             }
 
-            $this->emitComment("{$vm->name} ({$vm->uuid}) status={$vm->status} disks={$storageKind}");
+            // Who the VM belongs to: the account, the account's responsible (its owner user) and the user
+            // that owns the VM itself, so the operator knows whom to warn before moving it.
+            $this->emitComment("{$vm->name} ({$vm->uuid}) status={$vm->status} disks={$storageKind}"
+                . " account=" . $this->accountLabel($vm->iam_account_id)
+                . " vm_user=" . $this->userLabel($vm->iam_user_id));
             // approve prompts for confirmation; --no-interaction accepts the default (yes).
             $this->line("php artisan {$command} --step=approve --vm-id={$vm->uuid} --target-id={$target->uuid}{$nfsFlag} --no-interaction");
             // The migration UUID only exists after approve, so it is printed by approve and used here.
@@ -194,6 +203,44 @@ class EvacuateComputeMember extends Command
         }
 
         return [$source, $target];
+    }
+
+    /** "Account name (responsible: Full Name <email>)" for an account id; cached per run. */
+    private function accountLabel(?int $accountId): string
+    {
+        if (!$accountId) {
+            return 'none';
+        }
+
+        return $this->labelCache['a:' . $accountId] ??= (function () use ($accountId) {
+            $account = Accounts::withoutGlobalScope(AuthorizationScope::class)->where('id', $accountId)->first();
+
+            if (!$account) {
+                return "#{$accountId}";
+            }
+
+            return "{$account->name} (responsible: " . $this->userLabel($account->iam_user_id) . ')';
+        })();
+    }
+
+    /** "Full Name <email>" for a user id; cached per run. */
+    private function userLabel(?int $userId): string
+    {
+        if (!$userId) {
+            return 'none';
+        }
+
+        return $this->labelCache['u:' . $userId] ??= (function () use ($userId) {
+            $user = Users::withoutGlobalScope(AuthorizationScope::class)->where('id', $userId)->first();
+
+            if (!$user) {
+                return "#{$userId}";
+            }
+
+            $name = trim($user->fullname ?: trim(($user->name ?? '') . ' ' . ($user->surname ?? '')));
+
+            return ($name !== '' ? $name : "#{$userId}") . ' <' . ($user->email ?? 'no email') . '>';
+        })();
     }
 
     /** Informational line; hidden in --commands-only mode so stdout stays a clean script. */
