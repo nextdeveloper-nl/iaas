@@ -117,7 +117,14 @@ class ScanVirtualMachines extends AbstractAction
 
             Log::info('[ScanVirtualMachines] Checking if the VM exists in database: ' . $vm['uuid']);
 
-            $dbVm = VirtualMachines::withoutGlobalScopes()->where('hypervisor_uuid', $vm['uuid'])->first();
+            // Not a plain where('hypervisor_uuid')->first(): a migrated VM has an old and a new row with the same uuid.
+            $dbVm = VirtualMachinesService::findForHostReport($vm['uuid'], $this->model);
+
+            if ($dbVm === false) {
+                Log::warning('[ScanVirtualMachines] Skipped ' . $vm['uuid'] . ' on ' . $this->model->name
+                    . ': only a migrated-out copy exists on another compute member (the imported copy is not recorded yet).');
+                continue;
+            }
 
             $computePool = ComputePools::withoutGlobalScopes()->where('id', $this->model->iaas_compute_pool_id)->first();
             $cloudNode  = CloudNodes::withoutGlobalScopes()->where('id', $computePool->iaas_cloud_node_id)->first();
@@ -194,6 +201,12 @@ class ScanVirtualMachines extends AbstractAction
                         StateHelper::setState($this->model, 'host_change_rename_error', 'true');
                     }
                 }
+            }
+
+            // The old copy of a migration is frozen: its disks and cards stay as the migration left them.
+            // Syncing them from this host's report would move the new VM's VIFs/VDIs onto the old row.
+            if (VirtualMachinesService::isMigratedOut($dbVm)) {
+                continue;
             }
 
             /**

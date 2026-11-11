@@ -15,6 +15,7 @@ use NextDeveloper\IAAS\Database\Models\StoragePools;
 use NextDeveloper\IAAS\Database\Models\StorageVolumes;
 use NextDeveloper\IAAS\Database\Models\VirtualDiskImages;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
+use NextDeveloper\IAAS\Services\VirtualMachinesService;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Services\StorageVolumesService;
 use NextDeveloper\IAAS\Services\VirtualNetworkCardsService;
@@ -69,6 +70,12 @@ class VirtualMachineAgentSyncService
                 continue;
             }
 
+            //  The old copy of a migration is frozen: its disks and cards stay as the migration left them.
+            //  Syncing them from this host's report would move the new VM's VIFs/VDIs onto the old row.
+            if (VirtualMachinesService::isMigratedOut($dbVm)) {
+                continue;
+            }
+
             self::syncVirtualMachineDisks($computeMember, $dbVm, $vmInfo);
             self::syncVirtualMachineNetworkCards($computeMember, $dbVm, $vmInfo);
         }
@@ -81,7 +88,15 @@ class VirtualMachineAgentSyncService
      */
     private static function syncVirtualMachineRecord(ComputeMembers $computeMember, array $vmInfo): ?VirtualMachines
     {
-        $dbVm = VirtualMachines::withoutGlobalScopes()->where('hypervisor_uuid', $vmInfo['uuid'])->first();
+        //  Not a plain where('hypervisor_uuid')->first(): a migrated VM has an old and a new row with the same uuid.
+        $dbVm = VirtualMachinesService::findForHostReport($vmInfo['uuid'], $computeMember);
+
+        if ($dbVm === false) {
+            Log::warning('[VirtualMachineAgentSyncService@syncVirtualMachineRecord] Skipped ' . $vmInfo['uuid'] . ' on ' . $computeMember->name .
+                ': only a migrated-out copy exists on another compute member (the imported copy is not recorded yet).');
+
+            return null;
+        }
 
         //  The uuid comes from the host. An existing row may only be adopted inside the member's
         //  own pool (a VM that moved between members of one pool keeps its uuid). A row that belongs

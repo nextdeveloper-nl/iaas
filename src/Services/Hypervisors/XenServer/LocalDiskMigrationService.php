@@ -525,7 +525,10 @@ class LocalDiskMigrationService implements MigrationInterface
             throw new \Exception('No disk metadata found. Run collectSourceMetadata before this step.');
         }
 
-        $maxAttempts    = 24;
+        // Default 1 = check once, no waiting: the XVA export copes with a parent chain, and a clone of a
+        // base image keeps its parent forever, so waiting would never help. Raise it to wait for a
+        // coalesce that is really in progress.
+        $maxAttempts    = max(1, (int) config('iaas.migration.coalesce_wait_attempts', 1));
         $coalescedDisks = [];
 
         foreach ($metadata['disks'] as $disk) {
@@ -611,6 +614,11 @@ class LocalDiskMigrationService implements MigrationInterface
                 if ($isFlat) {
                     Log::info(__METHOD__ . ' | VHD is flat: ' . $vhdPath);
                     $coalesced = true;
+                    break;
+                }
+
+                // Last attempt: do not sleep, fall through to the warning below.
+                if ($attempt === $maxAttempts - 1) {
                     break;
                 }
 
@@ -1304,6 +1312,8 @@ class LocalDiskMigrationService implements MigrationInterface
                     'migration_type'              => 'local-disk',
                     'migrated_at'                 => now()->toIso8601String(),
                     'source_virtual_machine_uuid' => $vm->uuid,
+                    // The guest keeps the old VM's cloud-init identity (see VirtualMachinesService::getCloudInstanceId).
+                    'cloud_instance_id'           => VirtualMachinesService::getCloudInstanceId($vm),
                     'source_compute_member_uuid'  => $sourceComputeMember->uuid,
                     'target_compute_member_uuid'  => $targetComputeMember->uuid,
                 ]),
@@ -1321,10 +1331,11 @@ class LocalDiskMigrationService implements MigrationInterface
                 ? $newVm->features
                 : (json_decode($newVm->features ?? '{}', true) ?? []);
 
-            if (array_intersect_key($newVmFeatures, array_flip($migratedOutKeys))) {
-                $newVm->updateQuietly([
-                    'features' => array_diff_key($newVmFeatures, array_flip($migratedOutKeys)),
-                ]);
+            $repairedFeatures = array_diff_key($newVmFeatures, array_flip($migratedOutKeys));
+            $repairedFeatures['cloud_instance_id'] ??= VirtualMachinesService::getCloudInstanceId($vm);
+
+            if ($repairedFeatures !== $newVmFeatures) {
+                $newVm->updateQuietly(['features' => $repairedFeatures]);
             }
         }
 
@@ -1576,6 +1587,10 @@ class LocalDiskMigrationService implements MigrationInterface
             ->firstOrFail();
 
         $vm->updateQuietly(['is_locked' => false]);
+
+        // The imported VM still has the OLD VM's config ISO in its CD drive (old uuid in agent.yaml), and Start
+        // leaves an inserted CD alone. Swap in this VM's own ISO first, so the guest agent reports as the new VM.
+        VirtualMachinesXenService::replaceConfigurationIso($vm);
 
         dispatch(new \NextDeveloper\IAAS\Actions\VirtualMachines\Start($vm));
 

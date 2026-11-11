@@ -568,6 +568,16 @@ class XenServer82SshDriver implements
 
             $dbVm = $this->syncVirtualMachineRecord($computeMember, $vm, $vmInfo);
 
+            if (!$dbVm) {
+                continue;
+            }
+
+            //  The old copy of a migration is frozen: its disks and cards stay as the migration left them.
+            //  Syncing them from this host's report would move the new VM's VIFs/VDIs onto the old row.
+            if (VirtualMachinesService::isMigratedOut($dbVm)) {
+                continue;
+            }
+
             $this->syncVirtualMachineDisks($computeMember, $dbVm);
             $this->syncVirtualMachineNetworkCards($computeMember, $dbVm);
         }
@@ -579,9 +589,17 @@ class XenServer82SshDriver implements
      * Upserts the VirtualMachines DB row for one hypervisor-reported VM (create if we've
      * never seen this hypervisor_uuid before, update otherwise).
      */
-    private function syncVirtualMachineRecord(ComputeMembers $computeMember, array $vm, array $vmInfo): VirtualMachines
+    private function syncVirtualMachineRecord(ComputeMembers $computeMember, array $vm, array $vmInfo): ?VirtualMachines
     {
-        $dbVm = VirtualMachines::withoutGlobalScopes()->where('hypervisor_uuid', $vm['uuid'])->first();
+        //  Not a plain where('hypervisor_uuid')->first(): a migrated VM has an old and a new row with the same uuid.
+        $dbVm = VirtualMachinesService::findForHostReport($vm['uuid'], $computeMember);
+
+        if ($dbVm === false) {
+            Log::warning('[XenServer82SshDriver@syncVirtualMachines] Skipped ' . $vm['uuid'] . ' on ' . $computeMember->name .
+                ': only a migrated-out copy exists on another compute member (the imported copy is not recorded yet).');
+
+            return null;
+        }
 
         $computePool = ComputePools::withoutGlobalScopes()->where('id', $computeMember->iaas_compute_pool_id)->first();
         $cloudNode = CloudNodes::withoutGlobalScopes()->where('id', $computePool->iaas_cloud_node_id)->first();

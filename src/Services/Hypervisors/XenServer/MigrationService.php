@@ -1523,6 +1523,8 @@ class MigrationService implements MigrationInterface
                 'migration_uuid'               => $migration->uuid,
                 'migrated_at'                  => now()->toIso8601String(),
                 'source_virtual_machine_uuid'  => $vm->uuid,
+                // The guest keeps the old VM's cloud-init identity (see VirtualMachinesService::getCloudInstanceId).
+                'cloud_instance_id'            => VirtualMachinesService::getCloudInstanceId($vm),
                 'source_compute_member_uuid'   => $sourceComputeMember->uuid,
                 'target_compute_member_uuid'   => $targetComputeMember->uuid,
             ]),
@@ -1539,10 +1541,11 @@ class MigrationService implements MigrationInterface
                 ? $newVm->features
                 : (json_decode($newVm->features ?? '{}', true) ?? []);
 
-            if (array_intersect_key($newVmFeatures, array_flip($migratedOutKeys))) {
-                $newVm->updateQuietly([
-                    'features' => array_diff_key($newVmFeatures, array_flip($migratedOutKeys)),
-                ]);
+            $repairedFeatures = array_diff_key($newVmFeatures, array_flip($migratedOutKeys));
+            $repairedFeatures['cloud_instance_id'] ??= VirtualMachinesService::getCloudInstanceId($vm);
+
+            if ($repairedFeatures !== $newVmFeatures) {
+                $newVm->updateQuietly(['features' => $repairedFeatures]);
             }
         }
 
@@ -1803,6 +1806,10 @@ class MigrationService implements MigrationInterface
         $vm = VirtualMachines::withoutGlobalScope(AuthorizationScope::class)
             ->where('id', $targetVmId)
             ->firstOrFail();
+
+        // The imported VM still has the OLD VM's config ISO in its CD drive (old uuid in agent.yaml), and Start
+        // leaves an inserted CD alone. Swap in this VM's own ISO first, so the guest agent reports as the new VM.
+        VirtualMachinesXenService::replaceConfigurationIso($vm);
 
         // ── Dispatch the Start action (handles cloud-init ISO + xe vm-start) ──
         dispatch(new \NextDeveloper\IAAS\Actions\VirtualMachines\Start($vm));

@@ -1217,6 +1217,65 @@ class VirtualMachinesService extends AbstractVirtualMachinesService
         return !empty($features['migrated_out_at']);
     }
 
+    /**
+     * The cloud-init instance-id of this VM. A migrated VM is a new row with a new uuid but the same guest
+     * disks, so cloud-init in the guest still knows the old id. The migration stamps that id into
+     * features.cloud_instance_id, and the config ISO keeps writing it: a different id would make cloud-init
+     * treat the VM as a new instance on its next boot (per-instance modules re-run, SSH host keys regenerate).
+     */
+    public static function getCloudInstanceId(VirtualMachines $vm): string
+    {
+        $features = is_array($vm->features)
+            ? $vm->features
+            : (json_decode($vm->features ?? '{}', true) ?? []);
+
+        return !empty($features['cloud_instance_id']) ? (string) $features['cloud_instance_id'] : $vm->uuid;
+    }
+
+    /**
+     * Picks the VirtualMachines row that a host's report of one VM uuid belongs to.
+     *
+     * A migration leaves two rows with the same hypervisor_uuid on purpose (xe vm-import --preserve keeps the
+     * uuid): the old copy (features.migrated_out_at) and the new one. The scans used to take
+     * where('hypervisor_uuid')->first(), which returned either one. On the old row the scan re-homed it to the
+     * new host, moved the new VM's VIFs and VDIs onto it and force-deleted the old row's own cards.
+     *
+     * Preference order:
+     *   1. a row on the reporting member itself: its live row, else its migrated-out row (the old VM left
+     *      on the source host reports the same uuid as the new VM, and must keep matching its own row)
+     *   2. a live row on another member (a VM that moved between members of one pool keeps its uuid)
+     *   3. a soft-deleted row, as before, so a VM deleted in the DB but still on the host is not duplicated
+     *
+     * Returns null when no row exists (the caller creates one) and false when the report must be skipped:
+     * only a migrated-out copy exists, on another member, so the report is the imported copy that sync-db
+     * has not recorded yet.
+     */
+    public static function findForHostReport(string $hypervisorUuid, ComputeMembers $computeMember): VirtualMachines|false|null
+    {
+        $rows = VirtualMachines::withoutGlobalScopes()
+            ->where('hypervisor_uuid', $hypervisorUuid)
+            ->orderByDesc('id')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return null;
+        }
+
+        $active = $rows->whereNull('deleted_at');
+
+        if ($active->isEmpty()) {
+            return $rows->first();
+        }
+
+        $here = $active->where('iaas_compute_member_id', $computeMember->id);
+
+        if ($here->isNotEmpty()) {
+            return $here->first(fn (VirtualMachines $vm) => !self::isMigratedOut($vm)) ?? $here->first();
+        }
+
+        return $active->first(fn (VirtualMachines $vm) => !self::isMigratedOut($vm)) ?? false;
+    }
+
     public static function fixHostname(VirtualMachines $vm)
     {
         if (!$vm->hostname) {

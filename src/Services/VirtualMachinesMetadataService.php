@@ -383,7 +383,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         }
 
         $data = [
-            'instance_id' => $vm->uuid,
+            'instance_id' => VirtualMachinesService::getCloudInstanceId($vm),
             'hostname'  =>  $vm->hostname,
             'manage_etc_hosts' => true,
             'ssh_pwauth' => true,
@@ -436,7 +436,7 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
         }
 
         $data = [
-            'instance_id'      => $vm->uuid,
+            'instance_id'      => VirtualMachinesService::getCloudInstanceId($vm),
             'hostname'         => $vm->hostname,
             'manage_etc_hosts' => true,
             'ssh_pwauth'       => true,

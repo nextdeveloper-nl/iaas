@@ -19,6 +19,7 @@ use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 use NextDeveloper\IAAS\Database\Models\VirtualNetworkCards;
 use NextDeveloper\IAAS\Exceptions\CannotConnectWithSshException;
 use NextDeveloper\IAAS\Services\RepositoriesService;
+use NextDeveloper\IAAS\Jobs\VirtualMachines\GenerateCloudInitImage;
 use NextDeveloper\IAAS\Services\RepositoryImagesService;
 use NextDeveloper\IAAS\Services\ToolkitService;
 use NextDeveloper\IAAS\Services\VirtualMachinesMetadataService;
@@ -471,6 +472,46 @@ class VirtualMachinesXenService extends AbstractXenService
         return false;
     }
 
+    /**
+     * Puts the VM's own configuration ISO (config-<vm uuid>.iso, the cidata drive that plusclouds.sh applies on
+     * every boot) into its CD drive, replacing whatever disc is inserted.
+     *
+     * A migrated VM arrives with the OLD VM's ISO in the drive. Its agent.yaml carries the old VM's uuid, so the
+     * in-guest agent keeps reporting as the old VM, and Start does not remount a CD that is already inserted.
+     * The ISO is rebuilt from this VM's row, so the agent comes up with this VM's uuid on the next boot.
+     *
+     * @return bool false when configuration ISOs are not enabled (nothing to do)
+     * @throws \Exception when the ISO cannot be generated or inserted, so the caller does not boot with the old one
+     */
+    public static function replaceConfigurationIso(VirtualMachines $vm): bool
+    {
+        if (!config('iaas.cloud-init.available')) {
+            return false;
+        }
+
+        //  Builds config-<vm uuid>.iso on the ISO repository from this row (the call Start and Commit use).
+        (new GenerateCloudInitImage($vm))->handle();
+
+        $image = RepositoryImagesService::getCloudInitImage($vm);
+
+        if (!$image) {
+            throw new \Exception('Configuration ISO config-' . $vm->uuid . '.iso was not found in the repository after generating it.');
+        }
+
+        //  mountCD/unmountCD address the VM by hypervisor_data['name-label']; a cloned row carries the old VM's.
+        $vm->updateQuietly(['hypervisor_data' => self::getVmParameters($vm)]);
+        $vm = $vm->fresh();
+
+        //  vm-cd-insert needs an empty drive. Ejecting an already empty drive is harmless.
+        self::unmountCD($vm);
+
+        if (!self::mountCD($vm->fresh(), $image, true)) {
+            throw new \Exception('Could not insert configuration ISO ' . $image->filename . ' into the CD drive of VM ' . $vm->uuid . '.');
+        }
+
+        return true;
+    }
+
     public static function unmountCD(VirtualMachines $vm)
     {
         if (config('leo.debug.iaas.compute_members'))
@@ -695,7 +736,7 @@ class VirtualMachinesXenService extends AbstractXenService
 
             $command .= $uploadConfig(
                 filename: 'meta-data',
-                content: base64_encode('instance-id: ' . $vm->uuid . "\n" . 'local-hostname: ' . $vm->hostname . "\n"),
+                content: base64_encode('instance-id: ' . VirtualMachinesService::getCloudInstanceId($vm) . "\n" . 'local-hostname: ' . $vm->hostname . "\n"),
                 vm: $vm,
                 centralRepo: $centralRepo
             );
