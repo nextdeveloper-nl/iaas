@@ -147,7 +147,9 @@ class Delete extends AbstractAction
             CommentsService::createSystemComment('We cannot delete the virtual machine. Please consult to your administrator.', $this->model);
             Events::fire('delete-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
             //  Close the action on delete failure, otherwise it stays stalled.
-            $this->setFinishedWithError('Cannot delete the virtual machine: ' . $e->getMessage());
+            //  Exception details go to the server log only; the user-visible action log gets a generic message.
+            Log::error(__METHOD__ . ' | Cannot delete virtual machine: ' . $e->getMessage());
+            $this->setFinishedWithError('Cannot delete the virtual machine.');
             return;
         }
 

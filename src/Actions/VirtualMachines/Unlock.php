@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -50,7 +51,9 @@ class Unlock extends AbstractAction
             ]);
         } catch (\Throwable $e) {
             Events::fire('unlock-failed:NextDeveloper\\IAAS\\VirtualMachines', $this->model);
-            $this->setFinishedWithError('Cannot unlock the virtual machine: ' . $e->getMessage());
+            //  Exception details go to the server log only; the user-visible action log gets a generic message.
+            Log::error(__METHOD__ . ' | Cannot unlock virtual machine: ' . $e->getMessage());
+            $this->setFinishedWithError('Cannot unlock the virtual machine.');
             return;
         }
 

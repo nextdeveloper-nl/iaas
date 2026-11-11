@@ -2,6 +2,7 @@
 
 namespace NextDeveloper\IAAS\Actions\VirtualMachines;
 
+use Illuminate\Support\Facades\Log;
 use NextDeveloper\Commons\Actions\AbstractAction;
 use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
@@ -50,7 +51,9 @@ class Lock extends AbstractAction
             ]);
         } catch (\Throwable $e) {
             Events::fire('lock-failed:NextDeveloper\\IAAS\\VirtualMachines', $this->model);
-            $this->setFinishedWithError('Cannot lock the virtual machine: ' . $e->getMessage());
+            //  Exception details go to the server log only; the user-visible action log gets a generic message.
+            Log::error(__METHOD__ . ' | Cannot lock virtual machine: ' . $e->getMessage());
+            $this->setFinishedWithError('Cannot lock the virtual machine.');
             return;
         }
 
