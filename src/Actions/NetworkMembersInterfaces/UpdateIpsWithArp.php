@@ -61,6 +61,9 @@ class UpdateIpsWithArp extends AbstractAction
             StateHelper::setState($this->model, 'switch_not_responded', 'We tried to get ' .
                 'the arp records for this switch but it didnt responded.', 'error');
 
+            //  Close the action, otherwise it stays stalled when the switch does not respond.
+            $this->setFinishedWithError('The switch did not respond with ARP records.');
+
             return;
         }
 

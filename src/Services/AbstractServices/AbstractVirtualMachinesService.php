@@ -123,7 +123,15 @@ class AbstractVirtualMachinesService
             $actionId = $action->getActionId();
 
             if(request()->get('fg') == 'true') {
-                $action->handle();
+                //  Foreground runs bypass the queue, so the queue's failed() hook never fires. Call it
+                //  ourselves so a thrown exception marks the action as failed instead of leaving it stalled.
+                try {
+                    $action->handle();
+                } catch (\Throwable $e) {
+                    $action->failed($e);
+                    throw $e;
+                }
+
                 return $actionId;
             }
 

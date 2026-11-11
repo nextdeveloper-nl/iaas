@@ -37,5 +37,8 @@ class Scan extends AbstractAction
 
             dispatch(new \NextDeveloper\IAAS\Actions\ComputeMembers\Scan($member));
         }
+
+        //  Action was never closed after dispatching the member scans, so it stayed stalled.
+        $this->setFinished('Compute member scans are dispatched.');
     }
 }

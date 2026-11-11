@@ -88,5 +88,8 @@ class DeleteOldBackups extends AbstractAction
             $b = VirtualMachineBackups::where('id', $backup->id)->first();
             dispatch(new DeleteVirtualMachineBackupJob($b));
         }
+
+        //  Action was never closed after dispatching the delete jobs, so it stayed stalled.
+        $this->setFinished('Old backups are queued for deletion.');
     }
 }

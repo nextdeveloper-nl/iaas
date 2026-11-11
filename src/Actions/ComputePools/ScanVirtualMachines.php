@@ -37,5 +37,8 @@ class ScanVirtualMachines extends AbstractAction
         foreach ($computeMembers as $member) {
             dispatch(new ScanComputeMemberVMs($member))->onQueue($this->queue);
         }
+
+        //  Action was never closed after dispatching the VM scans, so it stayed stalled.
+        $this->setFinished('Virtual machine scans are dispatched.');
     }
 }

@@ -7,13 +7,14 @@ use NextDeveloper\Events\Services\Events;
 use NextDeveloper\IAAS\Database\Models\VirtualMachines;
 
 /**
- * This action starts the Virtual Machine
+ * This action unlocks the Virtual Machine (sets is_locked to false)
  */
 class Unlock extends AbstractAction
 {
     public const EVENTS = [
-        'locking:NextDeveloper\IAAS\VirtualMachines',
-        'locked:NextDeveloper\IAAS\VirtualMachines',
+        'unlocking:NextDeveloper\IAAS\VirtualMachines',
+        'unlocked:NextDeveloper\IAAS\VirtualMachines',
+        'unlock-failed:NextDeveloper\IAAS\VirtualMachines',
     ];
 
     public function __construct(VirtualMachines $vm, $params = null, $previous = null)
@@ -22,7 +23,7 @@ class Unlock extends AbstractAction
 
         $this->queue = 'iaas';
 
-        parent::__construct($previous);
+        parent::__construct(null, $previous);
     }
 
     public function handle()
@@ -39,14 +40,23 @@ class Unlock extends AbstractAction
             return;
         }
 
-        Events::fire('locking:NextDeveloper\IAAS\VirtualMachines', $this->model);
+        Events::fire('unlocking:NextDeveloper\\IAAS\\VirtualMachines', $this->model);
 
-        $this->model->update([
-            'is_locked' => false
-        ]);
+        //  Any failure while updating the flag (observer/policy exception) used to leave the action
+        //  unfinished forever; now it is closed with an error so the panel does not wait on it.
+        try {
+            $this->model->update([
+                'is_locked' => false
+            ]);
+        } catch (\Throwable $e) {
+            Events::fire('unlock-failed:NextDeveloper\\IAAS\\VirtualMachines', $this->model);
+            $this->setFinishedWithError('Cannot unlock the virtual machine: ' . $e->getMessage());
+            return;
+        }
 
-        Events::fire('unlocked:NextDeveloper\IAAS\VirtualMachines', $this->model);
+        Events::fire('unlocked:NextDeveloper\\IAAS\\VirtualMachines', $this->model);
 
-        $this->setProgress(100, 'Virtual machine is unlocked');
+        //  Explicitly close the action on success.
+        $this->setFinished('Virtual machine is unlocked');
     }
 }

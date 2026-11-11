@@ -56,6 +56,8 @@ class Delete extends AbstractAction
         if (empty($this->model->id)) {
             Log::error(__METHOD__ . ' | Refusing to delete: virtual machine model has no id.');
             Events::fire('delete-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
+            //  Close the action so it does not stay stalled on this refusal.
+            $this->setFinishedWithError('Virtual machine has no id, refusing to delete.');
             return;
         }
 
@@ -144,6 +146,8 @@ class Delete extends AbstractAction
         } catch (\Exception $e) {
             CommentsService::createSystemComment('We cannot delete the virtual machine. Please consult to your administrator.', $this->model);
             Events::fire('delete-failed:NextDeveloper\IAAS\VirtualMachines', $this->model);
+            //  Close the action on delete failure, otherwise it stays stalled.
+            $this->setFinishedWithError('Cannot delete the virtual machine: ' . $e->getMessage());
             return;
         }
 
