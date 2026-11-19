@@ -136,6 +136,9 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
         $requestedDiskSize = ResourceCalculationHelper::getDiskInBytes($data['size']);
         $shouldResizeDisk = false;
 
+        //  The size before this request; the Resize action puts it back if the hypervisor resize fails (leo4#1028).
+        $previousDiskSize = $vdi->size;
+
         if($vdi->size != $requestedDiskSize) {
             $computePool = self::getComputePool($vdi);
 
@@ -171,7 +174,7 @@ class VirtualDiskImagesService extends AbstractVirtualDiskImagesService
         $vdi = parent::update($vdi->uuid, $data);
 
         if($shouldResizeDisk)
-            dispatch(new Resize($vdi));
+            dispatch(new Resize($vdi, ['previous_size' => $previousDiskSize]));
 
         return $vdi;
     }
