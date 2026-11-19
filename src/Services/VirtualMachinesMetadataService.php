@@ -177,6 +177,11 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
             'disk.resize',
             'cron.list',
             'agent.version',
+            //  Stash backup agent: lets the panel install and register it on the VM
+            //  (leo4: POST /leo/backup-agents/install-on-vm). VM agents older than the
+            //  release that added these simply do not advertise them.
+            'stash.install',
+            'stash.status',
         ];
 
         //  pfsense.* operations are only meaningful for pfSense CE gateway VMs - other
