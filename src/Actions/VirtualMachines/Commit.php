@@ -445,6 +445,27 @@ class Commit extends AbstractAction
                 ' should be an on-board volume in hypervisor. Also there can be another reasons, which are maybe ' .
                 'the storage volume is set to be not alive, which means we can be doomed! OR it is not set a sstorage');
 
+        //  Disk size check (leo4#526): refuse to deploy onto a storage volume that is smaller than the disk we are
+        //  about to create. The 'one' pool type always picks the hypervisor's local storage, which is often small,
+        //  so without this the import runs until the hypervisor runs out of space.
+        //  VirtualDiskImages->size is in bytes and StorageVolumes->free_hdd is in GB (same conversion as
+        //  EvacuationService).
+        if ($storageVolume && $vmDisk && (int) $vmDisk->size > 0) {
+            $diskSizeGb = (int) ceil($vmDisk->size / 1000 / 1000 / 1000);
+
+            if ((int) $storageVolume->free_hdd < $diskSizeGb) {
+                $message = 'There is not enough free space on the storage (' . $storageVolume->name . ') to create this '
+                    . 'server. Needed: ' . $diskSizeGb . ' GB, free: ' . (int) $storageVolume->free_hdd . ' GB. '
+                    . 'Please choose a smaller disk or contact support.';
+
+                Log::error(__METHOD__ . ' [' . $this->getActionId() . '] | ' . $message . ' VM: ' . $vm->uuid);
+                CommentsService::createSystemComment($message, $vm);
+
+                //  Stops the commit before anything is created on the hypervisor.
+                throw new \Exception($message);
+            }
+        }
+
         $vm->update([
             'iaas_compute_member_id' => $computeMember->id,
             'iaas_repository_image_id' => $machineImage->id
