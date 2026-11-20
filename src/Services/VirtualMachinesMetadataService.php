@@ -150,6 +150,25 @@ class VirtualMachinesMetadataService extends AbstractVirtualMachinesService
     }
 
     /**
+     * The metadata that goes onto a configuration ISO: getMetadata() plus whatever the
+     * registered service role enrichers add (see ServiceRoleEnrichers).
+     *
+     * Use this only where an ISO is actually built. An enricher may issue a one-time
+     * secret, so calling this to merely look at a machine's metadata would waste or
+     * rotate it; getMetadata() is the read-only view.
+     */
+    public static function getConfigurationIsoMetadata(VirtualMachines $vm) : array
+    {
+        $metadata = self::getMetadata($vm);
+
+        if (!empty($metadata['service_roles']) && is_array($metadata['service_roles'])) {
+            $metadata['service_roles'] = ServiceRoleEnrichers::apply($vm, $metadata['service_roles']);
+        }
+
+        return $metadata;
+    }
+
+    /**
      * Single source of truth for the PlusClouds agent's own config (agent.yaml on the
      * config ISO). NATS endpoints are pulled from the same config the platform's own
      * NatsService uses, so the agent can never drift from what the platform connects to.
