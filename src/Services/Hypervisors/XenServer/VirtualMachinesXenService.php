@@ -668,7 +668,9 @@ class VirtualMachinesXenService extends AbstractXenService
         $centralRepo = RepositoriesService::getIsoRepoForVirtualMachine($vm);
 
         if ($centralRepo) {
-            $metadata = VirtualMachinesService::getMetadata($vm);
+            //  Service roles only exist in the Linux playbook, so this is the one
+            //  place the service role enrichers run (the Windows ISO does not).
+            $metadata = VirtualMachinesMetadataService::getConfigurationIsoMetadata($vm);
             $includeEnvVars = !empty($metadata['env_vars']);
             $includeSshKeys = !empty($metadata['ssh_keys']);
             $serviceRoleNames = array_keys(array_filter(
