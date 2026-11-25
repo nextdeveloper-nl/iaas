@@ -69,7 +69,13 @@ class CloudSalesPerson extends AbstractRole implements IAuthorizationRole, RoleT
      */
     public function checkCreatePolicy(Users $user, Model $model): bool
     {
-        return (new CloudResourceOwner())->checkCreatePolicy($user, $model);
+        //  Delegate only when the user really holds cloud-resource-owner; a sales person without it gets the
+        //  default (read-only) policy, so this role alone never grants create rights.
+        if (UserHelper::hasRole(CloudResourceOwner::NAME, $user)) {
+            return (new CloudResourceOwner())->checkCreatePolicy($user, $model);
+        }
+
+        return parent::checkCreatePolicy($user, $model);
     }
 
     public function checkUpdatePolicy(Model $model, Users $user): bool
