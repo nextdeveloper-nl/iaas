@@ -61,6 +61,17 @@ class CloudSalesPerson extends AbstractRole implements IAuthorizationRole, RoleT
         }
     }
 
+    /**
+     * Create (and restore) delegate to CloudResourceOwner, like update/delete below.
+     * Roles are resolved by level asc, so this role (140) wins over cloud-resource-owner (150) for every
+     * iaas_* table. Without this, a user holding both roles was denied "iaas_virtual_machines:create"
+     * ("You are not allowed to save this record") on /virtual-machines/create-wizard.
+     */
+    public function checkCreatePolicy(Users $user, Model $model): bool
+    {
+        return (new CloudResourceOwner())->checkCreatePolicy($user, $model);
+    }
+
     public function checkUpdatePolicy(Model $model, Users $user): bool
     {
         return (new CloudResourceOwner())->checkUpdatePolicy($model, $user);
