@@ -25,6 +25,7 @@ class CheckEligibility
                 return response()->json([
                     'errors' => [
                         'status'    => 403,
+                        'code'      => 'owner_profile_not_verified',
                         'message'   => 'Cannot use infrastructure without a validated profile.',
                         'details'   => 'Due to laws and regulations, to use infrastructure services you should have a validated user.'
                     ],
